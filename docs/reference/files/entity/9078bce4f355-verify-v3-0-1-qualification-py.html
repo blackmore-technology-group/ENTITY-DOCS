@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/verify_v3_0_1_qualification.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/verify_v3_0_1_qualification.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/verify_v3_0_1_qualification.py</code></p><p><b>SHA-256:</b> <code>55a961295dfc48fa10a677be107849d89b72e26a6bc31f8f4e7541f33abd06cb</code></p><p><b>Bytes:</b> 1,986</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/verify_v3_0_1_qualification.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-bbb4d93bd2ed.html">load</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import json,pathlib,sys
+R=pathlib.Path(__file__).resolve().parents[1]
+def load(name): return json.loads((R/name).read_text(encoding=&#x27;utf-8-sig&#x27;))
+checks={}
+q=load(&#x27;docs/qualification/ENTITY_V3_0_1_RELEASE_QUALIFICATION_2026-09-23.json&#x27;)
+checks[&#x27;qualification_status&#x27;]=q.get(&#x27;status&#x27;)==&#x27;BTG_INTERNAL_QUALIFIED_MAINTENANCE_RELEASE&#x27;
+checks[&#x27;regression&#x27;]=q.get(&#x27;metrics&#x27;,{}).get(&#x27;regression&#x27;)=={&#x27;passed&#x27;:94,&#x27;total&#x27;:94}
+p=load(&#x27;docs/qualification/ENTITY_V3_BTG_POLYGLOT_QUALIFICATION_2026-09-23.json&#x27;)
+checks[&#x27;polyglot&#x27;]=p.get(&#x27;status&#x27;)==&#x27;PASS&#x27; and len(p.get(&#x27;implementations&#x27;,{}))==5 and p.get(&#x27;cross_language_state_agreement&#x27;) and p.get(&#x27;cross_language_recovery_agreement&#x27;) and p.get(&#x27;cross_language_result_agreement&#x27;)
+k=load(&#x27;docs/qualification/ENTITY_V3_INTERNAL_KEY_LIFECYCLE_CRYPTO_ASSURANCE_2026-09-23.json&#x27;)
+c=load(&#x27;docs/qualification/ENTITY_V3_INTERNAL_CRYPTO_ASSURANCE_2026-09-23.json&#x27;)
+pr=load(&#x27;docs/qualification/ENTITY_V3_INTERNAL_PRIVACY_CRYPTO_ASSURANCE_2026-09-23.json&#x27;)
+checks[&#x27;crypto&#x27;]=k.get(&#x27;pass&#x27;) is True and c.get(&#x27;pass&#x27;) is True and pr.get(&#x27;pass&#x27;) is True
+s=load(&#x27;docs/qualification/ENTITY_V3_INTERNAL_PRODUCTION_SCALE_2026-09-23.json&#x27;)
+m=load(&#x27;docs/qualification/ENTITY_V3_INTERNAL_MARKET_SCALE_QUALIFICATION_2026-09-23.json&#x27;)
+o=load(&#x27;docs/qualification/ENTITY_V3_INTERNAL_OPERATIONAL_SOAK_2026-09-23.json&#x27;)
+checks[&#x27;scale&#x27;]=s.get(&#x27;pass&#x27;) is True and s.get(&#x27;assets&#x27;)==1000000 and s.get(&#x27;events&#x27;)==3000000 and s.get(&#x27;destructive_restore_verified&#x27;) is True
+checks[&#x27;market&#x27;]=m.get(&#x27;pass&#x27;) is True and m.get(&#x27;total_fully_settled_trades&#x27;,0)&gt;=4000
+checks[&#x27;soak&#x27;]=o.get(&#x27;pass&#x27;) is True and o.get(&#x27;target_total_wall_seconds&#x27;,0)&gt;=900
+reg=load(&#x27;docs/compliance/ENTITY_V3_REGULATORY_ENGINEERING_MATRIX_2026-09-23.json&#x27;)
+checks[&#x27;regulatory_engineering&#x27;]=reg.get(&#x27;status&#x27;)==&#x27;INTERNAL_ENGINEERING_MAPPING_COMPLETE&#x27;
+print(json.dumps({&#x27;pass&#x27;:all(checks.values()),&#x27;checks&#x27;:checks},indent=2,sort_keys=True))
+sys.exit(0 if all(checks.values()) else 2)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

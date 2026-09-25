@@ -1,0 +1,49 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/verify_v3_3_reality_release.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/verify_v3_3_reality_release.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/verify_v3_3_reality_release.py</code></p><p><b>SHA-256:</b> <code>7f46e4c592882146b251a27c22d9ce0b36e19f5e53dceb26271a464ba5b87657</code></p><p><b>Bytes:</b> 2,763</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/verify_v3_3_reality_release.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/sha-file-1e5861269156.html">sha_file</a></li><li><a href="../../../reference/symbols/entity/canonical-0edb80a5bc53.html">canonical</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, importlib.util, json, pathlib, sys
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+SRC = ROOT / &quot;src&quot; / &quot;37_Verifiable_Reality&quot;
+KIT_PATH = ROOT / &quot;protocol&quot; / &quot;v3&quot; / &quot;ENTITY_V3_3_REALITY_CLEANROOM_KIT.min.json&quot;
+SCHEMA_PATH = ROOT / &quot;protocol&quot; / &quot;v3&quot; / &quot;ENTITY_VERIFIABLE_REALITY.schema.json&quot;
+EXPECTED_KIT_SHA256 = &quot;f8b39ee01fb7346f33a57530e925b545d2bf9a770c7ec60724e28a4971d55a46&quot;
+EXPECTED_SCHEMA_SHA256 = &quot;6e1c7e621e0aa84627e009febf8999503b7a61f92627b885ed10a19f2ef7d767&quot;
+EXPECTED_RESULT_SHA256 = &quot;82bd1f1fb328edd37a26d8ea60ede5a599c7d9af5027bffd73b9e52843b5a51d&quot;
+
+def sha_file(path: pathlib.Path) -&gt; str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def canonical(value) -&gt; bytes:
+    return json.dumps(value, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False).encode(&quot;utf-8&quot;)
+
+errors=[]
+if sha_file(KIT_PATH) != EXPECTED_KIT_SHA256:
+    errors.append(&quot;kit_sha256&quot;)
+if sha_file(SCHEMA_PATH) != EXPECTED_SCHEMA_SHA256:
+    errors.append(&quot;schema_sha256&quot;)
+kit=json.loads(KIT_PATH.read_text(encoding=&quot;utf-8&quot;))
+if kit.get(&quot;version&quot;) != &quot;3.3.0&quot; or kit.get(&quot;base_release&quot;) != &quot;v3.2.0&quot;:
+    errors.append(&quot;kit_version_or_base&quot;)
+if kit.get(&quot;valid_vectors&quot;) != 10 or kit.get(&quot;invalid_vectors&quot;) != 10 or len(kit.get(&quot;cases&quot;, [])) != 20:
+    errors.append(&quot;vector_counts&quot;)
+if kit.get(&quot;expected_result_sha256&quot;) != EXPECTED_RESULT_SHA256:
+    errors.append(&quot;kit_expected_result&quot;)
+if kit.get(&quot;schema_sha256&quot;) != EXPECTED_SCHEMA_SHA256:
+    errors.append(&quot;kit_schema_commitment&quot;)
+
+spec=importlib.util.spec_from_file_location(&quot;reality_profile&quot;, SRC/&quot;reality_profile.py&quot;)
+profile=importlib.util.module_from_spec(spec); sys.modules[&quot;reality_profile&quot;]=profile; spec.loader.exec_module(profile)
+spec=importlib.util.spec_from_file_location(&quot;reality_conformance&quot;, SRC/&quot;reality_conformance.py&quot;)
+conf=importlib.util.module_from_spec(spec); sys.modules[&quot;reality_conformance&quot;]=conf; spec.loader.exec_module(conf)
+transcript=[]
+for case in kit.get(&quot;cases&quot;, []):
+    actual=&quot;VALID&quot; if conf.validate_reality_record(case.get(&quot;record&quot;)) else &quot;INVALID&quot;
+    if actual != case.get(&quot;expect&quot;):
+        errors.append(f&quot;case:{case.get(&#x27;id&#x27;)}:{actual}&quot;)
+    transcript.append({&quot;id&quot;:case.get(&quot;id&quot;),&quot;actual&quot;:actual})
+result_hash=hashlib.sha256(canonical(transcript)).hexdigest()
+if result_hash != EXPECTED_RESULT_SHA256:
+    errors.append(f&quot;result_sha256:{result_hash}&quot;)
+
+result={&quot;valid&quot;:not errors,&quot;version&quot;:&quot;3.3.0&quot;,&quot;vectors&quot;:len(transcript),&quot;valid_vectors&quot;:kit.get(&quot;valid_vectors&quot;),&quot;invalid_vectors&quot;:kit.get(&quot;invalid_vectors&quot;),&quot;kit_sha256&quot;:sha_file(KIT_PATH),&quot;schema_sha256&quot;:sha_file(SCHEMA_PATH),&quot;result_sha256&quot;:result_hash,&quot;errors&quot;:errors}
+print(json.dumps(result,indent=2,sort_keys=True))
+sys.exit(0 if not errors else 2)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,58 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>StatusTimeProfile Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>StatusTimeProfile</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/governance_privacy.py#L94">ENTITY/src/31_Profiles/governance_privacy.py#L94</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Signed time/status objects with deterministic stale and revocation behaviour.</p><h2>Source excerpt</h2><pre><code>class StatusTimeProfile:
+    &quot;&quot;&quot;Signed time/status objects with deterministic stale and revocation behaviour.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_status_time.sqlite&quot;; self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS statuses(
+                status_id TEXT PRIMARY KEY, subject_ref TEXT NOT NULL, issuer TEXT NOT NULL,
+                state TEXT NOT NULL, epoch INTEGER NOT NULL, effective_at_ms INTEGER NOT NULL,
+                expires_at_ms INTEGER NOT NULL, stale_policy TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+
+    def timestamp(self, authority: str, payload_sha256: str, *, uncertainty_ms=0) -&gt; dict:
+        body = {&quot;schema&quot;: &quot;entity-v3-time-attestation-v1&quot;, &quot;authority_entity_id&quot;: authority,
+                &quot;payload_sha256&quot;: payload_sha256, &quot;timestamp_ms&quot;: now_ms(),
+                &quot;uncertainty_ms&quot;: max(0, int(uncertainty_ms))}
+        return dict(body, signature=self.identity.sign(authority, body))
+
+    def publish_status(self, issuer: str, subject_ref: str, state: str, *, epoch: int,
+                       ttl_ms: int, stale_policy=&quot;FAIL_CLOSED&quot;, effective_at_ms=None) -&gt; dict:
+        state, stale_policy = state.upper(), stale_policy.upper()
+        if state not in {&quot;ACTIVE&quot;, &quot;SUSPENDED&quot;, &quot;REVOKED&quot;, &quot;COMPROMISED&quot;, &quot;RETIRED&quot;}:
+            raise ValueError(&quot;invalid status&quot;)
+        if stale_policy not in {&quot;FAIL_CLOSED&quot;, &quot;READ_ONLY_GRACE&quot;, &quot;ALLOW_UNTIL_EXPIRY&quot;}:
+            raise ValueError(&quot;invalid stale policy&quot;)
+        effective = int(effective_at_ms or now_ms()); expires = effective + max(1, int(ttl_ms))
+        with sqlite3.connect(self.path) as db:
+            latest = db.execute(&quot;SELECT COALESCE(MAX(epoch),-1) FROM statuses WHERE subject_ref=?&quot;,
+                                (subject_ref,)).fetchone()[0]
+            if int(epoch) &lt;= int(latest): raise ValueError(&quot;status epoch must increase&quot;)
+        body = {&quot;schema&quot;: &quot;entity-v3-status-v1&quot;, &quot;status_id&quot;: rid(&quot;status3&quot;),
+                &quot;subject_ref&quot;: subject_ref, &quot;issuer&quot;: issuer, &quot;state&quot;: state, &quot;epoch&quot;: int(epoch),
+                &quot;effective_at_ms&quot;: effective, &quot;expires_at_ms&quot;: expires, &quot;stale_policy&quot;: stale_policy,
+                &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(issuer, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO statuses VALUES(?,?,?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;status_id&quot;], subject_ref, issuer, state, int(epoch), effective, expires,
+                stale_policy, body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)
+
+    def evaluate(self, subject_ref: str, *, at_ms=None) -&gt; dict:
+        at = int(at_ms or now_ms())
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            row = db.execute(&quot;SELECT * FROM statuses WHERE subject_ref=? AND effective_at_ms&lt;=? &quot;
+                             &quot;ORDER BY epoch DESC LIMIT 1&quot;, (subject_ref, at)).fetchone()
+        if not row: return {&quot;subject_ref&quot;: subject_ref, &quot;decision&quot;: &quot;DENY&quot;, &quot;reason&quot;: &quot;NO_STATUS&quot;}
+        stale = at &gt; int(row[&quot;expires_at_ms&quot;]); state = row[&quot;state&quot;]
+        if state in {&quot;REVOKED&quot;, &quot;COMPROMISED&quot;}:
+            decision = &quot;DENY&quot;
+        elif stale and row[&quot;stale_policy&quot;] == &quot;FAIL_CLOSED&quot;:
+            decision = &quot;DENY&quot;
+        elif stale and row[&quot;stale_policy&quot;] == &quot;READ_ONLY_GRACE&quot;:
+            decision = &quot;READ_ONLY&quot;
+        else:
+            decision = &quot;ALLOW&quot;
+        return {&quot;subject_ref&quot;: subject_ref, &quot;state&quot;: state, &quot;epoch&quot;: row[&quot;epoch&quot;],
+                &quot;stale&quot;: stale, &quot;stale_policy&quot;: row[&quot;stale_policy&quot;], &quot;decision&quot;: decision}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

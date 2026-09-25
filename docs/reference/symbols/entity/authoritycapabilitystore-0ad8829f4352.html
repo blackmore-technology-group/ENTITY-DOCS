@@ -1,0 +1,63 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AuthorityCapabilityStore Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>AuthorityCapabilityStore</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/permissions/canonical_permissions.py#L11">ENTITY/src/01_Core_Runtime/permissions/canonical_permissions.py#L11</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Least-privilege agent delegation and approval evidence; fail closed on expiry/revocation/scope mismatch.</p><h2>Source excerpt</h2><pre><code>class AuthorityCapabilityStore:
+    &quot;&quot;&quot;Least-privilege agent delegation and approval evidence; fail closed on expiry/revocation/scope mismatch.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path,identity):
+        self.root=Path(state_dir)/&quot;authority&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;capabilities.sqlite&quot;; self.identity=identity; self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS capabilities(capability_id TEXT PRIMARY KEY,grantor_entity_id TEXT NOT NULL,agent_id TEXT NOT NULL,operations_json TEXT NOT NULL,asset_scope_json TEXT NOT NULL,counterparty_scope_json TEXT NOT NULL,financial_limit REAL,expires_at_ms INTEGER,approval_required INTEGER NOT NULL,delegation_allowed INTEGER NOT NULL,status TEXT NOT NULL,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,revoked_at_ms INTEGER)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS approvals(approval_id TEXT PRIMARY KEY,capability_id TEXT NOT NULL,approver_entity_id TEXT NOT NULL,operation TEXT NOT NULL,object_ref TEXT,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+    def grant(self,grantor_entity_id: str,agent_id: str,*,operations: list[str],asset_scope: list[str]|None=None,counterparty_scope: list[str]|None=None,financial_limit: float|None=None,expires_at_ms: int|None=None,approval_required: bool=False,delegation_allowed: bool=False) -&gt; dict:
+        ops=sorted({str(x).strip().upper() for x in operations if str(x).strip()})
+        if not ops: raise ValueError(&quot;at least one operation required&quot;)
+        capability_id=_id(&quot;cap1&quot;); now=_now(); assets=sorted({str(x) for x in (asset_scope or [])}); parties=sorted({str(x) for x in (counterparty_scope or [])})
+        body={&quot;schema&quot;:&quot;entity-agent-capability-v1&quot;,&quot;capability_id&quot;:capability_id,&quot;grantor_entity_id&quot;:grantor_entity_id,&quot;agent_id&quot;:str(agent_id),&quot;operations&quot;:ops,&quot;asset_scope&quot;:assets,&quot;counterparty_scope&quot;:parties,&quot;financial_limit&quot;:financial_limit,&quot;expires_at_ms&quot;:expires_at_ms,&quot;approval_required&quot;:bool(approval_required),&quot;delegation_allowed&quot;:bool(delegation_allowed),&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now}
+        sig=self.identity.sign(grantor_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO capabilities VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(capability_id,grantor_entity_id,str(agent_id),json.dumps(ops),json.dumps(assets),json.dumps(parties),financial_limit,expires_at_ms,int(approval_required),int(delegation_allowed),&quot;ACTIVE&quot;,json.dumps(sig,sort_keys=True),now,None))
+        return dict(body,signature=sig)
+
+    def revoke(self,grantor_entity_id: str,capability_id: str) -&gt; dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM capabilities WHERE capability_id=?&quot;,(capability_id,)).fetchone()
+        if not row: raise KeyError(&quot;capability not found&quot;)
+        if row[&quot;grantor_entity_id&quot;]!=grantor_entity_id: raise PermissionError(&quot;capability grantor mismatch&quot;)
+        now=_now()
+        with self._connect() as db: db.execute(&quot;UPDATE capabilities SET status=&#x27;REVOKED&#x27;,revoked_at_ms=? WHERE capability_id=?&quot;,(now,capability_id))
+        return {&quot;capability_id&quot;:capability_id,&quot;status&quot;:&quot;REVOKED&quot;,&quot;revoked_at_ms&quot;:now}
+
+    def approve(self,approver_entity_id: str,capability_id: str,operation: str,object_ref: str|None=None) -&gt; dict:
+        approval_id=_id(&quot;apr1&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-approval-v1&quot;,&quot;approval_id&quot;:approval_id,&quot;capability_id&quot;:capability_id,&quot;approver_entity_id&quot;:approver_entity_id,&quot;operation&quot;:str(operation).upper(),&quot;object_ref&quot;:object_ref,&quot;created_at_ms&quot;:now}
+        sig=self.identity.sign(approver_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO approvals VALUES(?,?,?,?,?,?,?)&quot;,(approval_id,capability_id,approver_entity_id,body[&quot;operation&quot;],object_ref,json.dumps(sig,sort_keys=True),now))
+        return dict(body,signature=sig)
+
+    def authorize(self,capability_id: str,agent_id: str,operation: str,*,asset_id: str|None=None,counterparty_id: str|None=None,amount: float|None=None,object_ref: str|None=None) -&gt; dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM capabilities WHERE capability_id=?&quot;,(capability_id,)).fetchone()
+        if not row: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;capability_not_found&quot;}
+        if row[&quot;status&quot;]!=&quot;ACTIVE&quot;: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;capability_not_active&quot;}
+        if row[&quot;agent_id&quot;]!=str(agent_id): return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;agent_mismatch&quot;}
+        if row[&quot;expires_at_ms&quot;] is not None and int(row[&quot;expires_at_ms&quot;])&lt;_now(): return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;capability_expired&quot;}
+        op=str(operation).upper(); ops=set(json.loads(row[&quot;operations_json&quot;]))
+        if op not in ops: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;operation_not_granted&quot;}
+        assets=set(json.loads(row[&quot;asset_scope_json&quot;])); parties=set(json.loads(row[&quot;counterparty_scope_json&quot;]))
+        if assets and asset_id not in assets: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;asset_out_of_scope&quot;}
+        if parties and counterparty_id not in parties: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;counterparty_out_of_scope&quot;}
+        if amount is not None and row[&quot;financial_limit&quot;] is not None and float(amount)&gt;float(row[&quot;financial_limit&quot;]): return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;financial_limit_exceeded&quot;}
+        if bool(row[&quot;approval_required&quot;]):
+            with self._connect() as db: approval=db.execute(&quot;SELECT 1 FROM approvals WHERE capability_id=? AND operation=? AND (? IS NULL OR object_ref=?) ORDER BY created_at_ms DESC LIMIT 1&quot;,(capability_id,op,object_ref,object_ref)).fetchone()
+            if not approval: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;approval_required&quot;}
+        return {&quot;allowed&quot;:True,&quot;capability_id&quot;:capability_id,&quot;grantor_entity_id&quot;:row[&quot;grantor_entity_id&quot;],&quot;agent_id&quot;:row[&quot;agent_id&quot;],&quot;operation&quot;:op}
+
+    def status(self) -&gt; dict:
+        with self._connect() as db:
+            active=db.execute(&quot;SELECT COUNT(*) FROM capabilities WHERE status=&#x27;ACTIVE&#x27;&quot;).fetchone()[0]
+            approvals=db.execute(&quot;SELECT COUNT(*) FROM approvals&quot;).fetchone()[0]
+        return {&quot;ready&quot;:True,&quot;least_privilege&quot;:True,&quot;fail_closed&quot;:True,&quot;active_capabilities&quot;:int(active),&quot;approvals&quot;:int(approvals),&quot;database&quot;:str(self.path)}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

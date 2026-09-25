@@ -1,0 +1,69 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PublicContractTests.test_principal_bound_hash_only_flow Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>PublicContractTests.test_principal_bound_hash_only_flow</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_public_contract.py#L23">ENTITY/tests/test_public_contract.py#L23</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>PublicContractTests.test_principal_bound_hash_only_flow(self)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def test_principal_bound_hash_only_flow(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            sdk = simple_mod.SimpleEntitySDK(tmp)
+
+            principal = sdk.create_entity(
+                &quot;Example Principal&quot;,
+                entity_type=&quot;person&quot;,
+                alias=&quot;example.principal.entity&quot;,
+            )
+            device = sdk.create_entity(
+                &quot;Example Device&quot;,
+                entity_type=&quot;system&quot;,
+                alias=&quot;example.device.entity&quot;,
+            )
+            app = sdk.create_application(
+                &quot;Example Application&quot;,
+                &quot;example.application.entity&quot;,
+                controller_entity_id=principal[&quot;entity_id&quot;],
+            )
+
+            binding = sdk.pair_device(
+                principal_entity_id=principal[&quot;entity_id&quot;],
+                application_entity_id=app[&quot;application_entity_id&quot;],
+                device_entity_id=device[&quot;entity_id&quot;],
+                display_name=&quot;Example Application Installation&quot;,
+                alias=&quot;example.application.installation.entity&quot;,
+            )
+
+            verified = sdk.verify_pairing(binding)
+            self.assertTrue(verified[&quot;valid&quot;])
+            self.assertEqual(verified[&quot;principal_entity_id&quot;], principal[&quot;entity_id&quot;])
+
+            digest = hashlib.sha256(b&quot;synthetic public example&quot;).hexdigest()
+            asset = sdk.register_asset(
+                binding,
+                content_sha256=digest,
+                size_bytes=24,
+                media_type=&quot;application/octet-stream&quot;,
+                title=&quot;Synthetic public example&quot;,
+                asset_kind=&quot;DATA&quot;,
+                source_subject_ref=principal[&quot;entity_id&quot;],
+                metadata={&quot;test&quot;: True},
+            )
+            self.assertFalse(asset[&quot;ownership_not_inferred&quot;] is False)
+            self.assertFalse(asset[&quot;economic_value_not_inferred&quot;] is False)
+            self.assertFalse(asset[&quot;raw_content_stored&quot;])
+
+            event = sdk.record_event(
+                binding,
+                event_type=&quot;data.example.mutation&quot;,
+                payload_sha256=hashlib.sha256(b&quot;synthetic event&quot;).hexdigest(),
+                subject_ids=[principal[&quot;entity_id&quot;]],
+            )
+            self.assertTrue(event[&quot;non_authoritative_application_event&quot;])
+            self.assertFalse(event[&quot;rights_state_mutated&quot;])
+            self.assertFalse(event[&quot;economic_state_mutated&quot;])
+
+            with self.assertRaises(PermissionError):
+                sdk.record_event(
+                    binding,
+                    event_type=&quot;payment.recorded&quot;,
+                    payload_sha256=hashlib.sha256(b&quot;forbidden&quot;).hexdigest(),
+                )
+
+            export_dir = pathlib.Path(tmp) / &quot;portable_export&quot;
+            sdk.export_entity(principal[&quot;entity_id&quot;], export_dir)
+            export_check = sdk.verify_export(export_dir)
+            self.assertTrue(export_check[&quot;valid&quot;])
+            self.assertTrue(export_check[&quot;provider_independent&quot;])</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

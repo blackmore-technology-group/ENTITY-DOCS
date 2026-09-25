@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityIdentityVault.recover_signing_key Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityIdentityVault.recover_signing_key</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/identity/canonical_identity.py#L241">ENTITY/src/01_Core_Runtime/identity/canonical_identity.py#L241</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EntityIdentityVault.recover_signing_key(self, entity_id: str)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def recover_signing_key(self, entity_id: str) -&gt; dict:
+        manifest=self.load_manifest(entity_id)
+        if manifest.get(&quot;schema&quot;) != &quot;sovereign-entity-manifest-v2&quot;: raise RuntimeError(&quot;legacy ent1 identity must be migrated before recovery&quot;)
+        authorities=list((manifest.get(&quot;recovery_policy&quot;) or {}).get(&quot;authorities&quot;) or [])
+        if not authorities: raise RuntimeError(&quot;no recovery authority configured&quot;)
+        recovery_id=str(authorities[0]); recovery_method=self._method(manifest,recovery_id)
+        if not recovery_method or recovery_method.get(&quot;status&quot;)!=&quot;active&quot; or &quot;recovery&quot; not in set(recovery_method.get(&quot;purpose&quot;) or []): raise RuntimeError(&quot;active recovery authority unavailable&quot;)
+        recovery_key=Ed25519PrivateKey.from_private_bytes(self._read_private_key_bytes(entity_id,recovery_id))
+        old_id=str(manifest[&quot;active_signing_key_id&quot;]); now=int(time.time()*1000); revision=int(manifest.get(&quot;manifest_revision&quot;,1))+1
+        new_key=Ed25519PrivateKey.generate(); new_id=&quot;sig-&quot;+secrets.token_hex(8); new_pub=_b64(_public_raw(new_key))
+        data={k:v for k,v in manifest.items() if k not in {&quot;signature&quot;,&quot;rotation_proof&quot;,&quot;recovery_proof&quot;}}
+        methods=[]
+        for item in data.get(&quot;verification_methods&quot;) or []:
+            item=dict(item)
+            if item.get(&quot;key_id&quot;)==old_id: item[&quot;status&quot;]=&quot;revoked&quot;; item[&quot;revoked_at_ms&quot;]=now
+            methods.append(item)
+        methods.append({&quot;key_id&quot;:new_id,&quot;algorithm&quot;:&quot;Ed25519&quot;,&quot;suite&quot;:SIG_SUITE,&quot;purpose&quot;:[&quot;assertion&quot;,&quot;authentication&quot;,&quot;contract&quot;],&quot;public_key&quot;:new_pub,&quot;status&quot;:&quot;active&quot;,&quot;created_at_ms&quot;:now})
+        data[&quot;verification_methods&quot;]=methods; data[&quot;active_signing_key_id&quot;]=new_id; data[&quot;manifest_revision&quot;]=revision; data[&quot;previous_manifest_sha256&quot;]=hashlib.sha256(canonical_json(manifest)).hexdigest()
+        proof={&quot;entity_id&quot;:entity_id,&quot;recovery_key_id&quot;:recovery_id,&quot;replaced_key_id&quot;:old_id,&quot;new_key_id&quot;:new_id,&quot;new_public_key&quot;:new_pub,&quot;new_suite&quot;:SIG_SUITE,&quot;manifest_revision&quot;:revision}
+        proof[&quot;signature&quot;]={&quot;key_id&quot;:recovery_id,&quot;suite&quot;:SIG_SUITE,&quot;signature&quot;:_b64(recovery_key.sign(canonical_json(proof)))}
+        data[&quot;recovery_proof&quot;]=proof
+        signed=dict(data,signature={&quot;key_id&quot;:new_id,&quot;suite&quot;:SIG_SUITE,&quot;signature&quot;:_b64(new_key.sign(canonical_json(data)))})
+        self._write_private(self._entity_key_dir(entity_id)/f&quot;{new_id}.key&quot;,_private_raw(new_key)); self._manifest_path(entity_id).write_text(json.dumps(signed,indent=2,sort_keys=True),encoding=&quot;utf-8&quot;)
+        if not self.verify_manifest(signed): raise RuntimeError(&quot;recovered manifest failed verification&quot;)
+        self._remove_private_key_material(entity_id,old_id)
+        return signed</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

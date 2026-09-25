@@ -1,0 +1,76 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / sdk/reference_clients/standards_reference_client.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / sdk/reference_clients/standards_reference_client.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>sdk/reference_clients/standards_reference_client.py</code></p><p><b>SHA-256:</b> <code>a73293b054179a778699ad9a8b51e882bcb58507e55cb1d93151b37772a43817</code></p><p><b>Bytes:</b> 5,490</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/reference_clients/standards_reference_client.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/canon-8fac6e094c13.html">canon</a></li><li><a href="../../../reference/symbols/entity/unb64-07d06fca63ee.html">unb64</a></li><li><a href="../../../reference/symbols/entity/validate-did-document-55e4ace5b9da.html">validate_did_document</a></li><li><a href="../../../reference/symbols/entity/validate-vc20-63bc2ed36c72.html">validate_vc20</a></li><li><a href="../../../reference/symbols/entity/verify-entity-vc-extension-69e6e0fbeb24.html">verify_entity_vc_extension</a></li><li><a href="../../../reference/symbols/entity/validate-odrl22-eb1a4f53c63b.html">validate_odrl22</a></li><li><a href="../../../reference/symbols/entity/ms-56ffb9ca9070.html">ms</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from datetime import datetime
+import base64, hashlib, json
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
+VC_CONTEXT=&quot;https://www.w3.org/ns/credentials/v2&quot;
+ODRL_CONTEXT=&quot;http://www.w3.org/ns/odrl.jsonld&quot;
+DID_PREFIX=&quot;did:entity:&quot;
+
+def canon(v): return json.dumps(v,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False).encode(&quot;utf-8&quot;)
+def unb64(v): return base64.urlsafe_b64decode(str(v)+&quot;=&quot;*(-len(str(v))%4))
+
+def validate_did_document(doc:dict)-&gt;dict:
+    value=dict(doc or {}); did=str(value.get(&quot;id&quot;) or &quot;&quot;)
+    failures=[]
+    if not did.startswith(DID_PREFIX): failures.append(&quot;unsupported_did_method&quot;)
+    methods={str(x.get(&quot;id&quot;)):x for x in value.get(&quot;verificationMethod&quot;) or []}
+    if not methods: failures.append(&quot;verification_method_missing&quot;)
+    for mid,item in methods.items():
+        if str(item.get(&quot;controller&quot;))!=did: failures.append(f&quot;{mid}:controller_mismatch&quot;)
+        if not str(item.get(&quot;publicKeyMultibase&quot;) or &quot;&quot;).startswith(&quot;u&quot;): failures.append(f&quot;{mid}:public_key_encoding&quot;)
+    for rel in (&quot;authentication&quot;,&quot;assertionMethod&quot;):
+        for ref in value.get(rel) or []:
+            if str(ref) not in methods: failures.append(f&quot;{rel}:unresolved_reference&quot;)
+    return {&quot;valid&quot;:not failures,&quot;failures&quot;:failures,&quot;did&quot;:did,&quot;verification_methods&quot;:len(methods)}
+
+def validate_vc20(vc:dict)-&gt;dict:
+    value=dict(vc or {}); failures=[]; contexts=value.get(&quot;@context&quot;) or []
+    contexts=contexts if isinstance(contexts,list) else [contexts]; types=value.get(&quot;type&quot;) or []; types=types if isinstance(types,list) else [types]
+    if VC_CONTEXT not in contexts: failures.append(&quot;vc20_context_missing&quot;)
+    if &quot;VerifiableCredential&quot; not in types: failures.append(&quot;verifiable_credential_type_missing&quot;)
+    issuer=value.get(&quot;issuer&quot;); issuer=issuer.get(&quot;id&quot;) if isinstance(issuer,dict) else issuer
+    if not issuer: failures.append(&quot;issuer_missing&quot;)
+    subject=value.get(&quot;credentialSubject&quot;)
+    if not isinstance(subject,dict) or not subject: failures.append(&quot;credential_subject_missing&quot;)
+    for field in (&quot;validFrom&quot;,&quot;validUntil&quot;):
+        if value.get(field):
+            try: datetime.fromisoformat(str(value[field]).replace(&quot;Z&quot;,&quot;+00:00&quot;))
+            except Exception: failures.append(field+&quot;:invalid_datetime&quot;)
+    return {&quot;valid&quot;:not failures,&quot;failures&quot;:failures,&quot;issuer&quot;:issuer,&quot;subject&quot;:subject}
+
+def verify_entity_vc_extension(vc:dict,did_document:dict)-&gt;dict:
+    model=validate_vc20(vc)
+    if not model[&quot;valid&quot;]: return {&quot;valid&quot;:False,&quot;failures&quot;:model[&quot;failures&quot;]}
+    sig=dict(vc.get(&quot;entity:signatureRecord&quot;) or {})
+    if sig.get(&quot;signature_schema&quot;)!=&quot;entity-signature-record-v2&quot;: return {&quot;valid&quot;:False,&quot;failures&quot;:[&quot;entity_signature_extension_missing&quot;]}
+    credential_id=str(vc.get(&quot;id&quot;) or &quot;&quot;).removeprefix(&quot;urn:entity:credential:&quot;)
+    subject=dict(vc.get(&quot;credentialSubject&quot;) or {}); subject_id=str(subject.pop(&quot;id&quot;))
+    issuer=str(model[&quot;issuer&quot;]); issuer_entity=issuer.removeprefix(DID_PREFIX); subject_entity=subject_id.removeprefix(DID_PREFIX)
+    def ms(value): return None if not value else int(datetime.fromisoformat(str(value).replace(&quot;Z&quot;,&quot;+00:00&quot;)).timestamp()*1000)
+    body={&quot;schema&quot;:&quot;entity-credential-v1&quot;,&quot;credential_id&quot;:credential_id,&quot;issuer_entity_id&quot;:issuer_entity,&quot;subject_entity_id&quot;:subject_entity,&quot;credential_type&quot;:vc.get(&quot;entity:credentialType&quot;),&quot;claims&quot;:subject,&quot;trust_level&quot;:vc.get(&quot;entity:trustLevel&quot;),&quot;status&quot;:&quot;ACTIVE&quot;,&quot;expires_at_ms&quot;:ms(vc.get(&quot;validUntil&quot;)),&quot;created_at_ms&quot;:ms(vc.get(&quot;validFrom&quot;))}
+    if hashlib.sha256(canon(body)).hexdigest()!=sig.get(&quot;payload_sha256&quot;): return {&quot;valid&quot;:False,&quot;failures&quot;:[&quot;payload_hash_mismatch&quot;]}
+    key_ref=issuer+&quot;#&quot;+str(sig.get(&quot;key_id&quot;)); methods={str(x.get(&quot;id&quot;)):x for x in did_document.get(&quot;verificationMethod&quot;) or []}; method=methods.get(key_ref)
+    if not method: return {&quot;valid&quot;:False,&quot;failures&quot;:[&quot;verification_method_not_found&quot;]}
+    record={k:sig[k] for k in (&quot;signature_schema&quot;,&quot;entity_id&quot;,&quot;key_id&quot;,&quot;suite&quot;,&quot;signed_at_ms&quot;,&quot;payload_sha256&quot;)}
+    try:
+        Ed25519PublicKey.from_public_bytes(unb64(str(method[&quot;publicKeyMultibase&quot;])[1:])).verify(unb64(sig[&quot;signature&quot;]),canon(record))
+        return {&quot;valid&quot;:True,&quot;failures&quot;:[],&quot;proof_scope&quot;:&quot;ENTITY_EXTENSION_NOT_W3C_DATA_INTEGRITY&quot;}
+    except Exception: return {&quot;valid&quot;:False,&quot;failures&quot;:[&quot;signature_invalid&quot;]}
+
+def validate_odrl22(doc:dict)-&gt;dict:
+    value=dict(doc or {}); failures=[]; context=value.get(&quot;@context&quot;); contexts=context if isinstance(context,list) else [context]
+    if ODRL_CONTEXT not in contexts: failures.append(&quot;odrl_context_missing&quot;)
+    if value.get(&quot;@type&quot;) not in {&quot;Set&quot;,&quot;Offer&quot;,&quot;Agreement&quot;,&quot;Policy&quot;}: failures.append(&quot;odrl_policy_type_invalid&quot;)
+    if not value.get(&quot;uid&quot;): failures.append(&quot;odrl_uid_missing&quot;)
+    count=0
+    for key in (&quot;permission&quot;,&quot;prohibition&quot;,&quot;obligation&quot;):
+        for rule in value.get(key) or []:
+            count+=1
+            if key!=&quot;obligation&quot; and not rule.get(&quot;target&quot;): failures.append(f&quot;{key}:target_missing&quot;)
+            if not rule.get(&quot;action&quot;): failures.append(f&quot;{key}:action_missing&quot;)
+    if count==0: failures.append(&quot;odrl_rule_missing&quot;)
+    if value.get(&quot;@type&quot;)==&quot;Agreement&quot;:
+        for rule in (value.get(&quot;permission&quot;) or [])+(value.get(&quot;prohibition&quot;) or []):
+            if not rule.get(&quot;assigner&quot;) or not rule.get(&quot;assignee&quot;): failures.append(&quot;agreement_party_missing&quot;)
+    return {&quot;valid&quot;:not failures,&quot;failures&quot;:failures,&quot;rule_count&quot;:count,&quot;profile&quot;:value.get(&quot;profile&quot;)}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

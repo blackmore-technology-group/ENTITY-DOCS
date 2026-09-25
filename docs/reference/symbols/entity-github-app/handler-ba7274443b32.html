@@ -1,0 +1,64 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Handler Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>Handler</h1><div class="meta"><b>Repository:</b> ENTITY-GITHUB-APP<br><b>Commit:</b> <code>7ef6b33b5d586cabd1f912491152fcff10e0ad47</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY-GITHUB-APP/blob/7ef6b33b5d586cabd1f912491152fcff10e0ad47/src/entity_github_app/server.py#L24">ENTITY-GITHUB-APP/src/entity_github_app/server.py#L24</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class Handler(BaseHTTPRequestHandler):
+    server_version = &quot;ENTITYGitHubApp/0.1&quot;
+
+    def _json(self, status: int, value: Dict[str, Any]) -&gt; None:
+        data = json.dumps(value, sort_keys=True).encode(&quot;utf-8&quot;)
+        self.send_response(status)
+        self.send_header(&quot;Content-Type&quot;, &quot;application/json&quot;)
+        self.send_header(&quot;Content-Length&quot;, str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self) -&gt; None:
+        if self.path != &quot;/health&quot;:
+            self._json(404, {&quot;ok&quot;: False, &quot;error&quot;: &quot;not_found&quot;})
+            return
+        store = EvidenceStore(self.server.db_path)
+        try:
+            self._json(200, {&quot;ok&quot;: True, &quot;service&quot;: &quot;entity-github-app&quot;, &quot;store&quot;: store.counts(), &quot;audit&quot;: store.verify_audit()})
+        finally:
+            store.close()
+
+    def do_POST(self) -&gt; None:
+        if self.path != &quot;/webhook&quot;:
+            self._json(404, {&quot;ok&quot;: False, &quot;error&quot;: &quot;not_found&quot;})
+            return
+        try:
+            length = int(self.headers.get(&quot;Content-Length&quot;, &quot;0&quot;))
+        except ValueError:
+            self._json(400, {&quot;ok&quot;: False, &quot;error&quot;: &quot;invalid_content_length&quot;})
+            return
+        if length &lt;= 0 or length &gt; MAX_BODY:
+            self._json(413, {&quot;ok&quot;: False, &quot;error&quot;: &quot;invalid_body_size&quot;})
+            return
+        body = self.rfile.read(length)
+        signature = self.headers.get(&quot;X-Hub-Signature-256&quot;)
+        if not verify_signature(self.server.webhook_secret, body, signature):
+            self._json(401, {&quot;ok&quot;: False, &quot;error&quot;: &quot;invalid_signature&quot;})
+            return
+        event = self.headers.get(&quot;X-GitHub-Event&quot;) or &quot;&quot;
+        delivery = self.headers.get(&quot;X-GitHub-Delivery&quot;) or &quot;&quot;
+        if not delivery:
+            self._json(400, {&quot;ok&quot;: False, &quot;error&quot;: &quot;missing_delivery_id&quot;})
+            return
+        if event == &quot;ping&quot;:
+            self._json(200, {&quot;ok&quot;: True, &quot;message&quot;: &quot;pong&quot;, &quot;delivery_id&quot;: delivery})
+            return
+        if event not in SUPPORTED:
+            self._json(202, {&quot;ok&quot;: True, &quot;ignored&quot;: True, &quot;event&quot;: event})
+            return
+        try:
+            payload = json.loads(body.decode(&quot;utf-8&quot;))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            self._json(400, {&quot;ok&quot;: False, &quot;error&quot;: &quot;invalid_json&quot;})
+            return
+        candidate = evidence_candidate(event, delivery, payload, body)
+        store = EvidenceStore(self.server.db_path)
+        try:
+            created = store.record(event, delivery, candidate)
+            self._json(201 if created else 200, {&quot;ok&quot;: True, &quot;created&quot;: created, &quot;candidate_id&quot;: candidate[&quot;candidate_id&quot;], &quot;candidate_sha256&quot;: candidate[&quot;candidate_sha256&quot;]})
+        finally:
+            store.close()
+
+    def log_message(self, fmt: str, *args: Any) -&gt; None:
+        print(f&quot;{self.address_string()} - {fmt % args}&quot;)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / sdk/btg_application_sdk/BTG_APPLICATION_EVENT_ENVELOPE_v1.schema.json Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / sdk/btg_application_sdk/BTG_APPLICATION_EVENT_ENVELOPE_v1.schema.json</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>sdk/btg_application_sdk/BTG_APPLICATION_EVENT_ENVELOPE_v1.schema.json</code></p><p><b>SHA-256:</b> <code>fdc1a51bf2d1fd2e19a0a0dea48d126c4d734904ddabc3b10e07ba187aea34cf</code></p><p><b>Bytes:</b> 1,418</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/btg_application_sdk/BTG_APPLICATION_EVENT_ENVELOPE_v1.schema.json">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>{
+  &quot;$schema&quot;: &quot;https://json-schema.org/draft/2020-12/schema&quot;,
+  &quot;$id&quot;: &quot;urn:btg:entity:btg-app-ingest-envelope:v1&quot;,
+  &quot;title&quot;: &quot;ENTITY BTG Application Ingest Envelope v1&quot;,
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;required&quot;: [&quot;schema&quot;,&quot;application_entity_id&quot;,&quot;organization_entity_id&quot;,&quot;idempotency_key&quot;,&quot;content_sha256&quot;,&quot;size_bytes&quot;,&quot;media_type&quot;,&quot;title&quot;,&quot;asset_kind&quot;,&quot;classification&quot;,&quot;raw_content_included&quot;],
+  &quot;properties&quot;: {
+    &quot;schema&quot;: {&quot;const&quot;: &quot;entity-btg-app-ingest-envelope-v1&quot;},
+    &quot;application_entity_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;pattern&quot;: &quot;^(ent1|ent2)-&quot;},
+    &quot;organization_entity_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;pattern&quot;: &quot;^(ent1|ent2)-&quot;},
+    &quot;idempotency_key&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;minLength&quot;: 1, &quot;maxLength&quot;: 256},
+    &quot;content_sha256&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;pattern&quot;: &quot;^[0-9a-f]{64}$&quot;},
+    &quot;size_bytes&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0},
+    &quot;media_type&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;minLength&quot;: 1},
+    &quot;title&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;minLength&quot;: 1},
+    &quot;asset_kind&quot;: {&quot;enum&quot;: [&quot;SOFTWARE&quot;,&quot;DATA&quot;,&quot;MODEL&quot;,&quot;KNOWLEDGE&quot;,&quot;EVIDENCE&quot;]},
+    &quot;classification&quot;: {&quot;type&quot;: &quot;string&quot;},
+    &quot;metadata&quot;: {&quot;type&quot;: &quot;object&quot;},
+    &quot;source_subject_ref&quot;: {&quot;type&quot;: [&quot;string&quot;,&quot;null&quot;]},
+    &quot;explicit_rights_claim&quot;: {&quot;type&quot;: &quot;object&quot;},
+    &quot;contributors&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;items&quot;: {&quot;type&quot;: &quot;object&quot;}},
+    &quot;parent_asset_ids&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;items&quot;: {&quot;type&quot;: &quot;string&quot;}},
+    &quot;raw_content_included&quot;: {&quot;const&quot;: false}
+  },
+  &quot;additionalProperties&quot;: false
+}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,42 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/build_v3_2_adoption_cleanroom_profile.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/build_v3_2_adoption_cleanroom_profile.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/build_v3_2_adoption_cleanroom_profile.py</code></p><p><b>SHA-256:</b> <code>1a21102cef024c6e527b33dfad6a5309a74e0c5ccfab8c5f2711ab490de1f03d</code></p><p><b>Bytes:</b> 2,002</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/build_v3_2_adoption_cleanroom_profile.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/canon-8ace80379040.html">canon</a></li><li><a href="../../../reference/symbols/entity/sha-5cb62ca8a2b9.html">sha</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json, pathlib
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+V = ROOT / &quot;protocol&quot; / &quot;v3&quot; / &quot;adoption_vectors&quot;
+OUT = ROOT / &quot;protocol&quot; / &quot;v3&quot; / &quot;ENTITY_ADOPTION_CLEANROOM_PROFILE.json&quot;
+INVARIANTS = [
+    &quot;CORE_PRIMITIVES_UNCHANGED&quot;,
+    &quot;MARKET_ENGINE_PRESERVED&quot;,
+    &quot;RIGHTS_ARE_TRADED_NOT_BYTES&quot;,
+    &quot;PROVIDER_CUSTODY_IS_NOT_AUTHORITY&quot;,
+    &quot;EXTERNAL_STANDARDS_ARE_NOT_ENTITY_AUTHORITY&quot;,
+    &quot;LEGAL_CLASSIFICATION_IS_EXTERNAL_ASSERTION&quot;,
+    &quot;RESOLVER_IS_NOT_AUTHORITY&quot;,
+    &quot;NO_SILENT_SEMANTIC_EQUIVALENCE&quot;,
+]
+
+def canon(value):
+    return json.dumps(value, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False).encode()
+
+def sha(value):
+    return hashlib.sha256(value).hexdigest()
+
+manifest = json.loads((V / &quot;VECTOR_MANIFEST.json&quot;).read_text(encoding=&quot;utf-8&quot;))
+rows = []
+for entry in sorted(manifest[&quot;vectors&quot;], key=lambda x: x[&quot;file&quot;]):
+    payload = json.loads((V / entry[&quot;file&quot;]).read_text(encoding=&quot;utf-8&quot;))
+    expected = str(payload[&quot;expect&quot;])
+    rows.append({&quot;name&quot;: pathlib.Path(entry[&quot;file&quot;]).stem,
+                 &quot;accepted&quot;: expected == &quot;VALID&quot;, &quot;expected&quot;: expected, &quot;ok&quot;: True})
+summary = {&quot;schema&quot;:&quot;entity-v3.2-adoption-cleanroom-result-v1&quot;,
+           &quot;profile&quot;:&quot;ENTITY-ADOPTION-LAYER&quot;,&quot;adoption_invariants&quot;:INVARIANTS,
+           &quot;vectors&quot;:rows}
+result_sha256 = sha(canon(summary))
+profile = {&quot;schema&quot;:&quot;entity-v3.2-adoption-cleanroom-profile-v1&quot;,
+           &quot;release_candidate&quot;:&quot;v3.2.0&quot;,&quot;base_release&quot;:&quot;v3.1.0&quot;,
+           &quot;vector_manifest_sha256&quot;:sha((V / &quot;VECTOR_MANIFEST.json&quot;).read_bytes()),
+           &quot;schema_sha256&quot;:manifest[&quot;schema_sha256&quot;],&quot;valid_vectors&quot;:8,&quot;invalid_vectors&quot;:8,
+           &quot;adoption_invariants&quot;:INVARIANTS,&quot;expected_result_sha256&quot;:result_sha256,
+           &quot;result_schema&quot;:summary[&quot;schema&quot;]}
+OUT.write_text(json.dumps(profile, indent=2, sort_keys=True) + &quot;\n&quot;, encoding=&quot;utf-8&quot;)
+print(json.dumps({&quot;profile&quot;:str(OUT),&quot;expected_result_sha256&quot;:result_sha256,&quot;valid&quot;:8,&quot;invalid&quot;:8}, indent=2))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

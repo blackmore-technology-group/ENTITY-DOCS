@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MarketRecoveryTests.test_rehashed_tamper_still_fails_controller_signatures Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>MarketRecoveryTests.test_rehashed_tamper_still_fails_controller_signatures</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_market_recovery.py#L159">ENTITY/tests/test_v3_market_recovery.py#L159</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>MarketRecoveryTests.test_rehashed_tamper_still_fails_controller_signatures(self)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def test_rehashed_tamper_still_fails_controller_signatures(self):
+        bundle = self._export()
+        tampered = copy.deepcopy(bundle)
+        balance = tampered[&quot;exchange&quot;][&quot;tables&quot;][&quot;balances&quot;]
+        balance[&quot;rows&quot;][0][&quot;units&quot;] += 7
+        balance[&quot;semantic_sha256&quot;] = recovery_mod.semantic_sha256(
+            recovery_mod._table_payload(balance)
+        )
+        tampered[&quot;exchange&quot;][&quot;state_sha256&quot;] = recovery_mod.semantic_sha256(
+            {&quot;tables&quot;: tampered[&quot;exchange&quot;][&quot;tables&quot;]}
+        )
+        semantic = {
+            k: v for k, v in tampered.items()
+            if k not in {&quot;exported_at_ms&quot;, &quot;semantic_sha256&quot;, &quot;bundle_attestations&quot;}
+        }
+        tampered[&quot;semantic_sha256&quot;] = recovery_mod.semantic_sha256(semantic)
+        for attestation in tampered[&quot;bundle_attestations&quot;]:
+            attestation[&quot;semantic_sha256&quot;] = tampered[&quot;semantic_sha256&quot;]
+        result = recovery_mod.MarketStateRecovery.verify(
+            tampered,
+            verify_manifest=identity_mod.EntityIdentityVault.verify_manifest,
+            verify_signature=identity_mod.EntityIdentityVault.verify_signature,
+            verify_core_bundle=self.fabric.verify_bundle,
+        )
+        self.assertFalse(result[&quot;valid&quot;])
+        self.assertTrue(any(
+            x.startswith(&quot;controller_attestation_signature_invalid:&quot;)
+            for x in result[&quot;failures&quot;]
+        ))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

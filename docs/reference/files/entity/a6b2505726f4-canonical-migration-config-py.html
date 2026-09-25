@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/15_Operations/migration/canonical_migration_config.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/15_Operations/migration/canonical_migration_config.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/15_Operations/migration/canonical_migration_config.py</code></p><p><b>SHA-256:</b> <code>32e66084e6f35bd585e1734687ae860919993174b3afd674dcc7c26a02114837</code></p><p><b>Bytes:</b> 3,312</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/15_Operations/migration/canonical_migration_config.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-00b50d3609fb.html">_now</a></li><li><a href="../../../reference/symbols/entity/canon-7c629f2aefb3.html">_canon</a></li><li><a href="../../../reference/symbols/entity/migrationconfiguration-d63b5ab7dab0.html">MigrationConfiguration</a></li><li><a href="../../../reference/symbols/entity/migrationconfiguration-init-0fc6da06bffb.html">MigrationConfiguration.__init__</a></li><li><a href="../../../reference/symbols/entity/migrationconfiguration-create-7afd061b00cc.html">MigrationConfiguration.create</a></li><li><a href="../../../reference/symbols/entity/migrationconfiguration-load-85993b341138.html">MigrationConfiguration.load</a></li><li><a href="../../../reference/symbols/entity/migrationconfiguration-verify-008f4fd17be3.html">MigrationConfiguration.verify</a></li><li><a href="../../../reference/symbols/entity/migrationconfiguration-status-ac0754f83654.html">MigrationConfiguration.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+import hashlib, json, time
+
+def _now(): return int(time.time()*1000)
+def _canon(v): return json.dumps(v,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False).encode()
+
+DEFAULT_STATE_DOMAINS={
+    &quot;identity&quot;:&quot;identity&quot;,&quot;credentials&quot;:&quot;credentials&quot;,&quot;policy_consent&quot;:&quot;policy_consent&quot;,&quot;permissions&quot;:&quot;authority&quot;,
+    &quot;data_sources&quot;:&quot;data_source_gateway&quot;,&quot;data_vault&quot;:&quot;vault&quot;,&quot;asset_registry&quot;:&quot;asset_registry&quot;,&quot;rights_claims&quot;:&quot;rights_claims&quot;,
+    &quot;provenance&quot;:&quot;asset_provenance&quot;,&quot;contracts&quot;:&quot;contracts&quot;,&quot;usage_control&quot;:&quot;usage_control&quot;,&quot;event_ledger&quot;:&quot;event_ledger&quot;,&quot;settlement&quot;:&quot;settlement&quot;
+}
+
+class MigrationConfiguration:
+    &quot;&quot;&quot;Signed owner-controlled migration interpretation configuration stored inside sovereign state.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path,identity):
+        self.state=Path(state_dir).resolve(); self.identity=identity; self.root=self.state/&quot;migration&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;migration_config.json&quot;
+    def create(self,controller_entity_id: str,*,external_dependencies: list[dict]|None=None,domains: dict|None=None) -&gt; dict:
+        body={&quot;schema&quot;:&quot;entity-migration-config-v1&quot;,&quot;controller_entity_id&quot;:controller_entity_id,&quot;created_at_ms&quot;:_now(),
+              &quot;state_format&quot;:&quot;ENTITY_STATE_TREE_V1&quot;,&quot;portable_export_schema&quot;:&quot;entity-portable-export-v1&quot;,&quot;encrypted_backup_schema&quot;:&quot;entity-encrypted-backup-v1&quot;,
+              &quot;domains&quot;:dict(domains or DEFAULT_STATE_DOMAINS),&quot;required_interpreters&quot;:[&quot;JSON&quot;,&quot;SQLite3&quot;,&quot;SHA-256&quot;,&quot;Ed25519&quot;,&quot;AES-256-GCM&quot;],
+              &quot;verification_tool&quot;:&quot;independent_verifier.py&quot;,&quot;external_dependencies&quot;:list(external_dependencies or [])}
+        signature=self.identity.sign(controller_entity_id,body); record={**body,&quot;signature&quot;:signature}
+        self.path.write_text(json.dumps(record,indent=2,sort_keys=True)+&quot;\n&quot;,encoding=&quot;utf-8&quot;); return record
+    def load(self) -&gt; dict:
+        if not self.path.is_file(): raise FileNotFoundError(str(self.path))
+        return json.loads(self.path.read_text(encoding=&quot;utf-8&quot;))
+    def verify(self) -&gt; dict:
+        record=self.load(); signature=dict(record.get(&quot;signature&quot;) or {}); body={k:v for k,v in record.items() if k!=&quot;signature&quot;}
+        schema_ok=body.get(&quot;schema&quot;)==&quot;entity-migration-config-v1&quot; and body.get(&quot;state_format&quot;)==&quot;ENTITY_STATE_TREE_V1&quot;
+        domains_ok=all(str(v).strip() and not Path(str(v)).is_absolute() for v in (body.get(&quot;domains&quot;) or {}).values())
+        try:
+            manifest=self.identity.load_manifest(body[&quot;controller_entity_id&quot;]); sig_ok=self.identity.verify_signature(manifest,body,signature)
+        except Exception: sig_ok=False
+        digest=hashlib.sha256(_canon(body)).hexdigest()
+        return {&quot;pass&quot;:bool(schema_ok and domains_ok and sig_ok),&quot;schema_valid&quot;:bool(schema_ok),&quot;relative_domain_paths&quot;:bool(domains_ok),&quot;signature_valid&quot;:bool(sig_ok),&quot;configuration_sha256&quot;:digest,&quot;external_dependencies&quot;:list(body.get(&quot;external_dependencies&quot;) or [])}
+    def status(self) -&gt; dict:
+        exists=self.path.is_file(); verified=self.verify() if exists else {&quot;pass&quot;:False}
+        return {&quot;ready&quot;:bool(exists and verified.get(&quot;pass&quot;)),&quot;schema&quot;:&quot;entity-migration-config-v1&quot;,&quot;portable_relative_paths&quot;:True,&quot;documented_interpreters&quot;:True,&quot;path&quot;:str(self.path)}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

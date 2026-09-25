@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V3ExchangeConvergenceTests.test_concurrent_double_settlement_is_atomic_in_both Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>V3ExchangeConvergenceTests.test_concurrent_double_settlement_is_atomic_in_both</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_exchange_convergence.py#L376">ENTITY/tests/test_v3_exchange_convergence.py#L376</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>V3ExchangeConvergenceTests.test_concurrent_double_settlement_is_atomic_in_both(self)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def test_concurrent_double_settlement_is_atomic_in_both(self):
+        for eep,venue,inst,prefix in (
+            (*self.make_ref_exchange(),&quot;r-double-settle&quot;),
+            (*self.make_mirror_exchange(),&quot;m-double-settle&quot;),
+        ):
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;SELL&quot;,10,100,nonce=prefix+&quot;-sell&quot;)
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.buyer,&quot;BUY&quot;,10,100,nonce=prefix+&quot;-buy&quot;)
+            trade=eep.match_order_book(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;])[0]
+            payment=prefix+&quot;-pay&quot;; evidence=hashlib.sha256((payment+&quot;:evidence&quot;).encode()).hexdigest()
+            att=eep.attest_payment(trade[&quot;trade_id&quot;],self.owner,payment,evidence)
+            start=threading.Barrier(2); old_balance=eep.balance; legacy_gate=threading.Barrier(2)
+            def gated_balance(instrument_id,holder):
+                value=old_balance(instrument_id,holder); legacy_gate.wait(timeout=5); return value
+            eep.balance=gated_balance; results=[]; lock=threading.Lock()
+            def settle_worker():
+                start.wait(timeout=5)
+                try:
+                    eep.settle_trade(trade[&quot;trade_id&quot;],payment_ref=payment,external_verified=True,payment_attestation_id=att[&quot;attestation_id&quot;]); outcome=&#x27;ok&#x27;
+                except Exception as exc: outcome=type(exc).__name__
+                with lock: results.append(outcome)
+            threads=[threading.Thread(target=settle_worker) for _ in range(2)]
+            for t in threads: t.start()
+            for t in threads: t.join(10)
+            eep.balance=old_balance
+            self.assertTrue(all(not t.is_alive() for t in threads))
+            self.assertEqual(results.count(&#x27;ok&#x27;),1,results); self.assertEqual(results.count(&#x27;KeyError&#x27;),1,results)
+            self.assertEqual(eep.balance(inst[&quot;instrument_id&quot;],self.owner),990); self.assertEqual(eep.balance(inst[&quot;instrument_id&quot;],self.buyer),10)
+            with eep._db() as db: self.assertEqual(db.execute(&#x27;SELECT COUNT(*) FROM entitlements WHERE trade_id=?&#x27;,(trade[&quot;trade_id&quot;],)).fetchone()[0],1)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

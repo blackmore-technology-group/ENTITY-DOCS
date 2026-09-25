@@ -1,0 +1,44 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ExchangeProtocol.run_call_auction Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ExchangeProtocol.run_call_auction</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/exchange_protocol.py#L469">ENTITY/src/31_Profiles/exchange_protocol.py#L469</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>ExchangeProtocol.run_call_auction(self, venue_id: str, instrument_id: str)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def run_call_auction(self, venue_id: str, instrument_id: str) -&gt; dict:
+        with self._db() as db:
+            buys = db.execute(&quot;SELECT * FROM orders WHERE venue_id=? AND instrument_id=? &quot;
+                              &quot;AND side=&#x27;BUY&#x27; AND status IN (&#x27;OPEN&#x27;,&#x27;PARTIAL&#x27;)&quot;,
+                              (venue_id, instrument_id)).fetchall()
+            sells = db.execute(&quot;SELECT * FROM orders WHERE venue_id=? AND instrument_id=? &quot;
+                               &quot;AND side=&#x27;SELL&#x27; AND status IN (&#x27;OPEN&#x27;,&#x27;PARTIAL&#x27;)&quot;,
+                               (venue_id, instrument_id)).fetchall()
+        prices = sorted({int(r[&quot;limit_price&quot;]) for r in list(buys) + list(sells)})
+        candidates = []
+        for p in prices:
+            demand = sum(int(r[&quot;remaining&quot;]) for r in buys if int(r[&quot;limit_price&quot;]) &gt;= p)
+            supply = sum(int(r[&quot;remaining&quot;]) for r in sells if int(r[&quot;limit_price&quot;]) &lt;= p)
+            candidates.append((min(demand, supply), abs(demand - supply), p))
+        if not candidates: return {&quot;executed&quot;: False, &quot;reason&quot;: &quot;NO_ORDERS&quot;}
+        candidates.sort(key=lambda x: (-x[0], x[1], x[2]))
+        volume, _, clearing_price = candidates[0]
+        if volume &lt;= 0: return {&quot;executed&quot;: False, &quot;reason&quot;: &quot;NO_CROSS&quot;}
+        eligible_buys = sorted([r for r in buys if int(r[&quot;limit_price&quot;]) &gt;= clearing_price],
+                               key=lambda r: (r[&quot;received_at_ms&quot;], r[&quot;order_id&quot;]))
+        eligible_sells = sorted([r for r in sells if int(r[&quot;limit_price&quot;]) &lt;= clearing_price],
+                                key=lambda r: (r[&quot;received_at_ms&quot;], r[&quot;order_id&quot;]))
+        trades, remaining = [], volume
+        bi = si = 0
+        while remaining &gt; 0 and bi &lt; len(eligible_buys) and si &lt; len(eligible_sells):
+            buy, sell = eligible_buys[bi], eligible_sells[si]
+            if buy[&quot;participant&quot;] == sell[&quot;participant&quot;]:
+                self._alert(venue_id, instrument_id, buy[&quot;participant&quot;],
+                            &quot;SELF_TRADE_PREVENTED_AUCTION&quot;, {&quot;buy&quot;: buy[&quot;order_id&quot;], &quot;sell&quot;: sell[&quot;order_id&quot;]})
+                si += 1; continue
+            qty = min(int(buy[&quot;remaining&quot;]), int(sell[&quot;remaining&quot;]), remaining)
+            with self._db() as db:
+                tid = self._execute_trade(db, buy, sell, qty, clearing_price, &quot;CALL_AUCTION&quot;)
+                for row in (buy, sell):
+                    new_rem = int(row[&quot;remaining&quot;]) - qty
+                    db.execute(&quot;UPDATE orders SET remaining=?,status=? WHERE order_id=?&quot;,
+                               (new_rem, &quot;FILLED&quot; if new_rem == 0 else &quot;PARTIAL&quot;, row[&quot;order_id&quot;]))
+            trades.append(tid); remaining -= qty
+            buy = dict(buy); sell = dict(sell); buy[&quot;remaining&quot;] -= qty; sell[&quot;remaining&quot;] -= qty
+            eligible_buys[bi], eligible_sells[si] = buy, sell
+            if buy[&quot;remaining&quot;] == 0: bi += 1
+            if sell[&quot;remaining&quot;] == 0: si += 1
+        return {&quot;executed&quot;: bool(trades), &quot;clearing_price&quot;: clearing_price,
+                &quot;target_volume&quot;: volume, &quot;executed_volume&quot;: volume - remaining, &quot;trade_ids&quot;: trades}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

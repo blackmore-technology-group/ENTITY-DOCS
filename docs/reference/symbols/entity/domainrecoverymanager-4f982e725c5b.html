@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DomainRecoveryManager Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>DomainRecoveryManager</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/recovery/canonical_domain_recovery.py#L5">ENTITY/src/22_Sovereign_Domain/recovery/canonical_domain_recovery.py#L5</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Coordinates sovereign backup restore with independently verifiable domain restoration.</p><h2>Source excerpt</h2><pre><code>class DomainRecoveryManager:
+    &quot;&quot;&quot;Coordinates sovereign backup restore with independently verifiable domain restoration.&quot;&quot;&quot;
+    def __init__(self,identity_cls,domain_cls,portability_cls):
+        self.identity_cls=identity_cls; self.domain_cls=domain_cls; self.portability_cls=portability_cls
+
+    def recover(self,*,backup_manager,backup_path,key,target_state,domain_export_path):
+        target=Path(target_state)
+        backup_manager.restore_encrypted_backup(backup_path,key,target)
+        ids=self.identity_cls(target); domain=self.domain_cls(target,ids); portability=self.portability_cls(ids,domain)
+        check=portability.verify_export(domain_export_path)
+        if not check.get(&#x27;valid&#x27;): raise PermissionError(&#x27;domain export invalid during recovery&#x27;)
+        package=json.loads(Path(domain_export_path).read_text(encoding=&#x27;utf-8&#x27;))
+        expected_root=package[&#x27;export_manifest&#x27;][&#x27;entity_root&#x27;]; expected_domain=package[&#x27;export_manifest&#x27;][&#x27;domain_id&#x27;]
+        manifest=ids.load_manifest(expected_root)
+        if manifest.get(&#x27;entity_id&#x27;)!=expected_root: raise RuntimeError(&#x27;restored Entity root mismatch&#x27;)
+        restored=domain.get_domain(expected_domain)
+        if restored.get(&#x27;domain_id&#x27;)!=expected_domain or restored.get(&#x27;entity_root&#x27;)!=expected_root:
+            raise RuntimeError(&#x27;restored sovereign domain mismatch&#x27;)
+        return {&#x27;status&#x27;:&#x27;RECOVERED&#x27;,&#x27;entity_root&#x27;:expected_root,&#x27;domain_id&#x27;:expected_domain,
+                &#x27;entity_root_unchanged&#x27;:True,&#x27;domain_id_unchanged&#x27;:True,&#x27;domain_export_valid&#x27;:True,
+                &#x27;btg_service_required&#x27;:False,&#x27;dns_required&#x27;:False,&#x27;identity_vault&#x27;:ids,&#x27;domain_authority&#x27;:domain}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / docs/security/INDEPENDENT_SECURITY_REVIEW_PROGRAM.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / docs/security/INDEPENDENT_SECURITY_REVIEW_PROGRAM.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>docs/security/INDEPENDENT_SECURITY_REVIEW_PROGRAM.md</code></p><p><b>SHA-256:</b> <code>779e818f5b0abf8e28a53d0a9ec1a35d306c7267f173317cff00acb44c76afc2</code></p><p><b>Bytes:</b> 6,755</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/docs/security/INDEPENDENT_SECURITY_REVIEW_PROGRAM.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY Independent Security Review Program
+
+Blackmore Technology Group Limited maintains this public program to make independent security review of ENTITY easier to scope, reproduce and evaluate.
+
+The program does **not** claim that ENTITY has already completed an independent external security audit. Unless a specific external review is published and listed here, that milestone remains **PENDING**.
+
+## Objectives
+
+An independent review should test whether ENTITY&#x27;s implementation and protocol boundaries preserve the project&#x27;s stated security and sovereignty invariants under hostile conditions.
+
+Priority review areas include:
+
+1. cryptographic primitive use and key handling;
+2. signature canonicalization and replay boundaries;
+3. identity-root continuity;
+4. delegation, attenuation and revocation;
+5. authority escalation paths;
+6. recovery, migration and provider replacement;
+7. external evidence and attestation semantics;
+8. external reality anchors and substitution attacks;
+9. rights, entitlement, usage and settlement authorization;
+10. portable-state integrity and rollback resistance;
+11. parser/schema ambiguity and differential interpretation;
+12. historical-state reinterpretation risks;
+13. denial-of-service and resource exhaustion where security-relevant;
+14. dependency and supply-chain exposure.
+
+## Review levels
+
+### Level A — focused review
+
+A bounded review of one subsystem, invariant or attack surface.
+
+Examples:
+
+- signature/canonicalization review;
+- recovery boundary review;
+- evidence-state transition review;
+- external-anchor threat model.
+
+### Level B — release security review
+
+A structured review of the current protected release and its release-specific security surfaces.
+
+Expected outputs include:
+
+- exact release commit;
+- scope;
+- methodology;
+- findings by severity;
+- reproducibility notes;
+- exclusions;
+- remediation status.
+
+### Level C — protocol and implementation assessment
+
+A broader independent assessment covering both protocol semantics and reference implementation behaviour, including cross-component attack paths and provider-independence guarantees.
+
+This is the strongest review class described by this program, but it is still distinct from legal certification, regulatory approval or proof that every deployment is secure.
+
+## Current review target
+
+Current protected release: **ENTITY v3.4.0 — Global Passport &amp; Continuous Provenance**
+
+Protected release commit: `2db5bff64507b8d67642122a5ff2fc73dfef9152`
+
+The review scope should include Global Passport/profile composition, profile-registry integrity, standards-mapping boundaries, continuous provenance, passport derivation, domain-package deployment semantics, and the inherited v3.3 evidence/attestation surfaces. Reviewers should pin findings to an exact commit, tag or release artifact rather than reviewing an unspecified moving branch.
+
+## Evidence expected from reviewers
+
+A useful independent review should publish or privately provide, as appropriate:
+
+- reviewer identity/organization or explicit anonymous status;
+- relationship to BTG and any conflicts of interest;
+- exact target version/commit;
+- scope and exclusions;
+- methodology and tooling;
+- reproducible proof-of-concept material when safe;
+- severity rationale;
+- affected invariants/components;
+- remediation verification where performed;
+- residual risk and unresolved questions.
+
+If exploitation details would create unnecessary risk, public reports may summarize the issue while technical reproduction remains under coordinated disclosure until remediation is available.
+
+## Security invariants reviewers should challenge
+
+At minimum, reviewers should attempt to falsify these boundaries:
+
+- registration does not prove ownership;
+- provenance does not prove rights or external truth;
+- a valid signature does not make an external-world assertion objectively true;
+- provider possession does not become sovereign authority;
+- applications/agents require explicit scoped revocable authorization;
+- historical signed semantics are not silently rewritten;
+- recovery preserves the same authoritative Entity root rather than manufacturing a replacement identity;
+- external evidence sources do not silently acquire general ENTITY authority;
+- rights/usage/economic consequences require the authorization/evidence the protocol says they require.
+
+## Reporting process
+
+Potentially exploitable vulnerabilities should be reported through the private vulnerability process described in [SECURITY.md](../../SECURITY.md).
+
+Public issues and Discussions are appropriate for:
+
+- non-sensitive threat models;
+- specification ambiguities;
+- architectural critiques;
+- counterexamples that do not expose active users or secrets;
+- hardening proposals after responsible disclosure requirements are satisfied.
+
+## Remediation workflow
+
+A security finding should move through:
+
+`report → reproduce → classify → contain where necessary → remediate → regress-test → review semantic impact → release/errata decision → verify remediation → disclose at appropriate level`
+
+Security fixes must not silently weaken sovereignty, portability or historical-integrity invariants merely to close an implementation defect.
+
+If remediation changes published protocol semantics, the project should use an explicit governance/version mechanism rather than silently reinterpret existing signed state.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

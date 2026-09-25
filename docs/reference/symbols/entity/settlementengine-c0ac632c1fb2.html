@@ -1,0 +1,204 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SettlementEngine Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>SettlementEngine</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/service_runtime/canonical_economics.py#L15">ENTITY/src/01_Core_Runtime/service_runtime/canonical_economics.py#L15</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Authoritative replay-safe double-entry settlement engine.</p><h2>Source excerpt</h2><pre><code>class SettlementEngine:
+    &quot;&quot;&quot;Authoritative replay-safe double-entry settlement engine.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path,identity,local_controller_check=None,external_payment_verifier=None):
+        self.root=Path(state_dir)/&quot;settlement&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;settlement.sqlite&quot;; self.identity=identity
+        self.local_controller_check=local_controller_check or self._default_local
+        self.external_payment_verifier=external_payment_verifier
+        self._lock=RLock(); self._init_db()
+
+    def _default_local(self,entity_id: str) -&gt; bool:
+        try: self.identity.load_manifest(entity_id); return True
+        except Exception: return False
+
+    def _require_local(self,entity_id: str):
+        if not self.local_controller_check(entity_id): raise PermissionError(&quot;operation requires locally controlled Entity&quot;)
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS settlements(settlement_id TEXT PRIMARY KEY,payer_entity_id TEXT NOT NULL,payee_entity_id TEXT NOT NULL,amount_units INTEGER NOT NULL,currency TEXT NOT NULL,obligation_ref TEXT NOT NULL,transaction_nonce TEXT UNIQUE NOT NULL,settlement_kind TEXT NOT NULL,state TEXT NOT NULL,evidence_json TEXT NOT NULL,money_movement_verified INTEGER NOT NULL,created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS postings(entry_id TEXT PRIMARY KEY,settlement_id TEXT NOT NULL,entity_id TEXT NOT NULL,direction TEXT NOT NULL,amount_units INTEGER NOT NULL,currency TEXT NOT NULL,posting_kind TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS settlement_events(event_id TEXT PRIMARY KEY,settlement_id TEXT NOT NULL,event_type TEXT NOT NULL,actor_entity_id TEXT NOT NULL,from_state TEXT,to_state TEXT,payload_json TEXT NOT NULL,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS value_records(value_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,asset_ref TEXT NOT NULL,amount_units INTEGER NOT NULL,currency TEXT NOT NULL,state TEXT NOT NULL,settlement_id TEXT,realized_external INTEGER NOT NULL,created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS royalty_plans(plan_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,version INTEGER NOT NULL,shares_json TEXT NOT NULL,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS royalty_allocations(allocation_id TEXT PRIMARY KEY,plan_id TEXT NOT NULL,settlement_id TEXT UNIQUE NOT NULL,amount_units INTEGER NOT NULL,currency TEXT NOT NULL,distribution_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+    def _event(self,db,settlement_id,event_type,actor,from_state,to_state,payload):
+        event_id=_id(&quot;sev1&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-settlement-event-v2&quot;,&quot;event_id&quot;:event_id,&quot;settlement_id&quot;:settlement_id,&quot;event_type&quot;:event_type,&quot;actor_entity_id&quot;:actor,&quot;from_state&quot;:from_state,&quot;to_state&quot;:to_state,&quot;payload&quot;:dict(payload or {}),&quot;created_at_ms&quot;:now}
+        sig=self.identity.sign(actor,body)
+        db.execute(&quot;INSERT INTO settlement_events VALUES(?,?,?,?,?,?,?,?,?)&quot;,(event_id,settlement_id,event_type,actor,from_state,to_state,json.dumps(body[&quot;payload&quot;],sort_keys=True),json.dumps(sig,sort_keys=True),now))
+        return dict(body,signature=sig)
+
+    def create(self,payer_entity_id: str,payee_entity_id: str,*,amount_units: int,currency: str,obligation_ref: str,transaction_nonce: str,settlement_kind: str=&quot;INTERNAL_ACCOUNTING&quot;) -&gt; dict:
+        self._require_local(payer_entity_id)
+        amount=int(amount_units); nonce=str(transaction_nonce or &quot;&quot;).strip(); kind=str(settlement_kind or &quot;&quot;).upper(); unit=str(currency or &quot;&quot;).upper()
+        if amount&lt;=0: raise ValueError(&quot;settlement amount must be positive&quot;)
+        if not nonce: raise ValueError(&quot;transaction_nonce required&quot;)
+        if not unit: raise ValueError(&quot;currency required&quot;)
+        if kind not in {&quot;INTERNAL_ACCOUNTING&quot;,&quot;EXTERNAL_PAYMENT&quot;}: raise ValueError(&quot;unsupported settlement_kind&quot;)
+        settlement_id=_id(&quot;set1&quot;); now=_now()
+        with self._lock,self._connect() as db:
+            try: db.execute(&quot;INSERT INTO settlements VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(settlement_id,payer_entity_id,payee_entity_id,amount,unit,str(obligation_ref),nonce,kind,&quot;CREATED&quot;,&quot;{}&quot;,0,now,now))
+            except sqlite3.IntegrityError as exc: raise ValueError(&quot;duplicate/replayed transaction_nonce&quot;) from exc
+            event=self._event(db,settlement_id,&quot;SETTLEMENT_CREATED&quot;,payer_entity_id,None,&quot;CREATED&quot;,{&quot;amount_units&quot;:amount,&quot;currency&quot;:unit,&quot;obligation_ref&quot;:str(obligation_ref),&quot;settlement_kind&quot;:kind})
+        return {&quot;settlement_id&quot;:settlement_id,&quot;state&quot;:&quot;CREATED&quot;,&quot;event&quot;:event}
+
+    def _load(self,settlement_id: str):
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM settlements WHERE settlement_id=?&quot;,(settlement_id,)).fetchone()
+        if not row: raise KeyError(&quot;settlement not found&quot;)
+        return row
+    def _transition(self,row,actor: str,to_state: str,event_type: str,payload: dict|None=None) -&gt; dict:
+        from_state=str(row[&quot;state&quot;]); now=_now()
+        if to_state not in SETTLEMENT_STATES: raise ValueError(&quot;unsupported settlement state&quot;)
+        with self._lock,self._connect() as db:
+            current=db.execute(&quot;SELECT state FROM settlements WHERE settlement_id=?&quot;,(row[&quot;settlement_id&quot;],)).fetchone()
+            if not current or current[&quot;state&quot;]!=from_state: raise RuntimeError(&quot;settlement state changed concurrently&quot;)
+            db.execute(&quot;UPDATE settlements SET state=?,updated_at_ms=? WHERE settlement_id=?&quot;,(to_state,now,row[&quot;settlement_id&quot;]))
+            event=self._event(db,row[&quot;settlement_id&quot;],event_type,actor,from_state,to_state,dict(payload or {}))
+        return {&quot;settlement_id&quot;:row[&quot;settlement_id&quot;],&quot;state&quot;:to_state,&quot;event&quot;:event}
+
+    def authorize(self,payer_entity_id: str,settlement_id: str) -&gt; dict:
+        row=self._load(settlement_id)
+        if row[&quot;payer_entity_id&quot;]!=payer_entity_id: raise PermissionError(&quot;only payer may authorize&quot;)
+        self._require_local(payer_entity_id)
+        if row[&quot;state&quot;]!=&quot;CREATED&quot;: raise ValueError(&quot;settlement must be CREATED&quot;)
+        return self._transition(row,payer_entity_id,&quot;AUTHORIZED&quot;,&quot;SETTLEMENT_AUTHORIZED&quot;)
+
+    def begin_execution(self,payer_entity_id: str,settlement_id: str) -&gt; dict:
+        row=self._load(settlement_id)
+        if row[&quot;payer_entity_id&quot;]!=payer_entity_id: raise PermissionError(&quot;only payer may execute&quot;)
+        self._require_local(payer_entity_id)
+        if row[&quot;state&quot;] not in {&quot;AUTHORIZED&quot;,&quot;RESERVED&quot;}: raise ValueError(&quot;settlement must be AUTHORIZED or RESERVED&quot;)
+        return self._transition(row,payer_entity_id,&quot;EXECUTING&quot;,&quot;SETTLEMENT_EXECUTING&quot;)
+
+    def record_external_evidence(self,payer_entity_id: str,settlement_id: str,evidence_level: str,evidence: dict) -&gt; dict:
+        row=self._load(settlement_id)
+        if row[&quot;payer_entity_id&quot;]!=payer_entity_id: raise PermissionError(&quot;payer authority required&quot;)
+        self._require_local(payer_entity_id); level=str(evidence_level).upper(); supplied=dict(evidence or {})
+        if level not in EVIDENCE_LEVELS: raise ValueError(&quot;unsupported payment evidence level&quot;)
+        if level==&quot;PROVIDER_CONFIRMED&quot; and self.external_payment_verifier is not None:
+            verifier=self.external_payment_verifier
+            if hasattr(verifier,&quot;verify&quot;):
+                ok=verifier.verify(supplied,expected_subject=str(row[&quot;payee_entity_id&quot;]),allowed_evidence_types={&quot;PAYMENT_SETTLEMENT_CONFIRMATION&quot;})
+            else:
+                ok=bool(verifier(supplied))
+            if ok is not True: raise PermissionError(&quot;provider-confirmed payment evidence failed external cryptographic verification&quot;)
+        package={&quot;level&quot;:level,&quot;evidence&quot;:supplied,&quot;recorded_at_ms&quot;:_now(),&quot;external_cryptographic_verification_required&quot;:bool(level==&quot;PROVIDER_CONFIRMED&quot; and self.external_payment_verifier is not None)}
+        with self._lock,self._connect() as db:
+            db.execute(&quot;UPDATE settlements SET evidence_json=?,updated_at_ms=? WHERE settlement_id=?&quot;,(json.dumps(package,sort_keys=True),_now(),settlement_id))
+            event=self._event(db,settlement_id,&quot;PAYMENT_EVIDENCE_RECORDED&quot;,payer_entity_id,row[&quot;state&quot;],row[&quot;state&quot;],package)
+        return {&quot;settlement_id&quot;:settlement_id,&quot;evidence&quot;:package,&quot;event&quot;:event}
+
+    def confirm(self,payer_entity_id: str,settlement_id: str) -&gt; dict:
+        row=self._load(settlement_id)
+        if row[&quot;payer_entity_id&quot;]!=payer_entity_id: raise PermissionError(&quot;payer authority required&quot;)
+        self._require_local(payer_entity_id)
+        if row[&quot;state&quot;] not in {&quot;AUTHORIZED&quot;,&quot;RESERVED&quot;,&quot;EXECUTING&quot;}: raise ValueError(&quot;settlement not confirmable&quot;)
+        evidence=json.loads(row[&quot;evidence_json&quot;] or &quot;{}&quot;); kind=row[&quot;settlement_kind&quot;]
+        if kind==&quot;EXTERNAL_PAYMENT&quot; and evidence.get(&quot;level&quot;)!=&quot;PROVIDER_CONFIRMED&quot;:
+            raise PermissionError(&quot;external payment confirmation requires provider-confirmed evidence&quot;)
+        if kind==&quot;EXTERNAL_PAYMENT&quot; and self.external_payment_verifier is not None and evidence.get(&quot;external_cryptographic_verification_required&quot;) is not True:
+            raise PermissionError(&quot;external payment confirmation requires cryptographically verified provider evidence&quot;)
+        movement_verified=kind==&quot;EXTERNAL_PAYMENT&quot; and evidence.get(&quot;level&quot;)==&quot;PROVIDER_CONFIRMED&quot; and (self.external_payment_verifier is None or evidence.get(&quot;external_cryptographic_verification_required&quot;) is True)
+        now=_now(); amount=int(row[&quot;amount_units&quot;]); currency=row[&quot;currency&quot;]
+        with self._lock,self._connect() as db:
+            current=db.execute(&quot;SELECT state FROM settlements WHERE settlement_id=?&quot;,(settlement_id,)).fetchone()
+            if not current or current[&quot;state&quot;]!=row[&quot;state&quot;]: raise RuntimeError(&quot;settlement state changed concurrently&quot;)
+            if db.execute(&quot;SELECT 1 FROM postings WHERE settlement_id=? AND posting_kind=&#x27;FINAL&#x27; LIMIT 1&quot;,(settlement_id,)).fetchone(): raise RuntimeError(&quot;settlement already posted&quot;)
+            db.execute(&quot;INSERT INTO postings VALUES(?,?,?,?,?,?,?,?)&quot;,(_id(&quot;post1&quot;),settlement_id,row[&quot;payer_entity_id&quot;],&quot;DEBIT&quot;,amount,currency,&quot;FINAL&quot;,now))
+            db.execute(&quot;INSERT INTO postings VALUES(?,?,?,?,?,?,?,?)&quot;,(_id(&quot;post1&quot;),settlement_id,row[&quot;payee_entity_id&quot;],&quot;CREDIT&quot;,amount,currency,&quot;FINAL&quot;,now))
+            db.execute(&quot;UPDATE settlements SET state=&#x27;CONFIRMED&#x27;,money_movement_verified=?,updated_at_ms=? WHERE settlement_id=?&quot;,(1 if movement_verified else 0,now,settlement_id))
+            event=self._event(db,settlement_id,&quot;SETTLEMENT_CONFIRMED&quot;,payer_entity_id,row[&quot;state&quot;],&quot;CONFIRMED&quot;,{&quot;external_money_movement_verified&quot;:bool(movement_verified),&quot;evidence_level&quot;:evidence.get(&quot;level&quot;)})
+        return {&quot;settlement_id&quot;:settlement_id,&quot;state&quot;:&quot;CONFIRMED&quot;,&quot;double_entry_balanced&quot;:True,&quot;external_money_movement_verified&quot;:bool(movement_verified),&quot;event&quot;:event}
+    def compensate(self,actor_entity_id: str,settlement_id: str,*,refund: bool=False,reason: str=&quot;&quot;) -&gt; dict:
+        row=self._load(settlement_id)
+        if actor_entity_id not in {row[&quot;payer_entity_id&quot;],row[&quot;payee_entity_id&quot;]}: raise PermissionError(&quot;settlement party required&quot;)
+        self._require_local(actor_entity_id)
+        if row[&quot;state&quot;] not in {&quot;CONFIRMED&quot;,&quot;DISPUTED&quot;}: raise ValueError(&quot;only confirmed/disputed settlement may be compensated&quot;)
+        target=&quot;REFUNDED&quot; if refund else &quot;REVERSED&quot;; kind=&quot;REFUND&quot; if refund else &quot;REVERSAL&quot;; now=_now(); amount=int(row[&quot;amount_units&quot;]); currency=row[&quot;currency&quot;]
+        with self._lock,self._connect() as db:
+            if db.execute(&quot;SELECT 1 FROM postings WHERE settlement_id=? AND posting_kind IN (&#x27;REVERSAL&#x27;,&#x27;REFUND&#x27;) LIMIT 1&quot;,(settlement_id,)).fetchone(): raise RuntimeError(&quot;settlement already compensated&quot;)
+            db.execute(&quot;INSERT INTO postings VALUES(?,?,?,?,?,?,?,?)&quot;,(_id(&quot;post1&quot;),settlement_id,row[&quot;payer_entity_id&quot;],&quot;CREDIT&quot;,amount,currency,kind,now))
+            db.execute(&quot;INSERT INTO postings VALUES(?,?,?,?,?,?,?,?)&quot;,(_id(&quot;post1&quot;),settlement_id,row[&quot;payee_entity_id&quot;],&quot;DEBIT&quot;,amount,currency,kind,now))
+            db.execute(&quot;UPDATE settlements SET state=?,updated_at_ms=? WHERE settlement_id=?&quot;,(target,now,settlement_id))
+            event=self._event(db,settlement_id,f&quot;SETTLEMENT_{target}&quot;,actor_entity_id,row[&quot;state&quot;],target,{&quot;reason&quot;:str(reason)[:2048],&quot;compensating_entries&quot;:True})
+        return {&quot;settlement_id&quot;:settlement_id,&quot;state&quot;:target,&quot;compensating_entries&quot;:True,&quot;event&quot;:event}
+
+    def balance(self,entity_id: str,currency: str) -&gt; dict:
+        unit=str(currency).upper()
+        with self._connect() as db:
+            credits=int(db.execute(&quot;SELECT COALESCE(SUM(amount_units),0) FROM postings WHERE entity_id=? AND currency=? AND direction=&#x27;CREDIT&#x27;&quot;,(entity_id,unit)).fetchone()[0])
+            debits=int(db.execute(&quot;SELECT COALESCE(SUM(amount_units),0) FROM postings WHERE entity_id=? AND currency=? AND direction=&#x27;DEBIT&#x27;&quot;,(entity_id,unit)).fetchone()[0])
+        return {&quot;entity_id&quot;:entity_id,&quot;currency&quot;:unit,&quot;credits&quot;:credits,&quot;debits&quot;:debits,&quot;net&quot;:credits-debits,&quot;balanced_posting_model&quot;:True}
+
+    def get(self,settlement_id: str) -&gt; dict:
+        row=self._load(settlement_id); out=dict(row); out[&quot;evidence&quot;]=json.loads(out.pop(&quot;evidence_json&quot;) or &quot;{}&quot;); out[&quot;money_movement_verified&quot;]=bool(out[&quot;money_movement_verified&quot;]); return out
+    def create_value_record(self,controller_entity_id: str,asset_ref: str,amount_units: int,currency: str) -&gt; dict:
+        self._require_local(controller_entity_id); amount=int(amount_units)
+        if amount&lt;0: raise ValueError(&quot;amount_units cannot be negative&quot;)
+        value_id=_id(&quot;val1&quot;); now=_now(); unit=str(currency).upper()
+        with self._connect() as db:
+            db.execute(&quot;INSERT INTO value_records VALUES(?,?,?,?,?,?,?,?,?,?)&quot;,(value_id,controller_entity_id,str(asset_ref),amount,unit,&quot;POTENTIAL&quot;,None,0,now,now))
+        return {&quot;value_id&quot;:value_id,&quot;state&quot;:&quot;POTENTIAL&quot;,&quot;amount_units&quot;:amount,&quot;currency&quot;:unit,&quot;realized_external&quot;:False}
+
+    def advance_value(self,controller_entity_id: str,value_id: str,target_state: str,*,settlement_id: str|None=None) -&gt; dict:
+        target=str(target_state or &quot;&quot;).upper()
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM value_records WHERE value_id=?&quot;,(value_id,)).fetchone()
+        if not row: raise KeyError(&quot;value record not found&quot;)
+        if row[&quot;controller_entity_id&quot;]!=controller_entity_id: raise PermissionError(&quot;value controller mismatch&quot;)
+        current=row[&quot;state&quot;]
+        if VALUE_NEXT.get(current)!=target: raise ValueError(f&quot;invalid value transition {current}-&gt;{target}&quot;)
+        realized_external=False; sid=settlement_id or row[&quot;settlement_id&quot;]
+        if target in {&quot;SETTLED&quot;,&quot;REALIZED&quot;}:
+            if not sid: raise ValueError(&quot;settlement evidence required&quot;)
+            settlement=self.get(sid)
+            if settlement[&quot;state&quot;] not in {&quot;CONFIRMED&quot;,&quot;RECONCILED&quot;}: raise ValueError(&quot;settlement is not final enough&quot;)
+            if target==&quot;REALIZED&quot;:
+                if settlement[&quot;settlement_kind&quot;]!=&quot;EXTERNAL_PAYMENT&quot; or not settlement[&quot;money_movement_verified&quot;]:
+                    raise PermissionError(&quot;REALIZED monetary value requires verified external payment evidence&quot;)
+                realized_external=True
+        now=_now()
+        with self._connect() as db:
+            db.execute(&quot;UPDATE value_records SET state=?,settlement_id=?,realized_external=?,updated_at_ms=? WHERE value_id=?&quot;,(target,sid,1 if realized_external else int(row[&quot;realized_external&quot;]),now,value_id))
+        return {&quot;value_id&quot;:value_id,&quot;from_state&quot;:current,&quot;state&quot;:target,&quot;settlement_id&quot;:sid,&quot;realized_external&quot;:bool(realized_external or row[&quot;realized_external&quot;])}
+
+    def get_value(self,value_id: str) -&gt; dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM value_records WHERE value_id=?&quot;,(value_id,)).fetchone()
+        if not row: raise KeyError(&quot;value record not found&quot;)
+        out=dict(row); out[&quot;realized_external&quot;]=bool(out[&quot;realized_external&quot;]); return out
+    def create_royalty_plan(self,controller_entity_id: str,shares_basis_points: dict[str,int],version: int=1) -&gt; dict:
+        self._require_local(controller_entity_id); shares={str(k):int(v) for k,v in dict(shares_basis_points or {}).items()}
+        if not shares or any(v&lt;0 for v in shares.values()) or sum(shares.values())!=10000: raise ValueError(&quot;royalty shares must sum to 10000 basis points&quot;)
+        plan_id=_id(&quot;roy1&quot;); now=_now()
+        with self._connect() as db: db.execute(&quot;INSERT INTO royalty_plans VALUES(?,?,?,?,?,?)&quot;,(plan_id,controller_entity_id,int(version),json.dumps(shares,sort_keys=True),&quot;ACTIVE&quot;,now))
+        return {&quot;plan_id&quot;:plan_id,&quot;controller_entity_id&quot;:controller_entity_id,&quot;version&quot;:int(version),&quot;shares_basis_points&quot;:shares,&quot;status&quot;:&quot;ACTIVE&quot;}
+
+    def allocate_royalties(self,plan_id: str,settlement_id: str,amount_units: int,currency: str) -&gt; dict:
+        with self._connect() as db: plan=db.execute(&quot;SELECT * FROM royalty_plans WHERE plan_id=?&quot;,(plan_id,)).fetchone()
+        if not plan or plan[&quot;status&quot;]!=&quot;ACTIVE&quot;: raise KeyError(&quot;active royalty plan not found&quot;)
+        amount=int(amount_units)
+        if amount&lt;0: raise ValueError(&quot;amount_units cannot be negative&quot;)
+        shares=json.loads(plan[&quot;shares_json&quot;]); ordered=sorted(shares.items())
+        distribution={}; allocated=0
+        for index,(entity_id,bps) in enumerate(ordered):
+            units=(amount*int(bps))//10000
+            distribution[entity_id]=units; allocated+=units
+        remainder=amount-allocated
+        for entity_id,_ in ordered[:remainder]: distribution[entity_id]+=1
+        allocation_id=_id(&quot;alloc1&quot;); now=_now(); unit=str(currency).upper()
+        try:
+            with self._connect() as db: db.execute(&quot;INSERT INTO royalty_allocations VALUES(?,?,?,?,?,?,?)&quot;,(allocation_id,plan_id,str(settlement_id),amount,unit,json.dumps(distribution,sort_keys=True),now))
+        except sqlite3.IntegrityError as exc: raise ValueError(&quot;royalties already allocated for settlement&quot;) from exc
+        return {&quot;allocation_id&quot;:allocation_id,&quot;plan_id&quot;:plan_id,&quot;plan_version&quot;:int(plan[&quot;version&quot;]),&quot;settlement_id&quot;:str(settlement_id),&quot;amount_units&quot;:amount,&quot;currency&quot;:unit,&quot;distribution&quot;:distribution,&quot;allocated_total&quot;:sum(distribution.values())}
+
+    def status(self) -&gt; dict:
+        with self._connect() as db:
+            settlements=int(db.execute(&quot;SELECT COUNT(*) FROM settlements&quot;).fetchone()[0]); values=int(db.execute(&quot;SELECT COUNT(*) FROM value_records&quot;).fetchone()[0])
+        return {&quot;ready&quot;:True,&quot;schema&quot;:&quot;entity-canonical-economics-v1&quot;,&quot;replay_protection&quot;:True,&quot;double_entry&quot;:True,&quot;payer_payee_direction&quot;:True,&quot;reversal_refund_compensation&quot;:True,&quot;external_payment_requires_provider_confirmation&quot;:True,&quot;value_states&quot;:list(VALUE_STATES),&quot;internal_records_do_not_prove_external_money&quot;:True,&quot;deterministic_royalties&quot;:True,&quot;settlements&quot;:settlements,&quot;value_records&quot;:values}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

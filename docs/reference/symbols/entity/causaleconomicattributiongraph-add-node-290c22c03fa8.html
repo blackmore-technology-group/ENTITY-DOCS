@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CausalEconomicAttributionGraph.add_node Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>CausalEconomicAttributionGraph.add_node</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/37_Verifiable_Reality/causal_economic_graph.py#L36">ENTITY/src/37_Verifiable_Reality/causal_economic_graph.py#L36</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>CausalEconomicAttributionGraph.add_node(self, controller_entity_id: str, node_type: str, ref_id: str, *, evidence_refs: list[str] | None=None, event_refs: list[str] | None=None, economic_observation: dict | None=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def add_node(self, controller_entity_id: str, node_type: str, ref_id: str,
+                 *, evidence_refs: list[str] | None = None, event_refs: list[str] | None = None,
+                 economic_observation: dict | None = None) -&gt; dict:
+        self.identity.load_manifest(controller_entity_id)
+        node_type = str(node_type).upper()
+        if node_type not in CAUSAL_NODE_TYPES:
+            raise ValueError(&quot;unsupported causal node type&quot;)
+        observation = dict(economic_observation or {})
+        if observation:
+            observation[&quot;market_observation_is_not_accounting_fair_value&quot;] = True
+            observation[&quot;protocol_does_not_determine_legal_entitlement&quot;] = True
+        body = {
+            &quot;schema&quot;: &quot;entity-v3-causal-economic-node-v1&quot;,
+            &quot;node_id&quot;: rid(&quot;causalnode3&quot;),
+            &quot;node_type&quot;: node_type,
+            &quot;ref_id&quot;: str(ref_id),
+            &quot;controller_entity_id&quot;: controller_entity_id,
+            &quot;evidence_refs&quot;: sorted({str(x) for x in (evidence_refs or [])}),
+            &quot;event_refs&quot;: sorted({str(x) for x in (event_refs or [])}),
+            &quot;economic_observation&quot;: observation,
+            &quot;created_at_ms&quot;: now_ms(),
+        }
+        sig = self.identity.sign(controller_entity_id, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO nodes VALUES(?,?,?,?,?,?,?)&quot;, (
+                body[&quot;node_id&quot;], node_type, body[&quot;ref_id&quot;], controller_entity_id,
+                json.dumps(body, sort_keys=True), json.dumps(sig, sort_keys=True), body[&quot;created_at_ms&quot;]))
+        return dict(body, signature=sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

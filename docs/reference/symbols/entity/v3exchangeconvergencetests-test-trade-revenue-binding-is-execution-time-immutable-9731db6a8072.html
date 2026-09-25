@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V3ExchangeConvergenceTests.test_trade_revenue_binding_is_execution_time_immutable Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>V3ExchangeConvergenceTests.test_trade_revenue_binding_is_execution_time_immutable</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_exchange_convergence.py#L303">ENTITY/tests/test_v3_exchange_convergence.py#L303</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>V3ExchangeConvergenceTests.test_trade_revenue_binding_is_execution_time_immutable(self)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def test_trade_revenue_binding_is_execution_time_immutable(self):
+        for eep,venue,inst,prefix,is_mirror in (
+            (*self.make_ref_exchange(),&quot;r-revenue-bind&quot;,False),
+            (*self.make_mirror_exchange(),&quot;m-revenue-bind&quot;,True),
+        ):
+            first={&quot;schema&quot;:&quot;entity-eep-revenue-rule-set-v1&quot;,&quot;rule_set_id&quot;:prefix+&quot;-rules-v1&quot;,&quot;instrument_id&quot;:inst[&quot;instrument_id&quot;],
+                   &quot;issuer&quot;:self.owner,&quot;allocations_bps&quot;:{self.buyer2:1000},&quot;nonce&quot;:prefix+&quot;-rules-v1-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            eep.submit_signed_revenue_rules(first,self.identity.sign(self.owner,first))
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;SELL&quot;,10,100,nonce=prefix+&quot;-sell&quot;)
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.buyer,&quot;BUY&quot;,10,100,nonce=prefix+&quot;-buy&quot;)
+            trades=eep.match_order_book(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;])
+            self.assertEqual(len(trades),1); trade_id=trades[0][&quot;trade_id&quot;]
+            bound=eep.trade_revenue_binding(trade_id)
+            self.assertEqual(bound[&quot;rule_set_id&quot;],first[&quot;rule_set_id&quot;]); self.assertEqual(bound[&quot;allocations_bps&quot;],{self.buyer2:1000})
+            second={&quot;schema&quot;:&quot;entity-eep-revenue-rule-set-v1&quot;,&quot;rule_set_id&quot;:prefix+&quot;-rules-v2&quot;,&quot;instrument_id&quot;:inst[&quot;instrument_id&quot;],
+                    &quot;issuer&quot;:self.owner,&quot;allocations_bps&quot;:{self.agent:2000},&quot;nonce&quot;:prefix+&quot;-rules-v2-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)+1}
+            eep.submit_signed_revenue_rules(second,self.identity.sign(self.owner,second))
+            self.assertEqual(eep.trade_revenue_binding(trade_id)[&quot;allocations_bps&quot;],{self.buyer2:1000})
+            settled=self._verified_settle(eep,trade_id,prefix+&quot;-pay&quot;)
+            if is_mirror:
+                revenue=settled[&quot;revenue_distribution&quot;]
+                self.assertEqual(len(revenue),1); self.assertEqual(revenue[0][&quot;recipient&quot;],self.buyer2); self.assertEqual(revenue[0][&quot;amount_units&quot;],100)
+            self.assertEqual(eep.trade_revenue_binding(trade_id)[&quot;rule_set_id&quot;],first[&quot;rule_set_id&quot;])</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

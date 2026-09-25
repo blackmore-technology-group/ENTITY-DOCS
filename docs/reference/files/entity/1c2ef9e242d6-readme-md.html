@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / sdk/btg_application_sdk/README.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / sdk/btg_application_sdk/README.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>sdk/btg_application_sdk/README.md</code></p><p><b>SHA-256:</b> <code>b673ab784b0b9cb3e93854d9819c47198144b40df6e6049fac2939e118472356</code></p><p><b>Bytes:</b> 1,653</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/btg_application_sdk/README.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># BTG Application SDK v1
+
+This is an additive integration profile for existing ENTITY capabilities. It does not replace or redefine SERS-ENTITY-003, identity, sovereign authority, rights, consent, licensing, settlement, accounting, capital, recovery or provider-replacement semantics.
+
+## Purpose
+
+BTG applications such as HUNTAR, SearchAR, HikeAR, NIKI, BSIE, BoundarysBest and future systems may become native ENTITY data/provenance producers through application-specific Entity identities such as `huntar.entity`.
+
+The human-readable `.entity` alias is not the cryptographic authority. The canonical Entity ID and signed manifest remain authoritative.
+
+## Boundary
+
+The application SDK may register SOFTWARE, DATA, MODEL, KNOWLEDGE and EVIDENCE assets; preserve source/data-subject references; add provenance derivations; create knowledge-capital receipts; and append bounded non-authoritative application events.
+
+The SDK does not expose direct mutation of ownership verification, consent, licences, settlements, payments, Digital Commodity state, capital state or governance authority. Those operations remain exclusively in their existing canonical ENTITY subsystems.
+
+## Security model
+
+Application binaries SHALL NOT contain ENTITY root private keys. Application/device clients create bounded envelopes containing hashes and metadata. An authorized ENTITY-side session validates the application/device context and the canonical ENTITY runtime signs resulting records.
+
+Authorization is default deny. Raw source content is not required in ingest envelopes. Idempotency keys prevent duplicate ingestion and reject replay with changed payloads.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

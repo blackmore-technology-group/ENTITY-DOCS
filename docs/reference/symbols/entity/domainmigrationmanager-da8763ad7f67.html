@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DomainMigrationManager Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>DomainMigrationManager</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/migration/canonical_domain_migration.py#L3">ENTITY/src/22_Sovereign_Domain/migration/canonical_domain_migration.py#L3</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Moves replaceable serving infrastructure without changing sovereign Entity/domain semantics.</p><h2>Source excerpt</h2><pre><code>class DomainMigrationManager:
+    &quot;&quot;&quot;Moves replaceable serving infrastructure without changing sovereign Entity/domain semantics.&quot;&quot;&quot;
+    def __init__(self,domain_authority):
+        self.domain=domain_authority
+
+    def migrate_service(self,entity_id,service_id,*,new_node_public_key_b64,new_endpoint,
+                        new_provider=None,old_provider=None,new_node_id=None,revoke_old=True):
+        old_service=self.domain.get_service(service_id)
+        old_node=self.domain.get_node(old_service[&#x27;node_id&#x27;])
+        if old_service[&#x27;entity_root&#x27;]!=entity_id: raise PermissionError(&#x27;service controller mismatch&#x27;)
+        before=self.domain.semantic_hash(old_service[&#x27;domain_id&#x27;])
+        node=self.domain.authorize_node(entity_id,old_service[&#x27;domain_id&#x27;],new_node_public_key_b64,
+            permitted_services=[old_service[&#x27;service_type&#x27;]],network_scopes=[&#x27;*&#x27;],
+            publication_scopes=[old_service[&#x27;service_type&#x27;]],data_scopes=[],node_id=new_node_id)
+        updated=self.domain.publish_service(entity_id,old_service[&#x27;domain_id&#x27;],node[&#x27;node_id&#x27;],
+            old_service[&#x27;service_type&#x27;],dict(new_endpoint),protocol_version=old_service[&#x27;protocol_version&#x27;],
+            capabilities=list(old_service[&#x27;capabilities&#x27;]),access_class=old_service[&#x27;access_class&#x27;],
+            required_credentials=list(old_service[&#x27;required_credentials&#x27;]),policy_refs=list(old_service[&#x27;policy_refs&#x27;]),
+            data_classifications=list(old_service[&#x27;data_classifications&#x27;]),economic_terms_ref=old_service.get(&#x27;economic_terms_ref&#x27;),
+            availability=dict(old_service.get(&#x27;availability&#x27;) or {}),expires_at_ms=old_service.get(&#x27;expires_at_ms&#x27;),service_id=service_id)
+        if revoke_old and old_node.get(&#x27;effective_status&#x27;)==&#x27;ACTIVE&#x27;:
+            self.domain.revoke_node(entity_id,old_node[&#x27;node_id&#x27;],&#x27;device/provider migration&#x27;)
+        after=self.domain.semantic_hash(old_service[&#x27;domain_id&#x27;])
+        migration=self.domain.record_migration(entity_id,old_service[&#x27;domain_id&#x27;],from_node=old_node[&#x27;node_id&#x27;],
+            to_node=node[&#x27;node_id&#x27;],from_provider=old_provider,to_provider=new_provider,
+            semantic_hash_before=before,semantic_hash_after=after)
+        return {&#x27;status&#x27;:&#x27;VERIFIED&#x27;,&#x27;entity_root&#x27;:entity_id,&#x27;domain_id&#x27;:old_service[&#x27;domain_id&#x27;],
+            &#x27;service_id&#x27;:service_id,&#x27;old_node_id&#x27;:old_node[&#x27;node_id&#x27;],&#x27;new_node_id&#x27;:node[&#x27;node_id&#x27;],
+            &#x27;service_manifest_version&#x27;:updated[&#x27;manifest_version&#x27;],&#x27;semantic_hash_before&#x27;:before,
+            &#x27;semantic_hash_after&#x27;:after,&#x27;entity_root_unchanged&#x27;:True,&#x27;domain_id_unchanged&#x27;:True,
+            &#x27;old_provider_retains_authority&#x27;:False,&#x27;migration_record&#x27;:migration}
+
+    def status(self):
+        return {&#x27;ready&#x27;:True,&#x27;schema&#x27;:&#x27;entity-domain-migration-manager-v1&#x27;,
+                &#x27;provider_replacement_changes_entity&#x27;:False,&#x27;infrastructure_excluded_from_sovereign_semantic_hash&#x27;:True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

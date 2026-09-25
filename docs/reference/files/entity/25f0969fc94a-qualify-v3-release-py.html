@@ -1,0 +1,104 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/qualify_v3_release.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/qualify_v3_release.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/qualify_v3_release.py</code></p><p><b>SHA-256:</b> <code>bb03f8dc7297410891667934b0d997c4f061829618567828a7e649157cfd3575</code></p><p><b>Bytes:</b> 4,658</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/qualify_v3_release.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-554c7626c6cb.html">load</a></li><li><a href="../../../reference/symbols/entity/setup-modules-5b39c448bce5.html">setup_modules</a></li><li><a href="../../../reference/symbols/entity/build-exchange-2dcadcb7e228.html">build_exchange</a></li><li><a href="../../../reference/symbols/entity/exercise-311fa0bd492e.html">exercise</a></li><li><a href="../../../reference/symbols/entity/main-5db479be9774.html">main</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+
+import hashlib
+import importlib.util
+import json
+import pathlib
+import sys
+import tempfile
+import time
+
+REPO = pathlib.Path(__file__).resolve().parents[1]
+TRADES_PER_IMPLEMENTATION = 250
+
+
+def load(name: str, path: pathlib.Path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def setup_modules():
+    identity = load(&quot;rel_identity&quot;, REPO / &quot;src/01_Core_Runtime/identity/canonical_identity.py&quot;)
+    fabric = load(&quot;rel_fabric&quot;, REPO / &quot;src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py&quot;)
+    reference = load(&quot;rel_eep_reference&quot;, REPO / &quot;src/31_Profiles/exchange_protocol.py&quot;)
+    mirror = load(&quot;rel_eep_mirror&quot;, REPO / &quot;src/32_V3_Hardening/exchange_protocol.py&quot;)
+    return identity, fabric, reference, mirror
+
+def build_exchange(eep_cls, root, vault, fabric, owner, dco, label):
+    root.mkdir(parents=True, exist_ok=True)
+    eep = eep_cls(root, vault, fabric)
+    venue = eep.create_venue(
+        owner, f&quot;{label} Release Venue&quot;, &quot;CA&quot;, [&quot;ORDER_BOOK&quot;, &quot;RFQ&quot;],
+        hashlib.sha256(f&quot;{label}-policy&quot;.encode()).hexdigest(),
+    )
+    instrument = eep.define_instrument(
+        owner, dco[&quot;object_id&quot;], &quot;SPOT_LICENSE&quot;,
+        {&quot;actions&quot;: [&quot;TRAIN&quot;, &quot;DERIVE&quot;], &quot;raw_redistribution&quot;: False},
+        TRADES_PER_IMPLEMENTATION + 100, &quot;CAD&quot;, transferable=True,
+    )
+    disclosure = eep.publish_disclosure(
+        venue[&quot;venue_id&quot;], instrument[&quot;instrument_id&quot;], owner, &quot;LISTING&quot;,
+        hashlib.sha256(f&quot;{label}-disclosure&quot;.encode()).hexdigest(),
+    )
+    eep.list_instrument(
+        venue[&quot;venue_id&quot;], instrument[&quot;instrument_id&quot;], owner,
+        min_lot=1, tick_size=1, disclosure_sha256=disclosure[&quot;content_sha256&quot;],
+    )
+    return eep, venue, instrument
+
+def exercise(eep, venue, instrument, owner, buyer, prefix):
+    start = time.perf_counter()
+    completed = 0
+    for i in range(TRADES_PER_IMPLEMENTATION):
+        eep.submit_order(
+            venue[&quot;venue_id&quot;], instrument[&quot;instrument_id&quot;], owner,
+            &quot;SELL&quot;, 1, 100 + (i % 7), nonce=f&quot;{prefix}-sell-{i}&quot;,
+        )
+        eep.submit_order(
+            venue[&quot;venue_id&quot;], instrument[&quot;instrument_id&quot;], buyer,
+            &quot;BUY&quot;, 1, 106, nonce=f&quot;{prefix}-buy-{i}&quot;,
+        )
+        trades = eep.match_order_book(venue[&quot;venue_id&quot;], instrument[&quot;instrument_id&quot;])
+        if len(trades) != 1:
+            raise AssertionError(f&quot;expected one trade at iteration {i}, got {len(trades)}&quot;)
+        eep.settle_trade(trades[0][&quot;trade_id&quot;], payment_ref=f&quot;{prefix}-pay-{i}&quot;)
+        completed += 1
+    elapsed = time.perf_counter() - start
+    if eep.balance(instrument[&quot;instrument_id&quot;], buyer) != completed:
+        raise AssertionError(&quot;buyer balance does not equal settled trade count&quot;)
+    return {&quot;trades&quot;: completed, &quot;elapsed_seconds&quot;: round(elapsed, 3),
+            &quot;trades_per_second&quot;: round(completed / elapsed, 3)}
+
+def main():
+    identity_mod, fabric_mod, ref_mod, mirror_mod = setup_modules()
+    with tempfile.TemporaryDirectory() as tmp:
+        root = pathlib.Path(tmp)
+        vault = identity_mod.EntityIdentityVault(root)
+        fabric = fabric_mod.UniversalTransactionFabric(root, vault)
+        owner = vault.create(&quot;Release Owner&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        buyer = vault.create(&quot;Release Buyer&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        dco = fabric.register_digital_commodity(
+            owner, &quot;Release Qualification Corpus&quot;, hashlib.sha256(b&quot;release-corpus&quot;).hexdigest()
+        )
+        results = {}
+        for label, cls in ((&quot;reference&quot;, ref_mod.ExchangeProtocol), (&quot;mirror&quot;, mirror_mod.ExchangeProtocol)):
+            eep, venue, inst = build_exchange(cls, root / label, vault, fabric, owner, dco, label)
+            results[label] = exercise(eep, venue, inst, owner, buyer, label)
+        payload = {
+            &quot;schema&quot;: &quot;entity-v3-release-load-qualification-v1&quot;,
+            &quot;qualified&quot;: all(v[&quot;trades&quot;] == TRADES_PER_IMPLEMENTATION for v in results.values()),
+            &quot;trades_per_implementation&quot;: TRADES_PER_IMPLEMENTATION,
+            &quot;total_settled_trades&quot;: sum(v[&quot;trades&quot;] for v in results.values()),
+            &quot;implementations&quot;: results,
+            &quot;scope&quot;: &quot;bounded local release-load qualification; not production capacity certification&quot;,
+        }
+        print(json.dumps(payload, sort_keys=True, indent=2))
+        return 0 if payload[&quot;qualified&quot;] else 1
+
+
+if __name__ == &quot;__main__&quot;:
+    raise SystemExit(main())</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

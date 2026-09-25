@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PrivacyEnvelope Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>PrivacyEnvelope</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/32_V3_Hardening/hardening_profiles.py#L332">ENTITY/src/32_V3_Hardening/hardening_profiles.py#L332</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class PrivacyEnvelope:
+    @staticmethod
+    def pseudonym(secret: bytes, relationship: str) -&gt; str:
+        import hmac, base64
+        raw=hmac.new(secret,str(relationship).encode(),hashlib.sha256).digest()
+        return &#x27;pse3-&#x27;+base64.b32encode(raw).decode().lower().rstrip(&#x27;=&#x27;)
+    @staticmethod
+    def encrypt(key: bytes, claims: dict, aad: dict | None=None) -&gt; dict:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        if len(key) not in {16,24,32}: raise ValueError(&#x27;AES-GCM key must be 128/192/256 bits&#x27;)
+        nonce=secrets.token_bytes(12); associated=canon(aad or {}); ciphertext=AESGCM(key).encrypt(nonce,canon(claims),associated)
+        import base64
+        return {&#x27;schema&#x27;:&#x27;entity-v3-encrypted-claims-v1&#x27;,&#x27;algorithm&#x27;:&#x27;AES-GCM&#x27;,&#x27;nonce&#x27;:base64.urlsafe_b64encode(nonce).decode(),&#x27;ciphertext&#x27;:base64.urlsafe_b64encode(ciphertext).decode(),&#x27;aad_sha256&#x27;:hashlib.sha256(associated).hexdigest(),&#x27;plaintext_sha256&#x27;:sha(claims),&#x27;minimum_disclosure&#x27;:True}
+    @staticmethod
+    def decrypt(key: bytes, envelope: dict, aad: dict | None=None) -&gt; dict:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        import base64
+        associated=canon(aad or {})
+        if hashlib.sha256(associated).hexdigest()!=envelope.get(&#x27;aad_sha256&#x27;): raise ValueError(&#x27;AAD mismatch&#x27;)
+        raw=AESGCM(key).decrypt(base64.urlsafe_b64decode(envelope[&#x27;nonce&#x27;]),base64.urlsafe_b64decode(envelope[&#x27;ciphertext&#x27;]),associated); value=json.loads(raw.decode())
+        if sha(value)!=envelope.get(&#x27;plaintext_sha256&#x27;): raise ValueError(&#x27;plaintext digest mismatch&#x27;)
+        return value</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

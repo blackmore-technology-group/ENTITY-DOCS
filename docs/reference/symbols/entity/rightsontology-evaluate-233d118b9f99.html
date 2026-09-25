@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RightsOntology.evaluate Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>RightsOntology.evaluate</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/32_V3_Hardening/hardening_profiles.py#L81">ENTITY/src/32_V3_Hardening/hardening_profiles.py#L81</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>RightsOntology.evaluate(cls, rules, action, context=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def evaluate(cls,rules,action,context=None):
+        action=str(action).upper(); context=dict(context or {})
+        if action not in RIGHT_TERMS: raise ValueError(&#x27;unknown right action&#x27;)
+        applicable=[]; requested_closure=cls.closure([action])
+        for rule in rules:
+            effect=str(rule.get(&#x27;effect&#x27;) or &#x27;&#x27;).upper()
+            if effect not in {&#x27;ALLOW&#x27;,&#x27;REQUIRE&#x27;,&#x27;PROHIBIT&#x27;}: raise ValueError(&#x27;invalid effect&#x27;)
+            rule_actions={str(a).upper() for a in (rule.get(&#x27;actions&#x27;) or [])}; rule_closure=cls.closure(rule_actions)
+            if effect==&#x27;PROHIBIT&#x27;:
+                if not (rule_actions &amp; requested_closure): continue
+            elif action not in rule_closure: continue
+            if any(context.get(k)!=v for k,v in dict(rule.get(&#x27;conditions&#x27;) or {}).items()): continue
+            applicable.append(rule)
+        effects={str(x[&#x27;effect&#x27;]).upper() for x in applicable}
+        decision=&#x27;DENY&#x27; if &#x27;PROHIBIT&#x27; in effects else &#x27;CONDITIONAL&#x27; if &#x27;REQUIRE&#x27; in effects else &#x27;ALLOW&#x27; if &#x27;ALLOW&#x27; in effects else &#x27;DENY&#x27;
+        return {&#x27;action&#x27;:action,&#x27;decision&#x27;:decision,&#x27;obligations&#x27;:[o for r in applicable for o in r.get(&#x27;obligations&#x27;,[])],&#x27;deny_by_default&#x27;:True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

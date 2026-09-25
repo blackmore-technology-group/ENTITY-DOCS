@@ -1,0 +1,50 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EconomicParticipationProfile.define_participation Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EconomicParticipationProfile.define_participation</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/33_Economic_Participation/economic_participation.py#L143">ENTITY/src/33_Economic_Participation/economic_participation.py#L143</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EconomicParticipationProfile.define_participation(self, originator_entity_id, treasury_id, instrument_id, total_units, reserve_units, currency, *, primary_treasury_bps=0, secondary_royalty_bps=0, derivative_participation_bps=0, version=1, effective_at_ms=None, terms=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def define_participation(self,originator_entity_id,treasury_id,instrument_id,total_units,reserve_units,currency,
+                             *,primary_treasury_bps=0,secondary_royalty_bps=0,
+                             derivative_participation_bps=0,version=1,effective_at_ms=None,terms=None):
+        self.identity.load_manifest(originator_entity_id); treasury=self._treasury(treasury_id)
+        if treasury[&#x27;owner_entity_id&#x27;]!=originator_entity_id:
+            raise PermissionError(&#x27;originator must own the selected treasury&#x27;)
+        total=int(total_units); reserve=int(reserve_units); version=int(version)
+        if total&lt;1 or reserve&lt;0 or reserve&gt;total: raise ValueError(&#x27;invalid total/reserve units&#x27;)
+        if version&lt;1: raise ValueError(&#x27;positive policy version required&#x27;)
+        primary=require_bps(primary_treasury_bps,&#x27;primary_treasury_bps&#x27;)
+        secondary=require_bps(secondary_royalty_bps,&#x27;secondary_royalty_bps&#x27;)
+        derivative=require_bps(derivative_participation_bps,&#x27;derivative_participation_bps&#x27;)
+        with self._db() as db:
+            latest=db.execute(&#x27;SELECT version,effective_at_ms FROM participation_policies WHERE instrument_id=? ORDER BY version DESC LIMIT 1&#x27;,(str(instrument_id),)).fetchone()
+            allocation=db.execute(&#x27;SELECT units FROM reserve_allocations WHERE instrument_id=?&#x27;,(str(instrument_id),)).fetchone()
+        if latest is not None and version&lt;=int(latest[&#x27;version&#x27;]):
+            raise ValueError(&#x27;policy version must increase&#x27;)
+        created=now_ms()
+        if effective_at_ms is None:
+            effective=max(created,(int(latest[&#x27;effective_at_ms&#x27;])+1) if latest is not None else created)
+        else:
+            effective=int(effective_at_ms)
+            if effective&lt;created: raise ValueError(&#x27;participation policy cannot be retroactive&#x27;)
+            if latest is not None and effective&lt;=int(latest[&#x27;effective_at_ms&#x27;]):
+                raise ValueError(&#x27;policy effective time must increase&#x27;)
+        if allocation is not None and reserve!=int(allocation[&#x27;units&#x27;]):
+            raise ValueError(&#x27;reserve units are immutable after allocation; use an explicit reserve-rebalance operation&#x27;)
+        term_doc=dict(terms or {})
+        term_doc.update({&#x27;instrument_id&#x27;:str(instrument_id),&#x27;total_units&#x27;:total,&#x27;reserve_units&#x27;:reserve,
+                         &#x27;primary_treasury_bps&#x27;:primary,&#x27;secondary_royalty_bps&#x27;:secondary,
+                         &#x27;derivative_participation_bps&#x27;:derivative,&#x27;currency&#x27;:str(currency).upper(),
+                         &#x27;protocol_tax_bps&#x27;:0})
+        body={&#x27;schema&#x27;:&#x27;entity-v3-originator-participation-policy-v1&#x27;,&#x27;profile&#x27;:PROFILE_ID,
+              &#x27;policy_id&#x27;:rid(&#x27;opr3&#x27;),&#x27;instrument_id&#x27;:str(instrument_id),&#x27;version&#x27;:version,
+              &#x27;originator_entity_id&#x27;:originator_entity_id,&#x27;treasury_id&#x27;:treasury_id,
+              &#x27;treasury_entity_id&#x27;:treasury[&#x27;treasury_entity_id&#x27;],&#x27;total_units&#x27;:total,
+              &#x27;reserve_units&#x27;:reserve,&#x27;primary_treasury_bps&#x27;:primary,
+              &#x27;secondary_royalty_bps&#x27;:secondary,&#x27;derivative_participation_bps&#x27;:derivative,
+              &#x27;currency&#x27;:str(currency).upper(),&#x27;terms_sha256&#x27;:sha(term_doc),
+              &#x27;effective_at_ms&#x27;:effective,&#x27;status&#x27;:&#x27;ACTIVE&#x27;,&#x27;created_at_ms&#x27;:created,
+              &#x27;protocol_tax_bps&#x27;:0,&#x27;terms_are_disclosed_and_issuer_signed&#x27;:True,
+              &#x27;no_retroactive_economic_rights&#x27;:True}
+        sig=self.identity.sign(originator_entity_id,body)
+        with self._db() as db:
+            db.execute(&quot;UPDATE participation_policies SET status=&#x27;SUPERSEDED&#x27; WHERE instrument_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(str(instrument_id),))
+            db.execute(&#x27;INSERT INTO participation_policies VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&#x27;,(
+                body[&#x27;policy_id&#x27;],body[&#x27;instrument_id&#x27;],version,originator_entity_id,treasury_id,total,reserve,
+                primary,secondary,derivative,body[&#x27;currency&#x27;],body[&#x27;terms_sha256&#x27;],body[&#x27;effective_at_ms&#x27;],
+                &#x27;ACTIVE&#x27;,body[&#x27;created_at_ms&#x27;],json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

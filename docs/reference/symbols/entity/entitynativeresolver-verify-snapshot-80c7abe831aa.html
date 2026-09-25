@@ -1,0 +1,37 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityNativeResolver.verify_snapshot Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityNativeResolver.verify_snapshot</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/resolution/canonical_resolution.py#L53">ENTITY/src/22_Sovereign_Domain/resolution/canonical_resolution.py#L53</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EntityNativeResolver.verify_snapshot(self, snapshot: dict)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def verify_snapshot(self,snapshot:dict)-&gt;dict:
+        failures=[]; snap=dict(snapshot or {})
+        domain=dict(snap.get(&quot;domain&quot;) or {}); did=str(domain.get(&quot;domain_id&quot;) or &quot;&quot;); root=str(domain.get(&quot;entity_root&quot;) or &quot;&quot;)
+        if not did or not root: failures.append(&quot;domain_identity_missing&quot;)
+        else:
+            try: self.identity.load_manifest(root)
+            except Exception: failures.append(&quot;entity_root_unknown&quot;)
+        claim=snap.get(&quot;name_claim&quot;)
+        if claim:
+            if claim.get(&quot;domain_id&quot;)!=did or claim.get(&quot;entity_root&quot;)!=root: failures.append(&quot;name_claim_binding_mismatch&quot;)
+            elif not self._verify_claim(claim): failures.append(&quot;name_claim_signature_invalid&quot;)
+        nodes={}
+        now=_now()
+        for node in snap.get(&quot;nodes&quot;) or []:
+            nid=str(node.get(&quot;node_id&quot;) or &quot;&quot;)
+            if node.get(&quot;domain_id&quot;)!=did or node.get(&quot;entity_root&quot;)!=root: failures.append(f&quot;node:{nid}:binding_mismatch&quot;); continue
+            if not self._verify_node(node): failures.append(f&quot;node:{nid}:signature_invalid&quot;); continue
+            if node.get(&quot;revocation&quot;) and not self._verify_revocation(node.get(&quot;revocation&quot;)):
+                failures.append(f&quot;node:{nid}:revocation_signature_invalid&quot;); continue
+            nodes[nid]=node
+        for service in snap.get(&quot;services&quot;) or []:
+            sid=str(service.get(&quot;service_id&quot;) or &quot;&quot;); nid=str(service.get(&quot;node_id&quot;) or &quot;&quot;)
+            if service.get(&quot;domain_id&quot;)!=did or service.get(&quot;entity_root&quot;)!=root: failures.append(f&quot;service:{sid}:binding_mismatch&quot;); continue
+            if not self._verify_service(service): failures.append(f&quot;service:{sid}:signature_invalid&quot;); continue
+            node=nodes.get(nid)
+            if node is None: failures.append(f&quot;service:{sid}:node_missing&quot;); continue
+            if service.get(&quot;status&quot;)==&quot;ACTIVE&quot;:
+                if node.get(&quot;effective_status&quot;,node.get(&quot;status&quot;))!=&quot;ACTIVE&quot;: failures.append(f&quot;service:{sid}:revoked_node&quot;)
+                if int(node.get(&quot;not_before_ms&quot;) or 0)&gt;now: failures.append(f&quot;service:{sid}:node_not_yet_valid&quot;)
+                exp=node.get(&quot;expires_at_ms&quot;)
+                if exp is not None and int(exp)&lt;=now: failures.append(f&quot;service:{sid}:node_expired&quot;)
+                sexp=service.get(&quot;expires_at_ms&quot;)
+                if sexp is not None and int(sexp)&lt;=now: failures.append(f&quot;service:{sid}:manifest_expired&quot;)
+                if str(service.get(&quot;service_type&quot;)) not in set(node.get(&quot;permitted_services&quot;) or []) and &quot;*&quot; not in set(node.get(&quot;permitted_services&quot;) or []):
+                    failures.append(f&quot;service:{sid}:outside_node_scope&quot;)
+        return {&quot;valid&quot;:not failures,&quot;failures&quot;:failures,&quot;domain_id&quot;:did,&quot;entity_root&quot;:root,
+                &quot;snapshot_sha256&quot;:_sha(snap),&quot;resolver_authority_claimed&quot;:False}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

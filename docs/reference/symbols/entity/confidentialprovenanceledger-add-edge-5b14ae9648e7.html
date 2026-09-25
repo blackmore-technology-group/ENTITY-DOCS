@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ConfidentialProvenanceLedger.add_edge Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ConfidentialProvenanceLedger.add_edge</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/privacy_provenance.py#L217">ENTITY/src/35_Global_Infrastructure/privacy_provenance.py#L217</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>ConfidentialProvenanceLedger.add_edge(self, actor: str, parent_ref: str, child_ref: str, relationship: str, evidence_sha256: str, *, metadata: dict | None=None, encryption_key: bytes | None=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def add_edge(self, actor: str, parent_ref: str, child_ref: str, relationship: str,
+                 evidence_sha256: str, *, metadata: dict | None = None,
+                 encryption_key: bytes | None = None) -&gt; dict:
+        evidence_sha256 = sha256_hex(evidence_sha256)
+        metadata = dict(metadata or {})
+        commitment = digest(metadata)
+        encrypted = None
+        if metadata:
+            if encryption_key is None or len(encryption_key) not in {16, 24, 32}:
+                raise ValueError(&quot;AES key required for confidential provenance metadata&quot;)
+            nonce = os.urandom(12)
+            aad = canon({&quot;parent_ref&quot;: parent_ref, &quot;child_ref&quot;: child_ref,
+                         &quot;relationship&quot;: relationship, &quot;commitment&quot;: commitment})
+            ciphertext = AESGCM(encryption_key).encrypt(nonce, canon(metadata), aad)
+            encrypted = {&quot;suite&quot;: &quot;AES-GCM&quot;, &quot;nonce&quot;: b64(nonce), &quot;ciphertext&quot;: b64(ciphertext),
+                         &quot;aad_sha256&quot;: hashlib.sha256(aad).hexdigest()}
+        body = {&quot;schema&quot;: &quot;entity-v3-confidential-provenance-v1&quot;, &quot;edge_id&quot;: rid(&quot;cpedge3&quot;),
+                &quot;actor&quot;: actor, &quot;parent_ref&quot;: str(parent_ref), &quot;child_ref&quot;: str(child_ref),
+                &quot;relationship&quot;: str(relationship).upper(), &quot;evidence_sha256&quot;: evidence_sha256,
+                &quot;metadata_commitment_sha256&quot;: commitment, &quot;encrypted_metadata&quot;: encrypted,
+                &quot;created_at_ms&quot;: now_ms(), &quot;confidential_metadata_not_public_provenance&quot;: True}
+        sig = self.identity.sign(actor, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO edges VALUES(?,?,?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;edge_id&quot;], actor, str(parent_ref), str(child_ref),
+                body[&quot;relationship&quot;], evidence_sha256, commitment,
+                json.dumps(encrypted, sort_keys=True) if encrypted else None,
+                body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

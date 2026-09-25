@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py</code></p><p><b>SHA-256:</b> <code>1305c9d5076d0671fbf8f9c2fe820418ed5b78bb1c8bd3e05dbcfff92923d8ac</code></p><p><b>Bytes:</b> 43,331</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-0799b2c5096a.html">_now</a></li><li><a href="../../../reference/symbols/entity/id-ce7b847d171a.html">_id</a></li><li><a href="../../../reference/symbols/entity/canon-3b768c60c1d2.html">_canon</a></li><li><a href="../../../reference/symbols/entity/sha-7dd249c9a7c9.html">_sha</a></li><li><a href="../../../reference/symbols/entity/sha256-hex-71d9c57d1fea.html">_sha256_hex</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-f3747790900b.html">UniversalTransactionFabric</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-init-1ea305ea3f4f.html">UniversalTransactionFabric.__init__</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-connect-23d82fff11a6.html">UniversalTransactionFabric._connect</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-init-db-566ae7749c2c.html">UniversalTransactionFabric._init_db</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-require-entity-f8182fcc1989.html">UniversalTransactionFabric._require_entity</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-sign-5451e130dcab.html">UniversalTransactionFabric._sign</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-verify-927931cb7d14.html">UniversalTransactionFabric._verify</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-register-object-107d516a81ac.html">UniversalTransactionFabric.register_object</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-get-object-2f671efeb086.html">UniversalTransactionFabric.get_object</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-delegate-authority-9766a701724a.html">UniversalTransactionFabric.delegate_authority</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-revoke-authority-a6a7c2608c24.html">UniversalTransactionFabric.revoke_authority</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-grant-right-6ffbf2c9762b.html">UniversalTransactionFabric.grant_right</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-active-authority-32fac48ba9ae.html">UniversalTransactionFabric.active_authority</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-active-right-34c02428f935.html">UniversalTransactionFabric.active_right</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-revoke-right-36066f91c3ff.html">UniversalTransactionFabric.revoke_right</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-path-exists-c905a76ff822.html">UniversalTransactionFabric._path_exists</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-add-provenance-b2b21f8c42e6.html">UniversalTransactionFabric.add_provenance</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-root-contributions-3dc116fe6df0.html">UniversalTransactionFabric._root_contributions</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-contribution-distribution-e8ee18444bd2.html">UniversalTransactionFabric.contribution_distribution</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-authorize-use-8683c076ca26.html">UniversalTransactionFabric.authorize_use</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-record-value-fbbaf5eb970c.html">UniversalTransactionFabric.record_value</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-attest-97ded5863f3d.html">UniversalTransactionFabric.attest</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-create-trust-policy-0d8c713a928a.html">UniversalTransactionFabric.create_trust_policy</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-evaluate-trust-87d0a724d08f.html">UniversalTransactionFabric.evaluate_trust</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-open-settlement-5c5a872abef2.html">UniversalTransactionFabric.open_settlement</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-publish-resolution-c32bfba55b9f.html">UniversalTransactionFabric.publish_resolution</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-resolve-2cdd1eb758ba.html">UniversalTransactionFabric.resolve</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-collect-ancestry-97a523db5174.html">UniversalTransactionFabric._collect_ancestry</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-active-right-records-80ca99ca08cb.html">UniversalTransactionFabric._active_right_records</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-active-authority-records-ef4664f4f8ad.html">UniversalTransactionFabric._active_authority_records</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-bundle-manifests-b0576fcd4727.html">UniversalTransactionFabric._bundle_manifests</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-export-bundle-773cdf3e247f.html">UniversalTransactionFabric.export_bundle</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-record-body-7949653d307b.html">UniversalTransactionFabric._record_body</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-verify-bundle-d0910867aa64.html">UniversalTransactionFabric.verify_bundle</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-register-digital-commodity-7754c4380da9.html">UniversalTransactionFabric.register_digital_commodity</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-register-ai-agent-6b12c904d287.html">UniversalTransactionFabric.register_ai_agent</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-status-7cbe108989b8.html">UniversalTransactionFabric.status</a></li><li><a href="../../../reference/symbols/entity/universaltransactionfabric-visit-812988332c8e.html">UniversalTransactionFabric.visit</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from contextlib import contextmanager
+from fractions import Fraction
+from pathlib import Path
+from threading import RLock
+import hashlib, json, secrets, sqlite3, time
+
+PRIMITIVES=(&quot;ENTITY&quot;,&quot;AUTHORITY&quot;,&quot;RIGHT&quot;,&quot;EVENT&quot;,&quot;VALUE&quot;)
+OBJECT_TYPES={&quot;PERSON&quot;,&quot;ORGANIZATION&quot;,&quot;AI_AGENT&quot;,&quot;DATASET&quot;,&quot;DOCUMENT&quot;,&quot;MODEL&quot;,&quot;SOFTWARE&quot;,&quot;API&quot;,&quot;DEVICE&quot;,&quot;VEHICLE&quot;,&quot;BUILDING&quot;,&quot;RESEARCH&quot;,&quot;DIGITAL_TWIN&quot;,&quot;FINANCIAL_INSTRUMENT&quot;,&quot;PHYSICAL_ASSET&quot;,&quot;OTHER&quot;}
+RIGHT_ACTIONS={&quot;INSPECT&quot;,&quot;READ&quot;,&quot;COPY&quot;,&quot;DERIVE&quot;,&quot;TRAIN&quot;,&quot;INFER&quot;,&quot;EXECUTE&quot;,&quot;MODIFY&quot;,&quot;REDISTRIBUTE&quot;,&quot;COMMERCIALIZE&quot;,&quot;CONTROL&quot;,&quot;TRANSFER&quot;}
+AUTHORITY_ACTIONS={&quot;ACT&quot;,&quot;SIGN&quot;,&quot;ACCESS_DATA&quot;,&quot;EXECUTE&quot;,&quot;PURCHASE&quot;,&quot;LICENSE&quot;,&quot;SETTLE&quot;,&quot;PUBLISH&quot;,&quot;RESOLVE&quot;,&quot;DELEGATE&quot;,&quot;CONTROL&quot;}
+VALUE_STATES=(&quot;POTENTIAL&quot;,&quot;OFFER&quot;,&quot;CONTRACTED&quot;,&quot;ACCRUED&quot;,&quot;SETTLED&quot;,&quot;REALIZED&quot;)
+
+
+def _now(): return int(time.time()*1000)
+def _id(prefix): return f&quot;{prefix}-&quot;+secrets.token_hex(20)
+def _canon(v): return json.dumps(v,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False,default=str).encode()
+def _sha(v): return hashlib.sha256(v if isinstance(v,(bytes,bytearray)) else _canon(v)).hexdigest()
+def _sha256_hex(v):
+    s=str(v or &quot;&quot;).lower()
+    if len(s)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in s): raise ValueError(&quot;SHA-256 hex required&quot;)
+    return s
+
+
+class UniversalTransactionFabric:
+    &quot;&quot;&quot;ENTITY v3 universal sovereign transaction fabric.
+
+    The five primitives are ENTITY, AUTHORITY, RIGHT, EVENT and VALUE.
+    Infrastructure, custody and transport never imply sovereign authority.
+    &quot;&quot;&quot;
+    def __init__(self,state_dir:str|Path,identity):
+        self.root=Path(state_dir)/&quot;entity_v3&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;universal_fabric.sqlite&quot;; self.identity=identity; self._lock=RLock(); self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;); db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS objects(object_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,object_type TEXT NOT NULL,title TEXT NOT NULL,content_sha256 TEXT,descriptor_json TEXT NOT NULL,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS authorities(authority_id TEXT PRIMARY KEY,subject_ref TEXT NOT NULL,grantor_entity_id TEXT NOT NULL,grantee_entity_id TEXT NOT NULL,actions_json TEXT NOT NULL,scope_json TEXT NOT NULL,not_before_ms INTEGER NOT NULL,expires_at_ms INTEGER,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL,revoked_at_ms INTEGER,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS rights(right_id TEXT PRIMARY KEY,object_id TEXT NOT NULL,grantor_entity_id TEXT NOT NULL,grantee_ref TEXT NOT NULL,actions_json TEXT NOT NULL,constraints_json TEXT NOT NULL,economic_terms_json TEXT NOT NULL,not_before_ms INTEGER NOT NULL,expires_at_ms INTEGER,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL,revoked_at_ms INTEGER,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS events(event_id TEXT PRIMARY KEY,actor_entity_id TEXT NOT NULL,event_type TEXT NOT NULL,subject_refs_json TEXT NOT NULL,authority_ref TEXT,right_ref TEXT,payload_sha256 TEXT NOT NULL,nonce TEXT UNIQUE,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS provenance_edges(edge_id TEXT PRIMARY KEY,parent_object_id TEXT NOT NULL,child_object_id TEXT NOT NULL,relation TEXT NOT NULL,contribution_bps INTEGER NOT NULL,evidence_json TEXT NOT NULL,actor_entity_id TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS value_records(value_id TEXT PRIMARY KEY,object_id TEXT NOT NULL,controller_entity_id TEXT NOT NULL,state TEXT NOT NULL,amount_units INTEGER NOT NULL,currency TEXT NOT NULL,basis_ref TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS attestations(attestation_id TEXT PRIMARY KEY,subject_ref TEXT NOT NULL,attestor_entity_id TEXT NOT NULL,claim_type TEXT NOT NULL,evidence_sha256 TEXT NOT NULL,claim_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS resolution(object_id TEXT NOT NULL,version INTEGER NOT NULL,endpoints_json TEXT NOT NULL,expires_at_ms INTEGER,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL,PRIMARY KEY(object_id,version))&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS trust_policies(policy_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,claim_type TEXT NOT NULL,minimum_attestations INTEGER NOT NULL,required_attestors_json TEXT NOT NULL,allowed_attestors_json TEXT NOT NULL,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_v3_auth_subject ON authorities(subject_ref,grantee_entity_id,status)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_v3_right_object ON rights(object_id,grantee_ref,status)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_v3_prov_child ON provenance_edges(child_object_id)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_v3_prov_parent ON provenance_edges(parent_object_id)&quot;)
+
+    def _require_entity(self,entity_id:str): return self.identity.load_manifest(entity_id)
+    def _sign(self,entity_id:str,body:dict)-&gt;dict: return self.identity.sign(entity_id,body)
+    def _verify(self,entity_id:str,body:dict,signature:dict)-&gt;bool:
+        return bool(self.identity.verify_signature(self.identity.load_manifest(entity_id),body,signature))
+    def register_object(self,controller_entity_id:str,object_type:str,title:str,*,descriptor=None,content_sha256=None)-&gt;dict:
+        self._require_entity(controller_entity_id); kind=str(object_type or &quot;OTHER&quot;).upper()
+        if kind not in OBJECT_TYPES: raise ValueError(&quot;unsupported object_type&quot;)
+        digest=_sha256_hex(content_sha256) if content_sha256 else None
+        oid=_id(&quot;obj3&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-v3-object-v1&quot;,&quot;primitive&quot;:&quot;ENTITY&quot;,&quot;object_id&quot;:oid,&quot;controller_entity_id&quot;:controller_entity_id,&quot;object_type&quot;:kind,&quot;title&quot;:str(title)[:256],&quot;content_sha256&quot;:digest,&quot;descriptor&quot;:dict(descriptor or {}),&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now,&quot;custody_is_not_authority&quot;:True}
+        sig=self._sign(controller_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO objects VALUES(?,?,?,?,?,?,?,?,?)&quot;,(oid,controller_entity_id,kind,body[&quot;title&quot;],digest,json.dumps(body[&quot;descriptor&quot;],sort_keys=True),&quot;ACTIVE&quot;,now,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def get_object(self,object_id:str)-&gt;dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM objects WHERE object_id=?&quot;,(str(object_id),)).fetchone()
+        if not row: raise KeyError(&quot;object not found&quot;)
+        out=dict(row); out[&quot;descriptor&quot;]=json.loads(out.pop(&quot;descriptor_json&quot;)); out[&quot;signature&quot;]=json.loads(out.pop(&quot;signature_json&quot;)); out[&quot;primitive&quot;]=&quot;ENTITY&quot;; return out
+
+    def delegate_authority(self,subject_ref:str,grantor_entity_id:str,grantee_entity_id:str,actions:list[str],*,scope=None,not_before_ms=None,expires_at_ms=None)-&gt;dict:
+        self._require_entity(grantor_entity_id); self._require_entity(grantee_entity_id)
+        acts=sorted({str(x).upper() for x in actions}); unknown=set(acts)-AUTHORITY_ACTIONS
+        if not acts or unknown: raise ValueError(&quot;invalid authority actions&quot;)
+        start=int(not_before_ms or _now()); end=int(expires_at_ms) if expires_at_ms is not None else None
+        if end is not None and end&lt;=start: raise ValueError(&quot;authority expiry must follow start&quot;)
+        aid=_id(&quot;auth3&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-v3-authority-v1&quot;,&quot;primitive&quot;:&quot;AUTHORITY&quot;,&quot;authority_id&quot;:aid,&quot;subject_ref&quot;:str(subject_ref),&quot;grantor_entity_id&quot;:grantor_entity_id,&quot;grantee_entity_id&quot;:grantee_entity_id,&quot;actions&quot;:acts,&quot;scope&quot;:dict(scope or {}),&quot;not_before_ms&quot;:start,&quot;expires_at_ms&quot;:end,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now,&quot;implicit_escalation_prohibited&quot;:True}
+        sig=self._sign(grantor_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO authorities VALUES(?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(aid,body[&quot;subject_ref&quot;],grantor_entity_id,grantee_entity_id,json.dumps(acts),json.dumps(body[&quot;scope&quot;],sort_keys=True),start,end,&quot;ACTIVE&quot;,now,None,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def revoke_authority(self,grantor_entity_id:str,authority_id:str)-&gt;dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM authorities WHERE authority_id=?&quot;,(authority_id,)).fetchone()
+        if not row: raise KeyError(&quot;authority not found&quot;)
+        if row[&quot;grantor_entity_id&quot;]!=grantor_entity_id: raise PermissionError(&quot;grantor mismatch&quot;)
+        now=_now()
+        with self._connect() as db: db.execute(&quot;UPDATE authorities SET status=&#x27;REVOKED&#x27;,revoked_at_ms=? WHERE authority_id=?&quot;,(now,authority_id))
+        return {&quot;authority_id&quot;:authority_id,&quot;status&quot;:&quot;REVOKED&quot;,&quot;revoked_at_ms&quot;:now}
+    def grant_right(self,object_id:str,grantor_entity_id:str,grantee_ref:str,actions:list[str],*,constraints=None,economic_terms=None,not_before_ms=None,expires_at_ms=None)-&gt;dict:
+        obj=self.get_object(object_id)
+        if obj[&quot;controller_entity_id&quot;]!=grantor_entity_id: raise PermissionError(&quot;object controller required&quot;)
+        acts=sorted({str(x).upper() for x in actions}); unknown=set(acts)-RIGHT_ACTIONS
+        if not acts or unknown: raise ValueError(&quot;invalid right actions&quot;)
+        start=int(not_before_ms or _now()); end=int(expires_at_ms) if expires_at_ms is not None else None
+        if end is not None and end&lt;=start: raise ValueError(&quot;right expiry must follow start&quot;)
+        rid=_id(&quot;right3&quot;); now=_now(); terms=dict(economic_terms or {})
+        body={&quot;schema&quot;:&quot;entity-v3-right-v1&quot;,&quot;primitive&quot;:&quot;RIGHT&quot;,&quot;right_id&quot;:rid,&quot;object_id&quot;:object_id,&quot;grantor_entity_id&quot;:grantor_entity_id,&quot;grantee_ref&quot;:str(grantee_ref),&quot;actions&quot;:acts,&quot;constraints&quot;:dict(constraints or {}),&quot;economic_terms&quot;:terms,&quot;not_before_ms&quot;:start,&quot;expires_at_ms&quot;:end,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now,&quot;access_is_not_ownership&quot;:True}
+        sig=self._sign(grantor_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO rights VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(rid,object_id,grantor_entity_id,body[&quot;grantee_ref&quot;],json.dumps(acts),json.dumps(body[&quot;constraints&quot;],sort_keys=True),json.dumps(terms,sort_keys=True),start,end,&quot;ACTIVE&quot;,now,None,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def active_authority(self,subject_ref:str,grantee_entity_id:str,action:str)-&gt;dict|None:
+        now=_now(); act=str(action).upper()
+        with self._connect() as db: rows=db.execute(&quot;SELECT * FROM authorities WHERE subject_ref=? AND grantee_entity_id=? AND status=&#x27;ACTIVE&#x27; AND not_before_ms&lt;=? AND (expires_at_ms IS NULL OR expires_at_ms&gt;?) ORDER BY created_at_ms&quot;,(str(subject_ref),grantee_entity_id,now,now)).fetchall()
+        for row in rows:
+            if act in set(json.loads(row[&quot;actions_json&quot;])):
+                return {&quot;authority_id&quot;:row[&quot;authority_id&quot;],&quot;grantor_entity_id&quot;:row[&quot;grantor_entity_id&quot;],&quot;scope&quot;:json.loads(row[&quot;scope_json&quot;])}
+        return None
+
+    def active_right(self,object_id:str,grantee_ref:str,action:str,*,purpose=None,jurisdiction=None)-&gt;dict|None:
+        now=_now(); act=str(action).upper()
+        with self._connect() as db: rows=db.execute(&quot;SELECT * FROM rights WHERE object_id=? AND grantee_ref IN (?, &#x27;*&#x27;) AND status=&#x27;ACTIVE&#x27; AND not_before_ms&lt;=? AND (expires_at_ms IS NULL OR expires_at_ms&gt;?) ORDER BY created_at_ms&quot;,(object_id,str(grantee_ref),now,now)).fetchall()
+        for row in rows:
+            if act not in set(json.loads(row[&quot;actions_json&quot;])): continue
+            constraints=json.loads(row[&quot;constraints_json&quot;]); purposes=set(constraints.get(&quot;purposes&quot;) or [])</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

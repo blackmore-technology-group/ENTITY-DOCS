@@ -1,0 +1,79 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / ENTITY_V3_EEP_HARDENING_MANIFEST.json Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / ENTITY_V3_EEP_HARDENING_MANIFEST.json</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>ENTITY_V3_EEP_HARDENING_MANIFEST.json</code></p><p><b>SHA-256:</b> <code>91090ee36f2d6469ac120bee3fa7dbecf5a516fc420e4c8635a8c99a36e563a3</code></p><p><b>Bytes:</b> 2,977</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/ENTITY_V3_EEP_HARDENING_MANIFEST.json">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>{
+  &quot;based_on_local_commit&quot;: &quot;68179328a2b87408af93a5caa1c64312e70247be&quot;,
+  &quot;claim_boundaries&quot;: [
+    &quot;development working-tree evidence, not a release&quot;,
+    &quot;external independent v3 reimplementation remains pending&quot;,
+    &quot;payment attestation is evidence, not absolute truth&quot;,
+    &quot;venue operator entitlement receipt does not transfer underlying ownership&quot;,
+    &quot;legal and regulatory classification remains outside protocol truth&quot;
+  ],
+  &quot;created_date&quot;: &quot;2026-09-23&quot;,
+  &quot;files&quot;: [
+    {
+      &quot;path&quot;: &quot;src/31_Profiles/exchange_protocol.py&quot;,
+      &quot;sha256&quot;: &quot;cca451e553ea70a778c983805d155f05bb92baab5f481f75a60084a92e48d9f6&quot;
+    },
+    {
+      &quot;path&quot;: &quot;src/32_V3_Hardening/exchange_protocol.py&quot;,
+      &quot;sha256&quot;: &quot;a631e259d2f0d7e4c4abf3acf1c04586e22bf5072928e5f9a9ddc3c130713637&quot;
+    },
+    {
+      &quot;path&quot;: &quot;tests/test_v3_exchange_convergence.py&quot;,
+      &quot;sha256&quot;: &quot;079767d481e2dd09582bbf8b5e97a0ea4334d3fe06acbcc32e99c03caddf29fd&quot;
+    },
+    {
+      &quot;path&quot;: &quot;tests/test_v3_hardening_exchange.py&quot;,
+      &quot;sha256&quot;: &quot;f7a7ecf9fa7d748d3953eb68c426945273c42fcf3a952048f21f0def773ecd17&quot;
+    },
+    {
+      &quot;path&quot;: &quot;protocol/v3/ENTITY_EXCHANGE_PROTOCOL_DRAFT.md&quot;,
+      &quot;sha256&quot;: &quot;1733dcf2055a4353abd611344582438a04cbae08b358451290885697c665dbd7&quot;
+    },
+    {
+      &quot;path&quot;: &quot;protocol/v3/ENTITY_V3_GAP_CLOSURE_MATRIX.md&quot;,
+      &quot;sha256&quot;: &quot;9b026fb2f29059fe8cb2bfac34f16845dae863dd420622738de224188828775c&quot;
+    }
+  ],
+  &quot;implemented_hardenings&quot;: [
+    &quot;externally_signed_instrument_issuance&quot;,
+    &quot;externally_signed_disclosure&quot;,
+    &quot;disclosure_bound_listing&quot;,
+    &quot;externally_signed_listing&quot;,
+    &quot;externally_signed_order_ingestion&quot;,
+    &quot;venue_receipt_time_price_priority&quot;,
+    &quot;externally_signed_cancellation&quot;,
+    &quot;externally_signed_usage&quot;,
+    &quot;externally_signed_rfq&quot;,
+    &quot;externally_signed_quote&quot;,
+    &quot;externally_signed_quote_acceptance&quot;,
+    &quot;signed_payment_attestation&quot;,
+    &quot;authorized_settlement_verifiers&quot;,
+    &quot;external_verified_requires_payment_attestation&quot;,
+    &quot;venue_operator_entitlement_attestation&quot;,
+    &quot;issuer_signed_revenue_rule_sets&quot;,
+    &quot;replay_protection_for_signed_market_intents&quot;,
+    &quot;reference_mirror_convergence&quot;,
+    &quot;unsettled_sell_commitment_reservation&quot;,
+    &quot;rfq_acceptance_unreserved_entitlement_recheck&quot;,
+    &quot;execution_time_revenue_rule_binding&quot;,
+    &quot;atomic_concurrent_sell_admission&quot;,
+    &quot;atomic_order_book_revalidation&quot;,
+    &quot;single_commit_concurrent_settlement&quot;,
+    &quot;atomic_revenue_event_and_settlement_rollback&quot;
+  ],
+  &quot;schema&quot;: &quot;entity-v3-eep-authorization-hardening-manifest-v1&quot;,
+  &quot;snapshot_sha256&quot;: &quot;d9a7c967ffca58a366fe82d8d3aa65b50a48dae35b2b5034e161de6221c7c1bb&quot;,
+  &quot;status&quot;: &quot;BTG_INTERNAL_QUALIFIED_RELEASE_COMPONENT&quot;,
+  &quot;validation&quot;: {
+    &quot;complete_active_tree&quot;: {
+      &quot;passed&quot;: 90,
+      &quot;total&quot;: 90
+    },
+    &quot;targeted_eep_reference_mirror&quot;: {
+      &quot;passed&quot;: 30,
+      &quot;total&quot;: 30
+    }
+  },
+  &quot;version&quot;: &quot;3.0.0&quot;,
+  &quot;working_tree_snapshot&quot;: false
+}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

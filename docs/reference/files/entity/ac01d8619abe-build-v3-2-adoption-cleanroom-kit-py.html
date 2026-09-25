@@ -1,0 +1,51 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/build_v3_2_adoption_cleanroom_kit.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/build_v3_2_adoption_cleanroom_kit.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/build_v3_2_adoption_cleanroom_kit.py</code></p><p><b>SHA-256:</b> <code>b0ab1a257261e78f1fc3190e02ab0722625146ba13e3a686c314844738881370</code></p><p><b>Bytes:</b> 2,107</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/build_v3_2_adoption_cleanroom_kit.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/sha-71d4601585a0.html">sha</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json, pathlib
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+VECTORS = ROOT / &quot;protocol&quot; / &quot;v3&quot; / &quot;adoption_vectors&quot;
+PROFILE_PATH = ROOT / &quot;protocol&quot; / &quot;v3&quot; / &quot;ENTITY_ADOPTION_CLEANROOM_PROFILE.json&quot;
+OUT = ROOT / &quot;protocol&quot; / &quot;v3&quot; / &quot;ENTITY_V3_2_ADOPTION_CLEANROOM_KIT.min.json&quot;
+EXPECTED_SHA256 = &quot;44e7a00f910c89aced3b3c1b5e9cba486809ca313e9bfb4b7bc9266095c10c14&quot;
+EXPECTED_RESULT = &quot;1eb59e09ab08da86bfd8584df4a64ba331f7bbbce3d236b9b94f351606c90e18&quot;
+
+def sha(data: bytes) -&gt; str:
+    return hashlib.sha256(data).hexdigest()
+
+profile = json.loads(PROFILE_PATH.read_text(encoding=&quot;utf-8&quot;))
+manifest = json.loads((VECTORS / &quot;VECTOR_MANIFEST.json&quot;).read_text(encoding=&quot;utf-8&quot;))
+if profile.get(&quot;expected_result_sha256&quot;) != EXPECTED_RESULT:
+    raise SystemExit(&quot;unexpected v3.2 clean-room result hash&quot;)
+rows = []
+for entry in sorted(manifest[&quot;vectors&quot;], key=lambda x: x[&quot;file&quot;]):
+    path = VECTORS / entry[&quot;file&quot;]
+    actual = sha(path.read_bytes())
+    if actual != entry[&quot;sha256&quot;]:
+        raise SystemExit(f&quot;vector hash mismatch: {entry[&#x27;file&#x27;]}&quot;)
+    payload = json.loads(path.read_text(encoding=&quot;utf-8&quot;))
+    rows.append({
+        &quot;name&quot;: pathlib.Path(entry[&quot;file&quot;]).stem,
+        &quot;expect&quot;: entry[&quot;expect&quot;],
+        &quot;sha256&quot;: entry[&quot;sha256&quot;],
+        &quot;record&quot;: payload[&quot;record&quot;],
+    })
+kit = {
+    &quot;schema&quot;: &quot;entity-v3.2-adoption-cleanroom-kit-v1&quot;,
+    &quot;release_candidate&quot;: &quot;v3.2.0&quot;,
+    &quot;base_release&quot;: &quot;v3.1.0&quot;,
+    &quot;profile&quot;: profile,
+    &quot;schema_sha256&quot;: manifest[&quot;schema_sha256&quot;],
+    &quot;vector_manifest_sha256&quot;: profile[&quot;vector_manifest_sha256&quot;],
+    &quot;vectors&quot;: rows,
+}
+raw = (json.dumps(kit, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False) + &quot;\n&quot;).encode(&quot;utf-8&quot;)
+actual = sha(raw)
+if actual != EXPECTED_SHA256:
+    raise SystemExit(f&quot;sealed compact kit hash changed: {actual} != {EXPECTED_SHA256}&quot;)
+OUT.write_bytes(raw)
+print(json.dumps({
+    &quot;valid&quot;: True,
+    &quot;vectors&quot;: len(rows),
+    &quot;kit_sha256&quot;: actual,
+    &quot;expected_result_sha256&quot;: EXPECTED_RESULT,
+    &quot;path&quot;: OUT.relative_to(ROOT).as_posix(),
+}, indent=2, sort_keys=True))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

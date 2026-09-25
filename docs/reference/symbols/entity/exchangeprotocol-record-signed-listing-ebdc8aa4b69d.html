@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ExchangeProtocol._record_signed_listing Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ExchangeProtocol._record_signed_listing</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/exchange_protocol.py#L288">ENTITY/src/31_Profiles/exchange_protocol.py#L288</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>ExchangeProtocol._record_signed_listing(self, body: dict, signature: dict)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def _record_signed_listing(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;listing_id&quot;,&quot;venue_id&quot;,&quot;instrument_id&quot;,&quot;lister&quot;,&quot;min_lot&quot;,&quot;tick_size&quot;,&quot;disclosure_sha256&quot;,&quot;status&quot;,&quot;created_at_ms&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-listing-v1&quot; or body.get(&quot;status&quot;)!=&quot;ACTIVE&quot;: raise ValueError(&quot;invalid signed listing shape&quot;)
+        lister=str(body[&quot;lister&quot;]); min_lot=max(1,int(body[&quot;min_lot&quot;])); tick=max(1,int(body[&quot;tick_size&quot;])); created=int(body[&quot;created_at_ms&quot;]); disclosure=str(body[&quot;disclosure_sha256&quot;]).lower()
+        if len(disclosure)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in disclosure): raise ValueError(&quot;SHA-256 hex required&quot;)
+        if created&lt;0 or not str(body[&quot;listing_id&quot;]): raise ValueError(&quot;invalid listing identity/time&quot;)
+        manifest=self.identity.load_manifest(lister)
+        if not self.identity.verify_signature(manifest,body,signature): raise PermissionError(&quot;listing signature invalid&quot;)
+        with self._db() as db:
+            venue=db.execute(&quot;SELECT * FROM venues WHERE venue_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(body[&quot;venue_id&quot;],)).fetchone()
+            inst=db.execute(&quot;SELECT * FROM instruments WHERE instrument_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(body[&quot;instrument_id&quot;],)).fetchone()
+            disc=db.execute(&quot;SELECT 1 FROM disclosures WHERE venue_id=? AND instrument_id=? AND content_sha256=?&quot;,(body[&quot;venue_id&quot;],body[&quot;instrument_id&quot;],disclosure)).fetchone()
+        if not venue or not inst: raise KeyError(&quot;active venue/instrument required&quot;)
+        if not disc: raise ValueError(&quot;listing disclosure has not been published for venue/instrument&quot;)
+        if self.balance(body[&quot;instrument_id&quot;],lister)&lt;=0: raise PermissionError(&quot;lister has no entitlement&quot;)
+        try:
+            with self._db() as db:
+                db.execute(&quot;INSERT INTO listings VALUES(?,?,?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;listing_id&quot;],body[&quot;venue_id&quot;],body[&quot;instrument_id&quot;],lister,min_lot,tick,disclosure,&quot;ACTIVE&quot;,created,json.dumps(signature,sort_keys=True)))
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&quot;duplicate/replayed listing&quot;) from exc
+        return dict(body,min_lot=min_lot,tick_size=tick,disclosure_sha256=disclosure,signature=signature)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

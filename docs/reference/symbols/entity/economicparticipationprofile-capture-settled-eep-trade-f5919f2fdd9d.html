@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EconomicParticipationProfile.capture_settled_eep_trade Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EconomicParticipationProfile.capture_settled_eep_trade</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/33_Economic_Participation/economic_participation.py#L337">ENTITY/src/33_Economic_Participation/economic_participation.py#L337</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EconomicParticipationProfile.capture_settled_eep_trade(self, exchange, trade_id)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def capture_settled_eep_trade(self,exchange,trade_id):
+        with self._exchange_db(exchange) as ex:
+            trade=ex.execute(&quot;SELECT * FROM trades WHERE trade_id=? AND status=&#x27;SETTLED&#x27;&quot;,(str(trade_id),)).fetchone()
+            clearing=ex.execute(&quot;SELECT * FROM clearing WHERE trade_id=? AND status=&#x27;SETTLED&#x27;&quot;,(str(trade_id),)).fetchone()
+            if not trade or not clearing: raise KeyError(&#x27;settled EEP trade required&#x27;)
+            inst=ex.execute(&#x27;SELECT * FROM instruments WHERE instrument_id=?&#x27;,(trade[&#x27;instrument_id&#x27;],)).fetchone()
+            sell_order=ex.execute(&#x27;SELECT * FROM orders WHERE order_id=?&#x27;,(trade[&#x27;sell_order_id&#x27;],)).fetchone()
+        if not sell_order or sell_order[&#x27;participant&#x27;]!=trade[&#x27;seller&#x27;]: raise PermissionError(&#x27;settled trade/sell order mismatch&#x27;)
+        self._verify_eep_sell_order(sell_order)
+        policy=self._active_policy(trade[&#x27;instrument_id&#x27;],trade[&#x27;created_at_ms&#x27;]); treasury=self._treasury(policy[&#x27;treasury_id&#x27;])
+        if inst[&#x27;issuer&#x27;]!=policy[&#x27;originator_entity_id&#x27;]: raise PermissionError(&#x27;instrument issuer/policy originator mismatch&#x27;)
+        is_primary=trade[&#x27;seller&#x27;]==inst[&#x27;issuer&#x27;]; event_type=&#x27;PRIMARY_RIGHTS_SALE&#x27; if is_primary else &#x27;SECONDARY_RIGHTS_SALE&#x27;
+        gross=int(clearing[&#x27;amount_units&#x27;]); bps=int(policy[&#x27;primary_treasury_bps&#x27;] if is_primary else policy[&#x27;secondary_royalty_bps&#x27;])
+        event,obligation=self._event_with_obligation(
+            event_type,policy,treasury,policy[&#x27;originator_entity_id&#x27;],trade_id,gross,clearing[&#x27;currency&#x27;],{
+                &#x27;buyer&#x27;:trade[&#x27;buyer&#x27;],&#x27;seller&#x27;:trade[&#x27;seller&#x27;],&#x27;quantity&#x27;:int(trade[&#x27;quantity&#x27;]),&#x27;price&#x27;:int(trade[&#x27;price&#x27;]),
+                &#x27;source_payment_ref&#x27;:clearing[&#x27;payment_ref&#x27;],&#x27;source_external_verified&#x27;:bool(clearing[&#x27;external_verified&#x27;]),
+                &#x27;sell_order_signature_verified&#x27;:True,&#x27;sell_order_id&#x27;:sell_order[&#x27;order_id&#x27;],
+                &#x27;participation_is_allocation_within_gross&#x27;:True,&#x27;atomic_event_obligation&#x27;:True},
+            trade[&#x27;seller&#x27;],treasury[&#x27;treasury_entity_id&#x27;],gross*bps//10000,
+            &#x27;PRIMARY_TREASURY_ALLOCATION&#x27; if is_primary else &#x27;SECONDARY_ORIGINATOR_ROYALTY&#x27;,bps,
+            dedupe_key=f&quot;EEP_TRADE:{trade_id}:{policy[&#x27;policy_id&#x27;]}&quot;)
+        return {&#x27;event&#x27;:event,&#x27;obligation&#x27;:obligation,&#x27;trade_class&#x27;:&#x27;PRIMARY&#x27; if is_primary else &#x27;SECONDARY&#x27;,
+                &#x27;gross_amount_units&#x27;:gross,&#x27;protocol_tax_bps&#x27;:0}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/08_Data_Vaults/canonical_encrypted_vault.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/08_Data_Vaults/canonical_encrypted_vault.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/08_Data_Vaults/canonical_encrypted_vault.py</code></p><p><b>SHA-256:</b> <code>6a0ba48c3a56510e88254709f9c8c63395b5548bceb895775958ff1fab1a5775</code></p><p><b>Bytes:</b> 7,541</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/08_Data_Vaults/canonical_encrypted_vault.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-cffaf94a47b8.html">_now</a></li><li><a href="../../../reference/symbols/entity/b64-6cdfeec0b45c.html">_b64</a></li><li><a href="../../../reference/symbols/entity/unb64-56bcd0873571.html">_unb64</a></li><li><a href="../../../reference/symbols/entity/id-d9f5dfec36f0.html">_id</a></li><li><a href="../../../reference/symbols/entity/encrypteddatavault-b6a1aaa8ed0e.html">EncryptedDataVault</a></li><li><a href="../../../reference/symbols/entity/encrypteddatavault-init-0ca21e10e396.html">EncryptedDataVault.__init__</a></li><li><a href="../../../reference/symbols/entity/encrypteddatavault-connect-75595b1f8461.html">EncryptedDataVault._connect</a></li><li><a href="../../../reference/symbols/entity/encrypteddatavault-init-db-e27758612803.html">EncryptedDataVault._init_db</a></li><li><a href="../../../reference/symbols/entity/encrypteddatavault-write-secret-8e45b7d95481.html">EncryptedDataVault._write_secret</a></li><li><a href="../../../reference/symbols/entity/encrypteddatavault-put-bytes-f5a1dd445b71.html">EncryptedDataVault.put_bytes</a></li><li><a href="../../../reference/symbols/entity/encrypteddatavault-put-file-f6bbaa73e478.html">EncryptedDataVault.put_file</a></li><li><a href="../../../reference/symbols/entity/encrypteddatavault-row-91b494a9d79c.html">EncryptedDataVault._row</a></li><li><a href="../../../reference/symbols/entity/encrypteddatavault-metadata-f38eb8a3ef7a.html">EncryptedDataVault.metadata</a></li><li><a href="../../../reference/symbols/entity/encrypteddatavault-storage-path-bd23c09ca301.html">EncryptedDataVault._storage_path</a></li><li><a href="../../../reference/symbols/entity/encrypteddatavault-read-bytes-99d08dcd85f6.html">EncryptedDataVault.read_bytes</a></li><li><a href="../../../reference/symbols/entity/encrypteddatavault-lifecycle-4ba3e96789c1.html">EncryptedDataVault.lifecycle</a></li><li><a href="../../../reference/symbols/entity/encrypteddatavault-export-manifest-8e4c67b828e0.html">EncryptedDataVault.export_manifest</a></li><li><a href="../../../reference/symbols/entity/encrypteddatavault-status-5cfc56b21071.html">EncryptedDataVault.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from threading import RLock
+from contextlib import contextmanager
+import base64, hashlib, json, os, secrets, sqlite3, time
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+VAULT_STATES={&quot;ACTIVE&quot;,&quot;LOCAL_DELETED&quot;,&quot;CRYPTOGRAPHICALLY_ERASED&quot;,&quot;REMOTE_DELETION_REQUESTED&quot;,&quot;REMOTE_DELETION_ATTESTED&quot;,&quot;REMOTE_DELETION_UNVERIFIED&quot;,&quot;RETENTION_LEGALLY_REQUIRED&quot;}
+
+
+def _now() -&gt; int:
+    return int(time.time()*1000)
+
+
+def _b64(v: bytes) -&gt; str:
+    return base64.urlsafe_b64encode(v).decode(&quot;ascii&quot;).rstrip(&quot;=&quot;)
+
+
+def _unb64(v: str) -&gt; bytes:
+    return base64.urlsafe_b64decode(v + &quot;=&quot;*(-len(v)%4))
+
+
+def _id(prefix: str) -&gt; str:
+    return f&quot;{prefix}-&quot;+secrets.token_hex(20)
+
+
+class EncryptedDataVault:
+    &quot;&quot;&quot;Owner-controlled encrypted content store; ledger/state contains metadata, never plaintext.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path):
+        self.root=Path(state_dir)/&quot;vault&quot;
+        self.objects=self.root/&quot;objects&quot;; self.keys=self.root/&quot;keys&quot;
+        self.objects.mkdir(parents=True,exist_ok=True); self.keys.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;vault.sqlite&quot;; self._lock=RLock(); self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS objects(vault_object_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,content_sha256 TEXT NOT NULL,size_bytes INTEGER NOT NULL,media_type TEXT NOT NULL,classification TEXT NOT NULL,state TEXT NOT NULL,cipher_path TEXT NOT NULL,key_path TEXT NOT NULL,metadata_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_vault_controller ON objects(controller_entity_id,state)&quot;)
+
+    @staticmethod
+    def _write_secret(path: Path, data: bytes) -&gt; None:
+        path.write_bytes(data)
+        try: os.chmod(path,0o600)
+        except OSError: pass
+
+    def put_bytes(self,controller_entity_id: str,data: bytes,*,media_type: str=&quot;application/octet-stream&quot;,classification: str=&quot;PRIVATE&quot;,metadata: dict|None=None) -&gt; dict:
+        if not isinstance(data,(bytes,bytearray)): raise TypeError(&quot;vault data must be bytes&quot;)
+        raw=bytes(data); object_id=_id(&quot;vobj1&quot;); key=AESGCM.generate_key(bit_length=256); nonce=secrets.token_bytes(12)
+        aad=json.dumps({&quot;vault_object_id&quot;:object_id,&quot;controller_entity_id&quot;:controller_entity_id},sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;)).encode()
+        ciphertext=nonce+AESGCM(key).encrypt(nonce,raw,aad)
+        cipher_path=self.objects/f&quot;{object_id}.bin&quot;; key_path=self.keys/f&quot;{object_id}.key&quot;
+        cipher_path.write_bytes(ciphertext); self._write_secret(key_path,key)
+        now=_now(); digest=hashlib.sha256(raw).hexdigest(); classification=str(classification or &quot;PRIVATE&quot;).upper()
+        with self._lock,self._connect() as db:
+            db.execute(&quot;INSERT INTO objects VALUES(?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(object_id,controller_entity_id,digest,len(raw),str(media_type)[:256],classification,&quot;ACTIVE&quot;,str(cipher_path.relative_to(self.root)),str(key_path.relative_to(self.root)),json.dumps(dict(metadata or {}),sort_keys=True),now,now))
+        return {&quot;vault_object_id&quot;:object_id,&quot;controller_entity_id&quot;:controller_entity_id,&quot;content_sha256&quot;:digest,&quot;size_bytes&quot;:len(raw),&quot;media_type&quot;:str(media_type),&quot;classification&quot;:classification,&quot;state&quot;:&quot;ACTIVE&quot;,&quot;plaintext_on_ledger&quot;:False}
+
+    def put_file(self,controller_entity_id: str,path: str|Path,**kwargs) -&gt; dict:
+        target=Path(path).resolve()
+        if not target.is_file(): raise FileNotFoundError(str(target))
+        meta=dict(kwargs.pop(&quot;metadata&quot;,{}) or {}); meta.setdefault(&quot;source_filename&quot;,target.name)
+        return self.put_bytes(controller_entity_id,target.read_bytes(),metadata=meta,**kwargs)
+
+    def _row(self,object_id: str):
+        with self._connect() as db: return db.execute(&quot;SELECT * FROM objects WHERE vault_object_id=?&quot;,(object_id,)).fetchone()
+
+    def metadata(self,object_id: str) -&gt; dict|None:
+        row=self._row(object_id)
+        if not row: return None
+        out=dict(row); out.pop(&quot;cipher_path&quot;,None); out.pop(&quot;key_path&quot;,None); out[&quot;metadata&quot;]=json.loads(out.pop(&quot;metadata_json&quot;)); return out
+
+    def _storage_path(self,stored: str,kind: str) -&gt; Path:
+        raw=Path(str(stored))
+        if not raw.is_absolute(): return self.root/raw
+        if raw.exists(): return raw
+        base=self.keys if kind==&quot;key&quot; else self.objects
+        return base/raw.name
+
+    def read_bytes(self,controller_entity_id: str,object_id: str) -&gt; bytes:
+        row=self._row(object_id)
+        if not row: raise KeyError(&quot;vault object not found&quot;)
+        if row[&quot;controller_entity_id&quot;]!=controller_entity_id: raise PermissionError(&quot;vault object controller mismatch&quot;)
+        if row[&quot;state&quot;]!=&quot;ACTIVE&quot;: raise PermissionError(f&quot;vault object unavailable: {row[&#x27;state&#x27;]}&quot;)
+        key_path=self._storage_path(row[&quot;key_path&quot;],&quot;key&quot;); cipher_path=self._storage_path(row[&quot;cipher_path&quot;],&quot;cipher&quot;)
+        if not key_path.exists(): raise RuntimeError(&quot;vault encryption key unavailable&quot;)
+        blob=cipher_path.read_bytes(); nonce,ciphertext=blob[:12],blob[12:]
+        aad=json.dumps({&quot;vault_object_id&quot;:object_id,&quot;controller_entity_id&quot;:controller_entity_id},sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;)).encode()
+        plain=AESGCM(key_path.read_bytes()).decrypt(nonce,ciphertext,aad)
+        if hashlib.sha256(plain).hexdigest()!=row[&quot;content_sha256&quot;]: raise RuntimeError(&quot;vault plaintext commitment mismatch&quot;)
+        return plain
+
+    def lifecycle(self,controller_entity_id: str,object_id: str,state: str) -&gt; dict:
+        state=str(state or &quot;&quot;).upper()
+        if state not in VAULT_STATES: raise ValueError(&quot;invalid vault lifecycle state&quot;)
+        row=self._row(object_id)
+        if not row: raise KeyError(&quot;vault object not found&quot;)
+        if row[&quot;controller_entity_id&quot;]!=controller_entity_id: raise PermissionError(&quot;vault object controller mismatch&quot;)
+        if state==&quot;CRYPTOGRAPHICALLY_ERASED&quot;:
+            kp=self._storage_path(row[&quot;key_path&quot;],&quot;key&quot;)
+            if kp.exists(): kp.unlink()
+        if state==&quot;LOCAL_DELETED&quot;:
+            cp=self._storage_path(row[&quot;cipher_path&quot;],&quot;cipher&quot;)
+            if cp.exists(): cp.unlink()
+        with self._connect() as db: db.execute(&quot;UPDATE objects SET state=?,updated_at_ms=? WHERE vault_object_id=?&quot;,(state,_now(),object_id))
+        return {&quot;vault_object_id&quot;:object_id,&quot;state&quot;:state,&quot;remote_deletion_verified&quot;:state==&quot;REMOTE_DELETION_ATTESTED&quot;}
+
+    def export_manifest(self,controller_entity_id: str) -&gt; dict:
+        with self._connect() as db: rows=db.execute(&quot;SELECT * FROM objects WHERE controller_entity_id=? ORDER BY created_at_ms&quot;,(controller_entity_id,)).fetchall()
+        return {&quot;schema&quot;:&quot;entity-vault-manifest-v1&quot;,&quot;controller_entity_id&quot;:controller_entity_id,&quot;objects&quot;:[self.metadata(r[&quot;vault_object_id&quot;]) for r in rows]}
+
+    def status(self) -&gt; dict:</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

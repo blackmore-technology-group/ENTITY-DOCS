@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>main Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>main</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/qualify_v3_release.py#L76">ENTITY/tools/qualify_v3_release.py#L76</a></p><p><b>Kind:</b> function/method</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>def main():
+    identity_mod, fabric_mod, ref_mod, mirror_mod = setup_modules()
+    with tempfile.TemporaryDirectory() as tmp:
+        root = pathlib.Path(tmp)
+        vault = identity_mod.EntityIdentityVault(root)
+        fabric = fabric_mod.UniversalTransactionFabric(root, vault)
+        owner = vault.create(&quot;Release Owner&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        buyer = vault.create(&quot;Release Buyer&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        dco = fabric.register_digital_commodity(
+            owner, &quot;Release Qualification Corpus&quot;, hashlib.sha256(b&quot;release-corpus&quot;).hexdigest()
+        )
+        results = {}
+        for label, cls in ((&quot;reference&quot;, ref_mod.ExchangeProtocol), (&quot;mirror&quot;, mirror_mod.ExchangeProtocol)):
+            eep, venue, inst = build_exchange(cls, root / label, vault, fabric, owner, dco, label)
+            results[label] = exercise(eep, venue, inst, owner, buyer, label)
+        payload = {
+            &quot;schema&quot;: &quot;entity-v3-release-load-qualification-v1&quot;,
+            &quot;qualified&quot;: all(v[&quot;trades&quot;] == TRADES_PER_IMPLEMENTATION for v in results.values()),
+            &quot;trades_per_implementation&quot;: TRADES_PER_IMPLEMENTATION,
+            &quot;total_settled_trades&quot;: sum(v[&quot;trades&quot;] for v in results.values()),
+            &quot;implementations&quot;: results,
+            &quot;scope&quot;: &quot;bounded local release-load qualification; not production capacity certification&quot;,
+        }
+        print(json.dumps(payload, sort_keys=True, indent=2))
+        return 0 if payload[&quot;qualified&quot;] else 1</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>provision_bound_installation Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>provision_bound_installation</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/principal_binding/canonical_principal_binding.py#L22">ENTITY/sdk/principal_binding/canonical_principal_binding.py#L22</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>provision_bound_installation(state_dir: str | Path, *, principal_entity_id: str, application_entity_id: str, device_entity_id: str, display_name: str, alias: str, metadata=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>def provision_bound_installation(state_dir:str|Path,*,principal_entity_id:str,application_entity_id:str,
+                                 device_entity_id:str,display_name:str,alias:str,metadata=None)-&gt;dict:
+    state=Path(state_dir); identity=IDENTITY.EntityIdentityVault(state)
+    for entity_id in (principal_entity_id,application_entity_id,device_entity_id): identity.load_manifest(str(entity_id))
+    name=OPENSDK.normalize_alias(alias)
+    meta=dict(metadata or {}); meta.update({&quot;binding_schema&quot;:SCHEMA,&quot;principal_entity_id&quot;:str(principal_entity_id),
+        &quot;application_entity_id&quot;:str(application_entity_id),&quot;device_entity_id&quot;:str(device_entity_id),
+        &quot;delegated_installation&quot;:True,&quot;ownership_not_inferred&quot;:True,&quot;authority_scope&quot;:&quot;DATA_PROVENANCE_CAPTURE_ONLY&quot;})
+    meta[&quot;entity_subtype&quot;]=&quot;application_installation&quot;
+    manifest=identity.create(str(display_name),&quot;application&quot;,aliases=[name],metadata=meta)
+    install_id=manifest[&quot;entity_id&quot;]; sovereign=SOVEREIGN.SovereignAuthorityRegistry(state,identity)
+    rel_device=sovereign.grant_relationship(str(device_entity_id),install_id,&quot;POSSESSION&quot;,
+        scope={&quot;installed_instance&quot;:True,&quot;device_possession_not_ownership&quot;:True},
+        evidence_origin=&quot;ENTITY_ASSERTION&quot;,evidence={&quot;binding_schema&quot;:SCHEMA})
+    rel_app=sovereign.grant_relationship(str(application_entity_id),install_id,&quot;PROCESSING_AUTHORITY&quot;,
+        scope={&quot;application_instance_of&quot;:str(application_entity_id),&quot;data_rights_not_transferred&quot;:True},
+        evidence_origin=&quot;ENTITY_ASSERTION&quot;,evidence={&quot;binding_schema&quot;:SCHEMA})
+    rel_principal=sovereign.grant_relationship(str(principal_entity_id),install_id,&quot;SOVEREIGN_AUTHORITY&quot;,
+        scope={&quot;delegated_actions&quot;:[&quot;INGEST_ASSET&quot;,&quot;RECORD_EVENT&quot;],&quot;revocable&quot;:True,
+               &quot;data_controller_defaults_to_principal&quot;:True,&quot;application_ownership_not_transferred&quot;:True},
+        evidence_origin=&quot;ENTITY_ASSERTION&quot;,evidence={&quot;binding_schema&quot;:SCHEMA})
+    descriptor=OPENSDK.address_descriptor(name,install_id)
+    pairwise_ref=identity.pairwise_id(str(principal_entity_id),f&quot;application:{application_entity_id}:installation:{install_id}&quot;)
+    body={&quot;schema&quot;:SCHEMA,&quot;binding_id&quot;:&quot;pbind1-&quot;+uuid.uuid4().hex,&quot;principal_entity_id&quot;:str(principal_entity_id),
+        &quot;principal_pairwise_ref&quot;:pairwise_ref,&quot;application_entity_id&quot;:str(application_entity_id),&quot;device_entity_id&quot;:str(device_entity_id),
+        &quot;installation_entity_id&quot;:install_id,&quot;installation_alias&quot;:name,&quot;issued_at_ms&quot;:_now(),&quot;status&quot;:&quot;ACTIVE&quot;,
+        &quot;delegated_actions&quot;:[&quot;INGEST_ASSET&quot;,&quot;RECORD_EVENT&quot;],
+        &quot;relationships&quot;:{&quot;principal&quot;:rel_principal[&quot;relationship_id&quot;],&quot;application&quot;:rel_app[&quot;relationship_id&quot;],
+                         &quot;device&quot;:rel_device[&quot;relationship_id&quot;]},&quot;address&quot;:descriptor}
+    signature=identity.sign(str(principal_entity_id),body)
+    binding=dict(body,principal_signature=signature); binding[&quot;binding_sha256&quot;]=_sha(body)
+    return binding</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

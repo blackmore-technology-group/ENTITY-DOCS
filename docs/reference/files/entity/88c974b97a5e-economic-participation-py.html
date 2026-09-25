@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/33_Economic_Participation/economic_participation.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/33_Economic_Participation/economic_participation.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/33_Economic_Participation/economic_participation.py</code></p><p><b>SHA-256:</b> <code>3d805ab601bbf46001175796b601c3c66190c704408f86beb21f942f1de6a9d5</code></p><p><b>Bytes:</b> 40,868</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/33_Economic_Participation/economic_participation.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-ms-9a8b1bf11a4e.html">now_ms</a></li><li><a href="../../../reference/symbols/entity/rid-a0900b5ee22e.html">rid</a></li><li><a href="../../../reference/symbols/entity/canon-29d83f4fbe9b.html">canon</a></li><li><a href="../../../reference/symbols/entity/sha-d913632087da.html">sha</a></li><li><a href="../../../reference/symbols/entity/require-sha256-ed7003b110a2.html">require_sha256</a></li><li><a href="../../../reference/symbols/entity/require-bps-b1ed42a8a11b.html">require_bps</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-6c6b1eb57198.html">EconomicParticipationProfile</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-init-2176cb4c5e01.html">EconomicParticipationProfile.__init__</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-db-03bdca3a5a6d.html">EconomicParticipationProfile._db</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-init-6c6ecac5aa3f.html">EconomicParticipationProfile._init</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-create-treasury-1b3a2782de2f.html">EconomicParticipationProfile.create_treasury</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-treasury-63f47668d4f2.html">EconomicParticipationProfile._treasury</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-authorize-settlement-verifier-5793b7645ead.html">EconomicParticipationProfile.authorize_settlement_verifier</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-revoke-settlement-verifier-3ec90fe975f0.html">EconomicParticipationProfile.revoke_settlement_verifier</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-define-participation-0d5536621336.html">EconomicParticipationProfile.define_participation</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-active-policy-8e251356785c.html">EconomicParticipationProfile._active_policy</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-exchange-db-a15109c42dab.html">EconomicParticipationProfile._exchange_db</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-allocate-eep-reserve-11d81b1d89fe.html">EconomicParticipationProfile.allocate_eep_reserve</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-event-f5cc3d9ecee7.html">EconomicParticipationProfile._event</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-verify-eep-sell-order-a0e39bd2812b.html">EconomicParticipationProfile._verify_eep_sell_order</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-obligation-8ec859df58bc.html">EconomicParticipationProfile._obligation</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-event-with-obligation-2554de294074.html">EconomicParticipationProfile._event_with_obligation</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-capture-settled-eep-trade-f5919f2fdd9d.html">EconomicParticipationProfile.capture_settled_eep_trade</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-record-derivative-revenue-2cb776ec995f.html">EconomicParticipationProfile.record_derivative_revenue</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-record-service-revenue-99e577fc8c01.html">EconomicParticipationProfile.record_service_revenue</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-settle-obligation-2238fd348cb2.html">EconomicParticipationProfile.settle_obligation</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-position-ef163af2989e.html">EconomicParticipationProfile.position</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-reconcile-eep-trades-c7f06049b3ad.html">EconomicParticipationProfile.reconcile_eep_trades</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-indicative-mark-5e9711878919.html">EconomicParticipationProfile.indicative_mark</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-seal-snapshot-6f8476f2d48e.html">EconomicParticipationProfile.seal_snapshot</a></li><li><a href="../../../reference/symbols/entity/economicparticipationprofile-status-74c6cf87d1d6.html">EconomicParticipationProfile.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from contextlib import contextmanager
+from pathlib import Path
+import hashlib, json, secrets, sqlite3, time
+
+PROFILE_ID = &#x27;ENTITY_ORIGINATOR_PARTICIPATION&#x27;
+PROFILE_VERSION = &#x27;3.0.0&#x27;
+SERVICE_TYPES = {&#x27;LISTING&#x27;,&#x27;EXECUTION&#x27;,&#x27;CLEARING&#x27;,&#x27;SETTLEMENT&#x27;,&#x27;MARKET_DATA&#x27;,&#x27;CERTIFICATION&#x27;,&#x27;MANAGED_INFRASTRUCTURE&#x27;,&#x27;API&#x27;,&#x27;INDEX_LICENCE&#x27;,&#x27;OTHER&#x27;}
+
+def now_ms(): return int(time.time()*1000)
+def rid(prefix): return prefix+&#x27;-&#x27;+secrets.token_hex(12)
+def canon(v): return json.dumps(v,sort_keys=True,separators=(&#x27;,&#x27;,&#x27;:&#x27;),ensure_ascii=False,default=str).encode()
+def sha(v): return hashlib.sha256(v if isinstance(v,(bytes,bytearray)) else canon(v)).hexdigest()
+def require_sha256(v):
+    s=str(v or &#x27;&#x27;).lower()
+    if len(s)!=64 or any(c not in &#x27;0123456789abcdef&#x27; for c in s): raise ValueError(&#x27;SHA-256 hex required&#x27;)
+    return s
+
+def require_bps(v,name):
+    n=int(v)
+    if n&lt;0 or n&gt;10000: raise ValueError(f&#x27;{name} must be 0..10000 basis points&#x27;)
+    return n
+
+class EconomicParticipationProfile:
+    &#x27;&#x27;&#x27;Issuer-neutral treasury/originator participation profile for ENTITY/EEP.
+
+    This profile creates no protocol tax and no token. Value comes from disclosed
+    ownership of EEP rights units, contractual participation terms and service revenue.
+    &#x27;&#x27;&#x27;
+    def __init__(self,root,identity):
+        self.path=Path(root)/&#x27;entity_v3_economic_participation.sqlite&#x27;
+        self.path.parent.mkdir(parents=True,exist_ok=True)
+        self.identity=identity
+        self._init()
+
+    @contextmanager
+    def _db(self):
+        db=sqlite3.connect(self.path); db.row_factory=sqlite3.Row
+        try:
+            yield db; db.commit()
+        except Exception:
+            db.rollback(); raise
+        finally:
+            db.close()
+
+    def _init(self):
+        with self._db() as db:
+            db.executescript(&#x27;&#x27;&#x27;
+            CREATE TABLE IF NOT EXISTS treasuries(
+              treasury_id TEXT PRIMARY KEY, owner_entity_id TEXT NOT NULL,
+              treasury_entity_id TEXT NOT NULL UNIQUE, name TEXT NOT NULL,
+              jurisdiction TEXT NOT NULL, policy_sha256 TEXT NOT NULL,
+              status TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+              signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS participation_policies(
+              policy_id TEXT PRIMARY KEY, instrument_id TEXT NOT NULL, version INTEGER NOT NULL,
+              originator_entity_id TEXT NOT NULL, treasury_id TEXT NOT NULL,
+              total_units INTEGER NOT NULL, reserve_units INTEGER NOT NULL,
+              primary_treasury_bps INTEGER NOT NULL, secondary_royalty_bps INTEGER NOT NULL,
+              derivative_participation_bps INTEGER NOT NULL, currency TEXT NOT NULL,
+              terms_sha256 TEXT NOT NULL, effective_at_ms INTEGER NOT NULL,
+              status TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL,
+              UNIQUE(instrument_id,version));
+            CREATE TABLE IF NOT EXISTS reserve_allocations(
+              allocation_id TEXT PRIMARY KEY, policy_id TEXT NOT NULL, instrument_id TEXT NOT NULL,
+              originator_entity_id TEXT NOT NULL, treasury_entity_id TEXT NOT NULL,
+              units INTEGER NOT NULL, created_at_ms INTEGER NOT NULL,
+              originator_signature_json TEXT NOT NULL, treasury_signature_json TEXT NOT NULL,
+              UNIQUE(policy_id));
+            CREATE TABLE IF NOT EXISTS economic_events(
+              event_id TEXT PRIMARY KEY, dedupe_key TEXT NOT NULL UNIQUE, event_type TEXT NOT NULL, policy_id TEXT,
+              treasury_id TEXT NOT NULL, instrument_id TEXT, actor_entity_id TEXT NOT NULL,
+              subject_ref TEXT NOT NULL, gross_amount_units INTEGER NOT NULL,
+              currency TEXT NOT NULL, evidence_sha256 TEXT,
+              details_json TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+              signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS obligations(
+              obligation_id TEXT PRIMARY KEY, event_id TEXT NOT NULL,
+              payer_entity_id TEXT NOT NULL, recipient_entity_id TEXT NOT NULL,
+              amount_units INTEGER NOT NULL, currency TEXT NOT NULL,
+              basis TEXT NOT NULL, bps INTEGER NOT NULL, status TEXT NOT NULL,
+              settlement_ref TEXT, verifier_entity_id TEXT, verification_evidence_sha256 TEXT,
+              external_verified INTEGER NOT NULL DEFAULT 0,
+              created_at_ms INTEGER NOT NULL, settled_at_ms INTEGER);
+            CREATE TABLE IF NOT EXISTS position_snapshots(
+              snapshot_id TEXT PRIMARY KEY, treasury_id TEXT NOT NULL,
+              snapshot_sha256 TEXT NOT NULL, snapshot_json TEXT NOT NULL,
+              created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS settlement_verifiers(
+              treasury_id TEXT NOT NULL, verifier_entity_id TEXT NOT NULL,
+              status TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+              signature_json TEXT NOT NULL, PRIMARY KEY(treasury_id,verifier_entity_id));
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_opr_reserve_once ON reserve_allocations(instrument_id);
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_opr_obligation_event ON obligations(event_id);
+            CREATE INDEX IF NOT EXISTS idx_opr_policy_instrument ON participation_policies(instrument_id,status);
+            CREATE INDEX IF NOT EXISTS idx_opr_obligation_recipient ON obligations(recipient_entity_id,status,currency);
+            &#x27;&#x27;&#x27;)
+
+    def create_treasury(self,owner_entity_id,treasury_entity_id,name,jurisdiction,policy_sha256):
+        self.identity.load_manifest(owner_entity_id); self.identity.load_manifest(treasury_entity_id)
+        body={&#x27;schema&#x27;:&#x27;entity-v3-treasury-v1&#x27;,&#x27;profile&#x27;:PROFILE_ID,&#x27;treasury_id&#x27;:rid(&#x27;treasury3&#x27;),
+              &#x27;owner_entity_id&#x27;:owner_entity_id,&#x27;treasury_entity_id&#x27;:treasury_entity_id,
+              &#x27;name&#x27;:str(name)[:256],&#x27;jurisdiction&#x27;:str(jurisdiction).upper(),
+              &#x27;policy_sha256&#x27;:require_sha256(policy_sha256),&#x27;status&#x27;:&#x27;ACTIVE&#x27;,&#x27;created_at_ms&#x27;:now_ms(),
+              &#x27;protocol_tax_bps&#x27;:0,&#x27;treasury_is_not_protocol_authority&#x27;:True}
+        sig=self.identity.sign(owner_entity_id,body)
+        with self._db() as db:
+            db.execute(&#x27;INSERT INTO treasuries VALUES(?,?,?,?,?,?,?,?,?)&#x27;,(
+                body[&#x27;treasury_id&#x27;],owner_entity_id,treasury_entity_id,body[&#x27;name&#x27;],body[&#x27;jurisdiction&#x27;],
+                body[&#x27;policy_sha256&#x27;],&#x27;ACTIVE&#x27;,body[&#x27;created_at_ms&#x27;],json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def _treasury(self,treasury_id):
+        with self._db() as db:
+            row=db.execute(&quot;SELECT * FROM treasuries WHERE treasury_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(treasury_id,)).fetchone()
+        if not row: raise KeyError(&#x27;active treasury not found&#x27;)
+        return row
+
+    def authorize_settlement_verifier(self,treasury_id,owner_entity_id,verifier_entity_id):
+        treasury=self._treasury(treasury_id)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,67 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/build_v3_4_industry_packages.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/build_v3_4_industry_packages.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/build_v3_4_industry_packages.py</code></p><p><b>SHA-256:</b> <code>49585a6cf986214b2472805b8959bfef7d7f71354d70402205034958d67d3af7</code></p><p><b>Bytes:</b> 4,634</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/build_v3_4_industry_packages.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/dump-da3ee776949a.html">dump</a></li><li><a href="../../../reference/symbols/entity/example-config-5448466a3f78.html">example_config</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import importlib.util, json, pathlib, sys
+
+ROOT=pathlib.Path(__file__).resolve().parents[1]
+SRC=ROOT/&quot;src/39_Implementation_Packages/industry_packages.py&quot;
+spec=importlib.util.spec_from_file_location(&quot;industry_packages&quot;,SRC)
+mod=importlib.util.module_from_spec(spec); sys.modules[&quot;industry_packages&quot;]=mod; spec.loader.exec_module(mod)
+registry=mod.IndustryImplementationPackageRegistry()
+out_root=ROOT/&quot;profiles&quot;; out_root.mkdir(parents=True,exist_ok=True)
+
+def dump(path:pathlib.Path,value):
+    path.parent.mkdir(parents=True,exist_ok=True)
+    path.write_text(json.dumps(value,indent=2,sort_keys=True)+&quot;\n&quot;,encoding=&quot;utf-8&quot;)
+
+def example_config(name:str)-&gt;dict:
+    base={&quot;organization&quot;:&quot;Example Organization&quot;,&quot;jurisdiction&quot;:&quot;CONFIGURE-ME&quot;,&quot;authority_source&quot;:&quot;CONFIGURE-ME&quot;}
+    extra={&quot;healthcare&quot;:{&quot;privacy_policy&quot;:&quot;CONFIGURE-ME&quot;},&quot;finance&quot;:{&quot;settlement_policy&quot;:&quot;CONFIGURE-ME&quot;},
+           &quot;manufacturing&quot;:{&quot;asset_namespace&quot;:&quot;CONFIGURE-ME&quot;},&quot;ai&quot;:{&quot;model_governance_policy&quot;:&quot;CONFIGURE-ME&quot;},
+           &quot;robotics&quot;:{&quot;safety_policy&quot;:&quot;CONFIGURE-ME&quot;},&quot;defence-public&quot;:{&quot;release_policy&quot;:&quot;PUBLIC-UNCLASSIFIED&quot;,&quot;classification&quot;:&quot;UNCLASSIFIED&quot;}}
+    return dict(base,**extra[name])
+
+index={&quot;schema&quot;:&quot;entity-v3-industry-package-registry-v1&quot;,&quot;version&quot;:&quot;3.4.0&quot;,&quot;packages&quot;:[],
+       &quot;one_global_passport&quot;:True,&quot;profiles_are_executable_implementation_assets&quot;:True}
+for name in registry.list_packages():
+    package=registry.get(name); target=out_root/name; target.mkdir(parents=True,exist_ok=True)
+    dump(target/&quot;package.json&quot;,package)
+    dump(target/&quot;mappings.json&quot;,{&quot;package&quot;:name,&quot;mappings&quot;:package[&quot;mappings&quot;],&quot;external_standards_are_mapped_not_redefined&quot;:True})
+    templates={kind:registry.template(name,kind) for kind in package[&quot;object_types&quot;]}
+    dump(target/&quot;templates.json&quot;,{&quot;package&quot;:name,&quot;templates&quot;:templates})
+    cfg=example_config(name)
+    sample_kind=next(iter(package[&quot;object_types&quot;]))
+    dump(target/&quot;deployment.example.json&quot;,{&quot;package&quot;:name,&quot;configuration&quot;:cfg,&quot;asset_kind&quot;:sample_kind,
+         &quot;note&quot;:&quot;Replace CONFIGURE-ME values with organization-specific facts before deployment.&quot;})
+    dump(target/&quot;deployment.schema.json&quot;,{
+        &quot;$schema&quot;:&quot;https://json-schema.org/draft/2020-12/schema&quot;,&quot;type&quot;:&quot;object&quot;,
+        &quot;required&quot;:package[&quot;required_config&quot;],&quot;properties&quot;:{k:{&quot;type&quot;:&quot;string&quot;,&quot;minLength&quot;:1} for k in package[&quot;required_config&quot;]},
+        &quot;additionalProperties&quot;:True,&quot;x-entity-profile-is-not-regulatory-compliance&quot;:True})
+    valid={&quot;configuration&quot;:cfg,&quot;asset_kind&quot;:sample_kind,&quot;expected_valid&quot;:True}
+    invalid={&quot;configuration&quot;:{},&quot;asset_kind&quot;:sample_kind,&quot;expected_valid&quot;:False}
+    dump(target/&quot;conformance.json&quot;,{&quot;schema&quot;:&quot;entity-v3-industry-package-conformance-v1&quot;,&quot;valid&quot;:[valid],&quot;invalid&quot;:[invalid],
+         &quot;profile_stack&quot;:package[&quot;profile_refs&quot;],&quot;core_semantics_changed&quot;:False})
+    quick=f&quot;&quot;&quot;# ENTITY {name} Implementation Package
+
+This package configures the one ENTITY Global Passport; it does not define a separate passport.
+
+1. Copy `deployment.example.json` and replace every `CONFIGURE-ME` value.
+2. Validate organization authority, jurisdiction and package-specific policy inputs.
+3. Use `EntityGlobalPassportSDK.package_plan()` to resolve the executable profile stack.
+4. Connect the source system and use `ingest_package_file()` for continuous provenance.
+5. Verify the resulting Global Passport and run the package conformance vectors.
+
+External standards are mappings only. ENTITY does not redefine them, and package validation does not establish regulatory compliance.
+&quot;&quot;&quot;
+    (target/&quot;QUICKSTART.md&quot;).write_text(quick,encoding=&quot;utf-8&quot;)
+    index[&quot;packages&quot;].append({&quot;name&quot;:name,&quot;version&quot;:package[&quot;version&quot;],&quot;package_sha256&quot;:package[&quot;package_sha256&quot;],&quot;profile_refs&quot;:package[&quot;profile_refs&quot;]})
+dump(out_root/&quot;registry.json&quot;,index)
+print(json.dumps({&quot;packages&quot;:len(index[&quot;packages&quot;]),&quot;names&quot;:[x[&quot;name&quot;] for x in index[&quot;packages&quot;]]},indent=2))
+
+bundle={&quot;schema&quot;:&quot;entity-v3-4-implementation-package-bundle-v1&quot;,&quot;version&quot;:&quot;3.4.0&quot;,&quot;registry&quot;:index,&quot;packages&quot;:{},
+        &quot;one_global_passport&quot;:True,&quot;profiles_are_executable_implementation_assets&quot;:True}
+for name in registry.list_packages():
+    target=out_root/name
+    bundle[&quot;packages&quot;][name]={}
+    for filename in [&quot;package.json&quot;,&quot;mappings.json&quot;,&quot;templates.json&quot;,&quot;deployment.example.json&quot;,&quot;deployment.schema.json&quot;,&quot;conformance.json&quot;]:
+        bundle[&quot;packages&quot;][name][filename]=json.loads((target/filename).read_text(encoding=&quot;utf-8&quot;))
+    bundle[&quot;packages&quot;][name][&quot;QUICKSTART.md&quot;]=(target/&quot;QUICKSTART.md&quot;).read_text(encoding=&quot;utf-8&quot;)
+dump(out_root/&quot;ENTITY_V3_4_IMPLEMENTATION_PACKAGES.json&quot;,bundle)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

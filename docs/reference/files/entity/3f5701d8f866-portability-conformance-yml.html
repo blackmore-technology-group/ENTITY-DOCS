@@ -1,0 +1,61 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / .github/ISSUE_TEMPLATE/portability-conformance.yml Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / .github/ISSUE_TEMPLATE/portability-conformance.yml</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>.github/ISSUE_TEMPLATE/portability-conformance.yml</code></p><p><b>SHA-256:</b> <code>1a7b7217b1af70c94b9536fd89cd897088ad4a0fa6c36daa4ce55b79a6c1a7f2</code></p><p><b>Bytes:</b> 2,002</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/.github/ISSUE_TEMPLATE/portability-conformance.yml">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>name: Portability or conformance report
+description: Verify an ENTITY release, test vector, hash or workflow on a specific platform/runtime.
+title: &quot;[PORTABILITY] &quot;
+labels:
+  - portability
+  - evidence
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Independent reproduction reports are useful whether the result is PASS or FAIL. A failure with a precise reproduction is especially valuable.
+  - type: input
+    id: target
+    attributes:
+      label: Release / commit / kit verified
+      description: Give the exact tag, commit SHA or conformance-kit revision.
+      placeholder: v3.3.0 / 9c79f987... / ENTITY_V3_3_REALITY_CLEANROOM_KIT.min.json
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Platform and runtime
+      description: OS, architecture and language/runtime/compiler versions.
+      placeholder: Ubuntu 24.04 x86_64, Rust 1.xx
+    validations:
+      required: true
+  - type: textarea
+    id: commands
+    attributes:
+      label: Commands or procedure
+      description: Provide the shortest exact reproduction path.
+      render: shell
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options:
+        - PASS - reproduced expected result
+        - FAIL - reproducible mismatch
+        - PARTIAL - blocked before completion
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Include relevant hashes, vector IDs, failing assertions or output. Do not include credentials/private state.
+    validations:
+      required: true
+  - type: checkboxes
+    id: clean
+    attributes:
+      label: Reproduction quality
+      options:
+        - label: I tested from a clean checkout or clearly described any local modifications.
+          required: true
+        - label: I removed credentials, private keys, recovery material and private user/business data.
+          required: true</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

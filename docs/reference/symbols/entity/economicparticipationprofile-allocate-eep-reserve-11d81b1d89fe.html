@@ -1,0 +1,46 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EconomicParticipationProfile.allocate_eep_reserve Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EconomicParticipationProfile.allocate_eep_reserve</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/33_Economic_Participation/economic_participation.py#L211">ENTITY/src/33_Economic_Participation/economic_participation.py#L211</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EconomicParticipationProfile.allocate_eep_reserve(self, exchange, policy_id)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def allocate_eep_reserve(self,exchange,policy_id):
+        with self._db() as db:
+            policy=db.execute(&#x27;SELECT * FROM participation_policies WHERE policy_id=?&#x27;,(policy_id,)).fetchone()
+            if not policy: raise KeyError(&#x27;participation policy not found&#x27;)
+        current=self._active_policy(policy[&#x27;instrument_id&#x27;],now_ms())
+        if current[&#x27;policy_id&#x27;]!=policy_id:
+            raise ValueError(&#x27;reserve allocation requires the currently effective policy&#x27;)
+        treasury=self._treasury(policy[&#x27;treasury_id&#x27;]); originator=policy[&#x27;originator_entity_id&#x27;]; holder=treasury[&#x27;treasury_entity_id&#x27;]; units=int(policy[&#x27;reserve_units&#x27;])
+        if treasury[&#x27;owner_entity_id&#x27;]!=originator:
+            raise PermissionError(&#x27;policy originator must own treasury&#x27;)
+        self.identity.load_manifest(holder)
+        body={&#x27;schema&#x27;:&#x27;entity-v3-treasury-reserve-allocation-v1&#x27;,&#x27;allocation_id&#x27;:rid(&#x27;reserve3&#x27;),
+              &#x27;policy_id&#x27;:policy_id,&#x27;instrument_id&#x27;:policy[&#x27;instrument_id&#x27;],&#x27;originator_entity_id&#x27;:originator,
+              &#x27;treasury_entity_id&#x27;:holder,&#x27;units&#x27;:units,&#x27;created_at_ms&#x27;:now_ms(),
+              &#x27;eep_balance_transfer_enforced&#x27;:holder!=originator,&#x27;protocol_tax_bps&#x27;:0,
+              &#x27;cross_store_atomic&#x27;:True}
+        origin_sig=self.identity.sign(originator,body); treasury_sig=self.identity.sign(holder,body)
+        db=sqlite3.connect(self.path); db.row_factory=sqlite3.Row
+        try:
+            db.execute(&#x27;ATTACH DATABASE ? AS eep&#x27;,(str(exchange.path),))
+            db.execute(&#x27;BEGIN IMMEDIATE&#x27;)
+            if db.execute(&#x27;SELECT 1 FROM main.reserve_allocations WHERE instrument_id=?&#x27;,(policy[&#x27;instrument_id&#x27;],)).fetchone():
+                raise ValueError(&#x27;reserve already allocated for instrument&#x27;)
+            effective=db.execute(&quot;SELECT * FROM main.participation_policies WHERE instrument_id=? AND effective_at_ms&lt;=? ORDER BY effective_at_ms DESC,version DESC LIMIT 1&quot;,(policy[&#x27;instrument_id&#x27;],now_ms())).fetchone()
+            if not effective or effective[&#x27;policy_id&#x27;]!=policy_id:
+                raise ValueError(&#x27;reserve allocation requires the currently effective policy&#x27;)
+            inst=db.execute(&quot;SELECT * FROM eep.instruments WHERE instrument_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(policy[&#x27;instrument_id&#x27;],)).fetchone()
+            if not inst or inst[&#x27;issuer&#x27;]!=originator: raise PermissionError(&#x27;policy originator must be EEP issuer&#x27;)
+            if int(inst[&#x27;total_units&#x27;])!=int(policy[&#x27;total_units&#x27;]): raise ValueError(&#x27;EEP supply differs from signed policy&#x27;)
+            if str(inst[&#x27;settlement_currency&#x27;]).upper()!=str(policy[&#x27;currency&#x27;]).upper(): raise ValueError(&#x27;EEP currency differs from signed policy&#x27;)
+            if units:
+                row=db.execute(&#x27;SELECT units FROM eep.balances WHERE instrument_id=? AND holder=?&#x27;,(policy[&#x27;instrument_id&#x27;],originator)).fetchone()
+                available=int(row[&#x27;units&#x27;]) if row else 0
+                if available&lt;units: raise PermissionError(&#x27;issuer balance insufficient for reserve allocation&#x27;)
+                if holder!=originator:
+                    db.execute(&#x27;UPDATE eep.balances SET units=units-? WHERE instrument_id=? AND holder=?&#x27;,(units,policy[&#x27;instrument_id&#x27;],originator))
+                    db.execute(&#x27;INSERT INTO eep.balances(instrument_id,holder,units) VALUES(?,?,?) ON CONFLICT(instrument_id,holder) DO UPDATE SET units=units+excluded.units&#x27;,(policy[&#x27;instrument_id&#x27;],holder,units))
+            db.execute(&#x27;INSERT INTO main.reserve_allocations VALUES(?,?,?,?,?,?,?,?,?)&#x27;,(
+                body[&#x27;allocation_id&#x27;],policy_id,policy[&#x27;instrument_id&#x27;],originator,holder,units,body[&#x27;created_at_ms&#x27;],
+                json.dumps(origin_sig,sort_keys=True),json.dumps(treasury_sig,sort_keys=True)))
+            db.commit()
+        except Exception:
+            db.rollback(); raise
+        finally:
+            db.close()
+        return dict(body,originator_signature=origin_sig,treasury_signature=treasury_sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

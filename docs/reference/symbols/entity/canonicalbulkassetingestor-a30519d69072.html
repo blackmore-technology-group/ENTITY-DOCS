@@ -1,0 +1,144 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CanonicalBulkAssetIngestor Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>CanonicalBulkAssetIngestor</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/15_Operations/scale/canonical_bulk_ingest.py#L31">ENTITY/src/15_Operations/scale/canonical_bulk_ingest.py#L31</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Resumable high-throughput adapter over canonical ENTITY record schemas.
+
+Batches preserve per-record signatures and the canonical event-ledger hash chain.
+Cross-database completion is recovered by deterministic ids plus phase receipts.</p><h2>Source excerpt</h2><pre><code>class CanonicalBulkAssetIngestor:
+    &quot;&quot;&quot;Resumable high-throughput adapter over canonical ENTITY record schemas.
+
+    Batches preserve per-record signatures and the canonical event-ledger hash chain.
+    Cross-database completion is recovered by deterministic ids plus phase receipts.
+    &quot;&quot;&quot;
+    def __init__(self, state_dir, identity, asset_registry, ledger, rights_graph, provenance):
+        self.state = Path(state_dir)
+        self.identity = identity
+        self.assets = asset_registry
+        self.ledger = ledger
+        self.rights = rights_graph
+        self.provenance = provenance
+        self.root = self.state / &quot;bulk_ingest&quot;
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.receipts = self.root / &quot;bulk_ingest.sqlite&quot;
+        with _db(self.receipts) as db:
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS runs(run_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,target_assets INTEGER NOT NULL,target_extra_events INTEGER NOT NULL,base_ms INTEGER NOT NULL,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS batches(run_id TEXT NOT NULL,start_index INTEGER NOT NULL,item_count INTEGER NOT NULL,phase TEXT NOT NULL,first_asset_id TEXT,last_asset_id TEXT,first_event_hash TEXT,last_event_hash TEXT,updated_at_ms INTEGER NOT NULL,PRIMARY KEY(run_id,start_index))&quot;)
+
+    def _run(self, run_id, controller, target_assets, target_extra_events):
+        now = int(time.time() * 1000)
+        with _db(self.receipts) as db:
+            row = db.execute(&quot;SELECT * FROM runs WHERE run_id=?&quot;, (run_id,)).fetchone()
+            if row:
+                if row[&quot;controller_entity_id&quot;] != controller or int(row[&quot;target_assets&quot;]) != int(target_assets) or int(row[&quot;target_extra_events&quot;]) != int(target_extra_events):
+                    raise ValueError(&quot;run_id already exists with different parameters&quot;)
+                return dict(row)
+            db.execute(&quot;INSERT INTO runs VALUES(?,?,?,?,?,?,?,?)&quot;, (run_id, controller, int(target_assets), int(target_extra_events), now, &quot;ACTIVE&quot;, now, now))
+            return dict(db.execute(&quot;SELECT * FROM runs WHERE run_id=?&quot;, (run_id,)).fetchone())
+    def _batch_phase(self, run_id, start):
+        with _db(self.receipts) as db:
+            row = db.execute(&quot;SELECT * FROM batches WHERE run_id=? AND start_index=?&quot;, (run_id, int(start))).fetchone()
+            return dict(row) if row else None
+
+    def _mark_batch(self, run_id, start, count, phase, first_asset_id=None, last_asset_id=None, first_event_hash=None, last_event_hash=None):
+        now = int(time.time() * 1000)
+        with _db(self.receipts) as db:
+            db.execute(&quot;INSERT INTO batches(run_id,start_index,item_count,phase,first_asset_id,last_asset_id,first_event_hash,last_event_hash,updated_at_ms) VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(run_id,start_index) DO UPDATE SET item_count=excluded.item_count,phase=excluded.phase,first_asset_id=COALESCE(excluded.first_asset_id,batches.first_asset_id),last_asset_id=COALESCE(excluded.last_asset_id,batches.last_asset_id),first_event_hash=COALESCE(excluded.first_event_hash,batches.first_event_hash),last_event_hash=COALESCE(excluded.last_event_hash,batches.last_event_hash),updated_at_ms=excluded.updated_at_ms&quot;, (run_id,int(start),int(count),phase,first_asset_id,last_asset_id,first_event_hash,last_event_hash,now))
+
+    def _asset_rows(self, run_id, controller, start, count, base_ms):
+        rows=[]
+        for idx in range(start, start+count):
+            asset_id=_id(&quot;asset1-&quot;,run_id,idx)
+            digest=hashlib.sha256(f&quot;{run_id}:asset-content:{idx}&quot;.encode()).hexdigest()
+            ts=base_ms+idx
+            meta=json.dumps({&quot;bulk_run_id&quot;:run_id,&quot;bulk_index&quot;:idx},sort_keys=True)
+            rows.append((asset_id,controller,digest,idx+1,&quot;application/octet-stream&quot;,f&quot;Scale Asset {idx}&quot;,&quot;PRIVATE&quot;,&quot;ACTIVE&quot;,meta,ts,ts))
+        return rows
+
+    def _insert_assets(self, rows):
+        with _db(self.assets.path) as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;)
+            db.executemany(&quot;INSERT OR IGNORE INTO assets VALUES(?,?,?,?,?,?,?,?,?,?,?)&quot;,rows)
+    def _append_asset_events(self, run_id, controller, rows, start, base_ms, sign):
+        count=len(rows); lo=base_ms+start; hi=lo+count-1; etype=&quot;asset.bulk_registered&quot;
+        with _db(self.ledger.path) as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;)
+            existing=int(db.execute(&quot;SELECT COUNT(*) FROM events WHERE event_type=? AND actor_entity_id=? AND timestamp_ms BETWEEN ? AND ?&quot;,(etype,controller,lo,hi)).fetchone()[0])
+            if existing:
+                if existing!=count: raise RuntimeError(&quot;partial canonical ledger batch detected&quot;)
+                first=db.execute(&quot;SELECT event_hash FROM events WHERE event_type=? AND actor_entity_id=? AND timestamp_ms BETWEEN ? AND ? ORDER BY sequence LIMIT 1&quot;,(etype,controller,lo,hi)).fetchone()[0]
+                last=db.execute(&quot;SELECT event_hash FROM events WHERE event_type=? AND actor_entity_id=? AND timestamp_ms BETWEEN ? AND ? ORDER BY sequence DESC LIMIT 1&quot;,(etype,controller,lo,hi)).fetchone()[0]
+                return first,last
+            prior=db.execute(&quot;SELECT v FROM meta WHERE k=&#x27;head_hash&#x27;&quot;).fetchone()[0]
+            out=[]; first_hash=None
+            for off,row in enumerate(rows):
+                idx=start+off; asset_id=row[0]; digest=row[2]; ts=base_ms+idx
+                payload={&quot;asset_id&quot;:asset_id,&quot;content_sha256&quot;:digest,&quot;controller_entity_id&quot;:controller,&quot;registration_not_ownership&quot;:True,&quot;bulk_run_id&quot;:run_id}
+                payload_hash=_sha(payload); event_id=_id(&quot;evt1-&quot;,run_id,idx)
+                body={&quot;schema&quot;:&quot;ENTITY-EVENT-v1&quot;,&quot;event_id&quot;:event_id,&quot;event_type&quot;:etype,&quot;actor_entity_id&quot;:controller,&quot;subject_ids&quot;:[controller],&quot;object_ids&quot;:[asset_id],&quot;payload_hash&quot;:payload_hash,&quot;evidence_origin&quot;:&quot;DIRECT_OBSERVATION&quot;,&quot;confidence&quot;:1.0,&quot;timestamp_ms&quot;:ts,&quot;prior_hash&quot;:prior}
+                sig=sign(body); event_hash=_sha({&quot;body&quot;:body,&quot;signature&quot;:sig})
+                if first_hash is None: first_hash=event_hash
+                out.append((event_id,etype,controller,json.dumps([controller]),json.dumps([asset_id]),payload_hash,&quot;DIRECT_OBSERVATION&quot;,1.0,ts,prior,event_hash,json.dumps(sig,sort_keys=True),&quot;ENTITY-EVENT-v1&quot;,payload_hash))
+                prior=event_hash
+            db.executemany(&quot;INSERT INTO events(event_id,event_type,actor_entity_id,subject_ids_json,object_ids_json,payload_hash,evidence_origin,confidence,timestamp_ms,prior_hash,event_hash,signature_json,schema_version,payload_sha256) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,out)
+            db.execute(&quot;UPDATE meta SET v=? WHERE k=&#x27;head_hash&#x27;&quot;,(prior,))
+            return first_hash,prior
+    def _insert_rights(self, run_id, controller, rows, start, base_ms, sign):
+        claim_rows=[]; event_rows=[]; basis=f&quot;bulk_scale_registration:{run_id}&quot;
+        for off,row in enumerate(rows):
+            idx=start+off; asset_id=row[0]; digest=row[2]; ts=base_ms+idx
+            claim_id=_id(&quot;claim1-&quot;,run_id,idx)
+            scope={&quot;control_of_entity_record&quot;:True}; evidence={&quot;content_sha256&quot;:digest,&quot;bulk_run_id&quot;:run_id}
+            body={&quot;schema&quot;:&quot;entity-rights-claim-v2&quot;,&quot;claim_id&quot;:claim_id,&quot;asset_id&quot;:asset_id,&quot;claimant_entity_id&quot;:controller,&quot;right_type&quot;:&quot;DATA_CONTROLLER&quot;,&quot;share&quot;:{&quot;numerator&quot;:1,&quot;denominator&quot;:1},&quot;territory&quot;:&quot;unspecified&quot;,&quot;jurisdiction&quot;:&quot;unspecified&quot;,&quot;legal_basis&quot;:basis,&quot;scope&quot;:scope,&quot;evidence&quot;:evidence,&quot;evidence_origin&quot;:&quot;ENTITY_ASSERTION&quot;,&quot;effective_at_ms&quot;:ts,&quot;expires_at_ms&quot;:None,&quot;verification_level&quot;:&quot;SELF_ASSERTED&quot;,&quot;lifecycle_status&quot;:&quot;ACTIVE&quot;,&quot;supersedes_claim_id&quot;:None}
+            sig=sign(body)
+            claim_rows.append((claim_id,asset_id,controller,&quot;DATA_CONTROLLER&quot;,1,1,&quot;unspecified&quot;,&quot;unspecified&quot;,basis,json.dumps(scope,sort_keys=True),json.dumps(evidence,sort_keys=True),&quot;ENTITY_ASSERTION&quot;,ts,None,&quot;SELF_ASSERTED&quot;,&quot;ACTIVE&quot;,None,json.dumps(sig,sort_keys=True),ts,ts))
+            payload={&quot;right_type&quot;:&quot;DATA_CONTROLLER&quot;,&quot;verification_level&quot;:&quot;SELF_ASSERTED&quot;,&quot;evidence_origin&quot;:&quot;ENTITY_ASSERTION&quot;}
+            event_body={&quot;claim_id&quot;:claim_id,&quot;event_type&quot;:&quot;claim.asserted&quot;,&quot;actor_entity_id&quot;:controller,&quot;payload&quot;:payload,&quot;timestamp_ms&quot;:ts}
+            event_sig=sign(event_body); event_id=_id(&quot;evt1-claim-&quot;,run_id,idx)
+            event_rows.append((event_id,claim_id,&quot;claim.asserted&quot;,controller,json.dumps(payload,sort_keys=True),json.dumps(event_sig,sort_keys=True),ts))
+        with _db(self.rights.path) as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;)
+            db.executemany(&quot;INSERT OR IGNORE INTO claims VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,claim_rows)
+            db.executemany(&quot;INSERT OR IGNORE INTO claim_events(event_id,claim_id,event_type,actor_entity_id,payload_json,signature_json,timestamp_ms) VALUES(?,?,?,?,?,?,?)&quot;,event_rows)
+
+    def _insert_provenance(self, run_id, controller, rows, start, base_ms, sign):
+        out=[]
+        for off,row in enumerate(rows):
+            idx=start+off; asset_id=row[0]; digest=row[2]; ts=base_ms+idx
+            body={&quot;schema&quot;:&quot;entity-provenance-binding-v2&quot;,&quot;asset_id&quot;:asset_id,&quot;controller_entity_id&quot;:controller,&quot;content_sha256&quot;:digest,&quot;soft_binding_type&quot;:None,&quot;soft_binding_value&quot;:None,&quot;c2pa_manifest_sha256&quot;:None,&quot;c2pa_reference&quot;:None,&quot;provenance_status&quot;:&quot;RECORDED&quot;,&quot;truth_status&quot;:&quot;NOT_ASSESSED&quot;,&quot;evidence_origin&quot;:&quot;DIRECT_OBSERVATION&quot;,&quot;recorded_at_ms&quot;:ts}
+            sig=sign(body)
+            out.append((asset_id,controller,digest,None,None,None,None,&quot;RECORDED&quot;,&quot;NOT_ASSESSED&quot;,&quot;DIRECT_OBSERVATION&quot;,ts,json.dumps(sig,sort_keys=True)))
+        with _db(self.provenance.path) as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;)
+            db.executemany(&quot;INSERT OR IGNORE INTO bindings VALUES(?,?,?,?,?,?,?,?,?,?,?,?)&quot;,out)
+    def ingest_generated_assets(self, controller, *, count, run_id, batch_size=5000, target_extra_events=0):
+        run=self._run(run_id,controller,count,target_extra_events); base_ms=int(run[&quot;base_ms&quot;])
+        self.identity.load_manifest(controller); sign=self.identity.open_signing_session(controller)
+        started=time.perf_counter(); completed=0
+        for start in range(0,int(count),int(batch_size)):
+            n=min(int(batch_size),int(count)-start); prior=self._batch_phase(run_id,start)
+            if prior and prior.get(&quot;phase&quot;)==&quot;COMPLETE&quot;: completed+=n; continue
+            rows=self._asset_rows(run_id,controller,start,n,base_ms)
+            self._insert_assets(rows); self._mark_batch(run_id,start,n,&quot;ASSETS&quot;,rows[0][0],rows[-1][0])
+            first_hash,last_hash=self._append_asset_events(run_id,controller,rows,start,base_ms,sign)
+            self._mark_batch(run_id,start,n,&quot;LEDGER&quot;,rows[0][0],rows[-1][0],first_hash,last_hash)
+            self._insert_rights(run_id,controller,rows,start,base_ms,sign); self._mark_batch(run_id,start,n,&quot;RIGHTS&quot;)
+            self._insert_provenance(run_id,controller,rows,start,base_ms,sign); self._mark_batch(run_id,start,n,&quot;COMPLETE&quot;)
+            completed+=n
+        elapsed=time.perf_counter()-started
+        return {&quot;run_id&quot;:run_id,&quot;assets_completed&quot;:completed,&quot;seconds&quot;:elapsed,&quot;per_second&quot;:completed/elapsed if elapsed else None}
+
+    def append_generated_events(self, controller, *, count, run_id, start_index, base_ms, batch_size=10000):
+        sign=self.identity.open_signing_session(controller); started=time.perf_counter(); written=0
+        for start in range(int(start_index),int(start_index)+int(count),int(batch_size)):
+            n=min(int(batch_size),int(start_index)+int(count)-start)
+            lo=base_ms+start; hi=lo+n-1; etype=&quot;scale.synthetic_observed&quot;
+            with _db(self.ledger.path) as db:
+                db.execute(&quot;BEGIN IMMEDIATE&quot;)
+                existing=int(db.execute(&quot;SELECT COUNT(*) FROM events WHERE event_type=? AND actor_entity_id=? AND timestamp_ms BETWEEN ? AND ?&quot;,(etype,controller,lo,hi)).fetchone()[0])
+                if existing==n: written+=n; continue
+                if existing: raise RuntimeError(&quot;partial synthetic event batch detected&quot;)
+                prior=db.execute(&quot;SELECT v FROM meta WHERE k=&#x27;head_hash&#x27;&quot;).fetchone()[0]; out=[]
+                for idx in range(start,start+n):
+                    ts=base_ms+idx; payload_hash=hashlib.sha256(f&quot;{run_id}:event-payload:{idx}&quot;.encode()).hexdigest(); event_id=_id(&quot;evt1-extra-&quot;,run_id,idx)
+                    body={&quot;schema&quot;:&quot;ENTITY-EVENT-v1&quot;,&quot;event_id&quot;:event_id,&quot;event_type&quot;:etype,&quot;actor_entity_id&quot;:controller,&quot;subject_ids&quot;:[controller],&quot;object_ids&quot;:[],&quot;payload_hash&quot;:payload_hash,&quot;evidence_origin&quot;:&quot;DIRECT_OBSERVATION&quot;,&quot;confidence&quot;:1.0,&quot;timestamp_ms&quot;:ts,&quot;prior_hash&quot;:prior}
+                    sig=sign(body); event_hash=_sha({&quot;body&quot;:body,&quot;signature&quot;:sig}); out.append((event_id,etype,controller,json.dumps([controller]),&quot;[]&quot;,payload_hash,&quot;DIRECT_OBSERVATION&quot;,1.0,ts,prior,event_hash,json.dumps(sig,sort_keys=True),&quot;ENTITY-EVENT-v1&quot;,payload_hash)); prior=event_hash
+                db.executemany(&quot;INSERT INTO events(event_id,event_type,actor_entity_id,subject_ids_json,object_ids_json,payload_hash,evidence_origin,confidence,timestamp_ms,prior_hash,event_hash,signature_json,schema_version,payload_sha256) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,out); db.execute(&quot;UPDATE meta SET v=? WHERE k=&#x27;head_hash&#x27;&quot;,(prior,)); written+=n
+        elapsed=time.perf_counter()-started
+        return {&quot;events_completed&quot;:written,&quot;seconds&quot;:elapsed,&quot;per_second&quot;:written/elapsed if elapsed else None}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

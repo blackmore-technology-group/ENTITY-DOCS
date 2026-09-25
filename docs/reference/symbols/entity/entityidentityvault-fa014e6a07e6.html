@@ -1,0 +1,293 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityIdentityVault Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityIdentityVault</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/identity/canonical_identity.py#L47">ENTITY/src/01_Core_Runtime/identity/canonical_identity.py#L47</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Persistent root identity with rotatable operational keys and private pairwise identities.</p><h2>Source excerpt</h2><pre><code>class EntityIdentityVault:
+    &quot;&quot;&quot;Persistent root identity with rotatable operational keys and private pairwise identities.&quot;&quot;&quot;
+    def __init__(self, state_dir: str | Path, key_protector=None):
+        self.root = Path(state_dir) / &quot;identity&quot;
+        self.keys = self.root / &quot;keys&quot;
+        self.manifests = self.root / &quot;manifests&quot;
+        self.pairwise = self.root / &quot;pairwise&quot;
+        for p in (self.keys, self.manifests, self.pairwise):
+            p.mkdir(parents=True, exist_ok=True)
+        self.key_protector = key_protector
+        self._lock = RLock()
+
+    def _entity_key_dir(self, entity_id: str) -&gt; Path:
+        if not ENTITY_ID_RE.fullmatch(entity_id):
+            raise ValueError(&quot;invalid Entity ID&quot;)
+        path = self.keys / entity_id
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def _manifest_path(self, entity_id: str) -&gt; Path:
+        if not ENTITY_ID_RE.fullmatch(entity_id):
+            raise ValueError(&quot;invalid Entity ID&quot;)
+        return self.manifests / f&quot;{entity_id}.json&quot;
+
+    def _write_private(self, path: Path, raw: bytes) -&gt; None:
+        path.write_bytes(raw)
+        try: os.chmod(path, 0o600)
+        except OSError: pass
+
+    def _remove_private_key_material(self, entity_id: str, key_id: str) -&gt; list[str]:
+        removed=[]; kd=self._entity_key_dir(entity_id)
+        for suffix in (&quot;.key&quot;, &quot;.key.tpm&quot;):
+            path=kd/f&quot;{key_id}{suffix}&quot;
+            if path.is_file():
+                path.unlink(); removed.append(path.name)
+        return removed
+
+    def _read_private_key_bytes(self, entity_id: str, key_id: str) -&gt; bytes:
+        raw_path=self._entity_key_dir(entity_id)/f&quot;{key_id}.key&quot;
+        if raw_path.is_file(): return raw_path.read_bytes()
+        wrapped_path=self._entity_key_dir(entity_id)/f&quot;{key_id}.key.tpm&quot;
+        if wrapped_path.is_file():
+            if self.key_protector is None: raise RuntimeError(&quot;hardware-protected private key requires configured key protector&quot;)
+            return self.key_protector.unwrap(wrapped_path.read_bytes())
+        raise FileNotFoundError(str(raw_path))
+
+    def create(self, display_name: str, entity_type: str, aliases: list[str] | None = None, metadata: dict | None = None) -&gt; dict:
+        name = str(display_name or &quot;&quot;).strip()
+        kind = str(entity_type or &quot;&quot;).strip().lower()
+        if not name or len(name) &gt; 256:
+            raise ValueError(&quot;display_name must be 1..256 characters&quot;)
+        if kind not in ENTITY_TYPES:
+            raise ValueError(f&quot;unsupported entity_type: {kind}&quot;)
+        entity_id = _new_entity_id()
+        signing = Ed25519PrivateKey.generate()
+        recovery = Ed25519PrivateKey.generate()
+        signing_id = &quot;sig-&quot; + secrets.token_hex(8)
+        recovery_id = &quot;rec-&quot; + secrets.token_hex(8)
+        now = int(time.time() * 1000)
+        methods = [
+            {&quot;key_id&quot;: signing_id, &quot;algorithm&quot;: &quot;Ed25519&quot;, &quot;suite&quot;: SIG_SUITE, &quot;purpose&quot;: [&quot;assertion&quot;, &quot;authentication&quot;, &quot;contract&quot;], &quot;public_key&quot;: _b64(_public_raw(signing)), &quot;status&quot;: &quot;active&quot;, &quot;created_at_ms&quot;: now},
+            {&quot;key_id&quot;: recovery_id, &quot;algorithm&quot;: &quot;Ed25519&quot;, &quot;suite&quot;: SIG_SUITE, &quot;purpose&quot;: [&quot;recovery&quot;], &quot;public_key&quot;: _b64(_public_raw(recovery)), &quot;status&quot;: &quot;active&quot;, &quot;created_at_ms&quot;: now},
+        ]
+        manifest = {
+            &quot;schema&quot;: &quot;sovereign-entity-manifest-v2&quot;,
+            &quot;entity_id&quot;: entity_id,
+            &quot;entity_type&quot;: kind,
+            &quot;display_name&quot;: name,
+            &quot;aliases&quot;: sorted({str(x).strip() for x in (aliases or []) if str(x).strip()}),
+            &quot;metadata&quot;: dict(metadata or {}),
+            &quot;verification_methods&quot;: methods,
+            &quot;active_signing_key_id&quot;: signing_id,
+            &quot;recovery_policy&quot;: {&quot;threshold&quot;: 1, &quot;authorities&quot;: [recovery_id], &quot;delayed_recovery_supported&quot;: True},
+            &quot;crypto_agility&quot;: {&quot;manifest_suite&quot;: SIG_SUITE, &quot;supported_suites&quot;: [SIG_SUITE], &quot;future_hybrid_allowed&quot;: True},
+            &quot;created_at_ms&quot;: now,
+            &quot;manifest_revision&quot;: 1,
+        }
+        signature = {&quot;key_id&quot;: signing_id, &quot;suite&quot;: SIG_SUITE, &quot;signature&quot;: _b64(signing.sign(canonical_json(manifest)))}
+        signed = dict(manifest, signature=signature)
+        with self._lock:
+            kd = self._entity_key_dir(entity_id)
+            self._write_private(kd / f&quot;{signing_id}.key&quot;, _private_raw(signing))
+            self._write_private(kd / f&quot;{recovery_id}.key&quot;, _private_raw(recovery))
+            self._write_private(self.pairwise / f&quot;{entity_id}.secret&quot;, secrets.token_bytes(32))
+            self._manifest_path(entity_id).write_text(json.dumps(signed, indent=2, sort_keys=True), encoding=&quot;utf-8&quot;)
+        return signed
+
+    @staticmethod
+    def _verify_v1(signed: dict) -&gt; bool:
+        data = dict(signed)
+        signature = _unb64(str(data.pop(&quot;signature&quot;)))
+        pub_raw = _unb64(str(data[&quot;public_key&quot;]))
+        if data.get(&quot;entity_id&quot;) != entity_id_from_public_key(pub_raw):
+            return False
+        Ed25519PublicKey.from_public_bytes(pub_raw).verify(signature, canonical_json(data))
+        return True
+
+    @staticmethod
+    def _method(manifest: dict, key_id: str) -&gt; dict | None:
+        for method in manifest.get(&quot;verification_methods&quot;) or []:
+            if method.get(&quot;key_id&quot;) == key_id:
+                return method
+        return None
+
+    @classmethod
+    def verify_manifest(cls, signed: dict) -&gt; bool:
+        try:
+            if signed.get(&quot;schema&quot;) == &quot;sovereign-entity-manifest-v1&quot;:
+                return cls._verify_v1(signed)
+            if signed.get(&quot;schema&quot;) != &quot;sovereign-entity-manifest-v2&quot;:
+                return False
+            data = dict(signed)
+            signature = dict(data.pop(&quot;signature&quot;))
+            if not ENTITY_ID_RE.fullmatch(str(data.get(&quot;entity_id&quot;) or &quot;&quot;)):
+                return False
+            method = cls._method(data, str(signature.get(&quot;key_id&quot;) or &quot;&quot;))
+            if not method or method.get(&quot;status&quot;) != &quot;active&quot; or method.get(&quot;suite&quot;) != SIG_SUITE:
+                return False
+            rotation = data.get(&quot;rotation_proof&quot;)
+            if rotation:
+                proof=dict(rotation); proof_sig=dict(proof.pop(&quot;signature&quot;)); old=cls._method(data,str(proof_sig.get(&quot;key_id&quot;) or &quot;&quot;))
+                if not old or old.get(&quot;status&quot;) not in {&quot;retired&quot;,&quot;active&quot;}: return False
+                if proof.get(&quot;entity_id&quot;)!=data.get(&quot;entity_id&quot;) or proof.get(&quot;new_key_id&quot;)!=data.get(&quot;active_signing_key_id&quot;) or int(proof.get(&quot;manifest_revision&quot;,0))!=int(data.get(&quot;manifest_revision&quot;,0)): return False
+                if proof.get(&quot;new_public_key&quot;)!=method.get(&quot;public_key&quot;) or proof.get(&quot;new_suite&quot;)!=method.get(&quot;suite&quot;): return False
+                Ed25519PublicKey.from_public_bytes(_unb64(str(old[&quot;public_key&quot;]))).verify(_unb64(str(proof_sig[&quot;signature&quot;])),canonical_json(proof))
+            recovery = data.get(&quot;recovery_proof&quot;)
+            if recovery:
+                proof=dict(recovery); proof_sig=dict(proof.pop(&quot;signature&quot;)); authority=cls._method(data,str(proof_sig.get(&quot;key_id&quot;) or &quot;&quot;))
+                if not authority or &quot;recovery&quot; not in set(authority.get(&quot;purpose&quot;) or []) or authority.get(&quot;status&quot;)!=&quot;active&quot;: return False
+                if proof.get(&quot;entity_id&quot;)!=data.get(&quot;entity_id&quot;) or proof.get(&quot;new_key_id&quot;)!=data.get(&quot;active_signing_key_id&quot;) or int(proof.get(&quot;manifest_revision&quot;,0))!=int(data.get(&quot;manifest_revision&quot;,0)): return False
+                if proof.get(&quot;new_public_key&quot;)!=method.get(&quot;public_key&quot;) or proof.get(&quot;new_suite&quot;)!=method.get(&quot;suite&quot;): return False
+                Ed25519PublicKey.from_public_bytes(_unb64(str(authority[&quot;public_key&quot;]))).verify(_unb64(str(proof_sig[&quot;signature&quot;])),canonical_json(proof))
+            public_raw = _unb64(str(method[&quot;public_key&quot;]))
+            Ed25519PublicKey.from_public_bytes(public_raw).verify(_unb64(str(signature[&quot;signature&quot;])), canonical_json(data))
+            return True
+        except Exception:
+            return False
+
+    def load_manifest(self, entity_id: str) -&gt; dict:
+        data = json.loads(self._manifest_path(entity_id).read_text(encoding=&quot;utf-8&quot;))
+        if not self.verify_manifest(data):
+            raise RuntimeError(&quot;Entity manifest signature verification failed&quot;)
+        return data
+
+    def _active_key(self, entity_id: str) -&gt; tuple[dict, Ed25519PrivateKey]:
+        manifest = self.load_manifest(entity_id)
+        if manifest.get(&quot;schema&quot;) == &quot;sovereign-entity-manifest-v1&quot;:
+            raw = (self.keys / f&quot;{entity_id}.ed25519.key&quot;).read_bytes()
+            return {&quot;key_id&quot;: &quot;legacy&quot;, &quot;suite&quot;: SIG_SUITE}, Ed25519PrivateKey.from_private_bytes(raw)
+        key_id = str(manifest[&quot;active_signing_key_id&quot;])
+        raw = self._read_private_key_bytes(entity_id,key_id)
+        return {&quot;key_id&quot;: key_id, &quot;suite&quot;: SIG_SUITE}, Ed25519PrivateKey.from_private_bytes(raw)
+
+    def open_signing_session(self, entity_id: str):
+        &quot;&quot;&quot;Cache one validated operational signing key for bounded bulk work.
+        The returned callable preserves the normal signature-record schema but avoids
+        reloading and re-verifying the manifest/key for every record in one batch.
+        &quot;&quot;&quot;
+        info, key = self._active_key(entity_id)
+        def _sign(payload: Any) -&gt; dict:
+            body = canonical_json(payload); signed_at = int(time.time()*1000)
+            record = {&quot;signature_schema&quot;:&quot;entity-signature-record-v2&quot;,&quot;entity_id&quot;:entity_id,
+                      &quot;key_id&quot;:info[&quot;key_id&quot;],&quot;suite&quot;:info[&quot;suite&quot;],&quot;signed_at_ms&quot;:signed_at,
+                      &quot;payload_sha256&quot;:hashlib.sha256(body).hexdigest()}
+            record[&quot;signature&quot;] = _b64(key.sign(canonical_json(record)))
+            return record
+        return _sign
+
+    def sign(self, entity_id: str, payload: Any) -&gt; dict:
+        return self.open_signing_session(entity_id)(payload)
+
+    def rotate_signing_key(self, entity_id: str) -&gt; dict:
+        manifest=self.load_manifest(entity_id)
+        if manifest.get(&quot;schema&quot;) != &quot;sovereign-entity-manifest-v2&quot;:
+            raise RuntimeError(&quot;legacy ent1 identity must be migrated before key rotation&quot;)
+        old_id=str(manifest[&quot;active_signing_key_id&quot;]); old_raw=self._read_private_key_bytes(entity_id,old_id); old_key=Ed25519PrivateKey.from_private_bytes(old_raw)
+        new_key=Ed25519PrivateKey.generate(); new_id=&quot;sig-&quot;+secrets.token_hex(8); now=int(time.time()*1000); revision=int(manifest.get(&quot;manifest_revision&quot;,1))+1
+        data={k:v for k,v in manifest.items() if k not in {&quot;signature&quot;,&quot;rotation_proof&quot;}}
+        methods=[]
+        for item in data.get(&quot;verification_methods&quot;) or []:
+            item=dict(item)
+            if item.get(&quot;key_id&quot;)==old_id: item[&quot;status&quot;]=&quot;retired&quot;; item[&quot;retired_at_ms&quot;]=now
+            methods.append(item)
+        new_pub=_b64(_public_raw(new_key)); methods.append({&quot;key_id&quot;:new_id,&quot;algorithm&quot;:&quot;Ed25519&quot;,&quot;suite&quot;:SIG_SUITE,&quot;purpose&quot;:[&quot;assertion&quot;,&quot;authentication&quot;,&quot;contract&quot;],&quot;public_key&quot;:new_pub,&quot;status&quot;:&quot;active&quot;,&quot;created_at_ms&quot;:now})
+        data[&quot;verification_methods&quot;]=methods; data[&quot;active_signing_key_id&quot;]=new_id; data[&quot;manifest_revision&quot;]=revision; data[&quot;previous_manifest_sha256&quot;]=hashlib.sha256(canonical_json(manifest)).hexdigest()
+        proof={&quot;entity_id&quot;:entity_id,&quot;old_key_id&quot;:old_id,&quot;new_key_id&quot;:new_id,&quot;new_public_key&quot;:new_pub,&quot;new_suite&quot;:SIG_SUITE,&quot;manifest_revision&quot;:revision}
+        proof[&quot;signature&quot;]={&quot;key_id&quot;:old_id,&quot;suite&quot;:SIG_SUITE,&quot;signature&quot;:_b64(old_key.sign(canonical_json(proof)))}
+        data[&quot;rotation_proof&quot;]=proof
+        signed=dict(data,signature={&quot;key_id&quot;:new_id,&quot;suite&quot;:SIG_SUITE,&quot;signature&quot;:_b64(new_key.sign(canonical_json(data)))})
+        self._write_private(self._entity_key_dir(entity_id)/f&quot;{new_id}.key&quot;,_private_raw(new_key)); self._manifest_path(entity_id).write_text(json.dumps(signed,indent=2,sort_keys=True),encoding=&quot;utf-8&quot;)
+        if not self.verify_manifest(signed): raise RuntimeError(&quot;rotated manifest failed continuity verification&quot;)
+        self._remove_private_key_material(entity_id,old_id)
+        return signed
+
+    def recover_signing_key(self, entity_id: str) -&gt; dict:
+        manifest=self.load_manifest(entity_id)
+        if manifest.get(&quot;schema&quot;) != &quot;sovereign-entity-manifest-v2&quot;: raise RuntimeError(&quot;legacy ent1 identity must be migrated before recovery&quot;)
+        authorities=list((manifest.get(&quot;recovery_policy&quot;) or {}).get(&quot;authorities&quot;) or [])
+        if not authorities: raise RuntimeError(&quot;no recovery authority configured&quot;)
+        recovery_id=str(authorities[0]); recovery_method=self._method(manifest,recovery_id)
+        if not recovery_method or recovery_method.get(&quot;status&quot;)!=&quot;active&quot; or &quot;recovery&quot; not in set(recovery_method.get(&quot;purpose&quot;) or []): raise RuntimeError(&quot;active recovery authority unavailable&quot;)
+        recovery_key=Ed25519PrivateKey.from_private_bytes(self._read_private_key_bytes(entity_id,recovery_id))
+        old_id=str(manifest[&quot;active_signing_key_id&quot;]); now=int(time.time()*1000); revision=int(manifest.get(&quot;manifest_revision&quot;,1))+1
+        new_key=Ed25519PrivateKey.generate(); new_id=&quot;sig-&quot;+secrets.token_hex(8); new_pub=_b64(_public_raw(new_key))
+        data={k:v for k,v in manifest.items() if k not in {&quot;signature&quot;,&quot;rotation_proof&quot;,&quot;recovery_proof&quot;}}
+        methods=[]
+        for item in data.get(&quot;verification_methods&quot;) or []:
+            item=dict(item)
+            if item.get(&quot;key_id&quot;)==old_id: item[&quot;status&quot;]=&quot;revoked&quot;; item[&quot;revoked_at_ms&quot;]=now
+            methods.append(item)
+        methods.append({&quot;key_id&quot;:new_id,&quot;algorithm&quot;:&quot;Ed25519&quot;,&quot;suite&quot;:SIG_SUITE,&quot;purpose&quot;:[&quot;assertion&quot;,&quot;authentication&quot;,&quot;contract&quot;],&quot;public_key&quot;:new_pub,&quot;status&quot;:&quot;active&quot;,&quot;created_at_ms&quot;:now})
+        data[&quot;verification_methods&quot;]=methods; data[&quot;active_signing_key_id&quot;]=new_id; data[&quot;manifest_revision&quot;]=revision; data[&quot;previous_manifest_sha256&quot;]=hashlib.sha256(canonical_json(manifest)).hexdigest()
+        proof={&quot;entity_id&quot;:entity_id,&quot;recovery_key_id&quot;:recovery_id,&quot;replaced_key_id&quot;:old_id,&quot;new_key_id&quot;:new_id,&quot;new_public_key&quot;:new_pub,&quot;new_suite&quot;:SIG_SUITE,&quot;manifest_revision&quot;:revision}
+        proof[&quot;signature&quot;]={&quot;key_id&quot;:recovery_id,&quot;suite&quot;:SIG_SUITE,&quot;signature&quot;:_b64(recovery_key.sign(canonical_json(proof)))}
+        data[&quot;recovery_proof&quot;]=proof
+        signed=dict(data,signature={&quot;key_id&quot;:new_id,&quot;suite&quot;:SIG_SUITE,&quot;signature&quot;:_b64(new_key.sign(canonical_json(data)))})
+        self._write_private(self._entity_key_dir(entity_id)/f&quot;{new_id}.key&quot;,_private_raw(new_key)); self._manifest_path(entity_id).write_text(json.dumps(signed,indent=2,sort_keys=True),encoding=&quot;utf-8&quot;)
+        if not self.verify_manifest(signed): raise RuntimeError(&quot;recovered manifest failed verification&quot;)
+        self._remove_private_key_material(entity_id,old_id)
+        return signed
+
+
+    def hardware_protect_key(self, entity_id: str, key_id: str, protector=None) -&gt; dict:
+        protector=protector or self.key_protector
+        if protector is None: raise RuntimeError(&quot;hardware key protector required&quot;)
+        kd=self._entity_key_dir(entity_id); raw_path=kd/f&quot;{key_id}.key&quot;; wrapped_path=kd/f&quot;{key_id}.key.tpm&quot;
+        if wrapped_path.is_file() and not raw_path.is_file(): return {&quot;entity_id&quot;:entity_id,&quot;key_id&quot;:key_id,&quot;hardware_protected&quot;:True,&quot;wrapped_path&quot;:str(wrapped_path)}
+        if not raw_path.is_file(): raise FileNotFoundError(str(raw_path))
+        raw=raw_path.read_bytes(); wrapped=protector.wrap(raw)
+        if protector.unwrap(wrapped)!=raw: raise RuntimeError(&quot;TPM key protection round-trip failed&quot;)
+        self._write_private(wrapped_path,wrapped); raw_path.unlink()
+        return {&quot;entity_id&quot;:entity_id,&quot;key_id&quot;:key_id,&quot;hardware_protected&quot;:True,&quot;wrapped_path&quot;:str(wrapped_path),&quot;raw_private_key_removed&quot;:True}
+
+    def hardware_protect_recovery(self, entity_id: str, protector=None) -&gt; list[dict]:
+        manifest=self.load_manifest(entity_id); authorities=list((manifest.get(&quot;recovery_policy&quot;) or {}).get(&quot;authorities&quot;) or [])
+        if not authorities: raise RuntimeError(&quot;no recovery authority configured&quot;)
+        return [self.hardware_protect_key(entity_id,str(k),protector) for k in authorities]
+
+    def pairwise_id(self, entity_id: str, relationship: str) -&gt; str:
+        relationship = str(relationship or &quot;&quot;).strip().lower()
+        if not relationship or len(relationship) &gt; 512:
+            raise ValueError(&quot;relationship identifier required&quot;)
+        secret_path=self.pairwise / f&quot;{entity_id}.secret&quot;
+        if not secret_path.exists(): self._write_private(secret_path,secrets.token_bytes(32))
+        secret = secret_path.read_bytes()
+        digest = hmac.new(secret, relationship.encode(&quot;utf-8&quot;), hashlib.sha256).digest()
+        return &quot;rel1-&quot; + _b32(digest)
+
+    @classmethod
+    def verify_signature(cls, manifest: dict, payload: Any, signature_record: dict) -&gt; bool:
+        try:
+            if not cls.verify_manifest(manifest) or signature_record.get(&quot;entity_id&quot;) != manifest.get(&quot;entity_id&quot;):
+                return False
+            body = canonical_json(payload); payload_hash = hashlib.sha256(body).hexdigest()
+            if signature_record.get(&quot;payload_sha256&quot;) != payload_hash: return False
+            record_schema = signature_record.get(&quot;signature_schema&quot;)
+            if record_schema == &quot;entity-signature-record-v2&quot;:
+                signed_record={&quot;signature_schema&quot;:record_schema,&quot;entity_id&quot;:signature_record.get(&quot;entity_id&quot;),
+                               &quot;key_id&quot;:signature_record.get(&quot;key_id&quot;),&quot;suite&quot;:signature_record.get(&quot;suite&quot;),
+                               &quot;signed_at_ms&quot;:signature_record.get(&quot;signed_at_ms&quot;),&quot;payload_sha256&quot;:payload_hash}
+                signed_bytes=canonical_json(signed_record)
+            elif record_schema in {None,&quot;&quot;}:
+                signed_bytes=body
+            else: return False
+            if manifest.get(&quot;schema&quot;) == &quot;sovereign-entity-manifest-v1&quot;:
+                public_raw = _unb64(str(manifest[&quot;public_key&quot;]))
+            else:
+                method = cls._method(manifest, str(signature_record.get(&quot;key_id&quot;) or &quot;&quot;))
+                if not method or method.get(&quot;status&quot;) not in {&quot;active&quot;,&quot;retired&quot;,&quot;revoked&quot;} or method.get(&quot;suite&quot;) != signature_record.get(&quot;suite&quot;): return False
+                status=method.get(&quot;status&quot;)
+                if record_schema == &quot;entity-signature-record-v2&quot;:
+                    signed_at=signature_record.get(&quot;signed_at_ms&quot;); created_at=method.get(&quot;created_at_ms&quot;)
+                    if signed_at is None: return False
+                    if created_at is not None and int(signed_at) &lt; int(created_at): return False
+                if status in {&quot;retired&quot;,&quot;revoked&quot;}:
+                    if record_schema != &quot;entity-signature-record-v2&quot;: return False
+                    cutoff=method.get(&quot;retired_at_ms&quot;) if status==&quot;retired&quot; else method.get(&quot;revoked_at_ms&quot;)
+                    if cutoff is None or int(signature_record.get(&quot;signed_at_ms&quot;)) &gt; int(cutoff): return False
+                public_raw = _unb64(str(method[&quot;public_key&quot;]))
+            Ed25519PublicKey.from_public_bytes(public_raw).verify(_unb64(str(signature_record[&quot;signature&quot;])), signed_bytes)
+            return True
+        except Exception:
+            return False
+
+    def list_local(self) -&gt; list[dict]:
+        out = []
+        for path in sorted(self.manifests.glob(&quot;ent*.json&quot;)):
+            try: out.append(self.load_manifest(path.stem))
+            except Exception: continue
+        return out
+
+    def status(self) -&gt; dict:
+        return {&quot;ready&quot;: True, &quot;local_entity_count&quot;: len(self.list_local()), &quot;identity_root&quot;: str(self.root), &quot;default_schema&quot;: &quot;sovereign-entity-manifest-v2&quot;, &quot;root_id_key_derived&quot;: False, &quot;pairwise_identities&quot;: True, &quot;crypto_suite&quot;: SIG_SUITE}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

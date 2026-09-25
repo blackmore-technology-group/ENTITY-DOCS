@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V3ExchangeConvergenceTests.test_external_signed_issuer_instrument_disclosure_listing_converge Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>V3ExchangeConvergenceTests.test_external_signed_issuer_instrument_disclosure_listing_converge</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_exchange_convergence.py#L421">ENTITY/tests/test_v3_exchange_convergence.py#L421</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>V3ExchangeConvergenceTests.test_external_signed_issuer_instrument_disclosure_listing_converge(self)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def test_external_signed_issuer_instrument_disclosure_listing_converge(self):
+        for eep,venue,_existing,prefix in (
+            (*self.make_ref_exchange(),&quot;r&quot;),
+            (*self.make_mirror_exchange(),&quot;m&quot;),
+        ):
+            dco=self.fabric.register_digital_commodity(self.owner,f&quot;{prefix}-External Corpus&quot;,hashlib.sha256((prefix+&quot;-external-data&quot;).encode()).hexdigest())
+            instrument={&quot;schema&quot;:&quot;entity-eep-instrument-v1&quot;,&quot;instrument_id&quot;:f&quot;{prefix}-external-inst&quot;,&quot;issuer&quot;:self.owner,
+                        &quot;underlying_object_id&quot;:dco[&quot;object_id&quot;],&quot;instrument_class&quot;:&quot;SPOT_LICENSE&quot;,&quot;rights&quot;:{&quot;actions&quot;:[&quot;DERIVE&quot;,&quot;TRAIN&quot;],&quot;raw_redistribution&quot;:False},
+                        &quot;total_units&quot;:100,&quot;transferable&quot;:True,&quot;duration_ms&quot;:None,&quot;settlement_currency&quot;:&quot;CAD&quot;,&quot;delivery_mode&quot;:&quot;ENTITLEMENT&quot;,
+                        &quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:int(time.time()*1000),&quot;bytes_are_not_the_traded_scarcity&quot;:True}
+            inst_sig=self.identity.sign(self.owner,instrument); original=self.identity.sign
+            def guard_owner(entity_id,payload):
+                if entity_id==self.owner: raise AssertionError(&quot;venue must not use issuer/lister private key&quot;)
+                return original(entity_id,payload)
+            self.identity.sign=guard_owner
+            try: recorded=eep.submit_signed_instrument(instrument,inst_sig)
+            finally: self.identity.sign=original
+            self.assertEqual(recorded[&quot;instrument_id&quot;],instrument[&quot;instrument_id&quot;])
+            with self.assertRaises(PermissionError):
+                eep.submit_signed_instrument(dict(instrument,instrument_id=f&quot;{prefix}-inst-tamper&quot;),inst_sig)
+
+            content=hashlib.sha256((prefix+&quot;-offering&quot;).encode()).hexdigest()
+            disclosure={&quot;schema&quot;:&quot;entity-eep-disclosure-v1&quot;,&quot;disclosure_id&quot;:f&quot;{prefix}-disc&quot;,&quot;venue_id&quot;:venue[&quot;venue_id&quot;],
+                        &quot;instrument_id&quot;:instrument[&quot;instrument_id&quot;],&quot;publisher&quot;:self.owner,&quot;disclosure_type&quot;:&quot;OFFERING&quot;,&quot;content_sha256&quot;:content,
+                        &quot;created_at_ms&quot;:int(time.time()*1000),&quot;protected_data_included&quot;:False}
+            disc_sig=self.identity.sign(self.owner,disclosure); self.identity.sign=guard_owner
+            try: disc=eep.submit_signed_disclosure(disclosure,disc_sig)
+            finally: self.identity.sign=original
+            self.assertFalse(disc[&quot;protected_data_included&quot;])
+
+            listing={&quot;schema&quot;:&quot;entity-eep-listing-v1&quot;,&quot;listing_id&quot;:f&quot;{prefix}-listing&quot;,&quot;venue_id&quot;:venue[&quot;venue_id&quot;],
+                     &quot;instrument_id&quot;:instrument[&quot;instrument_id&quot;],&quot;lister&quot;:self.owner,&quot;min_lot&quot;:1,&quot;tick_size&quot;:1,&quot;disclosure_sha256&quot;:content,
+                     &quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            list_sig=self.identity.sign(self.owner,listing); self.identity.sign=guard_owner
+            try: listed=eep.submit_signed_listing(listing,list_sig)
+            finally: self.identity.sign=original
+            self.assertEqual(listed[&quot;disclosure_sha256&quot;],content)
+            missing=dict(listing,listing_id=f&quot;{prefix}-missing-disc&quot;,disclosure_sha256=hashlib.sha256(b&quot;missing&quot;).hexdigest())
+            missing_sig=self.identity.sign(self.owner,missing)
+            with self.assertRaises(ValueError): eep.submit_signed_listing(missing,missing_sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

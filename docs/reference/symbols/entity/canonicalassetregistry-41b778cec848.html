@@ -1,0 +1,94 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CanonicalAssetRegistry Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>CanonicalAssetRegistry</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/04_Entity_Registry/asset_registry/canonical_asset_registry.py#L10">ENTITY/src/04_Entity_Registry/asset_registry/canonical_asset_registry.py#L10</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Controller-owned asset records. Registration never establishes legal ownership.</p><h2>Source excerpt</h2><pre><code>class CanonicalAssetRegistry:
+    &quot;&quot;&quot;Controller-owned asset records. Registration never establishes legal ownership.&quot;&quot;&quot;
+    def __init__(self,state_dir:str|Path,identity,ledger=None,rights_graph=None,provenance=None):
+        # Preserve the pre-v2 positional ABI: (state, identity, rights_graph, provenance, ledger).
+        if ledger is not None and not hasattr(ledger,&quot;append&quot;) and rights_graph is not None and hasattr(rights_graph,&quot;register_binding&quot;) and provenance is not None and hasattr(provenance,&quot;append&quot;):
+            ledger,rights_graph,provenance=provenance,ledger,rights_graph
+        self.root=Path(state_dir)/&quot;asset_registry&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;assets.sqlite&quot;; self.identity=identity; self.ledger=ledger
+        self.rights_graph=rights_graph; self.provenance=provenance; self._lock=RLock(); self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;); db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS assets(asset_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,content_sha256 TEXT NOT NULL,size_bytes INTEGER NOT NULL,media_type TEXT NOT NULL,title TEXT NOT NULL,classification TEXT NOT NULL,status TEXT NOT NULL,metadata_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS locators(asset_id TEXT PRIMARY KEY,local_locator TEXT NOT NULL)&quot;)
+    def register(self,controller_entity_id:str,*,content_sha256:str,size_bytes:int,media_type:str,title:str,classification=&quot;PRIVATE&quot;,metadata=None,local_locator=None)-&gt;dict:
+        digest=str(content_sha256).lower()
+        if len(digest)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in digest): raise ValueError(&quot;content_sha256 must be SHA-256 hex&quot;)
+        self.identity.load_manifest(controller_entity_id)
+        asset_id=_id(); now=_now(); meta=dict(metadata or {})
+        with self._lock,self._connect() as db:
+            db.execute(&quot;INSERT INTO assets VALUES(?,?,?,?,?,?,?,?,?,?,?)&quot;,(asset_id,controller_entity_id,digest,max(0,int(size_bytes)),str(media_type)[:128],str(title)[:512],str(classification).upper()[:32],&quot;ACTIVE&quot;,json.dumps(meta,sort_keys=True),now,now))
+            if local_locator: db.execute(&quot;INSERT INTO locators VALUES(?,?)&quot;,(asset_id,str(local_locator)))
+        event=self.ledger.append(controller_entity_id,&quot;asset.registered&quot;,subject_ids=[controller_entity_id],object_ids=[asset_id],payload={&quot;asset_id&quot;:asset_id,&quot;content_sha256&quot;:digest,&quot;controller_entity_id&quot;:controller_entity_id,&quot;registration_not_ownership&quot;:True},evidence_origin=&quot;DIRECT_OBSERVATION&quot;) if self.ledger else None
+        control_claim=self.rights_graph.assert_claim(controller_entity_id,asset_id=asset_id,right_type=&quot;DATA_CONTROLLER&quot;,legal_basis=&quot;entity_asset_registration&quot;,scope={&quot;control_of_entity_record&quot;:True},evidence={&quot;content_sha256&quot;:digest}) if self.rights_graph else None
+        prov=self.provenance.register_binding(controller_entity_id,asset_id,digest) if self.provenance else None
+        return {&quot;asset_id&quot;:asset_id,&quot;controller_entity_id&quot;:controller_entity_id,&quot;content_sha256&quot;:digest,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;state&quot;:&quot;ACTIVE&quot;,&quot;ownership_claimed_not_proven&quot;:True,&quot;ownership_not_inferred&quot;:True,&quot;rights_control_claim&quot;:control_claim,&quot;provenance&quot;:prov,&quot;event&quot;:event}
+
+    def register_batch(self,controller_entity_id:str,assets:list[dict])-&gt;list[dict]:
+        &quot;&quot;&quot;Register many assets with full ledger/rights/provenance semantics using batch-capable canonical stores.&quot;&quot;&quot;
+        items=list(assets or [])
+        if not items: return []
+        self.identity.load_manifest(controller_entity_id)
+        now=_now(); rows=[]; loc_rows=[]; base=[]
+        for item in items:
+            digest=str(item.get(&quot;content_sha256&quot;) or &quot;&quot;).lower()
+            if len(digest)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in digest): raise ValueError(&quot;content_sha256 must be SHA-256 hex&quot;)
+            asset_id=_id(); meta=dict(item.get(&quot;metadata&quot;) or {}); classification=str(item.get(&quot;classification&quot;) or &quot;PRIVATE&quot;).upper()[:32]
+            rows.append((asset_id,controller_entity_id,digest,max(0,int(item.get(&quot;size_bytes&quot;) or 0)),str(item.get(&quot;media_type&quot;) or &quot;application/octet-stream&quot;)[:128],str(item.get(&quot;title&quot;) or asset_id)[:512],classification,&quot;ACTIVE&quot;,json.dumps(meta,sort_keys=True),now,now))
+            if item.get(&quot;local_locator&quot;): loc_rows.append((asset_id,str(item[&quot;local_locator&quot;])))
+            base.append({&quot;asset_id&quot;:asset_id,&quot;controller_entity_id&quot;:controller_entity_id,&quot;content_sha256&quot;:digest,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;state&quot;:&quot;ACTIVE&quot;,&quot;ownership_claimed_not_proven&quot;:True,&quot;ownership_not_inferred&quot;:True})
+        with self._lock,self._connect() as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;); db.executemany(&quot;INSERT INTO assets VALUES(?,?,?,?,?,?,?,?,?,?,?)&quot;,rows)
+            if loc_rows: db.executemany(&quot;INSERT INTO locators VALUES(?,?)&quot;,loc_rows)
+        events=self.ledger.append_batch(controller_entity_id,[{&quot;event_type&quot;:&quot;asset.registered&quot;,&quot;subject_ids&quot;:[controller_entity_id],&quot;object_ids&quot;:[x[&quot;asset_id&quot;]],&quot;payload&quot;:{&quot;asset_id&quot;:x[&quot;asset_id&quot;],&quot;content_sha256&quot;:x[&quot;content_sha256&quot;],&quot;controller_entity_id&quot;:controller_entity_id,&quot;registration_not_ownership&quot;:True},&quot;evidence_origin&quot;:&quot;DIRECT_OBSERVATION&quot;} for x in base]) if self.ledger else [None]*len(base)
+        claims=self.rights_graph.assert_claims_batch(controller_entity_id,[{&quot;asset_id&quot;:x[&quot;asset_id&quot;],&quot;right_type&quot;:&quot;DATA_CONTROLLER&quot;,&quot;legal_basis&quot;:&quot;entity_asset_registration&quot;,&quot;scope&quot;:{&quot;control_of_entity_record&quot;:True},&quot;evidence&quot;:{&quot;content_sha256&quot;:x[&quot;content_sha256&quot;]}} for x in base]) if self.rights_graph else [None]*len(base)
+        provs=self.provenance.register_bindings_batch(controller_entity_id,[{&quot;asset_id&quot;:x[&quot;asset_id&quot;],&quot;content_sha256&quot;:x[&quot;content_sha256&quot;],&quot;evidence_origin&quot;:&quot;DIRECT_OBSERVATION&quot;} for x in base]) if self.provenance else [None]*len(base)
+        return [dict(x,event=events[i],rights_control_claim=claims[i],provenance=provs[i]) for i,x in enumerate(base)]
+
+    def get(self,asset_id:str,*,include_private_locator=False)-&gt;dict|None:
+        with self._connect() as db:
+            row=db.execute(&quot;SELECT * FROM assets WHERE asset_id=?&quot;,(asset_id,)).fetchone()
+            if not row: return None
+            out=dict(row); out[&quot;metadata&quot;]=json.loads(out.pop(&quot;metadata_json&quot;)); out[&quot;owner_semantics&quot;]=&quot;controller record only; not legal ownership proof&quot;; out[&quot;state&quot;]=out[&quot;status&quot;]
+            if include_private_locator:
+                loc=db.execute(&quot;SELECT local_locator FROM locators WHERE asset_id=?&quot;,(asset_id,)).fetchone(); out[&quot;local_locator&quot;]=loc[0] if loc else None
+            return out
+
+    def list_for_controller(self,entity_id:str)-&gt;list[dict]:
+        with self._connect() as db: rows=db.execute(&quot;SELECT asset_id FROM assets WHERE controller_entity_id=? ORDER BY created_at_ms&quot;,(entity_id,)).fetchall()
+        return [self.get(r[0]) for r in rows]
+    def set_state(self,controller_entity_id:str,asset_id:str,state:str,reason:str=&quot;owner_action&quot;)-&gt;dict:
+        row=self.get(asset_id)
+        if not row: raise KeyError(&quot;asset not found&quot;)
+        if row[&quot;controller_entity_id&quot;]!=controller_entity_id: raise PermissionError(&quot;asset controller mismatch&quot;)
+        target=str(state or &quot;&quot;).strip().upper()
+        if not target or len(target)&gt;64: raise ValueError(&quot;asset state required&quot;)
+        with self._connect() as db: db.execute(&quot;UPDATE assets SET status=?,updated_at_ms=? WHERE asset_id=?&quot;,(target,_now(),asset_id))
+        event=self.ledger.append(controller_entity_id,&quot;asset.state_changed&quot;,subject_ids=[controller_entity_id],object_ids=[asset_id],payload={&quot;asset_id&quot;:asset_id,&quot;from_state&quot;:row[&quot;status&quot;],&quot;to_state&quot;:target,&quot;reason&quot;:str(reason)[:256],&quot;historical_provenance_preserved&quot;:True}) if self.ledger else None
+        return {&quot;asset_id&quot;:asset_id,&quot;status&quot;:target,&quot;state&quot;:target,&quot;historical_provenance_preserved&quot;:True,&quot;event&quot;:event}
+
+    def deactivate(self,controller_entity_id:str,asset_id:str,reason:str=&quot;owner_action&quot;)-&gt;dict:
+        row=self.get(asset_id)
+        if not row: raise KeyError(&quot;asset not found&quot;)
+        if row[&quot;controller_entity_id&quot;]!=controller_entity_id: raise PermissionError(&quot;asset controller mismatch&quot;)
+        with self._connect() as db: db.execute(&quot;UPDATE assets SET status=&#x27;INACTIVE&#x27;,updated_at_ms=? WHERE asset_id=?&quot;,(_now(),asset_id))
+        event=self.ledger.append(controller_entity_id,&quot;asset.deactivated&quot;,subject_ids=[controller_entity_id],object_ids=[asset_id],payload={&quot;asset_id&quot;:asset_id,&quot;reason&quot;:str(reason)[:256],&quot;historical_provenance_preserved&quot;:True}) if self.ledger else None
+        return {&quot;asset_id&quot;:asset_id,&quot;status&quot;:&quot;INACTIVE&quot;,&quot;historical_provenance_preserved&quot;:True,&quot;event&quot;:event}
+
+    def summary(self,entity_id:str)-&gt;dict:
+        assets=self.list_for_controller(entity_id)
+        active=sum(1 for a in assets if a[&quot;status&quot;]==&quot;ACTIVE&quot;)
+        return {&quot;schema&quot;:&quot;entity-asset-summary-v1&quot;,&quot;entity_id&quot;:entity_id,&quot;active_assets&quot;:active,&quot;total_assets&quot;:len(assets),&quot;ownership_not_inferred&quot;:True,&quot;private_locators_exposed&quot;:False}
+
+    def status(self)-&gt;dict:
+        with self._connect() as db: count=db.execute(&quot;SELECT COUNT(*) FROM assets&quot;).fetchone()[0]
+        return {&quot;ready&quot;:True,&quot;schema&quot;:&quot;entity-canonical-asset-registry-v1&quot;,&quot;assets&quot;:int(count),&quot;registration_is_not_ownership&quot;:True,&quot;private_locators_separated&quot;:True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,41 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TopologyRegistry Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>TopologyRegistry</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/topology_crypto.py#L33">ENTITY/src/35_Global_Infrastructure/topology_crypto.py#L33</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Signed infrastructure-node descriptors. Topology membership never grants sovereign authority.</p><h2>Source excerpt</h2><pre><code>class TopologyRegistry:
+    &quot;&quot;&quot;Signed infrastructure-node descriptors. Topology membership never grants sovereign authority.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_topology.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS nodes(
+                node_id TEXT PRIMARY KEY, operator_entity_id TEXT NOT NULL,
+                topology_class TEXT NOT NULL, jurisdiction TEXT NOT NULL,
+                trust_domain TEXT NOT NULL, capabilities_json TEXT NOT NULL,
+                status TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+                signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+
+    def register_node(self, operator: str, node_id: str, topology_class: str,
+                      jurisdiction: str, trust_domain: str, capabilities: list[str]) -&gt; dict:
+        topology_class = topology_class.upper()
+        if topology_class not in TOPOLOGY_CLASSES:
+            raise ValueError(&quot;unsupported topology class&quot;)
+        caps = sorted({str(x).upper() for x in capabilities})
+        if not node_id or not trust_domain:
+            raise ValueError(&quot;node_id and trust_domain required&quot;)
+        body = {&quot;schema&quot;: &quot;entity-v3-topology-node-v1&quot;, &quot;node_id&quot;: str(node_id),
+                &quot;operator_entity_id&quot;: operator, &quot;topology_class&quot;: topology_class,
+                &quot;jurisdiction&quot;: str(jurisdiction).upper(), &quot;trust_domain&quot;: str(trust_domain),
+                &quot;capabilities&quot;: caps, &quot;status&quot;: &quot;ACTIVE&quot;, &quot;created_at_ms&quot;: now_ms(),
+                &quot;infrastructure_membership_is_not_sovereign_authority&quot;: True}
+        sig = self.identity.sign(operator, body)
+        with sqlite3.connect(self.path) as db:
+            old = db.execute(&quot;SELECT operator_entity_id,topology_class,jurisdiction,trust_domain,capabilities_json FROM nodes WHERE node_id=?&quot;,
+                             (node_id,)).fetchone()
+            if old:
+                existing = (old[0], old[1], old[2], old[3], json.loads(old[4]))
+                desired = (operator, topology_class, body[&quot;jurisdiction&quot;], str(trust_domain), caps)
+                if existing != desired:
+                    raise ValueError(&quot;immutable node registration changed&quot;)
+                return dict(body, signature=sig, existing=True)
+            db.execute(&quot;INSERT INTO nodes VALUES(?,?,?,?,?,?,?,?,?)&quot;, (
+                str(node_id), operator, topology_class, body[&quot;jurisdiction&quot;], str(trust_domain),
+                json.dumps(caps), &quot;ACTIVE&quot;, body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig, existing=False)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

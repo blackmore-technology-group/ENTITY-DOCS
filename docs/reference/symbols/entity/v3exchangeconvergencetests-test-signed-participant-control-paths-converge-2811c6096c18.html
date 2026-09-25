@@ -1,0 +1,69 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V3ExchangeConvergenceTests.test_signed_participant_control_paths_converge Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>V3ExchangeConvergenceTests.test_signed_participant_control_paths_converge</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_exchange_convergence.py#L178">ENTITY/tests/test_v3_exchange_convergence.py#L178</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>V3ExchangeConvergenceTests.test_signed_participant_control_paths_converge(self)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def test_signed_participant_control_paths_converge(self):
+        for eep, venue, inst, prefix in (
+            (*self.make_ref_exchange(), &quot;r&quot;),
+            (*self.make_mirror_exchange(), &quot;m&quot;),
+        ):
+            iid,vid=inst[&quot;instrument_id&quot;],venue[&quot;venue_id&quot;]
+            order=eep.submit_order(vid,iid,self.buyer,&quot;BUY&quot;,1,10,nonce=f&quot;{prefix}-cancel-order&quot;)
+            cancel={&quot;schema&quot;:&quot;entity-eep-order-cancel-v1&quot;,&quot;cancellation_id&quot;:f&quot;{prefix}-cancel-id&quot;,&quot;order_id&quot;:order[&quot;order_id&quot;],
+                    &quot;participant&quot;:self.buyer,&quot;nonce&quot;:f&quot;{prefix}-cancel-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            cancel_sig=self.identity.sign(self.buyer,cancel); original_sign=self.identity.sign
+            def guard_buyer(entity_id,payload):
+                if entity_id==self.buyer: raise AssertionError(&quot;venue must not use participant private key&quot;)
+                return original_sign(entity_id,payload)
+            self.identity.sign=guard_buyer
+            try: cancelled=eep.submit_signed_cancellation(cancel,cancel_sig)
+            finally: self.identity.sign=original_sign
+            self.assertEqual(cancelled[&quot;status&quot;],&quot;CANCELLED&quot;)
+            with self.assertRaises(PermissionError):
+                eep.submit_signed_cancellation(dict(cancel,cancellation_id=f&quot;{prefix}-tampered&quot;),cancel_sig)
+
+            eep.submit_order(vid,iid,self.owner,&quot;SELL&quot;,2,20,nonce=f&quot;{prefix}-pay-sell&quot;)
+            eep.submit_order(vid,iid,self.buyer,&quot;BUY&quot;,2,20,nonce=f&quot;{prefix}-pay-buy&quot;)
+            trade=eep.match_order_book(vid,iid)[0]
+            eep.authorize_settlement_verifier(vid,self.owner,self.agent)
+            pay={&quot;schema&quot;:&quot;entity-eep-payment-attestation-v1&quot;,&quot;attestation_id&quot;:f&quot;{prefix}-payatt&quot;,&quot;trade_id&quot;:trade[&quot;trade_id&quot;],
+                 &quot;verifier_entity_id&quot;:self.agent,&quot;settlement_ref&quot;:f&quot;{prefix}-payment&quot;,&quot;evidence_sha256&quot;:hashlib.sha256((prefix+&quot;-bank-proof&quot;).encode()).hexdigest(),
+                 &quot;nonce&quot;:f&quot;{prefix}-pay-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000),&quot;verification_is_attestation_not_absolute_truth&quot;:True}
+            pay_sig=self.identity.sign(self.agent,pay)
+            def guard_agent(entity_id,payload):
+                if entity_id==self.agent: raise AssertionError(&quot;venue must not use verifier private key&quot;)
+                return original_sign(entity_id,payload)
+            self.identity.sign=guard_agent
+            try: att=eep.submit_signed_payment_attestation(pay,pay_sig)
+            finally: self.identity.sign=original_sign
+            self.assertEqual(att[&quot;verifier_authority_basis&quot;],&quot;AUTHORIZED_SETTLEMENT_VERIFIER&quot;)
+            with self.assertRaises(ValueError):
+                eep.settle_trade(trade[&quot;trade_id&quot;],payment_ref=f&quot;{prefix}-payment&quot;,external_verified=True)
+            settled=eep.settle_trade(trade[&quot;trade_id&quot;],payment_ref=f&quot;{prefix}-payment&quot;,external_verified=True,payment_attestation_id=att[&quot;attestation_id&quot;])
+            self.assertTrue(settled[&quot;external_money_movement_verified&quot;])
+
+            usage={&quot;schema&quot;:&quot;entity-eep-usage-v1&quot;,&quot;usage_id&quot;:f&quot;{prefix}-usage&quot;,&quot;instrument_id&quot;:iid,&quot;holder&quot;:self.buyer,
+                   &quot;action&quot;:&quot;TRAIN&quot;,&quot;units&quot;:1,&quot;nonce&quot;:f&quot;{prefix}-usage-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            usage_sig=self.identity.sign(self.buyer,usage); self.identity.sign=guard_buyer
+            try: recorded=eep.submit_signed_usage(usage,usage_sig)
+            finally: self.identity.sign=original_sign
+            self.assertEqual(recorded[&quot;holder&quot;],self.buyer)
+            with self.assertRaises(PermissionError): eep.submit_signed_usage(dict(usage,units=2,usage_id=f&quot;{prefix}-usage-tamper&quot;),usage_sig)
+
+            expiry=int(time.time()*1000)+60000
+            rfq={&quot;schema&quot;:&quot;entity-eep-rfq-v1&quot;,&quot;rfq_id&quot;:f&quot;{prefix}-rfq&quot;,&quot;venue_id&quot;:vid,&quot;instrument_id&quot;:iid,&quot;requester&quot;:self.buyer,
+                 &quot;side&quot;:&quot;BUY&quot;,&quot;quantity&quot;:1,&quot;expires_at_ms&quot;:expiry,&quot;nonce&quot;:f&quot;{prefix}-rfq-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            rfq_sig=self.identity.sign(self.buyer,rfq); self.identity.sign=guard_buyer
+            try: eep.submit_signed_rfq(rfq,rfq_sig)
+            finally: self.identity.sign=original_sign
+            quote={&quot;schema&quot;:&quot;entity-eep-rfq-quote-v1&quot;,&quot;quote_id&quot;:f&quot;{prefix}-quote&quot;,&quot;rfq_id&quot;:rfq[&quot;rfq_id&quot;],&quot;provider&quot;:self.owner,
+                   &quot;price&quot;:30,&quot;expires_at_ms&quot;:expiry,&quot;nonce&quot;:f&quot;{prefix}-quote-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            quote_sig=self.identity.sign(self.owner,quote)
+            def guard_owner(entity_id,payload):
+                if entity_id==self.owner: raise AssertionError(&quot;venue must not use provider private key&quot;)
+                return original_sign(entity_id,payload)
+            self.identity.sign=guard_owner
+            try: eep.submit_signed_quote(quote,quote_sig)
+            finally: self.identity.sign=original_sign
+            acceptance={&quot;schema&quot;:&quot;entity-eep-rfq-acceptance-v1&quot;,&quot;acceptance_id&quot;:f&quot;{prefix}-accept&quot;,&quot;rfq_id&quot;:rfq[&quot;rfq_id&quot;],
+                        &quot;quote_id&quot;:quote[&quot;quote_id&quot;],&quot;requester&quot;:self.buyer,&quot;nonce&quot;:f&quot;{prefix}-accept-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            accept_sig=self.identity.sign(self.buyer,acceptance); self.identity.sign=guard_buyer
+            try: execution=eep.submit_signed_quote_acceptance(acceptance,accept_sig)
+            finally: self.identity.sign=original_sign
+            self.assertEqual(execution[&quot;execution_model&quot;],&quot;RFQ&quot;)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

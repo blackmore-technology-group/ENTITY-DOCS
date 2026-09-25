@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY-GITHUB-APP / SECURITY.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY-GITHUB-APP / SECURITY.md</h1><div class="meta"><b>Repository:</b> ENTITY-GITHUB-APP<br><b>Commit:</b> <code>7ef6b33b5d586cabd1f912491152fcff10e0ad47</code></div><p><b>Path:</b> <code>SECURITY.md</code></p><p><b>SHA-256:</b> <code>9224c237847406151b11334c3be668c3a714218601156358147f29f1c2c08134</code></p><p><b>Bytes:</b> 1,413</p><p><a href="https://github.com/blackmore-technology-group/ENTITY-GITHUB-APP/blob/7ef6b33b5d586cabd1f912491152fcff10e0ad47/SECURITY.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># Security Policy
+
+## Reporting
+
+Please report security issues privately to `blackmore.technology.group@gmail.com`. Do not publish exploit details, private keys, webhook secrets, installation tokens or sensitive repository content in a public issue.
+
+## Credential rules
+
+GitHub App private keys, webhook secrets and installation tokens must be stored outside the repository and outside generated evidence records. The application reads credentials only when required for authentication and does not intentionally persist tokens.
+
+## Webhook trust boundary
+
+A webhook is processed only after verification of `X-Hub-Signature-256` with the configured webhook secret. Successful signature verification establishes that the payload corresponds to the configured GitHub webhook secret; it does not establish objective truth, legal ownership or independent validation of claims contained in repository activity.
+
+## Permissions
+
+v0.1 is designed for read-only GitHub App permissions. Any future write capability requires a separate architecture/security review and an explicit release decision; write permission must not be added merely for convenience.
+
+## Local evidence store
+
+The SQLite ledger uses content hashes and a hash-chained audit record to detect accidental or subsequent inconsistency. It is not administrator-resistant WORM storage. Independent/off-device preservation is a separate deployment control.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

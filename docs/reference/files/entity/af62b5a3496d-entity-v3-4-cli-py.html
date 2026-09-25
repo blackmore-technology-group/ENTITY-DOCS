@@ -1,0 +1,77 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/entity_v3_4_cli.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/entity_v3_4_cli.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/entity_v3_4_cli.py</code></p><p><b>SHA-256:</b> <code>01bc1becab44cceedd5b35a50733fab7dbc0128fbdc32c4769b9fbeaff62d55d</code></p><p><b>Bytes:</b> 4,814</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/entity_v3_4_cli.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-ee88d6294f38.html">load</a></li><li><a href="../../../reference/symbols/entity/runtime-4d8366d9bfbb.html">runtime</a></li><li><a href="../../../reference/symbols/entity/read-json-771bae117ae3.html">read_json</a></li><li><a href="../../../reference/symbols/entity/emit-9dbb7488d3f7.html">emit</a></li><li><a href="../../../reference/symbols/entity/cmd-init-b001e5493087.html">cmd_init</a></li><li><a href="../../../reference/symbols/entity/cmd-packages-afba7d1c866f.html">cmd_packages</a></li><li><a href="../../../reference/symbols/entity/cmd-plan-fd68d67c4d45.html">cmd_plan</a></li><li><a href="../../../reference/symbols/entity/cmd-map-bbf1fc66014e.html">cmd_map</a></li><li><a href="../../../reference/symbols/entity/cmd-ingest-f0a9962ebed2.html">cmd_ingest</a></li><li><a href="../../../reference/symbols/entity/cmd-verify-012adf5aa8a3.html">cmd_verify</a></li><li><a href="../../../reference/symbols/entity/parser-9bf563c02727.html">parser</a></li><li><a href="../../../reference/symbols/entity/main-a88f1bcdf8c4.html">main</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import argparse, importlib.util, json, pathlib, sys
+
+ROOT=pathlib.Path(__file__).resolve().parents[1]
+def load(name,rel):
+    spec=importlib.util.spec_from_file_location(name,ROOT/rel); mod=importlib.util.module_from_spec(spec)
+    sys.modules[name]=mod; spec.loader.exec_module(mod); return mod
+
+identity_mod=load(&quot;cli_v34_identity&quot;,&quot;src/01_Core_Runtime/identity/canonical_identity.py&quot;)
+fabric_mod=load(&quot;cli_v34_fabric&quot;,&quot;src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py&quot;)
+rights_mod=load(&quot;cli_v34_rights&quot;,&quot;src/36_Adoption_Layer/rights_passport.py&quot;)
+reality_profile=load(&quot;reality_profile&quot;,&quot;src/37_Verifiable_Reality/reality_profile.py&quot;)
+evidence_mod=load(&quot;cli_v34_evidence&quot;,&quot;src/37_Verifiable_Reality/evidence_objects.py&quot;)
+profile_mod=load(&quot;cli_v34_profiles&quot;,&quot;src/38_Global_Passports/profile_registry.py&quot;)
+industry_mod=load(&quot;cli_v34_industry&quot;,&quot;src/38_Global_Passports/industry_profiles.py&quot;)
+global_mod=load(&quot;cli_v34_global&quot;,&quot;src/38_Global_Passports/global_passport.py&quot;)
+ingest_mod=load(&quot;cli_v34_ingest&quot;,&quot;src/38_Global_Passports/continuous_ingestion.py&quot;)
+package_mod=load(&quot;cli_v34_packages&quot;,&quot;src/39_Implementation_Packages/industry_packages.py&quot;)
+sdk_mod=load(&quot;cli_v34_sdk&quot;,&quot;sdk/global_passport_sdk/canonical_global_passport_sdk.py&quot;)
+
+def runtime(state):
+    identity=identity_mod.EntityIdentityVault(state); fabric=fabric_mod.UniversalTransactionFabric(state,identity)
+    evidence=evidence_mod.EvidenceRegistry(state,identity); rights=rights_mod.RightsPassportRegistry(state,identity,fabric)
+    profiles=profile_mod.GlobalProfileRegistry(state,identity); passports=global_mod.GlobalPassportRegistry(state,identity,fabric,rights,profiles)
+    ingestion=ingest_mod.ContinuousProvenanceEngine(state,identity,fabric,evidence,rights,passports)
+    packages=package_mod.IndustryImplementationPackageRegistry(); sdk=sdk_mod.EntityGlobalPassportSDK(profiles,passports,ingestion,packages)
+    return identity,fabric,profiles,passports,packages,sdk
+def read_json(path): return json.loads(pathlib.Path(path).read_text(encoding=&quot;utf-8-sig&quot;))
+def emit(value): print(json.dumps(value,indent=2,sort_keys=True))
+
+def cmd_init(a):
+    identity,_,profiles,_,_,_=runtime(a.state)
+    controller=identity.create(a.name,&quot;organization&quot;)[&quot;entity_id&quot;]
+    installed=industry_mod.install_builtin_profiles(profiles,controller)
+    emit({&quot;state&quot;:str(pathlib.Path(a.state).resolve()),&quot;controller_entity_id&quot;:controller,
+          &quot;profiles&quot;:sorted(installed),&quot;authority_must_be_configured_by_deployer&quot;:True})
+
+def cmd_packages(a):
+    *_,packages,_=runtime(a.state)
+    emit({&quot;packages&quot;:[packages.get(name) for name in packages.list_packages()]})
+
+def cmd_plan(a):
+    *_,packages,sdk=runtime(a.state)
+    emit(sdk.package_plan(a.package,read_json(a.config),a.asset_kind))
+
+def cmd_map(a):
+    *_,sdk=runtime(a.state)
+    emit(sdk.map_external(a.package,a.standard,read_json(a.input)))
+
+def cmd_ingest(a):
+    _,_,profiles,_,_,sdk=runtime(a.state)
+    try: profiles.get(&quot;entity-profile:global@1.0&quot;)
+    except KeyError: raise SystemExit(&quot;state has no installed v3.4 profiles; run init first&quot;)
+    out=sdk.ingest_package_file(a.file,a.controller,a.package,read_json(a.config),a.asset_kind,
+                                logical_path=a.logical_path,version=a.version)
+    emit(out)
+
+def cmd_verify(a):
+    *_,sdk=runtime(a.state)
+    emit(sdk.verify_passport(a.passport_id))
+def parser():
+    p=argparse.ArgumentParser(prog=&quot;entity-v3.4&quot;,description=&quot;ENTITY v3.4 Global Passport deployment CLI&quot;)
+    p.add_argument(&quot;--state&quot;,required=True,help=&quot;ENTITY state directory&quot;)
+    sub=p.add_subparsers(dest=&quot;command&quot;,required=True)
+    x=sub.add_parser(&quot;init&quot;); x.add_argument(&quot;--name&quot;,required=True); x.set_defaults(func=cmd_init)
+    x=sub.add_parser(&quot;packages&quot;); x.set_defaults(func=cmd_packages)
+    x=sub.add_parser(&quot;plan&quot;); x.add_argument(&quot;--package&quot;,required=True); x.add_argument(&quot;--config&quot;,required=True); x.add_argument(&quot;--asset-kind&quot;,required=True); x.set_defaults(func=cmd_plan)
+    x=sub.add_parser(&quot;map&quot;); x.add_argument(&quot;--package&quot;,required=True); x.add_argument(&quot;--standard&quot;,required=True); x.add_argument(&quot;--input&quot;,required=True); x.set_defaults(func=cmd_map)
+    x=sub.add_parser(&quot;ingest&quot;); x.add_argument(&quot;--controller&quot;,required=True); x.add_argument(&quot;--package&quot;,required=True); x.add_argument(&quot;--config&quot;,required=True)
+    x.add_argument(&quot;--asset-kind&quot;,required=True); x.add_argument(&quot;--file&quot;,required=True); x.add_argument(&quot;--logical-path&quot;); x.add_argument(&quot;--version&quot;,default=&quot;1.0&quot;); x.set_defaults(func=cmd_ingest)
+    x=sub.add_parser(&quot;verify&quot;); x.add_argument(&quot;--passport-id&quot;,required=True); x.set_defaults(func=cmd_verify)
+    return p
+
+def main(argv=None):
+    args=parser().parse_args(argv); args.func(args); return 0
+
+if __name__==&quot;__main__&quot;: raise SystemExit(main())</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,135 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CanonicalServiceAPI Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>CanonicalServiceAPI</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/api/canonical_service.py#L124">ENTITY/src/01_Core_Runtime/api/canonical_service.py#L124</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Versioned façade over canonical ENTITY authorities. Every mutation requires an active scoped capability.</p><h2>Source excerpt</h2><pre><code>class CanonicalServiceAPI:
+    &quot;&quot;&quot;Versioned façade over canonical ENTITY authorities. Every mutation requires an active scoped capability.&quot;&quot;&quot;
+    API_VERSION=&quot;entity-canonical-service-api-v1&quot;
+    def __init__(self,state_dir: str|Path|None=None):
+        self.state=Path(state_dir or _state_root()).resolve(); self.state.mkdir(parents=True,exist_ok=True)
+        network=CORE_ROOT.parent
+        def ext(name,rel):
+            path=network/rel; spec=importlib.util.spec_from_file_location(name,path)
+            if spec is None or spec.loader is None: raise ImportError(str(path))
+            mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+        im=_load(&quot;api_identity&quot;,&quot;identity/canonical_identity.py&quot;); pm=_load(&quot;api_policy&quot;,&quot;policy_engine/canonical_policy.py&quot;); capm=_load(&quot;api_permissions&quot;,&quot;permissions/canonical_permissions.py&quot;)
+        self.identity=im.EntityIdentityVault(self.state); self.policy=pm.PolicyConsentEngine(self.state,self.identity); self.capabilities=capm.AuthorityCapabilityStore(self.state,self.identity)
+        lm=ext(&quot;api_ledger&quot;,Path(&quot;04_Entity_Registry/event_ledger/canonical_event_ledger.py&quot;)); rm=ext(&quot;api_rights&quot;,Path(&quot;04_Entity_Registry/ownership_graphs/canonical_rights_claims.py&quot;)); provm=ext(&quot;api_prov&quot;,Path(&quot;04_Entity_Registry/provenance/canonical_provenance.py&quot;)); am=ext(&quot;api_assets&quot;,Path(&quot;04_Entity_Registry/asset_registry/canonical_asset_registry.py&quot;))
+        self.ledger=lm.CanonicalEventLedger(self.state,self.identity); self.rights=rm.RightsClaimsGraph(self.state,self.identity); self.provenance=provm.AssetProvenanceGraph(self.state,self.identity); self.assets=am.CanonicalAssetRegistry(self.state,self.identity,self.ledger,self.rights,self.provenance)
+        sm=ext(&quot;api_sources&quot;,Path(&quot;08_Data_Vaults/canonical_data_source_gateway.py&quot;)); vm=ext(&quot;api_vault&quot;,Path(&quot;08_Data_Vaults/canonical_encrypted_vault.py&quot;))
+        self.sources=sm.DataSourceGateway(self.state); self.vault=vm.EncryptedDataVault(self.state)
+        cm=_load(&quot;api_contracts&quot;,&quot;contracts/canonical_contracts.py&quot;); um=_load(&quot;api_usage&quot;,&quot;usage_control/canonical_usage_control.py&quot;); em=_load(&quot;api_econ&quot;,&quot;service_runtime/canonical_economics.py&quot;)
+        self.contracts=cm.ContractLicensingEngine(self.state,self.identity,self.rights,self.ledger); self.usage=um.UsageControlEngine(self.state,self.identity,self.contracts,self.ledger); self.settlement=em.SettlementEngine(self.state,self.identity)
+        bm=ext(&quot;api_portable&quot;,Path(&quot;15_Operations/backups/canonical_portable_state.py&quot;)); self.portability=bm.PortableStateManager(self.state,self.identity)
+    def _auth(self,capability_id:str,agent_id:str,operation:str,**scope)-&gt;dict:
+        result=self.capabilities.authorize(capability_id,agent_id,operation,asset_id=scope.get(&#x27;asset_id&#x27;),counterparty_id=scope.get(&#x27;counterparty_id&#x27;),amount=scope.get(&#x27;amount&#x27;),object_ref=scope.get(&#x27;object_ref&#x27;))
+        if not result.get(&#x27;allowed&#x27;): raise PermissionError(&#x27;canonical service authorization denied: &#x27;+str(result.get(&#x27;reason&#x27;)))
+        return result
+    def identity_create(self,capability_id:str,agent_id:str,*,display_name:str,entity_type:str,aliases=None,metadata=None)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;IDENTITY_ADMIN&#x27;)
+        return self.identity.create(display_name,entity_type,aliases=aliases,metadata=metadata)
+    def source_enroll(self,capability_id:str,agent_id:str,controller_entity_id:str,root_path,**kwargs)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;SOURCE_ADMIN&#x27;,object_ref=str(root_path))
+        return self.sources.enroll_source(controller_entity_id,root_path,**kwargs)
+    def vault_put(self,capability_id:str,agent_id:str,controller_entity_id:str,data:bytes,**kwargs)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;VAULT_WRITE&#x27;)
+        return self.vault.put_bytes(controller_entity_id,data,**kwargs)
+    def asset_register(self,capability_id:str,agent_id:str,controller_entity_id:str,**kwargs)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;ASSET_REGISTER&#x27;)
+        return self.assets.register(controller_entity_id,**kwargs)
+    def claim_assert(self,capability_id:str,agent_id:str,claimant_entity_id:str,**kwargs)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;RIGHTS_ASSERT&#x27;,asset_id=kwargs.get(&#x27;asset_id&#x27;))
+        return self.rights.assert_claim(claimant_entity_id,**kwargs)
+    def dispute_claim(self,capability_id:str,agent_id:str,actor_entity_id:str,claim_id:str,reason:str=&#x27;&#x27;,evidence=None)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;RIGHTS_DISPUTE&#x27;,object_ref=claim_id)
+        return self.rights.set_state(actor_entity_id,claim_id,&#x27;DISPUTED&#x27;,reason,evidence=evidence)
+    def policy_create(self,capability_id:str,agent_id:str,controller_entity_id:str,name:str,rules=None,jurisdiction=None)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;POLICY_ADMIN&#x27;)
+        return self.policy.create_policy(controller_entity_id,name,rules=rules,jurisdiction=jurisdiction)
+    def consent_grant(self,capability_id:str,agent_id:str,authorizing_entity_id:str,policy_id:str,**kwargs)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;CONSENT_GRANT&#x27;,object_ref=policy_id,counterparty_id=kwargs.get(&#x27;counterparty_entity_id&#x27;))
+        return self.policy.grant_consent(authorizing_entity_id,policy_id,**kwargs)
+    def licence_draft(self,capability_id:str,agent_id:str,grantor_entity_id:str,licensee_entity_id:str,terms:dict,**kwargs)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;LICENCE_CREATE&#x27;,counterparty_id=licensee_entity_id)
+        return self.contracts.create_draft(grantor_entity_id,licensee_entity_id,terms,**kwargs)
+    def licence_offer(self,capability_id:str,agent_id:str,grantor_entity_id:str,licence_id:str)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;LICENCE_OFFER&#x27;,object_ref=licence_id)
+        return self.contracts.offer(grantor_entity_id,licence_id)
+    def licence_accept(self,capability_id:str,agent_id:str,actor_entity_id:str,licence_id:str)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;LICENCE_ACCEPT&#x27;,object_ref=licence_id)
+        return self.contracts.accept(actor_entity_id,licence_id)
+    def licence_activate(self,capability_id:str,agent_id:str,grantor_entity_id:str,licence_id:str)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;LICENCE_ACTIVATE&#x27;,object_ref=licence_id)
+        return self.contracts.activate(grantor_entity_id,licence_id)
+    def licence_future_revoke(self,capability_id:str,agent_id:str,grantor_entity_id:str,licence_id:str,reason:str=&#x27;&#x27;)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;LICENCE_REVOKE&#x27;,object_ref=licence_id)
+        return self.contracts.future_revoke(grantor_entity_id,licence_id,reason)
+    def usage_gateway_ticket(self,capability_id:str,agent_id:str,grantor_entity_id:str,**kwargs)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;USAGE_AUTHORIZE&#x27;,asset_id=kwargs.get(&#x27;asset_id&#x27;),object_ref=kwargs.get(&#x27;licence_id&#x27;))
+        return self.usage.issue_gateway_ticket(grantor_entity_id,**kwargs)
+    def usage_consume(self,capability_id:str,agent_id:str,actor_entity_id:str,ticket_id:str,*,purpose:str,nonce:str)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;USAGE_RECORD&#x27;,object_ref=ticket_id)
+        return self.usage.consume_gateway_ticket(actor_entity_id,ticket_id,purpose=purpose,nonce=nonce)
+    def usage_declared(self,capability_id:str,agent_id:str,actor_entity_id:str,licence_id:str,**kwargs)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;USAGE_RECORD&#x27;,asset_id=kwargs.get(&#x27;asset_id&#x27;),object_ref=licence_id)
+        return self.usage.record_declared(actor_entity_id,licence_id,**kwargs)
+    def ledger_append(self,capability_id:str,agent_id:str,actor_entity_id:str,event_type:str,**kwargs)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;LEDGER_APPEND&#x27;,object_ref=event_type)
+        return self.ledger.append(actor_entity_id,event_type,**kwargs)
+    def ledger_checkpoint(self,capability_id:str,agent_id:str,signer_entity_id:str,**kwargs)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;LEDGER_CHECKPOINT&#x27;)
+        return self.ledger.create_checkpoint(signer_entity_id,**kwargs)
+    def settlement_create(self,capability_id:str,agent_id:str,payer_entity_id:str,payee_entity_id:str,**kwargs)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;SETTLEMENT_CREATE&#x27;,counterparty_id=payee_entity_id,amount=kwargs.get(&#x27;amount_units&#x27;))
+        return self.settlement.create(payer_entity_id,payee_entity_id,**kwargs)
+    def settlement_authorize(self,capability_id:str,agent_id:str,payer_entity_id:str,settlement_id:str)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;SETTLEMENT_AUTHORIZE&#x27;,object_ref=settlement_id)
+        return self.settlement.authorize(payer_entity_id,settlement_id)
+    def settlement_execute(self,capability_id:str,agent_id:str,payer_entity_id:str,settlement_id:str)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;SETTLEMENT_EXECUTE&#x27;,object_ref=settlement_id)
+        return self.settlement.begin_execution(payer_entity_id,settlement_id)
+    def settlement_evidence(self,capability_id:str,agent_id:str,payer_entity_id:str,settlement_id:str,evidence_level:str,evidence:dict)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;SETTLEMENT_EVIDENCE&#x27;,object_ref=settlement_id)
+        return self.settlement.record_external_evidence(payer_entity_id,settlement_id,evidence_level,evidence)
+    def settlement_confirm(self,capability_id:str,agent_id:str,payer_entity_id:str,settlement_id:str)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;SETTLEMENT_CONFIRM&#x27;,object_ref=settlement_id)
+        return self.settlement.confirm(payer_entity_id,settlement_id)
+    def export_entity(self,capability_id:str,agent_id:str,entity_id:str,destination)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;EXPORT&#x27;,object_ref=str(destination))
+        return self.portability.export_entity(entity_id,destination)
+    def backup_create(self,capability_id:str,agent_id:str,destination,key:bytes|None=None)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;BACKUP_CREATE&#x27;,object_ref=str(destination))
+        return self.portability.create_encrypted_backup(destination,key=key)
+    def capability_grant(self,admin_capability_id:str,admin_agent_id:str,grantor_entity_id:str,target_agent_id:str,**kwargs)-&gt;dict:
+        auth=self._auth(admin_capability_id,admin_agent_id,&#x27;CAPABILITY_ADMIN&#x27;)
+        if auth.get(&#x27;grantor_entity_id&#x27;)!=grantor_entity_id: raise PermissionError(&#x27;capability administrator cannot grant for another Entity&#x27;)
+        return self.capabilities.grant(grantor_entity_id,target_agent_id,**kwargs)
+    def capability_revoke(self,admin_capability_id:str,admin_agent_id:str,grantor_entity_id:str,capability_id:str)-&gt;dict:
+        auth=self._auth(admin_capability_id,admin_agent_id,&#x27;CAPABILITY_ADMIN&#x27;,object_ref=capability_id)
+        if auth.get(&#x27;grantor_entity_id&#x27;)!=grantor_entity_id: raise PermissionError(&#x27;capability administrator cannot revoke for another Entity&#x27;)
+        return self.capabilities.revoke(grantor_entity_id,capability_id)
+    def _data_economy(self):
+        if not hasattr(self,&#x27;_data_economy_cache&#x27;):
+            network=CORE_ROOT.parent; path=network/&#x27;01_Core_Runtime&#x27;/&#x27;service_runtime&#x27;/&#x27;canonical_data_economy.py&#x27;
+            spec=importlib.util.spec_from_file_location(&#x27;api_data_economy&#x27;,path); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+            self._data_economy_cache=(mod.DataPoolManager(self.state,self.identity),mod.DataSpaceGateway(self.state,self.identity))
+        return self._data_economy_cache
+    def data_pool_create(self,capability_id:str,agent_id:str,controller_entity_id:str,**kwargs)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;DATA_POOL_ADMIN&#x27;)
+        pools,_=self._data_economy(); return pools.create_pool(controller_entity_id,**kwargs)
+    def data_pool_contribute(self,capability_id:str,agent_id:str,contributor_entity_id:str,pool_id:str,**kwargs)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;DATA_POOL_CONTRIBUTE&#x27;,object_ref=pool_id,asset_id=kwargs.get(&#x27;asset_id&#x27;))
+        pools,_=self._data_economy(); return pools.contribute(pool_id,contributor_entity_id,**kwargs)
+    def data_space_create(self,capability_id:str,agent_id:str,controller_entity_id:str,assets:list[str],operations:list[str])-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;DATA_SPACE_ADMIN&#x27;)
+        _,spaces=self._data_economy(); return spaces.create_space(controller_entity_id,assets,operations)
+    def data_space_issue(self,capability_id:str,agent_id:str,controller_entity_id:str,space_id:str,counterparty_entity_id:str,operation:str,**kwargs)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;DATA_SPACE_AUTHORIZE&#x27;,counterparty_id=counterparty_entity_id,object_ref=space_id)
+        _,spaces=self._data_economy(); return spaces.issue_session(controller_entity_id,space_id,counterparty_entity_id,operation,**kwargs)
+    def data_space_consume(self,capability_id:str,agent_id:str,counterparty_entity_id:str,session_id:str)-&gt;dict:
+        self._auth(capability_id,agent_id,&#x27;DATA_SPACE_USE&#x27;,counterparty_id=counterparty_entity_id,object_ref=session_id)
+        _,spaces=self._data_economy(); return spaces.consume(counterparty_entity_id,session_id)
+    def status(self)-&gt;dict:
+        pools,spaces=self._data_economy()
+        return {&#x27;schema&#x27;:self.API_VERSION,&#x27;ready&#x27;:True,&#x27;domains&#x27;:{
+            &#x27;identity&#x27;:self.identity.status(),&#x27;policy_consent&#x27;:self.policy.status(),&#x27;capabilities&#x27;:self.capabilities.status(),
+            &#x27;assets&#x27;:self.assets.status(),&#x27;rights&#x27;:self.rights.status(),&#x27;provenance&#x27;:self.provenance.status(),&#x27;ledger&#x27;:self.ledger.status(),
+            &#x27;sources&#x27;:self.sources.status(),&#x27;vault&#x27;:self.vault.status(),&#x27;contracts&#x27;:self.contracts.status(),&#x27;usage&#x27;:self.usage.status(),
+            &#x27;settlement&#x27;:self.settlement.status(),&#x27;portability&#x27;:self.portability.status(),&#x27;data_pools&#x27;:pools.status(),&#x27;data_spaces&#x27;:spaces.status()},
+            &#x27;authorization&#x27;:&#x27;SCOPED_CAPABILITY_REQUIRED_FOR_MUTATION&#x27;,&#x27;duplicate_authoritative_state&#x27;:False}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

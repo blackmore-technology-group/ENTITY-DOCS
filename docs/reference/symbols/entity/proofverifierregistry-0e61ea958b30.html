@@ -1,0 +1,77 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ProofVerifierRegistry Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ProofVerifierRegistry</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/privacy_provenance.py#L266">ENTITY/src/35_Global_Infrastructure/privacy_provenance.py#L266</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Fail-closed adapter registry for external ZK/privacy proof systems.</p><h2>Source excerpt</h2><pre><code>class ProofVerifierRegistry:
+    &quot;&quot;&quot;Fail-closed adapter registry for external ZK/privacy proof systems.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_proof_verifiers.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        self._callbacks: dict[str, Callable[[bytes, dict], bool]] = {}
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS suites(
+                suite_id TEXT PRIMARY KEY, governance_entity_id TEXT NOT NULL,
+                algorithm TEXT NOT NULL, verifier_sha256 TEXT NOT NULL,
+                security_claim TEXT NOT NULL, status TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS receipts(
+                receipt_id TEXT PRIMARY KEY, suite_id TEXT NOT NULL,
+                verifier_entity_id TEXT NOT NULL, proof_sha256 TEXT NOT NULL,
+                public_inputs_sha256 TEXT NOT NULL, accepted INTEGER NOT NULL,
+                created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+
+    def register_suite(self, governance_entity: str, suite_id: str, algorithm: str,
+                       verifier_sha256: str, security_claim: str) -&gt; dict:
+        suite_id = str(suite_id).strip().upper()
+        verifier_sha256 = sha256_hex(verifier_sha256)
+        if not suite_id or not algorithm:
+            raise ValueError(&quot;proof suite id and algorithm required&quot;)
+        body = {&quot;schema&quot;: &quot;entity-v3-proof-suite-v1&quot;, &quot;suite_id&quot;: suite_id,
+                &quot;governance_entity_id&quot;: governance_entity, &quot;algorithm&quot;: str(algorithm),
+                &quot;verifier_sha256&quot;: verifier_sha256, &quot;security_claim&quot;: str(security_claim),
+                &quot;status&quot;: &quot;ACTIVE&quot;, &quot;created_at_ms&quot;: now_ms(),
+                &quot;registration_does_not_certify_cryptographic_security&quot;: True}
+        sig = self.identity.sign(governance_entity, body)
+        with sqlite3.connect(self.path) as db:
+            old = db.execute(&quot;SELECT verifier_sha256 FROM suites WHERE suite_id=?&quot;, (suite_id,)).fetchone()
+            if old and old[0] != verifier_sha256:
+                raise ValueError(&quot;proof suite verifier changed without new suite id&quot;)
+            if not old:
+                db.execute(&quot;INSERT INTO suites VALUES(?,?,?,?,?,?,?,?)&quot;, (
+                    suite_id, governance_entity, str(algorithm), verifier_sha256,
+                    str(security_claim), &quot;ACTIVE&quot;, body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig, existing=bool(old))
+
+    def bind_runtime_verifier(self, suite_id: str, verifier_sha256: str,
+                              callback: Callable[[bytes, dict], bool]) -&gt; None:
+        suite_id = suite_id.upper(); verifier_sha256 = sha256_hex(verifier_sha256)
+        with sqlite3.connect(self.path) as db:
+            row = db.execute(&quot;SELECT verifier_sha256,status FROM suites WHERE suite_id=?&quot;, (suite_id,)).fetchone()
+        if not row or row[1] != &quot;ACTIVE&quot;:
+            raise KeyError(&quot;active proof suite missing&quot;)
+        if row[0] != verifier_sha256:
+            raise PermissionError(&quot;runtime verifier hash does not match registered suite&quot;)
+        self._callbacks[suite_id] = callback
+
+    def verify(self, suite_id: str, verifier_entity: str, proof: bytes,
+               public_inputs: dict) -&gt; dict:
+        suite_id = suite_id.upper()
+        with sqlite3.connect(self.path) as db:
+            row = db.execute(&quot;SELECT status FROM suites WHERE suite_id=?&quot;, (suite_id,)).fetchone()
+        if not row or row[0] != &quot;ACTIVE&quot;:
+            raise PermissionError(&quot;proof suite is not active&quot;)
+        callback = self._callbacks.get(suite_id)
+        if callback is None:
+            raise RuntimeError(&quot;no runtime verifier bound; proof verification fails closed&quot;)
+        accepted = bool(callback(bytes(proof), dict(public_inputs)))
+        body = {&quot;schema&quot;: &quot;entity-v3-proof-verification-receipt-v1&quot;,
+                &quot;receipt_id&quot;: rid(&quot;zkreceipt3&quot;), &quot;suite_id&quot;: suite_id,
+                &quot;verifier_entity_id&quot;: verifier_entity,
+                &quot;proof_sha256&quot;: hashlib.sha256(proof).hexdigest(),
+                &quot;public_inputs_sha256&quot;: digest(public_inputs), &quot;accepted&quot;: accepted,
+                &quot;created_at_ms&quot;: now_ms(),
+                &quot;proof_acceptance_is_suite_specific_not_universal_truth&quot;: True}
+        sig = self.identity.sign(verifier_entity, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO receipts VALUES(?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;receipt_id&quot;], suite_id, verifier_entity, body[&quot;proof_sha256&quot;],
+                body[&quot;public_inputs_sha256&quot;], int(accepted), body[&quot;created_at_ms&quot;],
+                json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

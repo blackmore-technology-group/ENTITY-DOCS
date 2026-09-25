@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / docs/requirements/CANONICAL_AUTHORITY_HANDOFF_REQUIREMENTS.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / docs/requirements/CANONICAL_AUTHORITY_HANDOFF_REQUIREMENTS.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>docs/requirements/CANONICAL_AUTHORITY_HANDOFF_REQUIREMENTS.md</code></p><p><b>SHA-256:</b> <code>5189d6e3e728cd1deb421bfe83d87119a93a86cb5e25f7b6eeaf662176961658</code></p><p><b>Bytes:</b> 1,533</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/docs/requirements/CANONICAL_AUTHORITY_HANDOFF_REQUIREMENTS.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY Canonical Authority Handoff Requirements
+Source: SERS-ENTITY-001 Target Architecture v1.0
+Coordination basis: active NIKI integration-adapter workstream
+
+## Authority Boundary
+- `10_NIKI` is an integration/reasoning adapter, not the canonical authority owner.
+- Canonical identity, rights, policy, permissions, vault, contracts, settlement, peer trust, recovery and BSIE world state SHALL live outside `10_NIKI`.
+- NIKI MAY consume bounded projections and create proposals; it SHALL NOT become authoritative state.
+
+## Runtime Handoff Contract
+- Canonical authorities MAY publish `ENTITY_RUNTIME_BINDING.json` only after implementation and qualification.
+- Binding schema SHALL be `entity-runtime-binding-v1`, ABI version `1`.
+- Status SHALL be one of DEVELOPMENT, QUALIFIED, READY or RETIRED.
+- READY SHALL identify the authority, implementation file, explicit exports, implementation version and qualification evidence.
+- READY SHALL include `requirements_sha256`, equal to the SHA-256 of the current top-level owner `ENTITY_REQUIREMENTS.md`.
+- A requirements change invalidates a stale READY binding until requalification.
+- No documentation-only action SHALL create a READY binding.
+
+## Bootstrap Gate
+- Permanent sovereign bootstrap SHALL remain blocked until canonical `identity`, `policy_consent`, `core_permissions` and `service_api` authorities are READY.
+- Embedded NIKI fallback persistence is development/qualification state only.
+- Canonical durable persistence SHALL reside under the owning root subsystem.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

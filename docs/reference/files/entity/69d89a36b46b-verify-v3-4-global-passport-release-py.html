@@ -1,0 +1,31 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/verify_v3_4_global_passport_release.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/verify_v3_4_global_passport_release.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/verify_v3_4_global_passport_release.py</code></p><p><b>SHA-256:</b> <code>7c94147c3f65605192e12dc0a161de40293260e6bdbac91e4ff3d595092087fe</code></p><p><b>Bytes:</b> 2,257</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/verify_v3_4_global_passport_release.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/sha-3b4301ec49da.html">sha</a></li><li><a href="../../../reference/symbols/entity/canonical-2768841caf01.html">canonical</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, importlib.util, json, pathlib, sys
+
+ROOT=pathlib.Path(__file__).resolve().parents[1]
+KIT=ROOT/&quot;protocol/v3/ENTITY_V3_4_GLOBAL_PASSPORT_CLEANROOM_KIT.min.json&quot;
+SCHEMA=ROOT/&quot;protocol/v3/ENTITY_GLOBAL_PASSPORT.schema.json&quot;
+EXPECTED_KIT=&quot;5869a3fd0ed6cb9f65bf4b20c3bd64933cad82f4aef05c5809e2e05af921f230&quot;
+EXPECTED_SCHEMA=&quot;4fbfed9be1b1484bc5d28b8101d1c908b2ccced13e4e99ec896c5b054892ebdd&quot;
+EXPECTED_RESULT=&quot;ac7504cce70576008cff069607619660a4b9bf0cad43b3f3de81078f1e80d9ba&quot;
+def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+def canonical(v): return json.dumps(v,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False).encode()
+errors=[]
+if sha(KIT)!=EXPECTED_KIT: errors.append(&quot;kit_sha256&quot;)
+if sha(SCHEMA)!=EXPECTED_SCHEMA: errors.append(&quot;schema_sha256&quot;)
+kit=json.loads(KIT.read_text(encoding=&quot;utf-8&quot;))
+if kit.get(&quot;version&quot;)!=&quot;3.4.0&quot; or kit.get(&quot;base_release&quot;)!=&quot;v3.3.0&quot;: errors.append(&quot;version_or_base&quot;)
+if kit.get(&quot;valid_vectors&quot;)!=12 or kit.get(&quot;invalid_vectors&quot;)!=12 or len(kit.get(&quot;cases&quot;,[]))!=24: errors.append(&quot;vector_counts&quot;)
+if kit.get(&quot;schema_sha256&quot;)!=EXPECTED_SCHEMA or kit.get(&quot;expected_result_sha256&quot;)!=EXPECTED_RESULT: errors.append(&quot;kit_commitments&quot;)
+spec=importlib.util.spec_from_file_location(&quot;v34_conf&quot;,ROOT/&quot;src/38_Global_Passports/passport_conformance.py&quot;)
+conf=importlib.util.module_from_spec(spec); sys.modules[&quot;v34_conf&quot;]=conf; spec.loader.exec_module(conf)
+rows=[]
+for case in sorted(kit.get(&quot;cases&quot;,[]),key=lambda x:x.get(&quot;id&quot;,&quot;&quot;)):
+    actual=&quot;VALID&quot; if conf.validate_global_passport_record(case.get(&quot;record&quot;) or {}) else &quot;INVALID&quot;
+    if actual!=case.get(&quot;expect&quot;): errors.append(f&quot;case:{case.get(&#x27;id&#x27;)}:{actual}&quot;)
+    rows.append({&quot;id&quot;:case.get(&quot;id&quot;),&quot;actual&quot;:actual})
+result_hash=hashlib.sha256(canonical(rows)).hexdigest()
+if result_hash!=EXPECTED_RESULT: errors.append(f&quot;result_sha256:{result_hash}&quot;)
+print(json.dumps({&quot;valid&quot;:not errors,&quot;version&quot;:&quot;3.4.0&quot;,&quot;vectors&quot;:len(rows),&quot;valid_vectors&quot;:kit.get(&quot;valid_vectors&quot;),
+                  &quot;invalid_vectors&quot;:kit.get(&quot;invalid_vectors&quot;),&quot;kit_sha256&quot;:sha(KIT),&quot;schema_sha256&quot;:sha(SCHEMA),
+                  &quot;result_sha256&quot;:result_hash,&quot;errors&quot;:errors},indent=2,sort_keys=True))
+sys.exit(0 if not errors else 2)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

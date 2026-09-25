@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PresenceAdvertisementManager.verify Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>PresenceAdvertisementManager.verify</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/presence/canonical_presence.py#L39">ENTITY/src/22_Sovereign_Domain/presence/canonical_presence.py#L39</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>PresenceAdvertisementManager.verify(self, advertisement: dict, node_authorization: dict, *, now_ms: int | None=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def verify(self,advertisement:dict,node_authorization:dict,*,now_ms:int|None=None)-&gt;dict:
+        failures=[]; ad=dict(advertisement or {}); now=int(now_ms or _now())
+        if ad.get(&#x27;schema&#x27;)!=&#x27;entity-presence-advertisement-v1&#x27;: failures.append(&#x27;schema&#x27;)
+        for key in (&#x27;domain_id&#x27;,&#x27;entity_root&#x27;,&#x27;node_id&#x27;):
+            if ad.get(key)!=node_authorization.get(key): failures.append(key+&#x27;_binding&#x27;)
+        if node_authorization.get(&#x27;effective_status&#x27;,node_authorization.get(&#x27;status&#x27;))!=&#x27;ACTIVE&#x27;: failures.append(&#x27;node_revoked&#x27;)
+        if int(ad.get(&#x27;expires_at_ms&#x27;) or 0)&lt;=now: failures.append(&#x27;expired&#x27;)
+        seq=int(ad.get(&#x27;sequence&#x27;) or 0); key=(str(ad.get(&#x27;domain_id&#x27;)),str(ad.get(&#x27;node_id&#x27;)))
+        if seq&lt;self.highest_sequence.get(key,0): failures.append(&#x27;rollback&#x27;)
+        required=(&#x27;schema&#x27;,&#x27;domain_id&#x27;,&#x27;entity_root&#x27;,&#x27;node_id&#x27;,&#x27;service_ids&#x27;,&#x27;scope&#x27;,&#x27;endpoint_hints&#x27;,
+                  &#x27;sequence&#x27;,&#x27;advertised_at_ms&#x27;,&#x27;expires_at_ms&#x27;,&#x27;resolver_authority_claimed&#x27;,&#x27;relay_authority_claimed&#x27;)
+        if any(k not in ad for k in required): failures.append(&#x27;required_fields&#x27;)
+        body={k:ad.get(k) for k in required}
+        sig=dict(ad.get(&#x27;node_signature&#x27;) or {})
+        if sig.get(&#x27;payload_sha256&#x27;)!=_sha(body): failures.append(&#x27;payload_hash&#x27;)
+        else:
+            try:
+                Ed25519PublicKey.from_public_bytes(_unb64(node_authorization[&#x27;public_key_b64&#x27;])).verify(
+                    _unb64(sig[&#x27;signature_b64&#x27;]),_canon(body))
+            except Exception: failures.append(&#x27;signature&#x27;)
+        if not failures: self.highest_sequence[key]=max(self.highest_sequence.get(key,0),seq)
+        return {&#x27;valid&#x27;:not failures,&#x27;failures&#x27;:failures,&#x27;presence_is_authority&#x27;:False,
+                &#x27;dns_required&#x27;:False,&#x27;scope&#x27;:ad.get(&#x27;scope&#x27;),&#x27;sequence&#x27;:seq}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

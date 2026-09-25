@@ -1,0 +1,253 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EconomicParticipationTests Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EconomicParticipationTests</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_economic_participation.py#L20">ENTITY/tests/test_v3_economic_participation.py#L20</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class EconomicParticipationTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory()
+        self.identity=identity_mod.EntityIdentityVault(self.tmp.name)
+        self.originator=self.identity.create(&#x27;Originator Company&#x27;,&#x27;business&#x27;)[&#x27;entity_id&#x27;]
+        self.treasury_entity=self.identity.create(&#x27;Originator Treasury&#x27;,&#x27;business&#x27;)[&#x27;entity_id&#x27;]
+        self.buyer1=self.identity.create(&#x27;Buyer One&#x27;,&#x27;business&#x27;)[&#x27;entity_id&#x27;]
+        self.buyer2=self.identity.create(&#x27;Buyer Two&#x27;,&#x27;business&#x27;)[&#x27;entity_id&#x27;]
+        self.verifier=self.identity.create(&#x27;Settlement Verifier&#x27;,&#x27;system&#x27;)[&#x27;entity_id&#x27;]
+        self.fabric=fabric_mod.UniversalTransactionFabric(self.tmp.name,self.identity)
+        self.exchange=eep_mod.ExchangeProtocol(self.tmp.name,self.identity,self.fabric)
+        self.profile=econ_mod.EconomicParticipationProfile(self.tmp.name,self.identity)
+        self.asset=self.fabric.register_digital_commodity(self.originator,&#x27;Economic Corpus&#x27;,hashlib.sha256(b&#x27;corpus&#x27;).hexdigest())
+        self.instrument=self.exchange.define_instrument(self.originator,self.asset[&#x27;object_id&#x27;],&#x27;SPOT_LICENSE&#x27;,{&#x27;actions&#x27;:[&#x27;TRAIN&#x27;,&#x27;INFER&#x27;]},1000,&#x27;CAD&#x27;,transferable=True)
+        self.treasury=self.profile.create_treasury(self.originator,self.treasury_entity,&#x27;Originator Treasury&#x27;,&#x27;CA&#x27;,hashlib.sha256(b&#x27;treasury policy&#x27;).hexdigest())
+        self.profile.authorize_settlement_verifier(self.treasury[&#x27;treasury_id&#x27;],self.originator,self.verifier)
+        self.policy=self.profile.define_participation(self.originator,self.treasury[&#x27;treasury_id&#x27;],self.instrument[&#x27;instrument_id&#x27;],1000,200,&#x27;CAD&#x27;,primary_treasury_bps=2500,secondary_royalty_bps=150,derivative_participation_bps=100,terms={&#x27;raw_redistribution&#x27;:&#x27;PROHIBITED&#x27;})
+        self.profile.allocate_eep_reserve(self.exchange,self.policy[&#x27;policy_id&#x27;])
+        self.venue=self.exchange.create_venue(self.originator,&#x27;Rights Exchange&#x27;,&#x27;CA&#x27;,[&#x27;ORDER_BOOK&#x27;],hashlib.sha256(b&#x27;venue policy&#x27;).hexdigest())
+        disclosure=hashlib.sha256(b&#x27;disclosure&#x27;).hexdigest()
+        self.exchange.publish_disclosure(self.venue[&#x27;venue_id&#x27;],self.instrument[&#x27;instrument_id&#x27;],self.originator,&#x27;OFFERING&#x27;,disclosure)
+        self.exchange.list_instrument(self.venue[&#x27;venue_id&#x27;],self.instrument[&#x27;instrument_id&#x27;],self.originator,1,1,disclosure)
+    def tearDown(self): self.tmp.cleanup()
+
+    def _trade(self,seller,buyer,quantity,price,nonce):
+        sell=self.exchange.submit_order(self.venue[&#x27;venue_id&#x27;],self.instrument[&#x27;instrument_id&#x27;],seller,&#x27;SELL&#x27;,quantity,price,nonce=nonce+&#x27;-s&#x27;)
+        buy=self.exchange.submit_order(self.venue[&#x27;venue_id&#x27;],self.instrument[&#x27;instrument_id&#x27;],buyer,&#x27;BUY&#x27;,quantity,price,nonce=nonce+&#x27;-b&#x27;)
+        trades=self.exchange.match_order_book(self.venue[&#x27;venue_id&#x27;],self.instrument[&#x27;instrument_id&#x27;])
+        self.assertEqual(len(trades),1)
+        settled=self.exchange.settle_trade(trades[0][&#x27;trade_id&#x27;],&#x27;payment:&#x27;+nonce,external_verified=False)
+        self.assertEqual(settled[&#x27;status&#x27;],&#x27;SETTLED&#x27;)
+        return trades[0]
+
+    def test_btg_deployment_uses_verified_supplied_ids_not_hardcoded_privilege(self):
+        profile=econ_mod.EconomicParticipationProfile(self.tmp.name+&#x27;-btg&#x27;,self.identity)
+        record=btg_mod.provision_btg_treasury(profile,self.originator,self.treasury_entity,{&#x27;policy&#x27;:&#x27;BTG economic participation&#x27;,&#x27;version&#x27;:1})
+        self.assertTrue(record[&#x27;btg_deployment&#x27;])
+        self.assertFalse(record[&#x27;hard_coded_protocol_privilege&#x27;])
+        self.assertEqual(record[&#x27;protocol_tax_bps&#x27;],0)
+        self.assertEqual(record[&#x27;owner_entity_id&#x27;],self.originator)
+        self.assertEqual(record[&#x27;treasury_entity_id&#x27;],self.treasury_entity)
+        with self.assertRaises(ValueError):
+            btg_mod.provision_btg_treasury(profile,self.originator,self.originator,{&#x27;policy&#x27;:&#x27;bad&#x27;})
+        with self.assertRaises(ValueError):
+            btg_mod.provision_btg_treasury(profile,self.originator,self.treasury_entity,{})
+
+    def test_no_token_no_protocol_tax_and_actual_reserve_balance(self):
+        status=self.profile.status()
+        self.assertEqual(status[&#x27;protocol_tax_bps&#x27;],0)
+        self.assertFalse(status[&#x27;cryptocurrency_required&#x27;])
+        self.assertTrue(status[&#x27;issuer_neutral&#x27;])
+        self.assertEqual(self.exchange.balance(self.instrument[&#x27;instrument_id&#x27;],self.treasury_entity),200)
+        self.assertEqual(self.exchange.balance(self.instrument[&#x27;instrument_id&#x27;],self.originator),800)
+        pos=self.profile.position(self.treasury[&#x27;treasury_id&#x27;],self.exchange)
+        self.assertIsNone(pos[&#x27;token_balance&#x27;])
+        self.assertEqual(pos[&#x27;reserve_positions&#x27;][0][&#x27;current_eep_units&#x27;],200)
+
+    def test_primary_sale_creates_treasury_allocation(self):
+        trade=self._trade(self.originator,self.buyer1,10,100,&#x27;primary&#x27;)
+        captured=self.profile.capture_settled_eep_trade(self.exchange,trade[&#x27;trade_id&#x27;])
+        self.assertEqual(captured[&#x27;trade_class&#x27;],&#x27;PRIMARY&#x27;)
+        self.assertEqual(captured[&#x27;gross_amount_units&#x27;],1000)
+        self.assertEqual(captured[&#x27;obligation&#x27;][&#x27;amount_units&#x27;],250)
+        self.assertEqual(captured[&#x27;obligation&#x27;][&#x27;basis&#x27;],&#x27;PRIMARY_TREASURY_ALLOCATION&#x27;)
+        self.assertEqual(captured[&#x27;protocol_tax_bps&#x27;],0)
+
+    def test_secondary_sale_creates_originator_royalty(self):
+        primary=self._trade(self.originator,self.buyer1,20,100,&#x27;seed-secondary&#x27;)
+        self.profile.capture_settled_eep_trade(self.exchange,primary[&#x27;trade_id&#x27;])
+        secondary=self._trade(self.buyer1,self.buyer2,5,120,&#x27;secondary&#x27;)
+        original_sign=self.identity.sign
+        def guarded_sign(entity_id,payload):
+            if entity_id==self.buyer1:
+                raise AssertionError(&#x27;secondary seller private key must not be used during royalty capture&#x27;)
+            return original_sign(entity_id,payload)
+        self.identity.sign=guarded_sign
+        try:
+            captured=self.profile.capture_settled_eep_trade(self.exchange,secondary[&#x27;trade_id&#x27;])
+        finally:
+            self.identity.sign=original_sign
+        self.assertEqual(captured[&#x27;trade_class&#x27;],&#x27;SECONDARY&#x27;)
+        self.assertEqual(captured[&#x27;gross_amount_units&#x27;],600)
+        self.assertEqual(captured[&#x27;obligation&#x27;][&#x27;amount_units&#x27;],9)
+        self.assertEqual(captured[&#x27;obligation&#x27;][&#x27;basis&#x27;],&#x27;SECONDARY_ORIGINATOR_ROYALTY&#x27;)
+        self.assertEqual(captured[&#x27;event&#x27;][&#x27;actor_entity_id&#x27;],self.originator)
+        self.assertTrue(captured[&#x27;event&#x27;][&#x27;details&#x27;][&#x27;sell_order_signature_verified&#x27;])
+        with self.assertRaises(ValueError):
+            self.profile.capture_settled_eep_trade(self.exchange,secondary[&#x27;trade_id&#x27;])
+
+    def test_derivative_participation_and_service_revenue(self):
+        derivative=self.profile.record_derivative_revenue(self.policy[&#x27;policy_id&#x27;],self.buyer1,&#x27;derivative:model-x&#x27;,100000,&#x27;CAD&#x27;,hashlib.sha256(b&#x27;revenue evidence&#x27;).hexdigest())
+        self.assertEqual(derivative[&#x27;obligation&#x27;][&#x27;amount_units&#x27;],1000)
+        service=self.profile.record_service_revenue(self.treasury[&#x27;treasury_id&#x27;],self.buyer2,&#x27;MARKET_DATA&#x27;,500,&#x27;CAD&#x27;,&#x27;invoice:md-001&#x27;)
+        self.assertEqual(service[&#x27;obligation&#x27;][&#x27;amount_units&#x27;],500)
+        pos=self.profile.position(self.treasury[&#x27;treasury_id&#x27;],self.exchange)
+        self.assertEqual(pos[&#x27;monetary_obligations&#x27;][&#x27;CAD&#x27;][&#x27;ACCRUED&#x27;],1500)
+
+    def test_external_settlement_requires_evidence_and_remains_attestation(self):
+        service=self.profile.record_service_revenue(self.treasury[&#x27;treasury_id&#x27;],self.buyer1,&#x27;CERTIFICATION&#x27;,750,&#x27;CAD&#x27;,&#x27;invoice:cert-1&#x27;)
+        oid=service[&#x27;obligation&#x27;][&#x27;obligation_id&#x27;]
+        with self.assertRaises(ValueError):
+            self.profile.settle_obligation(oid,self.verifier,&#x27;bank:1&#x27;,external_verified=True)
+        proof=self.profile.settle_obligation(oid,self.verifier,&#x27;bank:1&#x27;,external_verified=True,evidence_sha256=hashlib.sha256(b&#x27;bank evidence&#x27;).hexdigest())
+        self.assertTrue(proof[&#x27;external_verified&#x27;])
+        self.assertTrue(proof[&#x27;verification_is_attestation_not_absolute_truth&#x27;])
+        pos=self.profile.position(self.treasury[&#x27;treasury_id&#x27;],self.exchange)
+        self.assertEqual(pos[&#x27;monetary_obligations&#x27;][&#x27;CAD&#x27;][&#x27;SETTLED&#x27;],750)
+
+    def test_policy_version_cannot_be_rewritten(self):
+        with self.assertRaises(ValueError):
+            self.profile.define_participation(self.originator,self.treasury[&#x27;treasury_id&#x27;],self.instrument[&#x27;instrument_id&#x27;],1000,300,&#x27;CAD&#x27;,version=1)
+        v2=self.profile.define_participation(self.originator,self.treasury[&#x27;treasury_id&#x27;],self.instrument[&#x27;instrument_id&#x27;],1000,200,&#x27;CAD&#x27;,version=2,secondary_royalty_bps=200)
+        self.assertEqual(v2[&#x27;version&#x27;],2)
+        self.assertTrue(v2[&#x27;no_retroactive_economic_rights&#x27;])
+
+    def test_policy_history_is_trade_time_bound_and_reserve_not_duplicated(self):
+        trade=self._trade(self.originator,self.buyer1,4,100,&#x27;historical-policy&#x27;)
+        v2=self.profile.define_participation(self.originator,self.treasury[&#x27;treasury_id&#x27;],self.instrument[&#x27;instrument_id&#x27;],1000,200,&#x27;CAD&#x27;,primary_treasury_bps=5000,secondary_royalty_bps=300,derivative_participation_bps=100,version=2)
+        captured=self.profile.capture_settled_eep_trade(self.exchange,trade[&#x27;trade_id&#x27;])
+        self.assertEqual(captured[&#x27;obligation&#x27;][&#x27;bps&#x27;],2500)
+        self.assertEqual(captured[&#x27;obligation&#x27;][&#x27;amount_units&#x27;],100)
+        with self.assertRaises(ValueError):
+            self.profile.allocate_eep_reserve(self.exchange,v2[&#x27;policy_id&#x27;])
+        self.assertEqual(self.exchange.balance(self.instrument[&#x27;instrument_id&#x27;],self.treasury_entity),200)
+        pos=self.profile.position(self.treasury[&#x27;treasury_id&#x27;],self.exchange)
+        self.assertEqual(len(pos[&#x27;reserve_positions&#x27;]),1)
+        self.assertEqual(pos[&#x27;reserve_positions&#x27;][0][&#x27;current_eep_units&#x27;],200)
+
+    def test_reconciliation_detects_missing_then_complete_trade_capture(self):
+        trade=self._trade(self.originator,self.buyer1,3,110,&#x27;reconcile&#x27;)
+        before=self.profile.reconcile_eep_trades(self.exchange,self.instrument[&#x27;instrument_id&#x27;])
+        self.assertIn(trade[&#x27;trade_id&#x27;],before[&#x27;missing_trade_ids&#x27;])
+        self.assertFalse(before[&#x27;complete&#x27;])
+        self.profile.capture_settled_eep_trade(self.exchange,trade[&#x27;trade_id&#x27;])
+        after=self.profile.reconcile_eep_trades(self.exchange,self.instrument[&#x27;instrument_id&#x27;])
+        self.assertNotIn(trade[&#x27;trade_id&#x27;],after[&#x27;missing_trade_ids&#x27;])
+        self.assertIn(trade[&#x27;trade_id&#x27;],after[&#x27;captured_trade_ids&#x27;])
+        self.assertTrue(after[&#x27;complete&#x27;])
+
+    def test_settlement_verifier_must_be_authorized(self):
+        service=self.profile.record_service_revenue(self.treasury[&#x27;treasury_id&#x27;],self.buyer1,&#x27;API&#x27;,500,&#x27;CAD&#x27;,&#x27;invoice:api-auth&#x27;)
+        rogue=self.identity.create(&#x27;Rogue Verifier&#x27;,&#x27;system&#x27;)[&#x27;entity_id&#x27;]
+        with self.assertRaises(PermissionError):
+            self.profile.settle_obligation(service[&#x27;obligation&#x27;][&#x27;obligation_id&#x27;],rogue,&#x27;bank:rogue&#x27;,external_verified=True,evidence_sha256=hashlib.sha256(b&#x27;rogue&#x27;).hexdigest())
+        proof=self.profile.settle_obligation(service[&#x27;obligation&#x27;][&#x27;obligation_id&#x27;],self.verifier,&#x27;bank:ok&#x27;,external_verified=True,evidence_sha256=hashlib.sha256(b&#x27;ok&#x27;).hexdigest())
+        self.assertEqual(proof[&#x27;verifier_authority_basis&#x27;],&#x27;AUTHORIZED_SETTLEMENT_VERIFIER&#x27;)
+
+    def test_policy_must_bind_to_owned_treasury_and_cannot_be_backdated(self):
+        other_treasury_entity=self.identity.create(&#x27;Other Treasury&#x27;,&#x27;business&#x27;)[&#x27;entity_id&#x27;]
+        other=self.profile.create_treasury(self.buyer1,other_treasury_entity,&#x27;Other Treasury&#x27;,&#x27;CA&#x27;,hashlib.sha256(b&#x27;other&#x27;).hexdigest())
+        with self.assertRaises(PermissionError):
+            self.profile.define_participation(self.originator,other[&#x27;treasury_id&#x27;],&#x27;instrument:other&#x27;,100,0,&#x27;CAD&#x27;)
+        with self.assertRaises(ValueError):
+            self.profile.define_participation(self.originator,self.treasury[&#x27;treasury_id&#x27;],self.instrument[&#x27;instrument_id&#x27;],1000,200,&#x27;CAD&#x27;,version=2,effective_at_ms=econ_mod.now_ms()-1)
+
+    def test_event_and_obligation_are_atomic_on_obligation_insert_failure(self):
+        trade=self._trade(self.originator,self.buyer1,2,100,&#x27;atomic-obligation&#x27;)
+        with self.profile._db() as db:
+            db.execute(&quot;CREATE TRIGGER fail_obligation_insert BEFORE INSERT ON obligations BEGIN SELECT RAISE(ABORT,&#x27;forced obligation failure&#x27;); END&quot;)
+        with self.assertRaises(ValueError):
+            self.profile.capture_settled_eep_trade(self.exchange,trade[&#x27;trade_id&#x27;])
+        with self.profile._db() as db:
+            event_count=db.execute(&#x27;SELECT COUNT(*) FROM economic_events WHERE subject_ref=?&#x27;,(trade[&#x27;trade_id&#x27;],)).fetchone()[0]
+            obligation_count=db.execute(&#x27;SELECT COUNT(*) FROM obligations&#x27;).fetchone()[0]
+        self.assertEqual(event_count,0)
+        self.assertEqual(obligation_count,0)
+
+    def test_reserve_allocation_is_atomic_across_eep_and_eopp(self):
+        asset=self.fabric.register_digital_commodity(self.originator,&#x27;Atomic Reserve Corpus&#x27;,hashlib.sha256(b&#x27;atomic-reserve&#x27;).hexdigest())
+        inst=self.exchange.define_instrument(self.originator,asset[&#x27;object_id&#x27;],&#x27;SPOT_LICENSE&#x27;,{&#x27;actions&#x27;:[&#x27;TRAIN&#x27;]},100,&#x27;CAD&#x27;,transferable=True)
+        policy=self.profile.define_participation(self.originator,self.treasury[&#x27;treasury_id&#x27;],inst[&#x27;instrument_id&#x27;],100,25,&#x27;CAD&#x27;,version=1)
+        before_originator=self.exchange.balance(inst[&#x27;instrument_id&#x27;],self.originator)
+        before_treasury=self.exchange.balance(inst[&#x27;instrument_id&#x27;],self.treasury_entity)
+        with self.profile._db() as db:
+            db.execute(&quot;CREATE TRIGGER fail_reserve_insert BEFORE INSERT ON reserve_allocations WHEN NEW.instrument_id=&#x27;&quot;+inst[&#x27;instrument_id&#x27;]+&quot;&#x27; BEGIN SELECT RAISE(ABORT,&#x27;forced reserve failure&#x27;); END&quot;)
+        with self.assertRaises(sqlite3.DatabaseError):
+            self.profile.allocate_eep_reserve(self.exchange,policy[&#x27;policy_id&#x27;])
+        self.assertEqual(self.exchange.balance(inst[&#x27;instrument_id&#x27;],self.originator),before_originator)
+        self.assertEqual(self.exchange.balance(inst[&#x27;instrument_id&#x27;],self.treasury_entity),before_treasury)
+        with self.profile._db() as db:
+            self.assertEqual(db.execute(&#x27;SELECT COUNT(*) FROM reserve_allocations WHERE instrument_id=?&#x27;,(inst[&#x27;instrument_id&#x27;],)).fetchone()[0],0)
+
+    def test_historical_derivative_revenue_uses_trade_time_policy(self):
+        occurred=econ_mod.now_ms()
+        future=occurred+2000
+        self.profile.define_participation(self.originator,self.treasury[&#x27;treasury_id&#x27;],self.instrument[&#x27;instrument_id&#x27;],1000,200,&#x27;CAD&#x27;,primary_treasury_bps=2500,secondary_royalty_bps=150,derivative_participation_bps=500,version=2,effective_at_ms=future)
+        result=self.profile.record_derivative_revenue(self.policy[&#x27;policy_id&#x27;],self.buyer1,&#x27;derivative:historical&#x27;,100000,&#x27;CAD&#x27;,hashlib.sha256(b&#x27;historical revenue&#x27;).hexdigest(),occurred_at_ms=occurred)
+        self.assertEqual(result[&#x27;obligation&#x27;][&#x27;bps&#x27;],100)
+        self.assertEqual(result[&#x27;obligation&#x27;][&#x27;amount_units&#x27;],1000)
+        self.assertEqual(result[&#x27;event&#x27;][&#x27;details&#x27;][&#x27;occurred_at_ms&#x27;],occurred)
+
+    def test_service_receivable_does_not_require_payer_private_key(self):
+        original_sign=self.identity.sign
+        def guarded_sign(entity_id,payload):
+            if entity_id==self.buyer1:
+                raise AssertionError(&#x27;payer private key must not be required to record provider receivable&#x27;)
+            return original_sign(entity_id,payload)
+        self.identity.sign=guarded_sign
+        try:
+            result=self.profile.record_service_revenue(self.treasury[&#x27;treasury_id&#x27;],self.buyer1,&#x27;MARKET_DATA&#x27;,400,&#x27;CAD&#x27;,&#x27;invoice:no-payer-key&#x27;)
+        finally:
+            self.identity.sign=original_sign
+        self.assertEqual(result[&#x27;event&#x27;][&#x27;actor_entity_id&#x27;],self.originator)
+        self.assertEqual(result[&#x27;obligation&#x27;][&#x27;payer_entity_id&#x27;],self.buyer1)
+        self.assertTrue(result[&#x27;event&#x27;][&#x27;details&#x27;][&#x27;provider_asserted_receivable&#x27;])
+
+    def test_reconciliation_detects_missing_obligation(self):
+        trade=self._trade(self.originator,self.buyer1,2,150,&#x27;missing-obligation&#x27;)
+        captured=self.profile.capture_settled_eep_trade(self.exchange,trade[&#x27;trade_id&#x27;])
+        with self.profile._db() as db:
+            db.execute(&#x27;DELETE FROM obligations WHERE event_id=?&#x27;,(captured[&#x27;event&#x27;][&#x27;event_id&#x27;],))
+        result=self.profile.reconcile_eep_trades(self.exchange,self.instrument[&#x27;instrument_id&#x27;])
+        self.assertIn(trade[&#x27;trade_id&#x27;],result[&#x27;missing_obligation_trade_ids&#x27;])
+        self.assertFalse(result[&#x27;complete&#x27;])
+        self.assertTrue(result[&#x27;event_and_obligation_reconciled&#x27;])
+
+    def test_revoked_settlement_verifier_cannot_settle(self):
+        service=self.profile.record_service_revenue(self.treasury[&#x27;treasury_id&#x27;],self.buyer1,&#x27;API&#x27;,300,&#x27;CAD&#x27;,&#x27;invoice:revoked-verifier&#x27;)
+        self.profile.revoke_settlement_verifier(self.treasury[&#x27;treasury_id&#x27;],self.originator,self.verifier)
+        with self.assertRaises(PermissionError):
+            self.profile.settle_obligation(service[&#x27;obligation&#x27;][&#x27;obligation_id&#x27;],self.verifier,&#x27;bank:revoked&#x27;,external_verified=True,evidence_sha256=hashlib.sha256(b&#x27;revoked&#x27;).hexdigest())
+
+    def test_derivative_currency_must_match_policy(self):
+        with self.assertRaises(ValueError):
+            self.profile.record_derivative_revenue(self.policy[&#x27;policy_id&#x27;],self.buyer1,&#x27;derivative:wrong-currency&#x27;,1000,&#x27;USD&#x27;,hashlib.sha256(b&#x27;currency&#x27;).hexdigest())
+
+    def test_eopp_schema_tracks_hardening_records(self):
+        schema=json.loads((REPO/&#x27;protocol&#x27;/&#x27;v3&#x27;/&#x27;ENTITY_ORIGINATOR_PARTICIPATION.schema.json&#x27;).read_text(encoding=&#x27;utf-8&#x27;))
+        required=set(schema[&#x27;$defs&#x27;][&#x27;policy&#x27;][&#x27;required&#x27;])
+        self.assertTrue({&#x27;effective_at_ms&#x27;,&#x27;created_at_ms&#x27;,&#x27;no_retroactive_economic_rights&#x27;,&#x27;treasury_entity_id&#x27;} &lt;= required)
+        refs={x[&#x27;$ref&#x27;] for x in schema[&#x27;oneOf&#x27;]}
+        self.assertIn(&#x27;#/$defs/settlement_verifier_authorization&#x27;,refs)
+        self.assertIn(&#x27;#/$defs/settlement_attestation&#x27;,refs)
+        self.assertIn(&#x27;#/$defs/reconciliation&#x27;,refs)
+        self.assertEqual(schema[&#x27;$defs&#x27;][&#x27;settlement_attestation&#x27;][&#x27;properties&#x27;][&#x27;verification_is_attestation_not_absolute_truth&#x27;][&#x27;const&#x27;],True)
+        self.assertIn(&#x27;#/$defs/reserve_allocation&#x27;,refs)
+        self.assertIn(&#x27;#/$defs/economic_event&#x27;,refs)
+        self.assertIn(&#x27;#/$defs/indicative_mark&#x27;,refs)
+        self.assertIn(&#x27;#/$defs/treasury_snapshot&#x27;,refs)
+        recon=set(schema[&#x27;$defs&#x27;][&#x27;reconciliation&#x27;][&#x27;required&#x27;])
+        self.assertTrue({&#x27;missing_obligation_trade_ids&#x27;,&#x27;mismatched_obligation_trade_ids&#x27;,&#x27;event_and_obligation_reconciled&#x27;} &lt;= recon)
+        self.assertEqual(schema[&#x27;$defs&#x27;][&#x27;reserve_allocation&#x27;][&#x27;properties&#x27;][&#x27;cross_store_atomic&#x27;][&#x27;const&#x27;],True)
+
+    def test_indicative_mark_is_not_accounting_value(self):
+        trade=self._trade(self.originator,self.buyer1,1,125,&#x27;mark&#x27;)
+        self.profile.capture_settled_eep_trade(self.exchange,trade[&#x27;trade_id&#x27;])
+        mark=self.profile.indicative_mark(self.treasury[&#x27;treasury_id&#x27;],self.exchange,&#x27;LAST&#x27;)
+        self.assertTrue(mark[&#x27;indicative_only&#x27;])
+        self.assertTrue(mark[&#x27;not_accounting_fair_value&#x27;])
+        self.assertEqual(mark[&#x27;marks&#x27;][0][&#x27;observed_unit_price&#x27;],125)
+        self.assertEqual(mark[&#x27;marks&#x27;][0][&#x27;indicative_amount_units&#x27;],25000)
+        snapshot=self.profile.seal_snapshot(self.treasury[&#x27;treasury_id&#x27;],self.originator,self.exchange)
+        self.assertEqual(snapshot[&#x27;protocol_tax_bps&#x27;],0)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

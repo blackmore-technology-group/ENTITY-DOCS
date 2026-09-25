@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/22_Sovereign_Domain/resolution/canonical_resolution.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/22_Sovereign_Domain/resolution/canonical_resolution.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/22_Sovereign_Domain/resolution/canonical_resolution.py</code></p><p><b>SHA-256:</b> <code>3de33eae605fce89b10a345ba875bca45f549f12480f81737f8840c6821eb235</code></p><p><b>Bytes:</b> 9,984</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/resolution/canonical_resolution.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/canon-4be028bad2cd.html">_canon</a></li><li><a href="../../../reference/symbols/entity/sha-4f1899f90ed8.html">_sha</a></li><li><a href="../../../reference/symbols/entity/now-625910812a0b.html">_now</a></li><li><a href="../../../reference/symbols/entity/entitynativeresolver-6943d1895a09.html">EntityNativeResolver</a></li><li><a href="../../../reference/symbols/entity/entitynativeresolver-init-4e8f4288edef.html">EntityNativeResolver.__init__</a></li><li><a href="../../../reference/symbols/entity/entitynativeresolver-add-snapshot-ec49657b8db3.html">EntityNativeResolver.add_snapshot</a></li><li><a href="../../../reference/symbols/entity/entitynativeresolver-verify-claim-3523b37cb26a.html">EntityNativeResolver._verify_claim</a></li><li><a href="../../../reference/symbols/entity/entitynativeresolver-verify-node-6132328a3b4b.html">EntityNativeResolver._verify_node</a></li><li><a href="../../../reference/symbols/entity/entitynativeresolver-verify-revocation-8fc9de844733.html">EntityNativeResolver._verify_revocation</a></li><li><a href="../../../reference/symbols/entity/entitynativeresolver-verify-service-1c4f92289ed4.html">EntityNativeResolver._verify_service</a></li><li><a href="../../../reference/symbols/entity/entitynativeresolver-verify-snapshot-80c7abe831aa.html">EntityNativeResolver.verify_snapshot</a></li><li><a href="../../../reference/symbols/entity/entitynativeresolver-resolve-f10e782e8996.html">EntityNativeResolver.resolve</a></li><li><a href="../../../reference/symbols/entity/entitynativeresolver-reject-malicious-response-cfb06354c80b.html">EntityNativeResolver.reject_malicious_response</a></li><li><a href="../../../reference/symbols/entity/entitynativeresolver-status-144114949c94.html">EntityNativeResolver.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+import hashlib, json, time
+
+def _canon(v): return json.dumps(v,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False,default=str).encode()
+def _sha(v): return hashlib.sha256(v if isinstance(v,(bytes,bytearray)) else _canon(v)).hexdigest()
+def _now(): return int(time.time()*1000)
+
+class EntityNativeResolver:
+    &quot;&quot;&quot;DNS-independent verifier/resolver. Resolution sources are transport hints, never sovereign authority.&quot;&quot;&quot;
+    def __init__(self,identity):
+        self.identity=identity
+        self.sources={}
+        self.highest_domain_version={}
+        self.highest_service_version={}
+
+    def add_snapshot(self,source_id:str,snapshot:dict)-&gt;dict:
+        snap=json.loads(json.dumps(snapshot))
+        proof=self.verify_snapshot(snap)
+        if not proof[&quot;valid&quot;]:
+            raise PermissionError(&quot;invalid sovereign-domain snapshot: &quot;+&quot;,&quot;.join(proof[&quot;failures&quot;]))
+        key=snap[&quot;domain&quot;][&quot;domain_id&quot;]
+        self.sources[(str(source_id),key)]=snap
+        return {&quot;accepted&quot;:True,&quot;source_id&quot;:str(source_id),&quot;domain_id&quot;:key,
+                &quot;resolver_is_authority&quot;:False,&quot;snapshot_sha256&quot;:_sha(snap)}
+
+    def _verify_claim(self,claim:dict)-&gt;bool:
+        if not claim: return True
+        body={k:claim[k] for k in (&quot;schema&quot;,&quot;claim_id&quot;,&quot;domain_id&quot;,&quot;entity_root&quot;,&quot;normalized_name&quot;,&quot;namespace&quot;,
+                                   &quot;status&quot;,&quot;conflict_state&quot;,&quot;evidence&quot;,&quot;created_at_ms&quot;,
+                                   &quot;first_seen_is_not_ownership&quot;,&quot;dns_possession_is_not_authority&quot;)}
+        return bool(self.identity.verify_signature(self.identity.load_manifest(claim[&quot;entity_root&quot;]),body,claim[&quot;signature&quot;]))
+
+    def _verify_node(self,node:dict)-&gt;bool:
+        body={k:node[k] for k in (&quot;schema&quot;,&quot;domain_id&quot;,&quot;entity_root&quot;,&quot;node_id&quot;,&quot;public_key_b64&quot;,&quot;permitted_services&quot;,
+                                  &quot;network_scopes&quot;,&quot;publication_scopes&quot;,&quot;data_scopes&quot;,&quot;not_before_ms&quot;,&quot;expires_at_ms&quot;,
+                                  &quot;delegation&quot;,&quot;status&quot;,&quot;auth_version&quot;,&quot;created_at_ms&quot;)}
+        return bool(self.identity.verify_signature(self.identity.load_manifest(node[&quot;entity_root&quot;]),body,node[&quot;signature&quot;]))
+
+    def _verify_revocation(self,revocation:dict|None)-&gt;bool:
+        if not revocation: return True
+        body={k:revocation[k] for k in (&quot;schema&quot;,&quot;revocation_id&quot;,&quot;domain_id&quot;,&quot;node_id&quot;,&quot;entity_root&quot;,&quot;reason&quot;,&quot;effective_at_ms&quot;,&quot;created_at_ms&quot;)}
+        return bool(self.identity.verify_signature(self.identity.load_manifest(revocation[&quot;entity_root&quot;]),body,revocation[&quot;signature&quot;]))
+
+    def _verify_service(self,service:dict)-&gt;bool:
+        body={k:service[k] for k in (&quot;schema&quot;,&quot;entity_root&quot;,&quot;domain_id&quot;,&quot;domain_name&quot;,&quot;service_id&quot;,&quot;service_type&quot;,
+                                     &quot;node_id&quot;,&quot;endpoint&quot;,&quot;protocol_version&quot;,&quot;capabilities&quot;,&quot;access_class&quot;,
+                                     &quot;required_credentials&quot;,&quot;policy_refs&quot;,&quot;data_classifications&quot;,&quot;economic_terms_ref&quot;,
+                                     &quot;availability&quot;,&quot;manifest_version&quot;,&quot;expires_at_ms&quot;,&quot;status&quot;,&quot;created_at_ms&quot;,
+                                     &quot;source_data_custody_transferred&quot;,&quot;provider_authority_inferred&quot;)}
+        return bool(self.identity.verify_signature(self.identity.load_manifest(service[&quot;entity_root&quot;]),body,service[&quot;signature&quot;]))
+
+    def verify_snapshot(self,snapshot:dict)-&gt;dict:
+        failures=[]; snap=dict(snapshot or {})
+        domain=dict(snap.get(&quot;domain&quot;) or {}); did=str(domain.get(&quot;domain_id&quot;) or &quot;&quot;); root=str(domain.get(&quot;entity_root&quot;) or &quot;&quot;)
+        if not did or not root: failures.append(&quot;domain_identity_missing&quot;)
+        else:
+            try: self.identity.load_manifest(root)
+            except Exception: failures.append(&quot;entity_root_unknown&quot;)
+        claim=snap.get(&quot;name_claim&quot;)
+        if claim:
+            if claim.get(&quot;domain_id&quot;)!=did or claim.get(&quot;entity_root&quot;)!=root: failures.append(&quot;name_claim_binding_mismatch&quot;)
+            elif not self._verify_claim(claim): failures.append(&quot;name_claim_signature_invalid&quot;)
+        nodes={}
+        now=_now()
+        for node in snap.get(&quot;nodes&quot;) or []:
+            nid=str(node.get(&quot;node_id&quot;) or &quot;&quot;)
+            if node.get(&quot;domain_id&quot;)!=did or node.get(&quot;entity_root&quot;)!=root: failures.append(f&quot;node:{nid}:binding_mismatch&quot;); continue
+            if not self._verify_node(node): failures.append(f&quot;node:{nid}:signature_invalid&quot;); continue
+            if node.get(&quot;revocation&quot;) and not self._verify_revocation(node.get(&quot;revocation&quot;)):
+                failures.append(f&quot;node:{nid}:revocation_signature_invalid&quot;); continue
+            nodes[nid]=node
+        for service in snap.get(&quot;services&quot;) or []:
+            sid=str(service.get(&quot;service_id&quot;) or &quot;&quot;); nid=str(service.get(&quot;node_id&quot;) or &quot;&quot;)
+            if service.get(&quot;domain_id&quot;)!=did or service.get(&quot;entity_root&quot;)!=root: failures.append(f&quot;service:{sid}:binding_mismatch&quot;); continue
+            if not self._verify_service(service): failures.append(f&quot;service:{sid}:signature_invalid&quot;); continue
+            node=nodes.get(nid)
+            if node is None: failures.append(f&quot;service:{sid}:node_missing&quot;); continue
+            if service.get(&quot;status&quot;)==&quot;ACTIVE&quot;:
+                if node.get(&quot;effective_status&quot;,node.get(&quot;status&quot;))!=&quot;ACTIVE&quot;: failures.append(f&quot;service:{sid}:revoked_node&quot;)
+                if int(node.get(&quot;not_before_ms&quot;) or 0)&gt;now: failures.append(f&quot;service:{sid}:node_not_yet_valid&quot;)
+                exp=node.get(&quot;expires_at_ms&quot;)
+                if exp is not None and int(exp)&lt;=now: failures.append(f&quot;service:{sid}:node_expired&quot;)
+                sexp=service.get(&quot;expires_at_ms&quot;)
+                if sexp is not None and int(sexp)&lt;=now: failures.append(f&quot;service:{sid}:manifest_expired&quot;)
+                if str(service.get(&quot;service_type&quot;)) not in set(node.get(&quot;permitted_services&quot;) or []) and &quot;*&quot; not in set(node.get(&quot;permitted_services&quot;) or []):
+                    failures.append(f&quot;service:{sid}:outside_node_scope&quot;)
+        return {&quot;valid&quot;:not failures,&quot;failures&quot;:failures,&quot;domain_id&quot;:did,&quot;entity_root&quot;:root,
+                &quot;snapshot_sha256&quot;:_sha(snap),&quot;resolver_authority_claimed&quot;:False}
+
+    def resolve(self,identifier:str,*,service_type:str|None=None,service_id:str|None=None)-&gt;dict:
+        ident=str(identifier).strip().lower()
+        candidates=[]
+        for (_,did),snap in self.sources.items():
+            domain=snap[&quot;domain&quot;]; claim=snap.get(&quot;name_claim&quot;)
+            matches=(did.lower()==ident or domain[&quot;entity_root&quot;].lower()==ident or
+                     (claim and (claim.get(&quot;normalized_name&quot;) or &quot;&quot;).lower()==ident))
+            if matches: candidates.append(snap)
+        unique={s[&quot;domain&quot;][&quot;domain_id&quot;]:s for s in candidates}
+        if not unique: raise KeyError(&quot;Entity domain not found&quot;)
+        if len(unique)&gt;1:
+            raise RuntimeError(&quot;Entity name conflict requires cryptographic/disambiguated identifier&quot;)
+        snap=next(iter(unique.values())); proof=self.verify_snapshot(snap)
+        if not proof[&quot;valid&quot;]: raise PermissionError(&quot;resolution snapshot verification failed&quot;)
+        domain=snap[&quot;domain&quot;]; did=domain[&quot;domain_id&quot;]; dv=int(domain.get(&quot;version&quot;) or 0)
+        prior=self.highest_domain_version.get(did,0)
+        if dv&lt;prior: raise PermissionError(&quot;domain rollback/stale state detected&quot;)
+        self.highest_domain_version[did]=max(prior,dv)
+        services=[s for s in snap.get(&quot;services&quot;) or [] if s.get(&quot;status&quot;)==&quot;ACTIVE&quot;]
+        if service_type: services=[s for s in services if str(s.get(&quot;service_type&quot;)).upper()==str(service_type).upper()]
+        if service_id: services=[s for s in services if s.get(&quot;service_id&quot;)==service_id]
+        valid=[]
+        nodes={n[&quot;node_id&quot;]:n for n in snap.get(&quot;nodes&quot;) or []}
+        for s in services:
+            sid=s[&quot;service_id&quot;]; version=int(s.get(&quot;manifest_version&quot;) or 0); high=self.highest_service_version.get(sid,0)
+            if version&lt;high: continue
+            node=nodes.get(s[&quot;node_id&quot;])
+            if not node or node.get(&quot;effective_status&quot;,node.get(&quot;status&quot;))!=&quot;ACTIVE&quot;: continue
+            self.highest_service_version[sid]=max(high,version)
+            valid.append({&quot;service&quot;:s,&quot;node&quot;:node})</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

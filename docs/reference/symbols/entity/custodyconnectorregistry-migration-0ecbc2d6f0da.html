@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CustodyConnectorRegistry.migration Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>CustodyConnectorRegistry.migration</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/36_Adoption_Layer/custody_connectors.py#L55">ENTITY/src/36_Adoption_Layer/custody_connectors.py#L55</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>CustodyConnectorRegistry.migration(old_locator: dict, new_locator: dict, *, evidence_sha256: str, actor_entity_id: str)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def migration(old_locator: dict, new_locator: dict, *, evidence_sha256: str,
+                  actor_entity_id: str) -&gt; dict:
+        if old_locator.get(&quot;entity_object_id&quot;) != new_locator.get(&quot;entity_object_id&quot;):
+            raise ValueError(&quot;provider migration must preserve ENTITY object id&quot;)
+        if old_locator.get(&quot;provider_is_authority&quot;) is not False or new_locator.get(&quot;provider_is_authority&quot;) is not False:
+            raise ValueError(&quot;custody cannot become authority during migration&quot;)
+        evidence_sha256 = sha256_hex(evidence_sha256)
+        return {
+            &quot;schema&quot;: &quot;entity-v3-custody-migration-v1&quot;,
+            &quot;entity_object_id&quot;: old_locator[&quot;entity_object_id&quot;],
+            &quot;from_locator_sha256&quot;: old_locator.get(&quot;locator_sha256&quot;) or digest(old_locator),
+            &quot;to_locator_sha256&quot;: new_locator.get(&quot;locator_sha256&quot;) or digest(new_locator),
+            &quot;actor_entity_id&quot;: str(actor_entity_id),
+            &quot;evidence_sha256&quot;: evidence_sha256,
+            &quot;created_at_ms&quot;: now_ms(),
+            &quot;entity_identity_preserved&quot;: True,
+            &quot;authority_transfer_implied&quot;: False,
+        }</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

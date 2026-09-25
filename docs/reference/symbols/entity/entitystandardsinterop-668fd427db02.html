@@ -1,0 +1,75 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityStandardsInterop Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityStandardsInterop</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/protocol_specs/canonical_standards_interop.py#L25">ENTITY/sdk/protocol_specs/canonical_standards_interop.py#L25</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Standards data-model adapter. It does not claim W3C Data Integrity cryptosuite conformance.</p><h2>Source excerpt</h2><pre><code>class EntityStandardsInterop:
+    &quot;&quot;&quot;Standards data-model adapter. It does not claim W3C Data Integrity cryptosuite conformance.&quot;&quot;&quot;
+    def __init__(self,identity): self.identity=identity
+
+    def export_did_document(self,entity_id:str)-&gt;dict:
+        manifest=self.identity.load_manifest(entity_id); controller=did(entity_id); methods=[]; auth=[]; assertion=[]
+        for item in manifest.get(&quot;verification_methods&quot;) or []:
+            kid=f&quot;{controller}#{item[&#x27;key_id&#x27;]}&quot;; purposes=set(item.get(&quot;purpose&quot;) or [])
+            methods.append({&quot;id&quot;:kid,&quot;type&quot;:&quot;Ed25519VerificationKey2020&quot;,&quot;controller&quot;:controller,&quot;publicKeyMultibase&quot;:&quot;u&quot;+item[&quot;public_key&quot;],&quot;entity:keyStatus&quot;:item.get(&quot;status&quot;)})
+            if &quot;authentication&quot; in purposes: auth.append(kid)
+            if purposes.intersection({&quot;assertion&quot;,&quot;contract&quot;}): assertion.append(kid)
+        return {&quot;@context&quot;:[&quot;https://www.w3.org/ns/did/v1&quot;,{&quot;entity&quot;:ENTITY_VOCAB}],&quot;id&quot;:controller,&quot;verificationMethod&quot;:methods,&quot;authentication&quot;:auth,&quot;assertionMethod&quot;:assertion,&quot;entity:manifestRevision&quot;:manifest.get(&quot;manifest_revision&quot;)}
+
+    @staticmethod
+    def import_did_document(document:dict)-&gt;dict:
+        doc=dict(document or {}); entity_id=entity_from_did(str(doc.get(&quot;id&quot;) or &quot;&quot;)); methods=list(doc.get(&quot;verificationMethod&quot;) or [])
+        if not methods: raise ValueError(&quot;DID document requires verificationMethod&quot;)
+        for item in methods:
+            if str(item.get(&quot;controller&quot;))!=doc[&quot;id&quot;] or not str(item.get(&quot;id&quot;,&quot;&quot;)).startswith(doc[&quot;id&quot;]+&quot;#&quot;): raise ValueError(&quot;DID verification relationship mismatch&quot;)
+        return {&quot;entity_id&quot;:entity_id,&quot;verification_methods&quot;:methods,&quot;authentication&quot;:list(doc.get(&quot;authentication&quot;) or []),&quot;assertion_method&quot;:list(doc.get(&quot;assertionMethod&quot;) or [])}
+
+    def export_vc20(self,credential:dict)-&gt;dict:
+        cred=dict(credential or {}); issuer=did(cred[&quot;issuer_entity_id&quot;]); subject=did(cred[&quot;subject_entity_id&quot;])
+        vc={&quot;@context&quot;:[VC_CONTEXT,{&quot;entity&quot;:ENTITY_VOCAB}],&quot;id&quot;:&quot;urn:entity:credential:&quot;+str(cred[&quot;credential_id&quot;]),&quot;type&quot;:[&quot;VerifiableCredential&quot;,&quot;EntityCredential&quot;],&quot;issuer&quot;:issuer,&quot;validFrom&quot;:_iso(cred[&quot;created_at_ms&quot;]),&quot;credentialSubject&quot;:{&quot;id&quot;:subject,**dict(cred.get(&quot;claims&quot;) or {})},&quot;entity:credentialType&quot;:cred[&quot;credential_type&quot;],&quot;entity:trustLevel&quot;:cred[&quot;trust_level&quot;]}
+        if cred.get(&quot;expires_at_ms&quot;) is not None: vc[&quot;validUntil&quot;]=_iso(cred[&quot;expires_at_ms&quot;])
+        if cred.get(&quot;signature&quot;) is not None: vc[&quot;entity:signatureRecord&quot;]=dict(cred[&quot;signature&quot;])
+        return vc
+
+    @staticmethod
+    def import_vc20(vc:dict)-&gt;dict:
+        value=dict(vc or {}); contexts=value.get(&quot;@context&quot;) or []
+        if VC_CONTEXT not in (contexts if isinstance(contexts,list) else [contexts]): raise ValueError(&quot;VC 2.0 context required&quot;)
+        types=value.get(&quot;type&quot;) or []
+        if &quot;VerifiableCredential&quot; not in (types if isinstance(types,list) else [types]): raise ValueError(&quot;VerifiableCredential type required&quot;)
+        issuer=value.get(&quot;issuer&quot;); issuer=issuer.get(&quot;id&quot;) if isinstance(issuer,dict) else issuer
+        subject=dict(value.get(&quot;credentialSubject&quot;) or {}); sid=subject.pop(&quot;id&quot;,None)
+        if not issuer or not sid: raise ValueError(&quot;issuer and credentialSubject.id required&quot;)
+        return {&quot;external_id&quot;:value.get(&quot;id&quot;),&quot;issuer&quot;:str(issuer),&quot;subject&quot;:str(sid),&quot;claims&quot;:subject,&quot;valid_from_ms&quot;:_ms(value.get(&quot;validFrom&quot;)),&quot;valid_until_ms&quot;:_ms(value.get(&quot;validUntil&quot;)),&quot;verification_state&quot;:&quot;UNVERIFIED_EXTERNAL_STATE&quot;}
+
+    def verify_entity_vc20(self,vc:dict,issuer_manifest:dict)-&gt;dict:
+        mapped=self.import_vc20(vc); signature=vc.get(&quot;entity:signatureRecord&quot;)
+        if not signature: return {&quot;data_model_valid&quot;:True,&quot;entity_signature_valid&quot;:False,&quot;reason&quot;:&quot;no_entity_signature_extension&quot;}
+        cred_id=str(vc.get(&quot;id&quot;) or &quot;&quot;).removeprefix(&quot;urn:entity:credential:&quot;); subject=entity_from_did(mapped[&quot;subject&quot;]); issuer=entity_from_did(mapped[&quot;issuer&quot;])
+        body={&quot;schema&quot;:&quot;entity-credential-v1&quot;,&quot;credential_id&quot;:cred_id,&quot;issuer_entity_id&quot;:issuer,&quot;subject_entity_id&quot;:subject,&quot;credential_type&quot;:vc.get(&quot;entity:credentialType&quot;),&quot;claims&quot;:mapped[&quot;claims&quot;],&quot;trust_level&quot;:vc.get(&quot;entity:trustLevel&quot;),&quot;status&quot;:&quot;ACTIVE&quot;,&quot;expires_at_ms&quot;:mapped[&quot;valid_until_ms&quot;],&quot;created_at_ms&quot;:mapped[&quot;valid_from_ms&quot;]}
+        return {&quot;data_model_valid&quot;:True,&quot;entity_signature_valid&quot;:bool(self.identity.verify_signature(issuer_manifest,body,signature)),&quot;proof_scope&quot;:&quot;ENTITY_EXTENSION_NOT_W3C_DATA_INTEGRITY&quot;}
+
+    @staticmethod
+    def export_odrl_policy(policy:dict,*,asset_ref:str,assignee:str|None=None)-&gt;dict:
+        rules=dict(policy.get(&quot;rules&quot;) or {}); out={&quot;@context&quot;:ODRL_CONTEXT,&quot;@type&quot;:&quot;Agreement&quot; if assignee else &quot;Set&quot;,&quot;uid&quot;:&quot;urn:entity:policy:%s:v%s&quot;%(policy[&quot;policy_id&quot;],policy[&quot;version&quot;]),&quot;profile&quot;:ENTITY_PROFILE}
+        permission=[]; prohibition=[]
+        for action,item in sorted(rules.items()):
+            rule={&quot;target&quot;:str(asset_ref),&quot;assigner&quot;:did(policy[&quot;controller_entity_id&quot;]),&quot;action&quot;:ENTITY_VOCAB+&quot;action/&quot;+str(action).lower()}
+            if assignee: rule[&quot;assignee&quot;]=str(assignee)
+            if item.get(&quot;constraints&quot;): rule[&quot;constraint&quot;]=[{&quot;leftOperand&quot;:ENTITY_VOCAB+str(k),&quot;operator&quot;:&quot;eq&quot;,&quot;rightOperand&quot;:v} for k,v in sorted(item[&quot;constraints&quot;].items())]
+            if item.get(&quot;duties&quot;): rule[&quot;duty&quot;]=[{&quot;action&quot;:ENTITY_VOCAB+&quot;duty/&quot;+str(x)} for x in item[&quot;duties&quot;]]
+            decision=str(item.get(&quot;decision&quot;) or &quot;PROHIBIT&quot;).upper()
+            (permission if decision in {&quot;PERMIT&quot;,&quot;LICENSE_REQUIRED&quot;,&quot;OWNER_ONLY&quot;} else prohibition).append(rule)
+        if permission: out[&quot;permission&quot;]=permission
+        if prohibition: out[&quot;prohibition&quot;]=prohibition
+        if not permission and not prohibition: raise ValueError(&quot;ODRL policy must contain a rule&quot;)
+        out[&quot;entity:sourcePolicy&quot;]={&quot;policy_id&quot;:policy[&quot;policy_id&quot;],&quot;version&quot;:int(policy[&quot;version&quot;]),&quot;rules&quot;:rules}
+        return out
+
+    @staticmethod
+    def import_odrl_policy(document:dict)-&gt;dict:
+        doc=dict(document or {}); context=doc.get(&quot;@context&quot;)
+        if context!=ODRL_CONTEXT and ODRL_CONTEXT not in (context if isinstance(context,list) else []): raise ValueError(&quot;ODRL context required&quot;)
+        if doc.get(&quot;@type&quot;) not in {&quot;Set&quot;,&quot;Offer&quot;,&quot;Agreement&quot;,&quot;Policy&quot;}: raise ValueError(&quot;unsupported ODRL policy type&quot;)
+        rules=[]
+        for kind,key in ((&quot;PERMIT&quot;,&quot;permission&quot;),(&quot;PROHIBIT&quot;,&quot;prohibition&quot;)):
+            for rule in doc.get(key) or []:
+                if not rule.get(&quot;target&quot;) or not rule.get(&quot;action&quot;): raise ValueError(&quot;ODRL rule target/action required&quot;)
+                rules.append({&quot;decision&quot;:kind,&quot;target&quot;:rule[&quot;target&quot;],&quot;action&quot;:rule[&quot;action&quot;],&quot;assigner&quot;:rule.get(&quot;assigner&quot;),&quot;assignee&quot;:rule.get(&quot;assignee&quot;)})
+        if not rules: raise ValueError(&quot;ODRL policy requires permission or prohibition&quot;)
+        return {&quot;uid&quot;:doc.get(&quot;uid&quot;),&quot;type&quot;:doc.get(&quot;@type&quot;),&quot;profile&quot;:doc.get(&quot;profile&quot;),&quot;rules&quot;:rules,&quot;verification_state&quot;:&quot;SEMANTICALLY_PARSED_NOT_LEGAL_DETERMINATION&quot;}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

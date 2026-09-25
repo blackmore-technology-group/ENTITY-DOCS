@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityAdoptionSDK.resolver_deployment Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityAdoptionSDK.resolver_deployment</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/36_Adoption_Layer/adoption_profile.py#L84">ENTITY/src/36_Adoption_Layer/adoption_profile.py#L84</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EntityAdoptionSDK.resolver_deployment(*, mode: str=&#x27;FEDERATED&#x27;, minimum_resolvers: int=2, offline_verify: bool=True)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def resolver_deployment(*, mode: str = &quot;FEDERATED&quot;, minimum_resolvers: int = 2,
+                            offline_verify: bool = True) -&gt; dict:
+        mode = str(mode).upper()
+        if mode != &quot;FEDERATED&quot;:
+            raise ValueError(&quot;v3.2 adoption resolver deployment is federated&quot;)
+        if int(minimum_resolvers) &lt; 2:
+            raise ValueError(&quot;independent resolver quorum must be at least two&quot;)
+        return {
+            &quot;schema&quot;: &quot;entity-v3-resolver-deployment-v1&quot;,
+            &quot;mode&quot;: &quot;FEDERATED&quot;,
+            &quot;minimum_resolvers&quot;: int(minimum_resolvers),
+            &quot;offline_verify&quot;: bool(offline_verify),
+            &quot;resolver_is_not_authority&quot;: True,
+            &quot;single_provider_dependency_prohibited&quot;: True,
+            &quot;fail_closed&quot;: True,
+        }</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

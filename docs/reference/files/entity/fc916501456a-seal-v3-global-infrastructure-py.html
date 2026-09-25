@@ -1,0 +1,69 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/seal_v3_global_infrastructure.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/seal_v3_global_infrastructure.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/seal_v3_global_infrastructure.py</code></p><p><b>SHA-256:</b> <code>af94f744185d68d7f5654d634c0f20d7af1646a9e0b7a8977826d7c6663f3c4e</code></p><p><b>Bytes:</b> 3,412</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/seal_v3_global_infrastructure.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/sha-5d6ab1acd97f.html">sha</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json, pathlib
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+BASE = [
+    &quot;src/35_Global_Infrastructure/institutional_semantics.py&quot;,
+    &quot;src/35_Global_Infrastructure/privacy_provenance.py&quot;,
+    &quot;src/35_Global_Infrastructure/topology_crypto.py&quot;,
+    &quot;src/35_Global_Infrastructure/data_economic_sovereignty.py&quot;,
+    &quot;protocol/v3/ENTITY_GLOBAL_INFRASTRUCTURE_PROFILE.md&quot;,
+    &quot;protocol/v3/ENTITY_DATA_ECONOMIC_SOVEREIGNTY_DOCTRINE.md&quot;,
+    &quot;protocol/v3/ENTITY_GLOBAL_INFRASTRUCTURE_GAP_CLOSURE.md&quot;,
+    &quot;protocol/v3/ENTITY_GLOBAL_INFRASTRUCTURE.schema.json&quot;,
+    &quot;protocol/v3/ENTITY_GLOBAL_CLEANROOM_PROFILE.json&quot;,
+    &quot;tests/test_v3_global_infrastructure.py&quot;,
+    &quot;tests/test_v3_data_economic_sovereignty.py&quot;,
+    &quot;tests/test_v3_global_conformance.py&quot;,
+    &quot;tools/build_v3_global_conformance.py&quot;,
+    &quot;tools/build_v3_global_cleanroom_profile.py&quot;,
+    &quot;tools/seal_v3_global_infrastructure.py&quot;,
+    &quot;tools/verify_v3_global_infrastructure_manifest.py&quot;,
+]
+VECTOR_DIR = ROOT / &quot;protocol&quot; / &quot;v3&quot; / &quot;global_vectors&quot;
+FILES = BASE + [p.relative_to(ROOT).as_posix() for p in sorted(VECTOR_DIR.glob(&quot;*&quot;)) if p.is_file()]
+
+def sha(path: pathlib.Path) -&gt; str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+missing = [rel for rel in FILES if not (ROOT / rel).is_file()]
+if missing:
+    raise SystemExit(&quot;missing global infrastructure evidence: &quot; + &quot;, &quot;.join(missing))
+entries = [{&quot;path&quot;: rel, &quot;sha256&quot;: sha(ROOT / rel)} for rel in sorted(FILES)]
+material = &quot;\n&quot;.join(f&quot;{x[&#x27;path&#x27;]}|{x[&#x27;sha256&#x27;]}&quot; for x in entries).encode()
+vector_manifest = json.loads((VECTOR_DIR / &quot;VECTOR_MANIFEST.json&quot;).read_text(encoding=&quot;utf-8-sig&quot;))
+manifest = {
+    &quot;schema&quot;: &quot;entity-v3-global-infrastructure-manifest-v1&quot;,
+    &quot;status&quot;: &quot;V3_1_0_BTG_INTERNAL_QUALIFIED_RELEASE_CANDIDATE&quot;,
+    &quot;base_release&quot;: &quot;v3.0.1&quot;,
+    &quot;base_commit&quot;: &quot;a977b013cb29504f04953c4fce33d2372e91097b&quot;,
+    &quot;full_regression&quot;: {&quot;passed&quot;: 116, &quot;total&quot;: 116},
+    &quot;targeted_global_tests&quot;: {&quot;passed&quot;: 22, &quot;total&quot;: 22},
+    &quot;conformance_vectors&quot;: {&quot;valid&quot;: vector_manifest[&quot;valid_vectors&quot;],
+                            &quot;invalid&quot;: vector_manifest[&quot;invalid_vectors&quot;]},
+    &quot;implemented_pressures&quot;: [
+        &quot;jurisdictional diversity&quot;,
+        &quot;semantic and ontology diversity&quot;,
+        &quot;multi-stakeholder governance mechanics&quot;,
+        &quot;privacy versus provenance controls&quot;,
+        &quot;distributed topology, partition handling and cryptographic migration&quot;,
+        &quot;data economic sovereignty and bounded rights-based scarcity&quot;,
+    ],
+    &quot;claim_boundaries&quot;: [
+        &quot;release publication state is recorded by the v3.1.0 top-level release manifest&quot;,
+        &quot;not unrelated third-party interoperability&quot;,
+        &quot;not independent cryptographic review&quot;,
+        &quot;not deployment-specific legal or regulatory approval&quot;,
+        &quot;not billion/trillion-scale production certification&quot;,
+    ],
+    &quot;files&quot;: entries,
+    &quot;snapshot_sha256&quot;: hashlib.sha256(material).hexdigest(),
+}
+out = ROOT / &quot;ENTITY_V3_GLOBAL_INFRASTRUCTURE_MANIFEST.json&quot;
+out.write_text(json.dumps(manifest, indent=2, sort_keys=True) + &quot;\n&quot;, encoding=&quot;utf-8&quot;)
+print(json.dumps({&quot;status&quot;: manifest[&quot;status&quot;], &quot;files&quot;: len(entries),
+                  &quot;snapshot_sha256&quot;: manifest[&quot;snapshot_sha256&quot;],
+                  &quot;full_regression&quot;: manifest[&quot;full_regression&quot;],
+                  &quot;targeted_global_tests&quot;: manifest[&quot;targeted_global_tests&quot;]}, indent=2))
+
+</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

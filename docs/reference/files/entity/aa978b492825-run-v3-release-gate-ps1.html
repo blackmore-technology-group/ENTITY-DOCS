@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/run_v3_release_gate.ps1 Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/run_v3_release_gate.ps1</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/run_v3_release_gate.ps1</code></p><p><b>SHA-256:</b> <code>886a719643df6e786d8c94554fc4cafb2034fe1bad882912e0645e1842f937ff</code></p><p><b>Bytes:</b> 773</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/run_v3_release_gate.ps1">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>param(
+    [string]$VenvPath = &quot;&quot;
+)
+
+$ErrorActionPreference = &quot;Stop&quot;
+$repo = Split-Path -Parent $PSScriptRoot
+if (-not $VenvPath) {
+    $workspace = Split-Path -Parent $repo
+    $VenvPath = Join-Path $workspace &quot;_venv_entity_v3&quot;
+}
+$python = Join-Path $VenvPath &quot;Scripts\python.exe&quot;
+
+&amp; (Join-Path $PSScriptRoot &quot;run_v3_regression.ps1&quot;) -VenvPath $VenvPath
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+Push-Location $repo
+try {
+    &amp; $python tools\qualify_v3_release.py
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    &amp; $python tools\verify_v3_development_manifest.py
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    &amp; $python tools\verify_v3_release_manifest.py
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    exit 0
+} finally {
+    Pop-Location
+}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

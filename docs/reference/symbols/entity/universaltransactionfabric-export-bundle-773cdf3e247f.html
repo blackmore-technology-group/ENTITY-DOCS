@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UniversalTransactionFabric.export_bundle Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>UniversalTransactionFabric.export_bundle</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py#L319">ENTITY/src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py#L319</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>UniversalTransactionFabric.export_bundle(self, object_id: str)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def export_bundle(self,object_id:str)-&gt;dict:
+        object_ids,edges=self._collect_ancestry(object_id)
+        objects=[self.get_object(x) for x in sorted(object_ids)]
+        controllers={x[&quot;controller_entity_id&quot;] for x in objects}
+        rights=self._active_right_records(object_ids)
+        authorities=self._active_authority_records(object_ids|controllers)
+        with self._connect() as db:
+            vals=[dict(r) for r in db.execute(&quot;SELECT * FROM value_records ORDER BY value_id&quot;) if r[&quot;object_id&quot;] in object_ids]
+            atts=[dict(r) for r in db.execute(&quot;SELECT * FROM attestations ORDER BY attestation_id&quot;) if r[&quot;subject_ref&quot;] in object_ids]
+            events=[dict(r) for r in db.execute(&quot;SELECT * FROM events ORDER BY event_id&quot;) if object_ids.intersection(set(json.loads(r[&quot;subject_refs_json&quot;])))]
+            resolutions=[]
+            for oid in sorted(object_ids):
+                row=db.execute(&quot;SELECT * FROM resolution WHERE object_id=? AND status=&#x27;ACTIVE&#x27; ORDER BY version DESC LIMIT 1&quot;,(oid,)).fetchone()
+                if row:
+                    x=dict(row); x[&quot;controller_entity_id&quot;]=next(o[&quot;controller_entity_id&quot;] for o in objects if o[&quot;object_id&quot;]==oid); resolutions.append(x)
+        for x in vals: x[&quot;signature&quot;]=json.loads(x.pop(&quot;signature_json&quot;))
+        for x in atts: x[&quot;claim&quot;]=json.loads(x.pop(&quot;claim_json&quot;)); x[&quot;signature&quot;]=json.loads(x.pop(&quot;signature_json&quot;))
+        for x in events: x[&quot;subject_refs&quot;]=json.loads(x.pop(&quot;subject_refs_json&quot;)); x[&quot;signature&quot;]=json.loads(x.pop(&quot;signature_json&quot;))
+        for x in resolutions: x[&quot;endpoints&quot;]=json.loads(x.pop(&quot;endpoints_json&quot;)); x[&quot;signature&quot;]=json.loads(x.pop(&quot;signature_json&quot;))
+        records={&quot;objects&quot;:objects,&quot;authorities&quot;:authorities,&quot;rights&quot;:rights,&quot;events&quot;:events,&quot;provenance_edges&quot;:edges,&quot;values&quot;:vals,&quot;attestations&quot;:atts,&quot;resolution&quot;:resolutions}
+        manifests=self._bundle_manifests(records)
+        bundle={&quot;schema&quot;:&quot;entity-v3-sovereign-bundle-v1&quot;,&quot;protocol_version&quot;:&quot;3.0.0&quot;,&quot;root_object_id&quot;:object_id,&quot;primitives&quot;:list(PRIMITIVES),&quot;identity_manifests&quot;:manifests,**records,&quot;provider_independent&quot;:True,&quot;exported_at_ms&quot;:_now()}
+        bundle[&quot;semantic_sha256&quot;]=_sha({k:v for k,v in bundle.items() if k!=&quot;exported_at_ms&quot;})
+        return bundle</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,61 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OpenEntityDeveloperSDKv11.ingest_asset Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>OpenEntityDeveloperSDKv11.ingest_asset</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/open_entity_sdk_v1_1/canonical_open_entity_sdk_v1_1.py#L33">ENTITY/sdk/open_entity_sdk_v1_1/canonical_open_entity_sdk_v1_1.py#L33</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>OpenEntityDeveloperSDKv11.ingest_asset(self, envelope: dict)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def ingest_asset(self,envelope:dict)-&gt;dict:
+        envelope=dict(envelope or {}); key,replay=self._check(envelope,ASSET_SCHEMA)
+        if replay is not None: return replay
+        decision=self._authorize(envelope,&quot;INGEST_ASSET&quot;)
+        if envelope.get(&quot;raw_content_included&quot;) is not False:
+            raise ValueError(&quot;raw content must not be embedded&quot;)
+        kind=str(envelope.get(&quot;asset_kind&quot;) or &quot;&quot;).upper()
+        if kind not in BASE.ASSET_KINDS: raise ValueError(&quot;unsupported asset_kind&quot;)
+        controller=str(envelope.get(&quot;asset_controller_entity_id&quot;) or self.application_entity_id)
+        allowed_controllers={self.application_entity_id}|{str(x) for x in (decision.get(&quot;authorized_asset_controllers&quot;) or [])}
+        if controller not in allowed_controllers:
+            raise PermissionError(&quot;asset controller is not delegated to this application operation&quot;)
+        self.identity.load_manifest(controller)
+        digest=self._digest(envelope.get(&quot;content_sha256&quot;))
+        manifest=self.identity.load_manifest(self.application_entity_id)
+        alias=(manifest.get(&quot;aliases&quot;) or [self.application_entity_id])[0]
+        addr=BASE.address_descriptor(alias,self.application_entity_id)
+        meta=dict(envelope.get(&quot;metadata&quot;) or {})
+        meta.update({&quot;asset_kind&quot;:kind,&quot;producer_entity_address&quot;:self.application_entity_id,
+                     &quot;asset_controller_entity_id&quot;:controller,&quot;producer_alias&quot;:alias,
+                     &quot;producer_alias_binding_sha256&quot;:addr[&quot;alias_binding_sha256&quot;],
+                     &quot;source_subject_ref&quot;:envelope.get(&quot;source_subject_ref&quot;),&quot;ownership_not_inferred&quot;:True,
+                     &quot;raw_content_stored_in_event_ledger&quot;:False})
+        asset=self.assets.register(controller,content_sha256=digest,size_bytes=int(envelope.get(&quot;size_bytes&quot;) or 0),
+            media_type=str(envelope.get(&quot;media_type&quot;) or &quot;application/octet-stream&quot;),title=str(envelope.get(&quot;title&quot;) or kind),
+            classification=str(envelope.get(&quot;classification&quot;) or &quot;PRIVATE&quot;),metadata=meta)
+        claims=[]; explicit=dict(envelope.get(&quot;explicit_rights_claim&quot;) or {})
+        if explicit:
+            claimant=str(explicit.get(&quot;claimant_entity_id&quot;) or self.application_entity_id)
+            allowed_claimants={self.application_entity_id}|{str(x) for x in (decision.get(&quot;authorized_rights_claimants&quot;) or [])}
+            if claimant not in allowed_claimants:
+                raise PermissionError(&quot;rights claimant is not delegated to this application operation&quot;)
+            self.identity.load_manifest(claimant)
+            if not explicit.get(&quot;legal_basis&quot;) or not explicit.get(&quot;right_type&quot;) or not explicit.get(&quot;evidence&quot;):
+                raise ValueError(&quot;explicit rights claim requires claimant_entity_id/right_type/legal_basis/evidence&quot;)
+            claims.append(self.rights.assert_claim(claimant,asset_id=asset[&quot;asset_id&quot;],right_type=str(explicit[&quot;right_type&quot;]),
+                legal_basis=str(explicit[&quot;legal_basis&quot;]),scope=dict(explicit.get(&quot;scope&quot;) or {}),
+                evidence=dict(explicit[&quot;evidence&quot;]),evidence_origin=str(explicit.get(&quot;evidence_origin&quot;) or &quot;ENTITY_ASSERTION&quot;)))
+        receipt=None; contributors=[dict(x) for x in (envelope.get(&quot;contributors&quot;) or [])]
+        if contributors:
+            receipt=self.knowledge.record(self.application_entity_id,kind=kind,title=str(envelope.get(&quot;title&quot;) or kind),
+                contributors=contributors,artifact_sha256=digest,
+                metadata={&quot;asset_id&quot;:asset[&quot;asset_id&quot;],&quot;origin_entity&quot;:self.application_entity_id,
+                          &quot;asset_controller_entity_id&quot;:controller},evidence_origin=&quot;ENTITY_ASSERTION&quot;)
+        derivations=[]; relation=&quot;model_output&quot; if kind==&quot;MODEL&quot; else &quot;other&quot;
+        for parent in envelope.get(&quot;parent_asset_ids&quot;) or []:
+            derivations.append(self.provenance.add_derivation(self.application_entity_id,str(parent),asset[&quot;asset_id&quot;],relation,
+                metadata={&quot;producer_entity_address&quot;:self.application_entity_id,&quot;asset_controller_entity_id&quot;:controller,
+                          &quot;automatic_open_sdk_capture&quot;:True},evidence_origin=&quot;ENTITY_ASSERTION&quot;))
+        event=self.ledger.append(self.application_entity_id,&quot;application.asset_ingested&quot;,
+            subject_ids=[self.application_entity_id,controller],object_ids=[asset[&quot;asset_id&quot;]],
+            payload={&quot;asset_id&quot;:asset[&quot;asset_id&quot;],&quot;asset_kind&quot;:kind,&quot;content_sha256&quot;:digest,
+                     &quot;producer_entity_address&quot;:self.application_entity_id,&quot;asset_controller_entity_id&quot;:controller,
+                     &quot;source_subject_ref&quot;:envelope.get(&quot;source_subject_ref&quot;),&quot;registration_not_ownership&quot;:True,
+                     &quot;economic_value_not_inferred&quot;:True})
+        result={&quot;schema&quot;:&quot;entity-open-sdk-asset-result-v1.1&quot;,&quot;producer_entity_address&quot;:self.application_entity_id,
+                &quot;asset_controller_entity_id&quot;:controller,&quot;address&quot;:addr,&quot;asset&quot;:asset,
+                &quot;explicit_rights_claims&quot;:claims,&quot;knowledge_receipt&quot;:receipt,&quot;derivations&quot;:derivations,
+                &quot;ingest_event&quot;:event,&quot;ownership_not_inferred&quot;:True,&quot;economic_value_not_inferred&quot;:True,
+                &quot;raw_content_stored&quot;:False,&quot;idempotent_replay&quot;:False}
+        self._remember(key,envelope,result); return result</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

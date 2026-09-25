@@ -1,0 +1,74 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / sdk/open_entity_sdk/entity_open_sdk_gateway.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / sdk/open_entity_sdk/entity_open_sdk_gateway.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>sdk/open_entity_sdk/entity_open_sdk_gateway.py</code></p><p><b>SHA-256:</b> <code>cf69c35491bf485042a2b489d6d0d0aa407f7c7aa3e01c21a4af6d6c0f103703</code></p><p><b>Bytes:</b> 4,072</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/open_entity_sdk/entity_open_sdk_gateway.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-008d1de94bff.html">_load</a></li><li><a href="../../../reference/symbols/entity/binding-00a77a5bfc11.html">_binding</a></li><li><a href="../../../reference/symbols/entity/enrich-b8e5acf14b2d.html">_enrich</a></li><li><a href="../../../reference/symbols/entity/health-076851a1fd34.html">health</a></li><li><a href="../../../reference/symbols/entity/validate-binding-716cc1816a09.html">validate_binding</a></li><li><a href="../../../reference/symbols/entity/ingest-asset-4d66df68520e.html">ingest_asset</a></li><li><a href="../../../reference/symbols/entity/record-event-16c0823701df.html">record_event</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+import importlib.util, os
+from fastapi import FastAPI, HTTPException, Request
+
+REPO=Path(__file__).resolve().parents[2]
+SRC=REPO/&quot;src&quot;
+SDK_ROOT=REPO/&quot;sdk&quot;
+STATE=Path(os.environ.get(&quot;ENTITY_STATE_DIR&quot;,&quot;./entity_state&quot;))
+
+def _load(name,path):
+    spec=importlib.util.spec_from_file_location(name,path)
+    mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+
+PB=_load(&quot;entity_gateway_pb&quot;,SDK_ROOT/&quot;principal_binding&quot;/&quot;canonical_principal_binding.py&quot;)
+SDK11=_load(&quot;entity_gateway_sdk11&quot;,SDK_ROOT/&quot;open_entity_sdk_v1_1&quot;/&quot;canonical_open_entity_sdk_v1_1.py&quot;)
+SDK1=_load(&quot;entity_gateway_sdk1&quot;,SDK_ROOT/&quot;open_entity_sdk&quot;/&quot;canonical_open_entity_sdk.py&quot;)
+app=FastAPI(title=&quot;ENTITY Open SDK Gateway&quot;,version=&quot;1.1&quot;)
+
+def _binding(envelope:dict)-&gt;dict:
+    binding=dict(envelope.get(&quot;principal_binding&quot;) or {})
+    q=PB.validate_bound_installation(STATE,binding)
+    if not q.get(&quot;valid&quot;): raise HTTPException(403,f&quot;principal binding invalid: {q.get(&#x27;reason&#x27;)}&quot;)
+    if str(envelope.get(&quot;application_entity_id&quot;))!=q[&quot;application_entity_id&quot;]:
+        raise HTTPException(403,&quot;application does not match principal binding&quot;)
+    return binding
+def _enrich(envelope:dict,binding:dict)-&gt;tuple[dict,dict]:
+    q=PB.validate_bound_installation(STATE,binding)
+    e=dict(envelope); meta=dict(e.get(&quot;metadata&quot;) or {})
+    meta.update({&quot;origin_principal_entity_id&quot;:q[&quot;principal_entity_id&quot;],
+                 &quot;origin_principal_pairwise_ref&quot;:q.get(&quot;principal_pairwise_ref&quot;),
+                 &quot;origin_installation_entity_id&quot;:q[&quot;installation_entity_id&quot;],
+                 &quot;origin_device_entity_id&quot;:q[&quot;device_entity_id&quot;],
+                 &quot;principal_binding_sha256&quot;:binding.get(&quot;binding_sha256&quot;)})
+    e[&quot;metadata&quot;]=meta
+    e[&quot;installation_entity_id&quot;]=q[&quot;installation_entity_id&quot;]
+    e[&quot;device_entity_id&quot;]=q[&quot;device_entity_id&quot;]
+    return e,q
+
+@app.get(&quot;/health&quot;)
+def health():
+    return {&quot;ok&quot;:True,&quot;schema&quot;:&quot;entity-open-sdk-gateway-v1.1&quot;,&quot;state_dir&quot;:str(STATE),
+            &quot;principal_binding_required&quot;:True,&quot;bare_entity_ids_accepted&quot;:False}
+
+@app.post(&quot;/entity/principal-binding/v1/validate&quot;)
+async def validate_binding(request:Request):
+    body=await request.json(); return PB.validate_bound_installation(STATE,dict(body or {}))
+@app.post(&quot;/entity/open-sdk/v1.1/assets&quot;)
+async def ingest_asset(request:Request):
+    envelope=dict(await request.json() or {}); binding=_binding(envelope); enriched,q=_enrich(envelope,binding)
+    sdk=SDK11.OpenEntityDeveloperSDKv11(STATE,q[&quot;application_entity_id&quot;],authorizer=PB.binding_authorizer(STATE,binding))
+    try: result=sdk.ingest_asset(enriched)
+    except PermissionError as exc: raise HTTPException(403,str(exc))
+    except ValueError as exc: raise HTTPException(400,str(exc))
+    result[&quot;principal_binding_verified&quot;]=True
+    result[&quot;origin_principal_entity_id&quot;]=q[&quot;principal_entity_id&quot;]
+    result[&quot;origin_installation_entity_id&quot;]=q[&quot;installation_entity_id&quot;]
+    result[&quot;origin_device_entity_id&quot;]=q[&quot;device_entity_id&quot;]
+    return result
+
+@app.post(&quot;/entity/open-sdk/v1/events&quot;)
+async def record_event(request:Request):
+    envelope=dict(await request.json() or {}); binding=_binding(envelope); q=PB.validate_bound_installation(STATE,binding)
+    subjects=[str(x) for x in (envelope.get(&quot;subject_ids&quot;) or [])]
+    for value in (q[&quot;principal_entity_id&quot;],q[&quot;installation_entity_id&quot;],q[&quot;device_entity_id&quot;]):
+        if value not in subjects: subjects.append(value)
+    envelope[&quot;subject_ids&quot;]=subjects
+    sdk=SDK11.OpenEntityDeveloperSDKv11(STATE,q[&quot;application_entity_id&quot;],authorizer=PB.binding_authorizer(STATE,binding))
+    try: result=sdk.record_event(envelope)
+    except PermissionError as exc: raise HTTPException(403,str(exc))
+    except ValueError as exc: raise HTTPException(400,str(exc))
+    result.update({&quot;principal_binding_verified&quot;:True,&quot;origin_principal_entity_id&quot;:q[&quot;principal_entity_id&quot;],
+                   &quot;origin_installation_entity_id&quot;:q[&quot;installation_entity_id&quot;],&quot;origin_device_entity_id&quot;:q[&quot;device_entity_id&quot;]})
+    return result</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

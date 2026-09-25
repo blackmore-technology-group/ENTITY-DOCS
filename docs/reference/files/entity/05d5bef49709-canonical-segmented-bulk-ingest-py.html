@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/04_Entity_Registry/bulk_ingest/canonical_segmented_bulk_ingest.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/04_Entity_Registry/bulk_ingest/canonical_segmented_bulk_ingest.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/04_Entity_Registry/bulk_ingest/canonical_segmented_bulk_ingest.py</code></p><p><b>SHA-256:</b> <code>2d8e3c4d0b5609520407894ddde1489152dde4232a1349f063d58921caf8da09</code></p><p><b>Bytes:</b> 16,090</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/04_Entity_Registry/bulk_ingest/canonical_segmented_bulk_ingest.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-504cdd59b7b2.html">_now</a></li><li><a href="../../../reference/symbols/entity/canon-54cdb1dbe37b.html">_canon</a></li><li><a href="../../../reference/symbols/entity/sha-0c2dc58a11c8.html">_sha</a></li><li><a href="../../../reference/symbols/entity/file-sha-26c9645c0e24.html">_file_sha</a></li><li><a href="../../../reference/symbols/entity/merkle-8b0b74c651e8.html">_merkle</a></li><li><a href="../../../reference/symbols/entity/canonicalsegmentedbulkstore-d7bc7ecdda93.html">CanonicalSegmentedBulkStore</a></li><li><a href="../../../reference/symbols/entity/canonicalsegmentedbulkstore-init-81e5ba6dfb52.html">CanonicalSegmentedBulkStore.__init__</a></li><li><a href="../../../reference/symbols/entity/canonicalsegmentedbulkstore-manifest-d947417c157e.html">CanonicalSegmentedBulkStore._manifest</a></li><li><a href="../../../reference/symbols/entity/canonicalsegmentedbulkstore-init-manifest-023b535d26fb.html">CanonicalSegmentedBulkStore._init_manifest</a></li><li><a href="../../../reference/symbols/entity/canonicalsegmentedbulkstore-valid-digest-c20fb3802073.html">CanonicalSegmentedBulkStore._valid_digest</a></li><li><a href="../../../reference/symbols/entity/canonicalsegmentedbulkstore-heads-04152a677576.html">CanonicalSegmentedBulkStore._heads</a></li><li><a href="../../../reference/symbols/entity/canonicalsegmentedbulkstore-segment-path-787ce3481bda.html">CanonicalSegmentedBulkStore._segment_path</a></li><li><a href="../../../reference/symbols/entity/canonicalsegmentedbulkstore-build-segment-7b686241fa3c.html">CanonicalSegmentedBulkStore._build_segment</a></li><li><a href="../../../reference/symbols/entity/canonicalsegmentedbulkstore-ingest-segment-ffec46ed0809.html">CanonicalSegmentedBulkStore.ingest_segment</a></li><li><a href="../../../reference/symbols/entity/canonicalsegmentedbulkstore-verify-segment-17a05a2490b9.html">CanonicalSegmentedBulkStore.verify_segment</a></li><li><a href="../../../reference/symbols/entity/canonicalsegmentedbulkstore-verify-all-f7ae469d3c45.html">CanonicalSegmentedBulkStore.verify_all</a></li><li><a href="../../../reference/symbols/entity/canonicalsegmentedbulkstore-status-2cb60801d707.html">CanonicalSegmentedBulkStore.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from contextlib import contextmanager
+from threading import RLock
+from typing import Iterable
+import hashlib, json, os, sqlite3, time
+
+ZERO_HASH=&quot;0&quot;*64
+SCHEMA=&quot;entity-segmented-bulk-ingest-v1&quot;
+
+def _now(): return int(time.time()*1000)
+def _canon(v): return json.dumps(v,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False).encode(&quot;utf-8&quot;)
+def _sha(v): return hashlib.sha256(v if isinstance(v,(bytes,bytearray)) else _canon(v)).hexdigest()
+def _file_sha(path:Path):
+    h=hashlib.sha256()
+    with path.open(&quot;rb&quot;) as f:
+        for chunk in iter(lambda:f.read(8*1024*1024),b&quot;&quot;): h.update(chunk)
+    return h.hexdigest()
+def _merkle(leaves:list[str])-&gt;str:
+    if not leaves: return ZERO_HASH
+    layer=[bytes.fromhex(x) for x in leaves]
+    while len(layer)&gt;1:
+        if len(layer)%2: layer.append(layer[-1])
+        layer=[hashlib.sha256(layer[i]+layer[i+1]).digest() for i in range(0,len(layer),2)]
+    return layer[0].hex()
+
+class CanonicalSegmentedBulkStore:
+    &quot;&quot;&quot;Immutable signed batch segments for production-scale ingestion.
+
+    Each segment is created off to the side, hashed, then atomically published by a
+    signed manifest-chain record. Unpublished/orphan temp segments carry no authority.
+    &quot;&quot;&quot;
+    def __init__(self,root:str|Path,identity,controller_entity_id:str):
+        self.root=Path(root); self.root.mkdir(parents=True,exist_ok=True)
+        self.segments=self.root/&quot;segments&quot;; self.segments.mkdir(exist_ok=True)
+        self.manifest_path=self.root/&quot;manifest.sqlite&quot;
+        self.identity=identity; self.controller_entity_id=str(controller_entity_id)
+        self.identity.load_manifest(self.controller_entity_id)
+        self.sign=self.identity.open_signing_session(self.controller_entity_id)
+        self._lock=RLock(); self._init_manifest()
+
+    @contextmanager
+    def _manifest(self):
+        db=sqlite3.connect(self.manifest_path,timeout=120); db.row_factory=sqlite3.Row
+        try:
+            yield db; db.commit()
+        except Exception:
+            db.rollback(); raise
+        finally: db.close()
+
+    def _init_manifest(self):
+        with self._manifest() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;); db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS batches(sequence INTEGER PRIMARY KEY AUTOINCREMENT,batch_id TEXT UNIQUE NOT NULL,segment_name TEXT UNIQUE NOT NULL,segment_sha256 TEXT NOT NULL,controller_entity_id TEXT NOT NULL,asset_count INTEGER NOT NULL,event_count INTEGER NOT NULL,asset_merkle_root TEXT NOT NULL,start_prior_event_hash TEXT NOT NULL,end_event_hash TEXT NOT NULL,prior_batch_hash TEXT NOT NULL,batch_hash TEXT NOT NULL,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS meta(k TEXT PRIMARY KEY,v TEXT NOT NULL)&quot;)
+            for k,v in ((&quot;event_head&quot;,ZERO_HASH),(&quot;batch_head&quot;,ZERO_HASH),(&quot;asset_total&quot;,&quot;0&quot;),(&quot;event_total&quot;,&quot;0&quot;)):
+                db.execute(&quot;INSERT OR IGNORE INTO meta(k,v) VALUES(?,?)&quot;,(k,v))
+
+    @staticmethod
+    def _valid_digest(value:str)-&gt;str:
+        digest=str(value or &quot;&quot;).lower()
+        if len(digest)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in digest):
+            raise ValueError(&quot;content_sha256 must be SHA-256 hex&quot;)
+        return digest
+
+    def _heads(self):
+        with self._manifest() as db:
+            event_head=db.execute(&quot;SELECT v FROM meta WHERE k=&#x27;event_head&#x27;&quot;).fetchone()[0]
+            batch_head=db.execute(&quot;SELECT v FROM meta WHERE k=&#x27;batch_head&#x27;&quot;).fetchone()[0]
+            assets=int(db.execute(&quot;SELECT v FROM meta WHERE k=&#x27;asset_total&#x27;&quot;).fetchone()[0])
+            events=int(db.execute(&quot;SELECT v FROM meta WHERE k=&#x27;event_total&#x27;&quot;).fetchone()[0])
+        return event_head,batch_head,assets,events
+
+    def _segment_path(self,batch_id:str)-&gt;Path:
+        safe=&quot;&quot;.join(c for c in str(batch_id) if c.isalnum() or c in &quot;-_&quot;)
+        if not safe or safe!=str(batch_id): raise ValueError(&quot;batch_id must be filesystem safe&quot;)
+        return self.segments/f&quot;{safe}.sqlite&quot;
+
+    def _build_segment(self,records:Iterable[dict],batch_id:str,start_prior:str,created_at_ms:int,temp_path:Path):
+        if temp_path.exists(): temp_path.unlink()
+        db=sqlite3.connect(temp_path,timeout=120)
+        try:
+            db.execute(&quot;PRAGMA journal_mode=OFF&quot;); db.execute(&quot;PRAGMA synchronous=OFF&quot;); db.execute(&quot;PRAGMA temp_store=MEMORY&quot;)
+            db.execute(&quot;CREATE TABLE assets(asset_ordinal INTEGER PRIMARY KEY,asset_id TEXT UNIQUE NOT NULL,controller_entity_id TEXT NOT NULL,content_sha256 TEXT NOT NULL,size_bytes INTEGER NOT NULL,media_type TEXT NOT NULL,title TEXT NOT NULL,classification TEXT NOT NULL,metadata_sha256 TEXT NOT NULL,record_sha256 TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE events(local_sequence INTEGER PRIMARY KEY,event_id TEXT UNIQUE NOT NULL,event_type TEXT NOT NULL,actor_entity_id TEXT NOT NULL,asset_id TEXT NOT NULL,payload_sha256 TEXT NOT NULL,prior_hash TEXT NOT NULL,event_hash TEXT NOT NULL,timestamp_ms INTEGER NOT NULL)&quot;)
+            asset_rows=[]; event_rows=[]; leaves=[]; prior=start_prior
+            for ordinal,item in enumerate(records):
+                digest=self._valid_digest(item.get(&quot;content_sha256&quot;)); metadata=dict(item.get(&quot;metadata&quot;) or {})
+                asset_id=f&quot;assets1-{batch_id}-{ordinal:05d}-{digest[:16]}&quot;
+                body={&quot;schema&quot;:&quot;entity-segmented-asset-v1&quot;,&quot;asset_id&quot;:asset_id,&quot;controller_entity_id&quot;:self.controller_entity_id,&quot;content_sha256&quot;:digest,&quot;size_bytes&quot;:max(0,int(item.get(&quot;size_bytes&quot;) or 0)),&quot;media_type&quot;:str(item.get(&quot;media_type&quot;) or &quot;application/octet-stream&quot;)[:128],&quot;title&quot;:str(item.get(&quot;title&quot;) or &quot;&quot;)[:512],&quot;classification&quot;:str(item.get(&quot;classification&quot;) or &quot;PRIVATE&quot;).upper()[:32],&quot;metadata_sha256&quot;:_sha(metadata),&quot;created_at_ms&quot;:created_at_ms,&quot;registration_not_ownership&quot;:True}
+                record_sha=_sha(body); leaves.append(record_sha)
+                asset_rows.append((ordinal,asset_id,self.controller_entity_id,digest,body[&quot;size_bytes&quot;],body[&quot;media_type&quot;],body[&quot;title&quot;],body[&quot;classification&quot;],body[&quot;metadata_sha256&quot;],record_sha,created_at_ms))
+                for suffix,event_type,payload in (
+                    (&quot;r&quot;,&quot;asset.registered&quot;,{&quot;asset_id&quot;:asset_id,&quot;content_sha256&quot;:digest,&quot;registration_not_ownership&quot;:True}),
+                    (&quot;p&quot;,&quot;provenance.recorded&quot;,{&quot;asset_id&quot;:asset_id,&quot;content_sha256&quot;:digest,&quot;truth_not_inferred&quot;:True}),
+                    (&quot;c&quot;,&quot;controller.claimed&quot;,{&quot;asset_id&quot;:asset_id,&quot;right_type&quot;:&quot;DATA_CONTROLLER&quot;,&quot;legal_truth_not_inferred&quot;:True}),
+                ):
+                    event_id=f&quot;evts1-{batch_id}-{ordinal:05d}-{suffix}&quot;
+                    payload_sha=_sha(payload)
+                    ev_body={&quot;schema&quot;:&quot;ENTITY-SEGMENT-EVENT-v1&quot;,&quot;event_id&quot;:event_id,&quot;event_type&quot;:event_type,&quot;actor_entity_id&quot;:self.controller_entity_id,&quot;asset_id&quot;:asset_id,&quot;payload_sha256&quot;:payload_sha,&quot;prior_hash&quot;:prior,&quot;batch_id&quot;:batch_id,&quot;timestamp_ms&quot;:created_at_ms}
+                    event_hash=_sha(ev_body)
+                    event_rows.append((len(event_rows)+1,event_id,event_type,self.controller_entity_id,asset_id,payload_sha,prior,event_hash,created_at_ms))
+                    prior=event_hash
+            if not asset_rows: raise ValueError(&quot;segment batch must contain at least one asset&quot;)
+            db.execute(&quot;BEGIN&quot;)
+            db.executemany(&quot;INSERT INTO assets VALUES(?,?,?,?,?,?,?,?,?,?,?)&quot;,asset_rows)
+            db.executemany(&quot;INSERT INTO events VALUES(?,?,?,?,?,?,?,?,?)&quot;,event_rows)
+            db.commit()
+            db.execute(&quot;PRAGMA optimize&quot;)
+            return {&quot;asset_count&quot;:len(asset_rows),&quot;event_count&quot;:len(event_rows),&quot;asset_merkle_root&quot;:_merkle(leaves),&quot;end_event_hash&quot;:prior}
+        finally:
+            db.close()
+
+    def ingest_segment(self,records:Iterable[dict],*,batch_id:str)-&gt;dict:
+        batch_id=str(batch_id or &quot;&quot;).strip()
+        if not batch_id: raise ValueError(&quot;batch_id required&quot;)
+        with self._lock:
+            final_path=self._segment_path(batch_id); temp_path=final_path.with_suffix(&quot;.sqlite.tmp&quot;)
+            with self._manifest() as db:
+                if db.execute(&quot;SELECT 1 FROM batches WHERE batch_id=?&quot;,(batch_id,)).fetchone(): raise ValueError(&quot;batch_id already exists&quot;)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

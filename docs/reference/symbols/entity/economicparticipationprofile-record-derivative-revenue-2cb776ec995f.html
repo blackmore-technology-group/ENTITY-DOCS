@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EconomicParticipationProfile.record_derivative_revenue Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EconomicParticipationProfile.record_derivative_revenue</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/33_Economic_Participation/economic_participation.py#L362">ENTITY/src/33_Economic_Participation/economic_participation.py#L362</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EconomicParticipationProfile.record_derivative_revenue(self, policy_id, payer_entity_id, derivative_ref, gross_amount_units, currency, evidence_sha256, *, occurred_at_ms=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def record_derivative_revenue(self,policy_id,payer_entity_id,derivative_ref,gross_amount_units,currency,evidence_sha256,*,occurred_at_ms=None):
+        with self._db() as db:
+            policy=db.execute(&#x27;SELECT * FROM participation_policies WHERE policy_id=?&#x27;,(policy_id,)).fetchone()
+        if not policy: raise KeyError(&#x27;participation policy not found&#x27;)
+        occurred=int(occurred_at_ms or now_ms())
+        if occurred&gt;now_ms(): raise ValueError(&#x27;derivative revenue event cannot be future-dated&#x27;)
+        effective=self._active_policy(policy[&#x27;instrument_id&#x27;],occurred)
+        if effective[&#x27;policy_id&#x27;]!=policy_id:
+            raise ValueError(&#x27;selected participation policy was not effective at derivative event time&#x27;)
+        currency=str(currency).upper()
+        if currency!=str(policy[&#x27;currency&#x27;]).upper():
+            raise ValueError(&#x27;derivative revenue currency differs from participation policy&#x27;)
+        evidence=require_sha256(evidence_sha256)
+        treasury=self._treasury(policy[&#x27;treasury_id&#x27;]); bps=int(policy[&#x27;derivative_participation_bps&#x27;]); gross=max(0,int(gross_amount_units))
+        event,obligation=self._event_with_obligation(
+            &#x27;DERIVATIVE_COMMERCIAL_REVENUE&#x27;,policy,treasury,payer_entity_id,derivative_ref,gross,currency,
+            {&#x27;revenue_amount_asserted_by_payer&#x27;:True,&#x27;methodology&#x27;:&#x27;CONTRACTUAL_BPS&#x27;,&#x27;occurred_at_ms&#x27;:occurred,
+             &#x27;policy_bound_at_event_time&#x27;:True,&#x27;atomic_event_obligation&#x27;:True},
+            payer_entity_id,treasury[&#x27;treasury_entity_id&#x27;],gross*bps//10000,&#x27;DERIVATIVE_PARTICIPATION&#x27;,bps,
+            evidence,dedupe_key=f&quot;DERIVATIVE:{policy_id}:{derivative_ref}:{evidence}&quot;)
+        return {&#x27;event&#x27;:event,&#x27;obligation&#x27;:obligation,&#x27;protocol_tax_bps&#x27;:0}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

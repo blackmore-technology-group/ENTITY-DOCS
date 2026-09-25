@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/31_Profiles/profile_core.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/31_Profiles/profile_core.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/31_Profiles/profile_core.py</code></p><p><b>SHA-256:</b> <code>36e5bf598d6bdfccf25b961dcc2b7a8c1c4af90f27d92aa49cfb286ec05318be</code></p><p><b>Bytes:</b> 11,655</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/profile_core.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/canonical-json-cffdaf0f167d.html">canonical_json</a></li><li><a href="../../../reference/symbols/entity/sha256-5e0472be7a30.html">sha256</a></li><li><a href="../../../reference/symbols/entity/now-ms-5e883d9b99be.html">now_ms</a></li><li><a href="../../../reference/symbols/entity/profiledescriptor-628e5fcbe7a8.html">ProfileDescriptor</a></li><li><a href="../../../reference/symbols/entity/profileregistry-06884fa60d12.html">ProfileRegistry</a></li><li><a href="../../../reference/symbols/entity/rightsontology-012d2e96b581.html">RightsOntology</a></li><li><a href="../../../reference/symbols/entity/standardgovernance-f804de52e5a7.html">StandardGovernance</a></li><li><a href="../../../reference/symbols/entity/core-status-65f3dba33e2c.html">core_status</a></li><li><a href="../../../reference/symbols/entity/profileregistry-init-de7a1b08ba7a.html">ProfileRegistry.__init__</a></li><li><a href="../../../reference/symbols/entity/profileregistry-register-7759986d4ae2.html">ProfileRegistry.register</a></li><li><a href="../../../reference/symbols/entity/profileregistry-negotiate-0f83c41d699f.html">ProfileRegistry.negotiate</a></li><li><a href="../../../reference/symbols/entity/profileregistry-register-schema-96b02c944213.html">ProfileRegistry.register_schema</a></li><li><a href="../../../reference/symbols/entity/rightsontology-closure-0b9ab9a9ccf7.html">RightsOntology.closure</a></li><li><a href="../../../reference/symbols/entity/rightsontology-evaluate-790d5af567a9.html">RightsOntology.evaluate</a></li><li><a href="../../../reference/symbols/entity/standardgovernance-init-baf89ed44575.html">StandardGovernance.__init__</a></li><li><a href="../../../reference/symbols/entity/standardgovernance-propose-07422109031c.html">StandardGovernance.propose</a></li><li><a href="../../../reference/symbols/entity/standardgovernance-endorse-c566ca7803d6.html">StandardGovernance.endorse</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+import hashlib, json, sqlite3, time
+
+CORE_VERSION = &quot;3.0.0&quot;
+CORE_PRIMITIVES = (&quot;ENTITY&quot;, &quot;AUTHORITY&quot;, &quot;RIGHT&quot;, &quot;EVENT&quot;, &quot;VALUE&quot;)
+CORE_CAPABILITIES = (
+    &quot;canonical_serialization&quot;, &quot;identity_object_addressing&quot;, &quot;signature_verification&quot;,
+    &quot;authority_references&quot;, &quot;rights_references&quot;, &quot;event_state_transitions&quot;,
+    &quot;recovery_verification&quot;,
+)
+
+def canonical_json(value: Any) -&gt; bytes:
+    return json.dumps(value, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False, default=str).encode()
+
+def sha256(value: Any) -&gt; str:
+    raw = value if isinstance(value, (bytes, bytearray)) else canonical_json(value)
+    return hashlib.sha256(raw).hexdigest()
+
+def now_ms() -&gt; int:
+    return int(time.time() * 1000)
+
+@dataclass(frozen=True)
+class ProfileDescriptor:
+    profile_id: str
+    version: str
+    schema_hash: str
+    dependencies: tuple[str, ...] = ()
+    mandatory: bool = False
+
+class ProfileRegistry:
+    &quot;&quot;&quot;Optional versioned profiles; core conformance never implies profile conformance.&quot;&quot;&quot;
+    def __init__(self, root: str | Path):
+        self.path = Path(root) / &quot;entity_v3_profiles.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS profiles(
+                profile_id TEXT NOT NULL, version TEXT NOT NULL, schema_hash TEXT NOT NULL,
+                dependencies_json TEXT NOT NULL, mandatory INTEGER NOT NULL,
+                status TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+                PRIMARY KEY(profile_id,version))&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS schemas(
+                schema_id TEXT NOT NULL, version TEXT NOT NULL, schema_hash TEXT NOT NULL,
+                compatibility TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+                PRIMARY KEY(schema_id,version))&quot;&quot;&quot;)
+
+    def register(self, d: ProfileDescriptor) -&gt; dict:
+        if len(d.schema_hash) != 64:
+            raise ValueError(&quot;schema_hash must be SHA-256&quot;)
+        deps = tuple(sorted(set(d.dependencies)))
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            old = db.execute(&quot;SELECT * FROM profiles WHERE profile_id=? AND version=?&quot;,
+                             (d.profile_id, d.version)).fetchone()
+            if old:
+                if old[&quot;schema_hash&quot;] != d.schema_hash:
+                    raise ValueError(&quot;immutable profile version changed&quot;)
+                return dict(old)
+            for dep in deps:
+                pid, sep, ver = dep.partition(&quot;@&quot;)
+                if not sep or not db.execute(
+                    &quot;SELECT 1 FROM profiles WHERE profile_id=? AND version=? AND status=&#x27;ACTIVE&#x27;&quot;,
+                    (pid, ver)).fetchone():
+                    raise ValueError(f&quot;missing profile dependency: {dep}&quot;)
+            db.execute(&quot;INSERT INTO profiles VALUES(?,?,?,?,?,?,?)&quot;, (
+                d.profile_id, d.version, d.schema_hash, json.dumps(deps),
+                int(d.mandatory), &quot;ACTIVE&quot;, now_ms()))
+        return {&quot;profile_id&quot;: d.profile_id, &quot;version&quot;: d.version, &quot;schema_hash&quot;: d.schema_hash,
+                &quot;dependencies&quot;: list(deps), &quot;mandatory&quot;: d.mandatory, &quot;status&quot;: &quot;ACTIVE&quot;}
+
+    def negotiate(self, local: dict[str, list[str]], remote: dict[str, list[str]]) -&gt; dict:
+        selected, incompatible = {}, []
+        for pid in sorted(set(local) | set(remote)):
+            common = sorted(set(local.get(pid, [])) &amp; set(remote.get(pid, [])))
+            if common:
+                selected[pid] = common[-1]
+            elif pid in local and pid in remote:
+                incompatible.append(pid)
+        return {&quot;core_version&quot;: CORE_VERSION, &quot;selected_profiles&quot;: selected,
+                &quot;incompatible_profiles&quot;: incompatible, &quot;core_interop_preserved&quot;: True}
+
+    def register_schema(self, schema_id: str, version: str, document: Any,
+                        compatibility: str = &quot;IMMUTABLE&quot;) -&gt; dict:
+        compatibility = compatibility.upper()
+        if compatibility not in {&quot;IMMUTABLE&quot;, &quot;BACKWARD&quot;, &quot;FORWARD&quot;, &quot;BIDIRECTIONAL&quot;}:
+            raise ValueError(&quot;invalid compatibility&quot;)
+        digest = sha256(document)
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            old = db.execute(&quot;SELECT * FROM schemas WHERE schema_id=? AND version=?&quot;,
+                             (schema_id, version)).fetchone()
+            if old:
+                if old[&quot;schema_hash&quot;] != digest:
+                    raise ValueError(&quot;immutable historical schema changed&quot;)
+                return dict(old)
+            db.execute(&quot;INSERT INTO schemas VALUES(?,?,?,?,?)&quot;,
+                       (schema_id, version, digest, compatibility, now_ms()))
+        return {&quot;schema_id&quot;: schema_id, &quot;version&quot;: version, &quot;schema_hash&quot;: digest,
+                &quot;compatibility&quot;: compatibility}
+
+class RightsOntology:
+    &quot;&quot;&quot;Canonical rights terms with deterministic precedence and deny-by-default.&quot;&quot;&quot;
+    TERMS = {
+        &quot;INSPECT&quot;: [], &quot;READ&quot;: [&quot;INSPECT&quot;], &quot;QUERY&quot;: [&quot;INSPECT&quot;],
+        &quot;COPY&quot;: [&quot;READ&quot;], &quot;DERIVE&quot;: [&quot;READ&quot;], &quot;TRAIN&quot;: [&quot;READ&quot;],
+        &quot;INFER&quot;: [&quot;QUERY&quot;], &quot;EXECUTE&quot;: [], &quot;MODIFY&quot;: [&quot;READ&quot;],
+        &quot;REDISTRIBUTE&quot;: [&quot;COPY&quot;], &quot;COMMERCIALIZE&quot;: [], &quot;SUBLICENSE&quot;: [],
+        &quot;CONTROL&quot;: [], &quot;TRANSFER&quot;: [],
+    }
+
+    @classmethod
+    def closure(cls, actions) -&gt; set[str]:
+        out = {str(a).upper() for a in actions}
+        unknown = out - set(cls.TERMS)
+        if unknown:
+            raise ValueError(f&quot;unknown rights terms: {sorted(unknown)}&quot;)
+        changed = True
+        while changed:</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

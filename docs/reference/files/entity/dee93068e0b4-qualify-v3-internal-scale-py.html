@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/qualify_v3_internal_scale.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/qualify_v3_internal_scale.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/qualify_v3_internal_scale.py</code></p><p><b>SHA-256:</b> <code>7e86354207c71f38d3e130298ad180969e2b43547e118b0bc6149da47d41faec</code></p><p><b>Bytes:</b> 3,489</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/qualify_v3_internal_scale.py">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>from __future__ import annotations
+import sqlite3,hashlib,json,time,tempfile,pathlib,os,random,shutil
+ASSETS=1_000_000; EVENTS=3_000_000; BATCH=10_000; SEED=3000007
+REPO=pathlib.Path(__file__).resolve().parents[1]
+OUT=REPO/&#x27;docs/qualification/ENTITY_V3_INTERNAL_SCALE_QUALIFICATION_2026-09-23.json&#x27;
+work=pathlib.Path(tempfile.gettempdir())/&#x27;ENTITY_V3_SCALE_20260923&#x27;; shutil.rmtree(work,ignore_errors=True);work.mkdir(parents=True);db=work/&#x27;scale.db&#x27;
+start=time.perf_counter(); con=sqlite3.connect(db);con.execute(&#x27;PRAGMA journal_mode=WAL&#x27;);con.execute(&#x27;PRAGMA synchronous=NORMAL&#x27;);con.execute(&#x27;PRAGMA temp_store=MEMORY&#x27;);con.execute(&#x27;CREATE TABLE assets(asset_id INTEGER PRIMARY KEY, owner INTEGER NOT NULL, provenance TEXT NOT NULL)&#x27;);con.execute(&#x27;CREATE TABLE events(event_id INTEGER PRIMARY KEY, asset_id INTEGER NOT NULL, seq INTEGER NOT NULL, kind TEXT NOT NULL, amount_minor INTEGER NOT NULL)&#x27;);
+h_assets=hashlib.sha256();t=time.perf_counter()
+for base in range(1,ASSETS+1,BATCH):
+ rows=[]
+ for i in range(base,min(base+BATCH,ASSETS+1)):
+  prov=hashlib.sha256(f&#x27;asset:{i}:v3&#x27;.encode()).hexdigest();rows.append((i,(i%10000)+1,prov));h_assets.update(f&#x27;{i}|{(i%10000)+1}|{prov}\n&#x27;.encode())
+ con.executemany(&#x27;INSERT INTO assets VALUES(?,?,?)&#x27;,rows);con.commit()
+asset_seconds=time.perf_counter()-t
+h_events=hashlib.sha256();kinds=(&#x27;REGISTER&#x27;,&#x27;RIGHT&#x27;,&#x27;USE&#x27;,&#x27;VALUE&#x27;);t=time.perf_counter()
+for base in range(1,EVENTS+1,BATCH):
+ rows=[]
+ for i in range(base,min(base+BATCH,EVENTS+1)):
+  aid=((i-1)%ASSETS)+1;seq=((i-1)//ASSETS)+1;kind=kinds[i%4];amt=(i*37)%100000
+  rows.append((i,aid,seq,kind,amt));h_events.update(f&#x27;{i}|{aid}|{seq}|{kind}|{amt}\n&#x27;.encode())
+ con.executemany(&#x27;INSERT INTO events VALUES(?,?,?,?,?)&#x27;,rows);con.commit()
+event_seconds=time.perf_counter()-t
+con.execute(&#x27;CREATE INDEX idx_events_asset_seq ON events(asset_id,seq)&#x27;);con.commit();con.close();size=db.stat().st_size
+# close/reopen verification
+con=sqlite3.connect(db);ac=con.execute(&#x27;SELECT COUNT(*) FROM assets&#x27;).fetchone()[0];ec=con.execute(&#x27;SELECT COUNT(*) FROM events&#x27;).fetchone()[0];samples=[]
+for aid in (1,2,99991,500000,999999,1000000): samples.append(con.execute(&#x27;SELECT asset_id,owner,provenance FROM assets WHERE asset_id=?&#x27;,(aid,)).fetchone())
+for eid in (1,2,1000000,2000000,3000000): samples.append(con.execute(&#x27;SELECT event_id,asset_id,seq,kind,amount_minor FROM events WHERE event_id=?&#x27;,(eid,)).fetchone())
+qc=con.execute(&#x27;PRAGMA quick_check&#x27;).fetchone()[0];con.close();sample_hash=hashlib.sha256(json.dumps(samples,separators=(&#x27;,&#x27;,&#x27;:&#x27;)).encode()).hexdigest();elapsed=time.perf_counter()-start
+payload={&#x27;schema&#x27;:&#x27;entity-v3-internal-scale-qualification-v1&#x27;,&#x27;classification&#x27;:&#x27;BTG_INTERNAL&#x27;,&#x27;pass&#x27;:ac==ASSETS and ec==EVENTS and qc==&#x27;ok&#x27;,&#x27;assets&#x27;:ac,&#x27;events&#x27;:ec,&#x27;database_bytes&#x27;:size,&#x27;asset_root_sha256&#x27;:h_assets.hexdigest(),&#x27;event_root_sha256&#x27;:h_events.hexdigest(),&#x27;sample_root_sha256&#x27;:sample_hash,&#x27;sqlite_quick_check&#x27;:qc,&#x27;asset_insert_seconds&#x27;:round(asset_seconds,3),&#x27;event_insert_seconds&#x27;:round(event_seconds,3),&#x27;total_seconds&#x27;:round(elapsed,3),&#x27;platform&#x27;:os.name,&#x27;scope&#x27;:&#x27;1M persistent assets + 3M persistent events; close/reopen integrity and deterministic synthetic roots. Internal scale qualification, not third-party production certification.&#x27;};OUT.parent.mkdir(parents=True,exist_ok=True);OUT.write_text(json.dumps(payload,indent=2,sort_keys=True)+&#x27;\n&#x27;);print(json.dumps(payload,indent=2,sort_keys=True));shutil.rmtree(work,ignore_errors=True);raise SystemExit(0 if payload[&#x27;pass&#x27;] else 2)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

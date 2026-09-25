@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/32_V3_Hardening/exchange_protocol.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/32_V3_Hardening/exchange_protocol.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/32_V3_Hardening/exchange_protocol.py</code></p><p><b>SHA-256:</b> <code>a631e259d2f0d7e4c4abf3acf1c04586e22bf5072928e5f9a9ddc3c130713637</code></p><p><b>Bytes:</b> 61,577</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/32_V3_Hardening/exchange_protocol.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-ms-2a3afd8b1a0a.html">now_ms</a></li><li><a href="../../../reference/symbols/entity/sha-e18076d04193.html">sha</a></li><li><a href="../../../reference/symbols/entity/rid-a32436ea324a.html">rid</a></li><li><a href="../../../reference/symbols/entity/require-sha256-93e34ba80f4c.html">require_sha256</a></li><li><a href="../../../reference/symbols/entity/require-int-a13910bb71cb.html">require_int</a></li><li><a href="../../../reference/symbols/entity/require-upper-5d85ff90e56e.html">require_upper</a></li><li><a href="../../../reference/symbols/entity/require-id-f00b0ee35b75.html">require_id</a></li><li><a href="../../../reference/symbols/entity/validate-signed-wire-0f567537126f.html">validate_signed_wire</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-7cd78ec10f1e.html">ExchangeProtocol</a></li><li><a href="../../../reference/symbols/entity/sid-1f3ce255fea5.html">sid</a></li><li><a href="../../../reference/symbols/entity/sint-c56d53c142f8.html">sint</a></li><li><a href="../../../reference/symbols/entity/sup-aafc3879e63d.html">sup</a></li><li><a href="../../../reference/symbols/entity/sha256-ac17040727d8.html">sha256</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-init-7e53b34c6372.html">ExchangeProtocol.__init__</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-db-0a005d8a1710.html">ExchangeProtocol._db</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-init-db0e773a40a2.html">ExchangeProtocol._init</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-create-venue-2bd28e370e46.html">ExchangeProtocol.create_venue</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-record-signed-instrument-68a16f672b0f.html">ExchangeProtocol._record_signed_instrument</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-submit-signed-instrument-436ea51b5a0d.html">ExchangeProtocol.submit_signed_instrument</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-define-instrument-f4dcaea07868.html">ExchangeProtocol.define_instrument</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-balance-5cc47c47942f.html">ExchangeProtocol.balance</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-record-signed-disclosure-63aef126ee20.html">ExchangeProtocol._record_signed_disclosure</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-submit-signed-disclosure-f5b7514f3485.html">ExchangeProtocol.submit_signed_disclosure</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-publish-disclosure-8be73ebf7848.html">ExchangeProtocol.publish_disclosure</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-record-signed-listing-7389d6b760ba.html">ExchangeProtocol._record_signed_listing</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-submit-signed-listing-b2425634f243.html">ExchangeProtocol.submit_signed_listing</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-list-instrument-1a1862f0f5cb.html">ExchangeProtocol.list_instrument</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-listing-de2affe74399.html">ExchangeProtocol._listing</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-reserved-sell-db-5e0d75c9cce5.html">ExchangeProtocol._reserved_sell_db</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-reserved-sell-b8d2d8d2ca94.html">ExchangeProtocol._reserved_sell</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-record-signed-order-04000be8a500.html">ExchangeProtocol._record_signed_order</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-submit-signed-order-c55313906ae7.html">ExchangeProtocol.submit_signed_order</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-submit-order-2789d2db0926.html">ExchangeProtocol.submit_order</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-surveillance-order-620ace7bb5b6.html">ExchangeProtocol._surveillance_order</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-eligible-orders-12ad1eb0ac2c.html">ExchangeProtocol._eligible_orders</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-match-order-book-6fe0bff792b9.html">ExchangeProtocol.match_order_book</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-bind-trade-revenue-166393b82c94.html">ExchangeProtocol._bind_trade_revenue</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-trade-revenue-binding-27847956a7ff.html">ExchangeProtocol.trade_revenue_binding</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-record-trade-1635c9706c17.html">ExchangeProtocol._record_trade</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-record-signed-cancellation-9750f8788112.html">ExchangeProtocol._record_signed_cancellation</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-submit-signed-cancellation-b542a52be159.html">ExchangeProtocol.submit_signed_cancellation</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-cancel-order-8f8ff6b0df4a.html">ExchangeProtocol.cancel_order</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-authorize-settlement-verifier-9048bf715b2e.html">ExchangeProtocol.authorize_settlement_verifier</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-revoke-settlement-verifier-c80eac32335b.html">ExchangeProtocol.revoke_settlement_verifier</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-payment-attestation-authority-c243f9cfd7da.html">ExchangeProtocol._payment_attestation_authority</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-record-signed-payment-attestation-ecae19a6f8d2.html">ExchangeProtocol._record_signed_payment_attestation</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-submit-signed-payment-attestation-5755666f0723.html">ExchangeProtocol.submit_signed_payment_attestation</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-attest-payment-40b5226bcd4c.html">ExchangeProtocol.attest_payment</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-settle-trade-11d88236d2ae.html">ExchangeProtocol.settle_trade</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-record-signed-revenue-rules-7c816f501998.html">ExchangeProtocol._record_signed_revenue_rules</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-submit-signed-revenue-rules-5388a73bb003.html">ExchangeProtocol.submit_signed_revenue_rules</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-set-revenue-rules-471f7adf44ae.html">ExchangeProtocol.set_revenue_rules</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-distribute-revenue-db-8eaead674175.html">ExchangeProtocol._distribute_revenue_db</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-distribute-revenue-06a769d3f664.html">ExchangeProtocol._distribute_revenue</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-record-signed-usage-f4fac01904d6.html">ExchangeProtocol._record_signed_usage</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-submit-signed-usage-68bede55a939.html">ExchangeProtocol.submit_signed_usage</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-meter-usage-cf256ad0f422.html">ExchangeProtocol.meter_usage</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-market-data-ac69bc2a4519.html">ExchangeProtocol.market_data</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-record-signed-rfq-b6cf77a78f9d.html">ExchangeProtocol._record_signed_rfq</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-submit-signed-rfq-07efb5f925bf.html">ExchangeProtocol.submit_signed_rfq</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-open-rfq-d9f74feb1d9e.html">ExchangeProtocol.open_rfq</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-create-rfq-6da872f2345f.html">ExchangeProtocol.create_rfq</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-record-signed-quote-6980875474c0.html">ExchangeProtocol._record_signed_quote</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-submit-signed-quote-772afe4402c9.html">ExchangeProtocol.submit_signed_quote</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-quote-rfq-b8ce8808253e.html">ExchangeProtocol.quote_rfq</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-record-signed-quote-acceptance-7a45bb751e89.html">ExchangeProtocol._record_signed_quote_acceptance</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-submit-signed-quote-acceptance-1d9b2b605813.html">ExchangeProtocol.submit_signed_quote_acceptance</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-accept-quote-0400fa2f1277.html">ExchangeProtocol.accept_quote</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-alert-08b52a1a0c16.html">ExchangeProtocol._alert</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-surveillance-alerts-ffb34fec5025.html">ExchangeProtocol.surveillance_alerts</a></li><li><a href="../../../reference/symbols/entity/exchangeprotocol-status-b487deec3459.html">ExchangeProtocol.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from contextlib import contextmanager
+import hashlib, json, secrets, sqlite3, time
+
+def now_ms(): return int(time.time()*1000)
+def sha(v): return hashlib.sha256(json.dumps(v,sort_keys=True,separators=(&#x27;,&#x27;,&#x27;:&#x27;),ensure_ascii=False,default=str).encode()).hexdigest()
+def rid(prefix): return prefix+&#x27;-&#x27;+secrets.token_hex(12)
+def require_sha256(v):
+    if not isinstance(v,str) or v != v.lower() or len(v)!=64 or any(c not in &#x27;0123456789abcdef&#x27; for c in v):
+        raise ValueError(&#x27;canonical lowercase SHA-256 hex required&#x27;)
+    return v
+
+def require_int(v,name,minimum=0):
+    if type(v) is not int or v &lt; minimum: raise ValueError(f&#x27;{name} must be an integer &gt;= {minimum}&#x27;)
+    return v
+
+def require_upper(v,name):
+    if not isinstance(v,str) or not v or v != v.upper(): raise ValueError(f&#x27;{name} must be canonical uppercase text&#x27;)
+    return v
+
+def require_id(v,name):
+    if not isinstance(v,str) or not v: raise ValueError(f&#x27;{name} must be a non-empty string&#x27;)
+    return v
+
+def validate_signed_wire(body):
+    if type(body) is not dict:
+        raise ValueError(&#x27;signed record must be a JSON object&#x27;)
+    schema=body.get(&#x27;schema&#x27;)
+    if type(schema) is not str:
+        raise ValueError(&#x27;signed record schema must be a string&#x27;)
+    def sid(name): require_id(body.get(name),name)
+    def sint(name,minimum=0): require_int(body.get(name),name,minimum)
+    def sup(name): require_upper(body.get(name),name)
+    def sha256(name): require_sha256(body.get(name))
+    common_time=lambda: sint(&#x27;created_at_ms&#x27;,0)
+    if schema==&#x27;entity-eep-instrument-v1&#x27;:
+        for n in (&#x27;instrument_id&#x27;,&#x27;issuer&#x27;,&#x27;underlying_object_id&#x27;): sid(n)
+        sup(&#x27;instrument_class&#x27;); sup(&#x27;settlement_currency&#x27;); sup(&#x27;delivery_mode&#x27;); common_time(); sint(&#x27;total_units&#x27;,1)
+        if type(body.get(&#x27;transferable&#x27;)) is not bool: raise ValueError(&#x27;transferable must be boolean&#x27;)
+        d=body.get(&#x27;duration_ms&#x27;)
+        if d is not None: require_int(d,&#x27;duration_ms&#x27;,1)
+        if body.get(&#x27;status&#x27;)!=&#x27;ACTIVE&#x27; or body.get(&#x27;bytes_are_not_the_traded_scarcity&#x27;) is not True: raise ValueError(&#x27;invalid instrument constants&#x27;)
+        rights=body.get(&#x27;rights&#x27;)
+        if type(rights) is not dict: raise ValueError(&#x27;rights must be an object&#x27;)
+        actions=rights.get(&#x27;actions&#x27;)
+        if type(actions) is not list or not actions or any(type(a) is not str or not a or a!=a.upper() for a in actions): raise ValueError(&#x27;rights.actions must be non-empty canonical uppercase strings&#x27;)
+        if actions!=sorted(set(actions)): raise ValueError(&#x27;rights.actions must be sorted and unique&#x27;)
+    elif schema==&#x27;entity-eep-disclosure-v1&#x27;:
+        for n in (&#x27;disclosure_id&#x27;,&#x27;venue_id&#x27;,&#x27;instrument_id&#x27;,&#x27;publisher&#x27;): sid(n)
+        sup(&#x27;disclosure_type&#x27;); sha256(&#x27;content_sha256&#x27;); common_time()
+        if body.get(&#x27;protected_data_included&#x27;) is not False: raise ValueError(&#x27;protected_data_included must be false&#x27;)
+    elif schema==&#x27;entity-eep-listing-v1&#x27;:
+        for n in (&#x27;listing_id&#x27;,&#x27;venue_id&#x27;,&#x27;instrument_id&#x27;,&#x27;lister&#x27;): sid(n)
+        sint(&#x27;min_lot&#x27;,1); sint(&#x27;tick_size&#x27;,1); sha256(&#x27;disclosure_sha256&#x27;); common_time()
+        if body.get(&#x27;status&#x27;)!=&#x27;ACTIVE&#x27;: raise ValueError(&#x27;listing status must be ACTIVE&#x27;)
+    elif schema==&#x27;entity-eep-order-v1&#x27;:
+        for n in (&#x27;order_id&#x27;,&#x27;venue_id&#x27;,&#x27;instrument_id&#x27;,&#x27;participant&#x27;,&#x27;nonce&#x27;): sid(n)
+        sup(&#x27;side&#x27;); sup(&#x27;tif&#x27;); sint(&#x27;quantity&#x27;,1); sint(&#x27;limit_price&#x27;,0); common_time()
+        if body[&#x27;side&#x27;] not in {&#x27;BUY&#x27;,&#x27;SELL&#x27;} or body[&#x27;tif&#x27;] not in {&#x27;GTC&#x27;,&#x27;IOC&#x27;,&#x27;DAY&#x27;}: raise ValueError(&#x27;invalid canonical order enum&#x27;)
+    elif schema==&#x27;entity-eep-order-cancel-v1&#x27;:
+        for n in (&#x27;cancellation_id&#x27;,&#x27;order_id&#x27;,&#x27;participant&#x27;,&#x27;nonce&#x27;): sid(n)
+        common_time()
+    elif schema==&#x27;entity-eep-payment-attestation-v1&#x27;:
+        for n in (&#x27;attestation_id&#x27;,&#x27;trade_id&#x27;,&#x27;verifier_entity_id&#x27;,&#x27;settlement_ref&#x27;,&#x27;nonce&#x27;): sid(n)
+        sha256(&#x27;evidence_sha256&#x27;); common_time()
+        if body.get(&#x27;verification_is_attestation_not_absolute_truth&#x27;) is not True: raise ValueError(&#x27;payment attestation truth-boundary flag required&#x27;)
+    elif schema==&#x27;entity-eep-usage-v1&#x27;:
+        for n in (&#x27;usage_id&#x27;,&#x27;instrument_id&#x27;,&#x27;holder&#x27;,&#x27;nonce&#x27;): sid(n)
+        sup(&#x27;action&#x27;); sint(&#x27;units&#x27;,1); common_time()
+    elif schema==&#x27;entity-eep-revenue-rule-set-v1&#x27;:
+        for n in (&#x27;rule_set_id&#x27;,&#x27;instrument_id&#x27;,&#x27;issuer&#x27;,&#x27;nonce&#x27;): sid(n)
+        common_time(); allocations=body.get(&#x27;allocations_bps&#x27;)
+        if type(allocations) is not dict: raise ValueError(&#x27;allocations_bps must be an object&#x27;)
+        total=0
+        for k,v in allocations.items():
+            require_id(k,&#x27;allocation recipient&#x27;); require_int(v,f&#x27;allocation {k}&#x27;,0); total+=v
+        if total&gt;10000: raise ValueError(&#x27;revenue allocation exceeds 10000 bps&#x27;)
+    elif schema==&#x27;entity-eep-rfq-v1&#x27;:
+        for n in (&#x27;rfq_id&#x27;,&#x27;venue_id&#x27;,&#x27;instrument_id&#x27;,&#x27;requester&#x27;,&#x27;nonce&#x27;): sid(n)
+        sup(&#x27;side&#x27;); sint(&#x27;quantity&#x27;,1); sint(&#x27;expires_at_ms&#x27;,0); common_time()
+        if body[&#x27;side&#x27;] not in {&#x27;BUY&#x27;,&#x27;SELL&#x27;} or body[&#x27;expires_at_ms&#x27;]&lt;=body[&#x27;created_at_ms&#x27;]: raise ValueError(&#x27;invalid canonical RFQ&#x27;)
+    elif schema==&#x27;entity-eep-rfq-quote-v1&#x27;:
+        for n in (&#x27;quote_id&#x27;,&#x27;rfq_id&#x27;,&#x27;provider&#x27;,&#x27;nonce&#x27;): sid(n)
+        sint(&#x27;price&#x27;,0); sint(&#x27;expires_at_ms&#x27;,0); common_time()
+        if body[&#x27;expires_at_ms&#x27;]&lt;=body[&#x27;created_at_ms&#x27;]: raise ValueError(&#x27;quote expiry must follow creation&#x27;)
+    elif schema==&#x27;entity-eep-rfq-acceptance-v1&#x27;:
+        for n in (&#x27;acceptance_id&#x27;,&#x27;rfq_id&#x27;,&#x27;quote_id&#x27;,&#x27;requester&#x27;,&#x27;nonce&#x27;): sid(n)
+        common_time()
+    else:
+        raise ValueError(&#x27;unsupported signed EEP wire schema&#x27;)
+    return True
+
+class ExchangeProtocol:
+    EXECUTION_MODELS={&#x27;ORDER_BOOK&#x27;,&#x27;CALL_AUCTION&#x27;,&#x27;RFQ&#x27;}
+    INSTRUMENT_CLASSES={&#x27;SPOT_LICENSE&#x27;,&#x27;SUBSCRIPTION&#x27;,&#x27;COMPUTE_TO_DATA&#x27;,&#x27;PROCUREMENT&#x27;,&#x27;CONTRIBUTION&#x27;,&#x27;SECONDARY_LICENSE&#x27;}
+    SIDES={&#x27;BUY&#x27;,&#x27;SELL&#x27;}
+    def __init__(self,root,identity,fabric):
+        self.path=Path(root)/&#x27;entity_v3_exchange.sqlite&#x27;; self.identity=identity; self.fabric=fabric; self._init()
+    @contextmanager
+    def _db(self):
+        db=sqlite3.connect(self.path); db.row_factory=sqlite3.Row
+        try:
+            yield db
+            db.commit()
+        except Exception:
+            db.rollback(); raise
+        finally:
+            db.close()
+    def _init(self):
+        with self._db() as db:
+            db.executescript(&#x27;&#x27;&#x27;
+            CREATE TABLE IF NOT EXISTS venues(venue_id TEXT PRIMARY KEY,operator TEXT,name TEXT,jurisdiction TEXT,execution_models_json TEXT,policy_sha256 TEXT,status TEXT,created_at_ms INTEGER,signature_json TEXT);
+            CREATE TABLE IF NOT EXISTS instruments(instrument_id TEXT PRIMARY KEY,issuer TEXT,underlying_object_id TEXT,instrument_class TEXT,rights_json TEXT,total_units INTEGER,transferable INTEGER,duration_ms INTEGER,settlement_currency TEXT,delivery_mode TEXT,status TEXT,created_at_ms INTEGER,signature_json TEXT);
+            CREATE TABLE IF NOT EXISTS balances(instrument_id TEXT,holder TEXT,units INTEGER,PRIMARY KEY(instrument_id,holder));
+            CREATE TABLE IF NOT EXISTS listings(listing_id TEXT PRIMARY KEY,venue_id TEXT,instrument_id TEXT,lister TEXT,min_lot INTEGER,tick_size INTEGER,disclosure_sha256 TEXT,status TEXT,created_at_ms INTEGER,signature_json TEXT);
+            CREATE TABLE IF NOT EXISTS orders(order_id TEXT PRIMARY KEY,venue_id TEXT,instrument_id TEXT,participant TEXT,side TEXT,quantity INTEGER,remaining INTEGER,limit_price INTEGER,tif TEXT,status TEXT,nonce TEXT UNIQUE,created_at_ms INTEGER,received_at_ms INTEGER,signature_json TEXT);
+            CREATE TABLE IF NOT EXISTS trades(trade_id TEXT PRIMARY KEY,venue_id TEXT,instrument_id TEXT,buy_order_id TEXT,sell_order_id TEXT,buyer TEXT,seller TEXT,quantity INTEGER,price INTEGER,execution_model TEXT,status TEXT,created_at_ms INTEGER);
+            CREATE TABLE IF NOT EXISTS clearing(trade_id TEXT PRIMARY KEY,payer TEXT,payee TEXT,amount_units INTEGER,currency TEXT,status TEXT,payment_ref TEXT,external_verified INTEGER);
+            CREATE TABLE IF NOT EXISTS entitlements(entitlement_id TEXT PRIMARY KEY,trade_id TEXT,instrument_id TEXT,holder TEXT,quantity INTEGER,rights_json TEXT,expires_at_ms INTEGER,created_at_ms INTEGER,signature_json TEXT);</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

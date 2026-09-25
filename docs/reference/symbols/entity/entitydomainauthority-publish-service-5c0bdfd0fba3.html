@@ -1,0 +1,55 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityDomainAuthority.publish_service Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityDomainAuthority.publish_service</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/core/canonical_domain.py#L166">ENTITY/src/22_Sovereign_Domain/core/canonical_domain.py#L166</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EntityDomainAuthority.publish_service(self, entity_id: str, domain_id: str, node_id: str, service_type: str, endpoint: dict, *, protocol_version: str=&#x27;1&#x27;, capabilities: list[str] | None=None, access_class: str=&#x27;PUBLIC&#x27;, required_credentials: list[str] | None=None, policy_refs: list[str] | None=None, data_classifications: list[str] | None=None, economic_terms_ref: str | None=None, availability: dict | None=None, expires_at_ms: int | None=None, service_id: str | None=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def publish_service(self,entity_id:str,domain_id:str,node_id:str,service_type:str,endpoint:dict, *,
+                        protocol_version:str=&quot;1&quot;,capabilities:list[str]|None=None,access_class:str=&quot;PUBLIC&quot;,
+                        required_credentials:list[str]|None=None,policy_refs:list[str]|None=None,
+                        data_classifications:list[str]|None=None,economic_terms_ref:str|None=None,
+                        availability:dict|None=None,expires_at_ms:int|None=None,service_id:str|None=None)-&gt;dict:
+        domain=self.get_domain(domain_id); node=self.get_node(node_id)
+        if domain[&quot;entity_root&quot;]!=entity_id or node[&quot;entity_root&quot;]!=entity_id or node[&quot;domain_id&quot;]!=domain_id:
+            raise PermissionError(&quot;domain/node controller mismatch&quot;)
+        if node.get(&quot;effective_status&quot;)!=&quot;ACTIVE&quot;: raise PermissionError(&quot;node not active&quot;)
+        now=_now()
+        if node.get(&quot;not_before_ms&quot;,0)&gt;now or (node.get(&quot;expires_at_ms&quot;) is not None and int(node[&quot;expires_at_ms&quot;])&lt;=now):
+            raise PermissionError(&quot;node authorization outside validity window&quot;)
+        st=str(service_type).upper()
+        if st not in SERVICE_TYPES: raise ValueError(&quot;unsupported service type&quot;)
+        if st not in set(node[&quot;permitted_services&quot;]) and &quot;*&quot; not in set(node[&quot;permitted_services&quot;]):
+            raise PermissionError(&quot;service outside node authorization&quot;)
+        ac=str(access_class).upper()
+        if ac not in ACCESS_CLASSES: raise ValueError(&quot;unsupported access class&quot;)
+        sid=str(service_id or _id(&quot;svc1&quot;))
+        prior=None
+        with self._connect() as db:
+            prior=db.execute(&quot;SELECT manifest_version FROM services WHERE service_id=?&quot;,(sid,)).fetchone()
+        version=int(prior[&quot;manifest_version&quot;])+1 if prior else 1
+        body={&quot;schema&quot;:&quot;entity-service-manifest-v1&quot;,&quot;entity_root&quot;:entity_id,&quot;domain_id&quot;:domain_id,
+              &quot;domain_name&quot;:domain.get(&quot;current_name&quot;),&quot;service_id&quot;:sid,&quot;service_type&quot;:st,&quot;node_id&quot;:node_id,
+              &quot;endpoint&quot;:dict(endpoint),&quot;protocol_version&quot;:str(protocol_version),
+              &quot;capabilities&quot;:sorted({str(x) for x in capabilities or []}),&quot;access_class&quot;:ac,
+              &quot;required_credentials&quot;:sorted({str(x) for x in required_credentials or []}),
+              &quot;policy_refs&quot;:sorted({str(x) for x in policy_refs or []}),
+              &quot;data_classifications&quot;:sorted({str(x).upper() for x in data_classifications or []}),
+              &quot;economic_terms_ref&quot;:economic_terms_ref,&quot;availability&quot;:dict(availability or {}),
+              &quot;manifest_version&quot;:version,&quot;expires_at_ms&quot;:int(expires_at_ms) if expires_at_ms is not None else None,
+              &quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now,
+              &quot;source_data_custody_transferred&quot;:False,&quot;provider_authority_inferred&quot;:False}
+        sig=self.identity.sign(entity_id,body)
+        with self._connect() as db:
+            if prior:
+                db.execute(&quot;&quot;&quot;UPDATE services SET node_id=?,service_type=?,endpoint_json=?,protocol_version=?,
+                    capabilities_json=?,access_class=?,required_credentials_json=?,policy_refs_json=?,
+                    data_classifications_json=?,economic_terms_ref=?,availability_json=?,manifest_version=?,
+                    expires_at_ms=?,status=&#x27;ACTIVE&#x27;,signature_json=?,created_at_ms=?,updated_at_ms=? WHERE service_id=?&quot;&quot;&quot;,
+                    (node_id,st,json.dumps(body[&quot;endpoint&quot;],sort_keys=True),body[&quot;protocol_version&quot;],
+                     json.dumps(body[&quot;capabilities&quot;]),ac,json.dumps(body[&quot;required_credentials&quot;]),
+                     json.dumps(body[&quot;policy_refs&quot;]),json.dumps(body[&quot;data_classifications&quot;]),economic_terms_ref,
+                     json.dumps(body[&quot;availability&quot;],sort_keys=True),version,body[&quot;expires_at_ms&quot;],
+                     json.dumps(sig,sort_keys=True),now,now,sid))
+            else:
+                db.execute(&quot;INSERT INTO services VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,
+                           (sid,domain_id,node_id,st,json.dumps(body[&quot;endpoint&quot;],sort_keys=True),body[&quot;protocol_version&quot;],
+                            json.dumps(body[&quot;capabilities&quot;]),ac,json.dumps(body[&quot;required_credentials&quot;]),
+                            json.dumps(body[&quot;policy_refs&quot;]),json.dumps(body[&quot;data_classifications&quot;]),economic_terms_ref,
+                            json.dumps(body[&quot;availability&quot;],sort_keys=True),version,body[&quot;expires_at_ms&quot;],&quot;ACTIVE&quot;,
+                            json.dumps(sig,sort_keys=True),now,now))
+            self._audit(db,domain_id,&quot;SERVICE_PUBLISHED&quot;,entity_id,{&quot;service_id&quot;:sid,&quot;node_id&quot;:node_id,&quot;version&quot;:version})
+        return {**body,&quot;signature&quot;:sig}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

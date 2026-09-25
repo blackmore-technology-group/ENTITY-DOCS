@@ -1,0 +1,90 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/build_v3_3_reality_cleanroom_kit.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/build_v3_3_reality_cleanroom_kit.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/build_v3_3_reality_cleanroom_kit.py</code></p><p><b>SHA-256:</b> <code>1a0fe7d0cde83756752c7aeb98d805997dba24d2189176745777382d5185233d</code></p><p><b>Bytes:</b> 6,439</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/build_v3_3_reality_cleanroom_kit.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/canon-77d3b18a95e4.html">canon</a></li><li><a href="../../../reference/symbols/entity/sha-8df5cb18f95b.html">sha</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, importlib.util, json, pathlib, sys
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+SRC = ROOT / &quot;src&quot; / &quot;37_Verifiable_Reality&quot;
+PROTO = ROOT / &quot;protocol&quot; / &quot;v3&quot;
+OUT = PROTO / &quot;ENTITY_V3_3_REALITY_CLEANROOM_KIT.min.json&quot;
+SCHEMA = PROTO / &quot;ENTITY_VERIFIABLE_REALITY.schema.json&quot;
+
+spec = importlib.util.spec_from_file_location(&quot;reality_profile&quot;, SRC / &quot;reality_profile.py&quot;)
+profile = importlib.util.module_from_spec(spec); sys.modules[&quot;reality_profile&quot;] = profile; spec.loader.exec_module(profile)
+spec = importlib.util.spec_from_file_location(&quot;reality_conformance&quot;, SRC / &quot;reality_conformance.py&quot;)
+conf = importlib.util.module_from_spec(spec); sys.modules[&quot;reality_conformance&quot;] = conf; spec.loader.exec_module(conf)
+
+Z = &quot;0&quot; * 64
+PRIMITIVES = [&quot;ENTITY&quot;, &quot;AUTHORITY&quot;, &quot;RIGHT&quot;, &quot;EVENT&quot;, &quot;VALUE&quot;]
+
+def canon(value) -&gt; bytes:
+    return json.dumps(value, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False).encode()
+
+def sha(value) -&gt; str:
+    raw = value if isinstance(value, (bytes, bytearray)) else canon(value)
+    return hashlib.sha256(raw).hexdigest()
+
+valid = {
+    &quot;evidence&quot;: {&quot;schema&quot;:&quot;entity-v3-evidence-object-v1&quot;,&quot;evidence_type&quot;:&quot;DOCUMENT&quot;,&quot;content_sha256&quot;:Z,&quot;signature_proves_attribution_not_objective_truth&quot;:True,&quot;immutable_evidence_record&quot;:True},
+    &quot;claim&quot;: {&quot;schema&quot;:&quot;entity-v3-evidence-bound-claim-v1&quot;,&quot;state&quot;:&quot;ASSERTED&quot;,&quot;value_sha256&quot;:Z,&quot;evidence_refs&quot;:[&quot;evidence:1&quot;],&quot;claim_is_not_objective_truth&quot;:True,&quot;state_is_typed_not_absolute&quot;:True},
+    &quot;transition&quot;: {&quot;schema&quot;:&quot;entity-v3-claim-status-transition-v1&quot;,&quot;from_state&quot;:&quot;ASSERTED&quot;,&quot;to_state&quot;:&quot;EXTERNALLY_VERIFIED&quot;,&quot;evidence_refs&quot;:[&quot;snapshot:1&quot;],&quot;history_rewrite_prohibited&quot;:True,&quot;transition_does_not_establish_objective_truth&quot;:True},
+    &quot;grant&quot;: {&quot;schema&quot;:&quot;entity-v3-attestation-authority-grant-v1&quot;,&quot;scopes&quot;:[&quot;LAB_CALIBRATION&quot;],&quot;authority_evidence_sha256&quot;:Z,&quot;attestation_authority_is_scope_limited&quot;:True,&quot;attestation_does_not_create_legal_truth&quot;:True},
+    &quot;attestation&quot;: {&quot;schema&quot;:&quot;entity-v3-attestation-v1&quot;,&quot;grant_id&quot;:&quot;grant:1&quot;,&quot;scope&quot;:&quot;LAB_CALIBRATION&quot;,&quot;evidence_refs&quot;:[&quot;certificate:1&quot;],&quot;attestation_is_evidence_not_objective_truth&quot;:True},
+    &quot;anchor&quot;: {&quot;schema&quot;:&quot;entity-v3-external-reality-anchor-v1&quot;,&quot;anchor_type&quot;:&quot;GOVERNMENT_REGISTRY&quot;,&quot;endpoint_descriptor_sha256&quot;:Z,&quot;credentials_included&quot;:False,&quot;external_system_is_not_automatic_entity_authority&quot;:True},
+    &quot;snapshot&quot;: {&quot;schema&quot;:&quot;entity-v3-external-reality-snapshot-v1&quot;,&quot;record_sha256&quot;:Z,&quot;verifier_evidence_refs&quot;:[&quot;transport:1&quot;],&quot;external_record_is_evidence_not_protocol_truth&quot;:True,&quot;record_may_be_contested_or_superseded&quot;:True},
+    &quot;causal_node&quot;: {&quot;schema&quot;:&quot;entity-v3-causal-economic-node-v1&quot;,&quot;node_type&quot;:&quot;REVENUE&quot;,&quot;evidence_refs&quot;:[&quot;sale:1&quot;],&quot;event_refs&quot;:[&quot;event:1&quot;],&quot;economic_observation&quot;:{&quot;amount&quot;:100,&quot;currency&quot;:&quot;CAD&quot;,&quot;market_observation_is_not_accounting_fair_value&quot;:True,&quot;protocol_does_not_determine_legal_entitlement&quot;:True}},
+    &quot;causal_edge&quot;: {&quot;schema&quot;:&quot;entity-v3-causal-economic-edge-v1&quot;,&quot;edge_type&quot;:&quot;GENERATED&quot;,&quot;from_node_id&quot;:&quot;product:A&quot;,&quot;to_node_id&quot;:&quot;revenue:B&quot;,&quot;evidence_refs&quot;:[&quot;sale:1&quot;],&quot;authority_refs&quot;:[&quot;authority:1&quot;],&quot;participation_rule_refs&quot;:[&quot;eopp:1&quot;],&quot;causality_is_evidence_bound_not_assumed&quot;:True,&quot;economic_attribution_is_not_accounting_fair_value&quot;:True},
+    &quot;status&quot;: {&quot;schema&quot;:&quot;entity-v3-verifiable-reality-status-v1&quot;,&quot;core_primitives&quot;:PRIMITIVES,&quot;core_semantics_changed&quot;:False,&quot;market_engine_preserved&quot;:True,&quot;reality_claims_are_evidence_bound&quot;:True,&quot;cryptographic_verification_is_not_objective_truth&quot;:True,&quot;protocol_verification_is_not_objective_truth&quot;:True},
+}
+
+invalid = {name: json.loads(json.dumps(record)) for name, record in valid.items()}
+invalid[&quot;evidence&quot;][&quot;signature_proves_attribution_not_objective_truth&quot;] = False
+invalid[&quot;claim&quot;][&quot;claim_is_not_objective_truth&quot;] = False
+invalid[&quot;transition&quot;][&quot;to_state&quot;] = &quot;ASSERTED&quot;
+invalid[&quot;grant&quot;][&quot;scopes&quot;] = []
+invalid[&quot;attestation&quot;][&quot;evidence_refs&quot;] = []
+invalid[&quot;anchor&quot;][&quot;external_system_is_not_automatic_entity_authority&quot;] = False
+invalid[&quot;snapshot&quot;][&quot;external_record_is_evidence_not_protocol_truth&quot;] = False
+invalid[&quot;causal_node&quot;][&quot;economic_observation&quot;][&quot;market_observation_is_not_accounting_fair_value&quot;] = False
+invalid[&quot;causal_edge&quot;][&quot;evidence_refs&quot;] = []
+invalid[&quot;status&quot;][&quot;cryptographic_verification_is_not_objective_truth&quot;] = False
+
+cases = []
+for name, record in valid.items():
+    cases.append({&quot;id&quot;:f&quot;valid_{name}&quot;,&quot;expect&quot;:&quot;VALID&quot;,&quot;record&quot;:record})
+for name, record in invalid.items():
+    cases.append({&quot;id&quot;:f&quot;invalid_{name}&quot;,&quot;expect&quot;:&quot;INVALID&quot;,&quot;record&quot;:record})
+cases.sort(key=lambda x: x[&quot;id&quot;])
+
+transcript = []
+for case in cases:
+    actual = &quot;VALID&quot; if conf.validate_reality_record(case[&quot;record&quot;]) else &quot;INVALID&quot;
+    if actual != case[&quot;expect&quot;]:
+        raise SystemExit(f&quot;builder semantic mismatch: {case[&#x27;id&#x27;]} expected {case[&#x27;expect&#x27;]} got {actual}&quot;)
+    transcript.append({&quot;id&quot;:case[&quot;id&quot;],&quot;actual&quot;:actual})
+
+schema = {
+    &quot;$schema&quot;:&quot;https://json-schema.org/draft/2020-12/schema&quot;,
+    &quot;$id&quot;:&quot;https://entity.invalid/protocol/v3/ENTITY_VERIFIABLE_REALITY.schema.json&quot;,
+    &quot;title&quot;:&quot;ENTITY v3.3 Verifiable Reality Records&quot;,
+    &quot;description&quot;:&quot;Evidence, typed claims, scoped attestations, external reality anchors and causal economic attribution. Schema validation never implies objective truth.&quot;,
+    &quot;type&quot;:&quot;object&quot;,
+    &quot;required&quot;:[&quot;schema&quot;],
+    &quot;properties&quot;:{&quot;schema&quot;:{&quot;type&quot;:&quot;string&quot;}},
+    &quot;x-entity-truth-boundary&quot;:&quot;Cryptographic/protocol validity proves record integrity and semantics, not objective real-world truth.&quot;
+}
+SCHEMA.parent.mkdir(parents=True, exist_ok=True)
+SCHEMA.write_bytes((json.dumps(schema, indent=2, sort_keys=True) + &quot;\n&quot;).encode(&quot;utf-8&quot;))
+
+kit = {
+    &quot;schema&quot;:&quot;entity-v3.3-verifiable-reality-cleanroom-kit-v1&quot;,
+    &quot;version&quot;:&quot;3.3.0&quot;,
+    &quot;base_release&quot;:&quot;v3.2.0&quot;,
+    &quot;base_commit&quot;:&quot;512665096cef3771a3a8307d6dc955015ee0efbc&quot;,
+    &quot;doctrine&quot;:&quot;Claims are attributable, evidentiary, contestable and machine-verifiable; ENTITY does not make reality indisputable.&quot;,
+    &quot;valid_vectors&quot;:10,
+    &quot;invalid_vectors&quot;:10,
+    &quot;cases&quot;:cases,
+    &quot;expected_result_sha256&quot;:sha(transcript),
+    &quot;schema_sha256&quot;:sha(SCHEMA.read_bytes()),
+}
+OUT.write_bytes((json.dumps(kit, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;)) + &quot;\n&quot;).encode(&quot;utf-8&quot;))
+print(json.dumps({&quot;vectors&quot;:len(cases),&quot;valid&quot;:10,&quot;invalid&quot;:10,&quot;expected_result_sha256&quot;:kit[&quot;expected_result_sha256&quot;],&quot;kit_sha256&quot;:sha(OUT.read_bytes()),&quot;schema_sha256&quot;:kit[&quot;schema_sha256&quot;]}, indent=2))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

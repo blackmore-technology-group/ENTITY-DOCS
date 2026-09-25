@@ -1,0 +1,20 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SettlementEngine.advance_value Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>SettlementEngine.advance_value</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/service_runtime/canonical_economics.py#L165">ENTITY/src/01_Core_Runtime/service_runtime/canonical_economics.py#L165</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>SettlementEngine.advance_value(self, controller_entity_id: str, value_id: str, target_state: str, *, settlement_id: str | None=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def advance_value(self,controller_entity_id: str,value_id: str,target_state: str,*,settlement_id: str|None=None) -&gt; dict:
+        target=str(target_state or &quot;&quot;).upper()
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM value_records WHERE value_id=?&quot;,(value_id,)).fetchone()
+        if not row: raise KeyError(&quot;value record not found&quot;)
+        if row[&quot;controller_entity_id&quot;]!=controller_entity_id: raise PermissionError(&quot;value controller mismatch&quot;)
+        current=row[&quot;state&quot;]
+        if VALUE_NEXT.get(current)!=target: raise ValueError(f&quot;invalid value transition {current}-&gt;{target}&quot;)
+        realized_external=False; sid=settlement_id or row[&quot;settlement_id&quot;]
+        if target in {&quot;SETTLED&quot;,&quot;REALIZED&quot;}:
+            if not sid: raise ValueError(&quot;settlement evidence required&quot;)
+            settlement=self.get(sid)
+            if settlement[&quot;state&quot;] not in {&quot;CONFIRMED&quot;,&quot;RECONCILED&quot;}: raise ValueError(&quot;settlement is not final enough&quot;)
+            if target==&quot;REALIZED&quot;:
+                if settlement[&quot;settlement_kind&quot;]!=&quot;EXTERNAL_PAYMENT&quot; or not settlement[&quot;money_movement_verified&quot;]:
+                    raise PermissionError(&quot;REALIZED monetary value requires verified external payment evidence&quot;)
+                realized_external=True
+        now=_now()
+        with self._connect() as db:
+            db.execute(&quot;UPDATE value_records SET state=?,settlement_id=?,realized_external=?,updated_at_ms=? WHERE value_id=?&quot;,(target,sid,1 if realized_external else int(row[&quot;realized_external&quot;]),now,value_id))
+        return {&quot;value_id&quot;:value_id,&quot;from_state&quot;:current,&quot;state&quot;:target,&quot;settlement_id&quot;:sid,&quot;realized_external&quot;:bool(realized_external or row[&quot;realized_external&quot;])}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

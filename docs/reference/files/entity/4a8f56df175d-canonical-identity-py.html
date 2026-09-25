@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/01_Core_Runtime/identity/canonical_identity.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/01_Core_Runtime/identity/canonical_identity.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/01_Core_Runtime/identity/canonical_identity.py</code></p><p><b>SHA-256:</b> <code>bcf2a3693cab651adec577dc58df94a5350bf78d7412fd062f63e23266bd27ea</code></p><p><b>Bytes:</b> 21,470</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/identity/canonical_identity.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/canonical-json-cbcd7c448c10.html">canonical_json</a></li><li><a href="../../../reference/symbols/entity/b32-d0b1d7d9a743.html">_b32</a></li><li><a href="../../../reference/symbols/entity/entity-id-from-public-key-effaa99ac49a.html">entity_id_from_public_key</a></li><li><a href="../../../reference/symbols/entity/new-entity-id-3fdf752b09a3.html">_new_entity_id</a></li><li><a href="../../../reference/symbols/entity/b64-32897fb33aa4.html">_b64</a></li><li><a href="../../../reference/symbols/entity/unb64-14130580b2e1.html">_unb64</a></li><li><a href="../../../reference/symbols/entity/public-raw-2ab1051b4d26.html">_public_raw</a></li><li><a href="../../../reference/symbols/entity/private-raw-ec4c1bf04f21.html">_private_raw</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-fa014e6a07e6.html">EntityIdentityVault</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-init-bbbae446eb8d.html">EntityIdentityVault.__init__</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-entity-key-dir-21b8db606e18.html">EntityIdentityVault._entity_key_dir</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-manifest-path-a4f9222c2bda.html">EntityIdentityVault._manifest_path</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-write-private-e15926c6ffc9.html">EntityIdentityVault._write_private</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-remove-private-key-material-0bd45e2af03a.html">EntityIdentityVault._remove_private_key_material</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-read-private-key-bytes-461b9254e774.html">EntityIdentityVault._read_private_key_bytes</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-create-fce3de68315d.html">EntityIdentityVault.create</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-verify-v1-a9a3b0d51344.html">EntityIdentityVault._verify_v1</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-method-3584e1f5d7f2.html">EntityIdentityVault._method</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-verify-manifest-73601dd3e255.html">EntityIdentityVault.verify_manifest</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-load-manifest-7eff55402fdb.html">EntityIdentityVault.load_manifest</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-active-key-0236ab7c363f.html">EntityIdentityVault._active_key</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-open-signing-session-de8a8c13a812.html">EntityIdentityVault.open_signing_session</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-sign-e1f051bbda65.html">EntityIdentityVault.sign</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-rotate-signing-key-0daa67d11cc9.html">EntityIdentityVault.rotate_signing_key</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-recover-signing-key-bfdb5d1bf583.html">EntityIdentityVault.recover_signing_key</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-hardware-protect-key-0a6b03560ab0.html">EntityIdentityVault.hardware_protect_key</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-hardware-protect-recovery-79eefdfef1f7.html">EntityIdentityVault.hardware_protect_recovery</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-pairwise-id-be3698489676.html">EntityIdentityVault.pairwise_id</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-verify-signature-ee5e7e004eaf.html">EntityIdentityVault.verify_signature</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-list-local-fde242821e12.html">EntityIdentityVault.list_local</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-status-cd61b5c1859f.html">EntityIdentityVault.status</a></li><li><a href="../../../reference/symbols/entity/entityidentityvault-sign-a3d4715eba8d.html">EntityIdentityVault._sign</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from threading import RLock
+from typing import Any
+import base64, hashlib, hmac, json, os, re, secrets, time
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+from cryptography.hazmat.primitives import serialization
+
+ENTITY_ID_RE = re.compile(r&quot;^(?:ent1|ent2)-[a-z2-7]{52}$&quot;)
+RELATIONSHIP_ID_RE = re.compile(r&quot;^rel1-[a-z2-7]{52}$&quot;)
+ENTITY_TYPES = {&quot;person&quot;, &quot;family&quot;, &quot;business&quot;, &quot;product&quot;, &quot;application&quot;, &quot;system&quot;, &quot;community&quot;, &quot;service&quot;, &quot;organization&quot;, &quot;project&quot;}
+SIG_SUITE = &quot;ENTITY-SIG-ED25519-v1&quot;
+
+
+def canonical_json(value: Any) -&gt; bytes:
+    return json.dumps(value, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False).encode(&quot;utf-8&quot;)
+
+
+def _b32(value: bytes) -&gt; str:
+    return base64.b32encode(value).decode(&quot;ascii&quot;).lower().rstrip(&quot;=&quot;)
+
+
+def entity_id_from_public_key(public_key_raw: bytes) -&gt; str:
+    return &quot;ent1-&quot; + _b32(hashlib.sha256(public_key_raw).digest())
+
+
+def _new_entity_id() -&gt; str:
+    return &quot;ent2-&quot; + _b32(secrets.token_bytes(32))
+
+
+def _b64(value: bytes) -&gt; str:
+    return base64.urlsafe_b64encode(value).decode(&quot;ascii&quot;).rstrip(&quot;=&quot;)
+
+
+def _unb64(value: str) -&gt; bytes:
+    return base64.urlsafe_b64decode(value + &quot;=&quot; * (-len(value) % 4))
+
+
+def _public_raw(key: Ed25519PrivateKey) -&gt; bytes:
+    return key.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
+
+
+def _private_raw(key: Ed25519PrivateKey) -&gt; bytes:
+    return key.private_bytes(serialization.Encoding.Raw, serialization.PrivateFormat.Raw, serialization.NoEncryption())
+
+
+class EntityIdentityVault:
+    &quot;&quot;&quot;Persistent root identity with rotatable operational keys and private pairwise identities.&quot;&quot;&quot;
+    def __init__(self, state_dir: str | Path, key_protector=None):
+        self.root = Path(state_dir) / &quot;identity&quot;
+        self.keys = self.root / &quot;keys&quot;
+        self.manifests = self.root / &quot;manifests&quot;
+        self.pairwise = self.root / &quot;pairwise&quot;
+        for p in (self.keys, self.manifests, self.pairwise):
+            p.mkdir(parents=True, exist_ok=True)
+        self.key_protector = key_protector
+        self._lock = RLock()
+
+    def _entity_key_dir(self, entity_id: str) -&gt; Path:
+        if not ENTITY_ID_RE.fullmatch(entity_id):
+            raise ValueError(&quot;invalid Entity ID&quot;)
+        path = self.keys / entity_id
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def _manifest_path(self, entity_id: str) -&gt; Path:
+        if not ENTITY_ID_RE.fullmatch(entity_id):
+            raise ValueError(&quot;invalid Entity ID&quot;)
+        return self.manifests / f&quot;{entity_id}.json&quot;
+
+    def _write_private(self, path: Path, raw: bytes) -&gt; None:
+        path.write_bytes(raw)
+        try: os.chmod(path, 0o600)
+        except OSError: pass
+
+    def _remove_private_key_material(self, entity_id: str, key_id: str) -&gt; list[str]:
+        removed=[]; kd=self._entity_key_dir(entity_id)
+        for suffix in (&quot;.key&quot;, &quot;.key.tpm&quot;):
+            path=kd/f&quot;{key_id}{suffix}&quot;
+            if path.is_file():
+                path.unlink(); removed.append(path.name)
+        return removed
+
+    def _read_private_key_bytes(self, entity_id: str, key_id: str) -&gt; bytes:
+        raw_path=self._entity_key_dir(entity_id)/f&quot;{key_id}.key&quot;
+        if raw_path.is_file(): return raw_path.read_bytes()
+        wrapped_path=self._entity_key_dir(entity_id)/f&quot;{key_id}.key.tpm&quot;
+        if wrapped_path.is_file():
+            if self.key_protector is None: raise RuntimeError(&quot;hardware-protected private key requires configured key protector&quot;)
+            return self.key_protector.unwrap(wrapped_path.read_bytes())
+        raise FileNotFoundError(str(raw_path))
+
+    def create(self, display_name: str, entity_type: str, aliases: list[str] | None = None, metadata: dict | None = None) -&gt; dict:
+        name = str(display_name or &quot;&quot;).strip()
+        kind = str(entity_type or &quot;&quot;).strip().lower()
+        if not name or len(name) &gt; 256:
+            raise ValueError(&quot;display_name must be 1..256 characters&quot;)
+        if kind not in ENTITY_TYPES:
+            raise ValueError(f&quot;unsupported entity_type: {kind}&quot;)
+        entity_id = _new_entity_id()
+        signing = Ed25519PrivateKey.generate()
+        recovery = Ed25519PrivateKey.generate()
+        signing_id = &quot;sig-&quot; + secrets.token_hex(8)
+        recovery_id = &quot;rec-&quot; + secrets.token_hex(8)
+        now = int(time.time() * 1000)
+        methods = [
+            {&quot;key_id&quot;: signing_id, &quot;algorithm&quot;: &quot;Ed25519&quot;, &quot;suite&quot;: SIG_SUITE, &quot;purpose&quot;: [&quot;assertion&quot;, &quot;authentication&quot;, &quot;contract&quot;], &quot;public_key&quot;: _b64(_public_raw(signing)), &quot;status&quot;: &quot;active&quot;, &quot;created_at_ms&quot;: now},
+            {&quot;key_id&quot;: recovery_id, &quot;algorithm&quot;: &quot;Ed25519&quot;, &quot;suite&quot;: SIG_SUITE, &quot;purpose&quot;: [&quot;recovery&quot;], &quot;public_key&quot;: _b64(_public_raw(recovery)), &quot;status&quot;: &quot;active&quot;, &quot;created_at_ms&quot;: now},
+        ]
+        manifest = {
+            &quot;schema&quot;: &quot;sovereign-entity-manifest-v2&quot;,
+            &quot;entity_id&quot;: entity_id,
+            &quot;entity_type&quot;: kind,
+            &quot;display_name&quot;: name,
+            &quot;aliases&quot;: sorted({str(x).strip() for x in (aliases or []) if str(x).strip()}),
+            &quot;metadata&quot;: dict(metadata or {}),
+            &quot;verification_methods&quot;: methods,
+            &quot;active_signing_key_id&quot;: signing_id,
+            &quot;recovery_policy&quot;: {&quot;threshold&quot;: 1, &quot;authorities&quot;: [recovery_id], &quot;delayed_recovery_supported&quot;: True},
+            &quot;crypto_agility&quot;: {&quot;manifest_suite&quot;: SIG_SUITE, &quot;supported_suites&quot;: [SIG_SUITE], &quot;future_hybrid_allowed&quot;: True},</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

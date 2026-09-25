@@ -1,0 +1,485 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V3ExchangeConvergenceTests Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>V3ExchangeConvergenceTests</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_exchange_convergence.py#L19">ENTITY/tests/test_v3_exchange_convergence.py#L19</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class V3ExchangeConvergenceTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = pathlib.Path(self.tmp.name)
+        self.identity = identity_mod.EntityIdentityVault(self.root)
+        self.fabric = fabric_mod.UniversalTransactionFabric(self.root, self.identity)
+        self.owner = self.identity.create(&quot;Owner&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        self.buyer = self.identity.create(&quot;Buyer&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        self.buyer2 = self.identity.create(&quot;Buyer 2&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        self.agent = self.identity.create(&quot;Agent&quot;, &quot;system&quot;)[&quot;entity_id&quot;]
+        self.dco = self.fabric.register_digital_commodity(
+            self.owner, &quot;Reference Data&quot;, hashlib.sha256(b&quot;data&quot;).hexdigest()
+        )
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _verified_settle(self,eep,trade_id,payment_ref):
+        evidence=hashlib.sha256((payment_ref+&quot;:evidence&quot;).encode()).hexdigest()
+        att=eep.attest_payment(trade_id,self.owner,payment_ref,evidence)
+        return eep.settle_trade(trade_id,payment_ref=payment_ref,external_verified=True,
+                                payment_attestation_id=att[&quot;attestation_id&quot;])
+
+    def make_ref_exchange(self):
+        root = self.root / &quot;reference&quot;
+        root.mkdir(exist_ok=True)
+        eep = ref_mod.ExchangeProtocol(root, self.identity, self.fabric)
+        venue = eep.create_venue(
+            self.owner, &quot;Reference Venue&quot;, &quot;CA&quot;,
+            [&quot;ORDER_BOOK&quot;, &quot;CALL_AUCTION&quot;, &quot;RFQ&quot;],
+            hashlib.sha256(b&quot;reference-policy&quot;).hexdigest(),
+        )
+        inst = eep.define_instrument(
+            self.owner, self.dco[&quot;object_id&quot;], &quot;SPOT_LICENSE&quot;,
+            {&quot;actions&quot;: [&quot;TRAIN&quot;, &quot;DERIVE&quot;], &quot;raw_redistribution&quot;: False},
+            1000, &quot;CAD&quot;, transferable=True,
+        )
+        disc = eep.publish_disclosure(
+            venue[&quot;venue_id&quot;], inst[&quot;instrument_id&quot;], self.owner,
+            &quot;LISTING&quot;, hashlib.sha256(b&quot;reference-disclosure&quot;).hexdigest(),
+        )
+        eep.list_instrument(
+            venue[&quot;venue_id&quot;], inst[&quot;instrument_id&quot;], self.owner,
+            min_lot=1, tick_size=1, disclosure_sha256=disc[&quot;content_sha256&quot;],
+        )
+        return eep, venue, inst
+
+    def make_mirror_exchange(self):
+        root = self.root / &quot;mirror&quot;
+        root.mkdir(exist_ok=True)
+        eep = mirror_mod.ExchangeProtocol(root, self.identity, self.fabric)
+        venue = eep.create_venue(
+            self.owner, &quot;Mirror Venue&quot;, &quot;CA&quot;, [&quot;ORDER_BOOK&quot;, &quot;RFQ&quot;],
+            hashlib.sha256(b&quot;mirror-policy&quot;).hexdigest(),
+        )
+        inst = eep.define_instrument(
+            self.owner, self.dco[&quot;object_id&quot;], &quot;SPOT_LICENSE&quot;,
+            {&quot;actions&quot;: [&quot;TRAIN&quot;, &quot;DERIVE&quot;], &quot;raw_redistribution&quot;: False},
+            1000, &quot;CAD&quot;, transferable=True,
+        )
+        disc = eep.publish_disclosure(
+            venue[&quot;venue_id&quot;], inst[&quot;instrument_id&quot;], self.owner,
+            &quot;LISTING&quot;, hashlib.sha256(b&quot;mirror-disclosure&quot;).hexdigest(),
+        )
+        eep.list_instrument(
+            venue[&quot;venue_id&quot;], inst[&quot;instrument_id&quot;], self.owner, 1, 1,
+            disc[&quot;content_sha256&quot;],
+        )
+        return eep, venue, inst
+
+    def test_rights_ontology_semantics_converge(self):
+        cases = [
+            ([{&quot;effect&quot;: &quot;ALLOW&quot;, &quot;actions&quot;: [&quot;TRAIN&quot;]}, {&quot;effect&quot;: &quot;PROHIBIT&quot;, &quot;actions&quot;: [&quot;READ&quot;]}], &quot;TRAIN&quot;, &quot;DENY&quot;),
+            ([{&quot;effect&quot;: &quot;ALLOW&quot;, &quot;actions&quot;: [&quot;READ&quot;]}, {&quot;effect&quot;: &quot;PROHIBIT&quot;, &quot;actions&quot;: [&quot;TRAIN&quot;]}], &quot;READ&quot;, &quot;ALLOW&quot;),
+            ([{&quot;effect&quot;: &quot;ALLOW&quot;, &quot;actions&quot;: [&quot;REDISTRIBUTE&quot;]}], &quot;READ&quot;, &quot;ALLOW&quot;),
+            ([], &quot;READ&quot;, &quot;DENY&quot;),
+        ]
+        for rules, action, expected in cases:
+            ref = ref_core.RightsOntology.evaluate(rules, action)[&quot;decision&quot;]
+            mirror = mirror_hard.RightsOntology.evaluate(rules, action)[&quot;decision&quot;]
+            self.assertEqual(ref, expected)
+            self.assertEqual(mirror, expected)
+
+    def test_order_book_semantics_converge(self):
+        ref, rv, ri = self.make_ref_exchange()
+        mirror, mv, mi = self.make_mirror_exchange()
+        for eep, venue, inst, prefix in (
+            (ref, rv, ri, &quot;r&quot;), (mirror, mv, mi, &quot;m&quot;),
+        ):
+            eep.submit_order(
+                venue[&quot;venue_id&quot;], inst[&quot;instrument_id&quot;], self.owner,
+                &quot;SELL&quot;, 10, 50, nonce=f&quot;{prefix}-sell&quot;,
+            )
+            eep.submit_order(
+                venue[&quot;venue_id&quot;], inst[&quot;instrument_id&quot;], self.buyer,
+                &quot;BUY&quot;, 10, 50, nonce=f&quot;{prefix}-buy&quot;,
+            )
+        rt = ref.match_order_book(rv[&quot;venue_id&quot;], ri[&quot;instrument_id&quot;])
+        mt = mirror.match_order_book(mv[&quot;venue_id&quot;], mi[&quot;instrument_id&quot;])
+        self.assertEqual(len(rt), 1)
+        self.assertEqual(len(mt), 1)
+        self._verified_settle(ref,rt[0][&quot;trade_id&quot;],&quot;ref-pay&quot;)
+        self._verified_settle(mirror,mt[0][&quot;trade_id&quot;],&quot;mirror-pay&quot;)
+        self.assertEqual(ref.balance(ri[&quot;instrument_id&quot;], self.buyer), 10)
+        self.assertEqual(mirror.balance(mi[&quot;instrument_id&quot;], self.buyer), 10)
+        rmd = ref.market_data(rv[&quot;venue_id&quot;], ri[&quot;instrument_id&quot;])
+        mmd = mirror.market_data(mv[&quot;venue_id&quot;], mi[&quot;instrument_id&quot;])
+        self.assertEqual(rmd[&quot;last&quot;], 50)
+        self.assertEqual(mmd[&quot;last_price&quot;], 50)
+        self.assertEqual(rmd[&quot;volume_units&quot;], 10)
+        self.assertEqual(mmd[&quot;volume_units&quot;], 10)
+
+    def test_reference_call_auction_and_rfq_acceptance(self):
+        eep, venue, inst = self.make_ref_exchange()
+        iid, vid = inst[&quot;instrument_id&quot;], venue[&quot;venue_id&quot;]
+        eep.submit_order(vid, iid, self.owner, &quot;SELL&quot;, 100, 80, nonce=&quot;auction-sell&quot;)
+        eep.submit_order(vid, iid, self.buyer, &quot;BUY&quot;, 60, 100, nonce=&quot;auction-buy-1&quot;)
+        eep.submit_order(vid, iid, self.buyer2, &quot;BUY&quot;, 40, 90, nonce=&quot;auction-buy-2&quot;)
+        auction = eep.run_call_auction(vid, iid)
+        self.assertTrue(auction[&quot;executed&quot;])
+        self.assertEqual(auction[&quot;clearing_price&quot;], 80)
+        self.assertEqual(auction[&quot;executed_volume&quot;], 100)
+        for index, trade_id in enumerate(auction[&quot;trade_ids&quot;]):
+            self._verified_settle(eep,trade_id,f&quot;auction-payment-{index}&quot;)
+        self.assertEqual(eep.balance(iid, self.buyer), 60)
+        self.assertEqual(eep.balance(iid, self.buyer2), 40)
+        expiry = int(time.time() * 1000) + 60_000
+        rfq = eep.create_rfq(vid, iid, self.buyer, &quot;BUY&quot;, 10, expires_at_ms=expiry)
+        quote = eep.quote_rfq(rfq[&quot;rfq_id&quot;], self.owner, 77, expires_at_ms=expiry)
+        execution = eep.accept_quote(rfq[&quot;rfq_id&quot;], quote[&quot;quote_id&quot;], self.buyer)
+        self.assertEqual(execution[&quot;execution_model&quot;], &quot;RFQ&quot;)
+        settled = self._verified_settle(eep,execution[&quot;trade_id&quot;],&quot;rfq-payment&quot;)
+        self.assertEqual(settled[&quot;status&quot;], &quot;SETTLED&quot;)
+        self.assertEqual(eep.balance(iid, self.buyer), 70)
+
+    def test_external_signed_order_and_receipt_priority_converge(self):
+        for eep, venue, inst, prefix in (
+            (*self.make_ref_exchange(), &quot;r&quot;),
+            (*self.make_mirror_exchange(), &quot;m&quot;),
+        ):
+            iid,vid=inst[&quot;instrument_id&quot;],venue[&quot;venue_id&quot;]
+            base={&quot;schema&quot;:&quot;entity-eep-order-v1&quot;,&quot;venue_id&quot;:vid,&quot;instrument_id&quot;:iid,&quot;side&quot;:&quot;BUY&quot;,&quot;quantity&quot;:1,&quot;limit_price&quot;:42,&quot;tif&quot;:&quot;GTC&quot;}
+            first=dict(base,order_id=f&quot;{prefix}-external-first&quot;,participant=self.buyer,nonce=f&quot;{prefix}-external-1&quot;,created_at_ms=int(time.time()*1000)+100000)
+            sig1=self.identity.sign(self.buyer,first)
+            original_sign=self.identity.sign
+            def guarded_sign(entity_id,payload):
+                if entity_id==self.buyer: raise AssertionError(&quot;signed-order ingestion must not use trader private key&quot;)
+                return original_sign(entity_id,payload)
+            self.identity.sign=guarded_sign
+            try: recorded=eep.submit_signed_order(first,sig1)
+            finally: self.identity.sign=original_sign
+            self.assertEqual(recorded[&quot;participant&quot;],self.buyer); self.assertIn(&quot;received_at_ms&quot;,recorded)
+            time.sleep(0.01)
+            second=dict(base,order_id=f&quot;{prefix}-external-second&quot;,participant=self.buyer2,nonce=f&quot;{prefix}-external-2&quot;,created_at_ms=0)
+            sig2=self.identity.sign(self.buyer2,second); eep.submit_signed_order(second,sig2)
+            eep.submit_order(vid,iid,self.owner,&quot;SELL&quot;,1,42,nonce=f&quot;{prefix}-priority-sell&quot;)
+            trades=eep.match_order_book(vid,iid)
+            self.assertEqual(len(trades),1); self.assertEqual(trades[0][&quot;buyer&quot;],self.buyer)
+
+    def test_signed_participant_control_paths_converge(self):
+        for eep, venue, inst, prefix in (
+            (*self.make_ref_exchange(), &quot;r&quot;),
+            (*self.make_mirror_exchange(), &quot;m&quot;),
+        ):
+            iid,vid=inst[&quot;instrument_id&quot;],venue[&quot;venue_id&quot;]
+            order=eep.submit_order(vid,iid,self.buyer,&quot;BUY&quot;,1,10,nonce=f&quot;{prefix}-cancel-order&quot;)
+            cancel={&quot;schema&quot;:&quot;entity-eep-order-cancel-v1&quot;,&quot;cancellation_id&quot;:f&quot;{prefix}-cancel-id&quot;,&quot;order_id&quot;:order[&quot;order_id&quot;],
+                    &quot;participant&quot;:self.buyer,&quot;nonce&quot;:f&quot;{prefix}-cancel-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            cancel_sig=self.identity.sign(self.buyer,cancel); original_sign=self.identity.sign
+            def guard_buyer(entity_id,payload):
+                if entity_id==self.buyer: raise AssertionError(&quot;venue must not use participant private key&quot;)
+                return original_sign(entity_id,payload)
+            self.identity.sign=guard_buyer
+            try: cancelled=eep.submit_signed_cancellation(cancel,cancel_sig)
+            finally: self.identity.sign=original_sign
+            self.assertEqual(cancelled[&quot;status&quot;],&quot;CANCELLED&quot;)
+            with self.assertRaises(PermissionError):
+                eep.submit_signed_cancellation(dict(cancel,cancellation_id=f&quot;{prefix}-tampered&quot;),cancel_sig)
+
+            eep.submit_order(vid,iid,self.owner,&quot;SELL&quot;,2,20,nonce=f&quot;{prefix}-pay-sell&quot;)
+            eep.submit_order(vid,iid,self.buyer,&quot;BUY&quot;,2,20,nonce=f&quot;{prefix}-pay-buy&quot;)
+            trade=eep.match_order_book(vid,iid)[0]
+            eep.authorize_settlement_verifier(vid,self.owner,self.agent)
+            pay={&quot;schema&quot;:&quot;entity-eep-payment-attestation-v1&quot;,&quot;attestation_id&quot;:f&quot;{prefix}-payatt&quot;,&quot;trade_id&quot;:trade[&quot;trade_id&quot;],
+                 &quot;verifier_entity_id&quot;:self.agent,&quot;settlement_ref&quot;:f&quot;{prefix}-payment&quot;,&quot;evidence_sha256&quot;:hashlib.sha256((prefix+&quot;-bank-proof&quot;).encode()).hexdigest(),
+                 &quot;nonce&quot;:f&quot;{prefix}-pay-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000),&quot;verification_is_attestation_not_absolute_truth&quot;:True}
+            pay_sig=self.identity.sign(self.agent,pay)
+            def guard_agent(entity_id,payload):
+                if entity_id==self.agent: raise AssertionError(&quot;venue must not use verifier private key&quot;)
+                return original_sign(entity_id,payload)
+            self.identity.sign=guard_agent
+            try: att=eep.submit_signed_payment_attestation(pay,pay_sig)
+            finally: self.identity.sign=original_sign
+            self.assertEqual(att[&quot;verifier_authority_basis&quot;],&quot;AUTHORIZED_SETTLEMENT_VERIFIER&quot;)
+            with self.assertRaises(ValueError):
+                eep.settle_trade(trade[&quot;trade_id&quot;],payment_ref=f&quot;{prefix}-payment&quot;,external_verified=True)
+            settled=eep.settle_trade(trade[&quot;trade_id&quot;],payment_ref=f&quot;{prefix}-payment&quot;,external_verified=True,payment_attestation_id=att[&quot;attestation_id&quot;])
+            self.assertTrue(settled[&quot;external_money_movement_verified&quot;])
+
+            usage={&quot;schema&quot;:&quot;entity-eep-usage-v1&quot;,&quot;usage_id&quot;:f&quot;{prefix}-usage&quot;,&quot;instrument_id&quot;:iid,&quot;holder&quot;:self.buyer,
+                   &quot;action&quot;:&quot;TRAIN&quot;,&quot;units&quot;:1,&quot;nonce&quot;:f&quot;{prefix}-usage-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            usage_sig=self.identity.sign(self.buyer,usage); self.identity.sign=guard_buyer
+            try: recorded=eep.submit_signed_usage(usage,usage_sig)
+            finally: self.identity.sign=original_sign
+            self.assertEqual(recorded[&quot;holder&quot;],self.buyer)
+            with self.assertRaises(PermissionError): eep.submit_signed_usage(dict(usage,units=2,usage_id=f&quot;{prefix}-usage-tamper&quot;),usage_sig)
+
+            expiry=int(time.time()*1000)+60000
+            rfq={&quot;schema&quot;:&quot;entity-eep-rfq-v1&quot;,&quot;rfq_id&quot;:f&quot;{prefix}-rfq&quot;,&quot;venue_id&quot;:vid,&quot;instrument_id&quot;:iid,&quot;requester&quot;:self.buyer,
+                 &quot;side&quot;:&quot;BUY&quot;,&quot;quantity&quot;:1,&quot;expires_at_ms&quot;:expiry,&quot;nonce&quot;:f&quot;{prefix}-rfq-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            rfq_sig=self.identity.sign(self.buyer,rfq); self.identity.sign=guard_buyer
+            try: eep.submit_signed_rfq(rfq,rfq_sig)
+            finally: self.identity.sign=original_sign
+            quote={&quot;schema&quot;:&quot;entity-eep-rfq-quote-v1&quot;,&quot;quote_id&quot;:f&quot;{prefix}-quote&quot;,&quot;rfq_id&quot;:rfq[&quot;rfq_id&quot;],&quot;provider&quot;:self.owner,
+                   &quot;price&quot;:30,&quot;expires_at_ms&quot;:expiry,&quot;nonce&quot;:f&quot;{prefix}-quote-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            quote_sig=self.identity.sign(self.owner,quote)
+            def guard_owner(entity_id,payload):
+                if entity_id==self.owner: raise AssertionError(&quot;venue must not use provider private key&quot;)
+                return original_sign(entity_id,payload)
+            self.identity.sign=guard_owner
+            try: eep.submit_signed_quote(quote,quote_sig)
+            finally: self.identity.sign=original_sign
+            acceptance={&quot;schema&quot;:&quot;entity-eep-rfq-acceptance-v1&quot;,&quot;acceptance_id&quot;:f&quot;{prefix}-accept&quot;,&quot;rfq_id&quot;:rfq[&quot;rfq_id&quot;],
+                        &quot;quote_id&quot;:quote[&quot;quote_id&quot;],&quot;requester&quot;:self.buyer,&quot;nonce&quot;:f&quot;{prefix}-accept-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            accept_sig=self.identity.sign(self.buyer,acceptance); self.identity.sign=guard_buyer
+            try: execution=eep.submit_signed_quote_acceptance(acceptance,accept_sig)
+            finally: self.identity.sign=original_sign
+            self.assertEqual(execution[&quot;execution_model&quot;],&quot;RFQ&quot;)
+
+    def test_signed_revenue_rules_require_instrument_issuer_in_both(self):
+        for eep,venue,inst,prefix in (
+            (*self.make_ref_exchange(),&quot;r&quot;),
+            (*self.make_mirror_exchange(),&quot;m&quot;),
+        ):
+            body={&quot;schema&quot;:&quot;entity-eep-revenue-rule-set-v1&quot;,&quot;rule_set_id&quot;:f&quot;{prefix}-rules&quot;,&quot;instrument_id&quot;:inst[&quot;instrument_id&quot;],
+                  &quot;issuer&quot;:self.owner,&quot;allocations_bps&quot;:{self.owner:700,self.agent:300},&quot;nonce&quot;:f&quot;{prefix}-rules-nonce&quot;,
+                  &quot;created_at_ms&quot;:int(time.time()*1000)}
+            sig=self.identity.sign(self.owner,body); original=self.identity.sign
+            def guard(entity_id,payload):
+                if entity_id==self.owner: raise AssertionError(&quot;venue must not use issuer private key&quot;)
+                return original(entity_id,payload)
+            self.identity.sign=guard
+            try: result=eep.submit_signed_revenue_rules(body,sig)
+            finally: self.identity.sign=original
+            self.assertEqual(result[&quot;total_bps&quot;],1000)
+            with self.assertRaises(PermissionError):
+                eep.submit_signed_revenue_rules(dict(body,rule_set_id=f&quot;{prefix}-tamper&quot;,allocations_bps={self.owner:900,self.agent:100}),sig)
+            rogue=dict(body,rule_set_id=f&quot;{prefix}-rogue&quot;,issuer=self.buyer,nonce=f&quot;{prefix}-rogue-nonce&quot;)
+            rogue_sig=self.identity.sign(self.buyer,rogue)
+            with self.assertRaises(PermissionError): eep.submit_signed_revenue_rules(rogue,rogue_sig)
+
+    def test_unsettled_trade_units_remain_reserved_in_both(self):
+        for eep,venue,inst,prefix in (
+            (*self.make_ref_exchange(),&quot;r-reserve&quot;),
+            (*self.make_mirror_exchange(),&quot;m-reserve&quot;),
+        ):
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;SELL&quot;,900,10,nonce=prefix+&quot;-sell&quot;)
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.buyer,&quot;BUY&quot;,900,10,nonce=prefix+&quot;-buy&quot;)
+            trades=eep.match_order_book(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;])
+            self.assertEqual(len(trades),1)
+            self.assertEqual(eep.balance(inst[&quot;instrument_id&quot;],self.owner),1000)
+            self.assertEqual(eep._reserved_sell(inst[&quot;instrument_id&quot;],self.owner),900)
+            with self.assertRaises(PermissionError):
+                eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;SELL&quot;,101,11,nonce=prefix+&quot;-oversell&quot;)
+            self._verified_settle(eep,trades[0][&quot;trade_id&quot;],prefix+&quot;-pay&quot;)
+            self.assertEqual(eep.balance(inst[&quot;instrument_id&quot;],self.owner),100)
+            self.assertEqual(eep._reserved_sell(inst[&quot;instrument_id&quot;],self.owner),0)
+
+    def test_rfq_acceptance_rechecks_unsettled_sell_commitments(self):
+        for eep,venue,inst,prefix in (
+            (*self.make_ref_exchange(),&quot;r-rfq-reserve&quot;),
+            (*self.make_mirror_exchange(),&quot;m-rfq-reserve&quot;),
+        ):
+            expiry=int(time.time()*1000)+60000
+            rfq=eep.create_rfq(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.buyer2,&quot;BUY&quot;,500,expires_at_ms=expiry)
+            quote=eep.quote_rfq(rfq[&quot;rfq_id&quot;],self.owner,100,expires_at_ms=expiry)
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;SELL&quot;,600,10,nonce=prefix+&quot;-sell&quot;)
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.buyer,&quot;BUY&quot;,600,10,nonce=prefix+&quot;-buy&quot;)
+            trades=eep.match_order_book(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;])
+            self.assertEqual(len(trades),1)
+            self.assertEqual(eep._reserved_sell(inst[&quot;instrument_id&quot;],self.owner),600)
+            with self.assertRaises(PermissionError):
+                eep.accept_quote(rfq[&quot;rfq_id&quot;],quote[&quot;quote_id&quot;],self.buyer2,nonce=prefix+&quot;-accept&quot;)
+
+    def test_trade_revenue_binding_is_execution_time_immutable(self):
+        for eep,venue,inst,prefix,is_mirror in (
+            (*self.make_ref_exchange(),&quot;r-revenue-bind&quot;,False),
+            (*self.make_mirror_exchange(),&quot;m-revenue-bind&quot;,True),
+        ):
+            first={&quot;schema&quot;:&quot;entity-eep-revenue-rule-set-v1&quot;,&quot;rule_set_id&quot;:prefix+&quot;-rules-v1&quot;,&quot;instrument_id&quot;:inst[&quot;instrument_id&quot;],
+                   &quot;issuer&quot;:self.owner,&quot;allocations_bps&quot;:{self.buyer2:1000},&quot;nonce&quot;:prefix+&quot;-rules-v1-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            eep.submit_signed_revenue_rules(first,self.identity.sign(self.owner,first))
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;SELL&quot;,10,100,nonce=prefix+&quot;-sell&quot;)
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.buyer,&quot;BUY&quot;,10,100,nonce=prefix+&quot;-buy&quot;)
+            trades=eep.match_order_book(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;])
+            self.assertEqual(len(trades),1); trade_id=trades[0][&quot;trade_id&quot;]
+            bound=eep.trade_revenue_binding(trade_id)
+            self.assertEqual(bound[&quot;rule_set_id&quot;],first[&quot;rule_set_id&quot;]); self.assertEqual(bound[&quot;allocations_bps&quot;],{self.buyer2:1000})
+            second={&quot;schema&quot;:&quot;entity-eep-revenue-rule-set-v1&quot;,&quot;rule_set_id&quot;:prefix+&quot;-rules-v2&quot;,&quot;instrument_id&quot;:inst[&quot;instrument_id&quot;],
+                    &quot;issuer&quot;:self.owner,&quot;allocations_bps&quot;:{self.agent:2000},&quot;nonce&quot;:prefix+&quot;-rules-v2-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)+1}
+            eep.submit_signed_revenue_rules(second,self.identity.sign(self.owner,second))
+            self.assertEqual(eep.trade_revenue_binding(trade_id)[&quot;allocations_bps&quot;],{self.buyer2:1000})
+            settled=self._verified_settle(eep,trade_id,prefix+&quot;-pay&quot;)
+            if is_mirror:
+                revenue=settled[&quot;revenue_distribution&quot;]
+                self.assertEqual(len(revenue),1); self.assertEqual(revenue[0][&quot;recipient&quot;],self.buyer2); self.assertEqual(revenue[0][&quot;amount_units&quot;],100)
+            self.assertEqual(eep.trade_revenue_binding(trade_id)[&quot;rule_set_id&quot;],first[&quot;rule_set_id&quot;])
+
+    def test_concurrent_sell_admission_is_atomic_in_both(self):
+        for eep,venue,inst,prefix in (
+            (*self.make_ref_exchange(),&quot;r-concurrent-sell&quot;),
+            (*self.make_mirror_exchange(),&quot;m-concurrent-sell&quot;),
+        ):
+            bodies=[]
+            for i in range(2):
+                body={&quot;schema&quot;:&quot;entity-eep-order-v1&quot;,&quot;order_id&quot;:f&quot;{prefix}-order-{i}&quot;,&quot;venue_id&quot;:venue[&quot;venue_id&quot;],
+                      &quot;instrument_id&quot;:inst[&quot;instrument_id&quot;],&quot;participant&quot;:self.owner,&quot;side&quot;:&quot;SELL&quot;,&quot;quantity&quot;:600,
+                      &quot;limit_price&quot;:10,&quot;tif&quot;:&quot;GTC&quot;,&quot;nonce&quot;:f&quot;{prefix}-nonce-{i}&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)+i}
+                bodies.append((body,self.identity.sign(self.owner,body)))
+            gate=threading.Barrier(2); original_reserved=eep._reserved_sell
+            def gated_reserved(instrument_id,participant):
+                value=original_reserved(instrument_id,participant); gate.wait(timeout=5); return value
+            eep._reserved_sell=gated_reserved; results=[]; lock=threading.Lock()
+            def worker(item):
+                body,sig=item
+                try: eep.submit_signed_order(body,sig); outcome=&#x27;ok&#x27;
+                except Exception as exc: outcome=type(exc).__name__
+                with lock: results.append(outcome)
+            threads=[threading.Thread(target=worker,args=(item,)) for item in bodies]
+            for t in threads: t.start()
+            for t in threads: t.join(10)
+            eep._reserved_sell=original_reserved
+            self.assertTrue(all(not t.is_alive() for t in threads))
+            self.assertEqual(results.count(&#x27;ok&#x27;),1,results); self.assertEqual(results.count(&#x27;PermissionError&#x27;),1,results)
+            self.assertEqual(eep._reserved_sell(inst[&quot;instrument_id&quot;],self.owner),600)
+
+    def test_concurrent_matching_creates_exactly_one_trade_in_both(self):
+        for eep,venue,inst,prefix in (
+            (*self.make_ref_exchange(),&quot;r-concurrent-match&quot;),
+            (*self.make_mirror_exchange(),&quot;m-concurrent-match&quot;),
+        ):
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;SELL&quot;,10,100,nonce=prefix+&quot;-sell&quot;)
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.buyer,&quot;BUY&quot;,10,100,nonce=prefix+&quot;-buy&quot;)
+            start=threading.Barrier(2); results=[]; lock=threading.Lock()
+            def worker():
+                start.wait(timeout=5)
+                try: outcome=len(eep.match_order_book(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;]))
+                except Exception as exc: outcome=type(exc).__name__
+                with lock: results.append(outcome)
+            threads=[threading.Thread(target=worker) for _ in range(2)]
+            for t in threads: t.start()
+            for t in threads: t.join(10)
+            self.assertTrue(all(not t.is_alive() for t in threads)); self.assertEqual(sum(x for x in results if isinstance(x,int)),1,results)
+            with eep._db() as db:
+                self.assertEqual(db.execute(&#x27;SELECT COUNT(*) FROM trades WHERE instrument_id=?&#x27;,(inst[&quot;instrument_id&quot;],)).fetchone()[0],1)
+                self.assertEqual(db.execute(&quot;SELECT COUNT(*) FROM orders WHERE instrument_id=? AND status=&#x27;FILLED&#x27;&quot;,(inst[&quot;instrument_id&quot;],)).fetchone()[0],2)
+
+    def test_concurrent_double_settlement_is_atomic_in_both(self):
+        for eep,venue,inst,prefix in (
+            (*self.make_ref_exchange(),&quot;r-double-settle&quot;),
+            (*self.make_mirror_exchange(),&quot;m-double-settle&quot;),
+        ):
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;SELL&quot;,10,100,nonce=prefix+&quot;-sell&quot;)
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.buyer,&quot;BUY&quot;,10,100,nonce=prefix+&quot;-buy&quot;)
+            trade=eep.match_order_book(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;])[0]
+            payment=prefix+&quot;-pay&quot;; evidence=hashlib.sha256((payment+&quot;:evidence&quot;).encode()).hexdigest()
+            att=eep.attest_payment(trade[&quot;trade_id&quot;],self.owner,payment,evidence)
+            start=threading.Barrier(2); old_balance=eep.balance; legacy_gate=threading.Barrier(2)
+            def gated_balance(instrument_id,holder):
+                value=old_balance(instrument_id,holder); legacy_gate.wait(timeout=5); return value
+            eep.balance=gated_balance; results=[]; lock=threading.Lock()
+            def settle_worker():
+                start.wait(timeout=5)
+                try:
+                    eep.settle_trade(trade[&quot;trade_id&quot;],payment_ref=payment,external_verified=True,payment_attestation_id=att[&quot;attestation_id&quot;]); outcome=&#x27;ok&#x27;
+                except Exception as exc: outcome=type(exc).__name__
+                with lock: results.append(outcome)
+            threads=[threading.Thread(target=settle_worker) for _ in range(2)]
+            for t in threads: t.start()
+            for t in threads: t.join(10)
+            eep.balance=old_balance
+            self.assertTrue(all(not t.is_alive() for t in threads))
+            self.assertEqual(results.count(&#x27;ok&#x27;),1,results); self.assertEqual(results.count(&#x27;KeyError&#x27;),1,results)
+            self.assertEqual(eep.balance(inst[&quot;instrument_id&quot;],self.owner),990); self.assertEqual(eep.balance(inst[&quot;instrument_id&quot;],self.buyer),10)
+            with eep._db() as db: self.assertEqual(db.execute(&#x27;SELECT COUNT(*) FROM entitlements WHERE trade_id=?&#x27;,(trade[&quot;trade_id&quot;],)).fetchone()[0],1)
+
+    def test_revenue_event_failure_rolls_back_hardening_settlement(self):
+        eep,venue,inst=self.make_mirror_exchange()
+        eep.set_revenue_rules(inst[&quot;instrument_id&quot;],self.owner,{self.buyer2:1000},nonce=&#x27;atomic-revenue-rule&#x27;)
+        eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;SELL&quot;,10,100,nonce=&#x27;atomic-revenue-sell&#x27;)
+        eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.buyer,&quot;BUY&quot;,10,100,nonce=&#x27;atomic-revenue-buy&#x27;)
+        trade=eep.match_order_book(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;])[0]
+        with eep._db() as db:
+            db.execute(&quot;CREATE TRIGGER fail_revenue_event BEFORE INSERT ON revenue_events BEGIN SELECT RAISE(ABORT,&#x27;forced revenue failure&#x27;); END&quot;)
+        with self.assertRaises(sqlite3.DatabaseError): self._verified_settle(eep,trade[&quot;trade_id&quot;],&#x27;atomic-revenue-pay&#x27;)
+        self.assertEqual(eep.balance(inst[&quot;instrument_id&quot;],self.owner),1000); self.assertEqual(eep.balance(inst[&quot;instrument_id&quot;],self.buyer),0)
+        with eep._db() as db:
+            self.assertEqual(db.execute(&#x27;SELECT status FROM trades WHERE trade_id=?&#x27;,(trade[&quot;trade_id&quot;],)).fetchone()[0],&#x27;EXECUTED&#x27;)
+            self.assertEqual(db.execute(&#x27;SELECT status FROM clearing WHERE trade_id=?&#x27;,(trade[&quot;trade_id&quot;],)).fetchone()[0],&#x27;PENDING&#x27;)
+            self.assertEqual(db.execute(&#x27;SELECT COUNT(*) FROM entitlements WHERE trade_id=?&#x27;,(trade[&quot;trade_id&quot;],)).fetchone()[0],0)
+            self.assertEqual(db.execute(&#x27;SELECT COUNT(*) FROM revenue_events WHERE trade_id=?&#x27;,(trade[&quot;trade_id&quot;],)).fetchone()[0],0)
+
+    def test_external_signed_issuer_instrument_disclosure_listing_converge(self):
+        for eep,venue,_existing,prefix in (
+            (*self.make_ref_exchange(),&quot;r&quot;),
+            (*self.make_mirror_exchange(),&quot;m&quot;),
+        ):
+            dco=self.fabric.register_digital_commodity(self.owner,f&quot;{prefix}-External Corpus&quot;,hashlib.sha256((prefix+&quot;-external-data&quot;).encode()).hexdigest())
+            instrument={&quot;schema&quot;:&quot;entity-eep-instrument-v1&quot;,&quot;instrument_id&quot;:f&quot;{prefix}-external-inst&quot;,&quot;issuer&quot;:self.owner,
+                        &quot;underlying_object_id&quot;:dco[&quot;object_id&quot;],&quot;instrument_class&quot;:&quot;SPOT_LICENSE&quot;,&quot;rights&quot;:{&quot;actions&quot;:[&quot;DERIVE&quot;,&quot;TRAIN&quot;],&quot;raw_redistribution&quot;:False},
+                        &quot;total_units&quot;:100,&quot;transferable&quot;:True,&quot;duration_ms&quot;:None,&quot;settlement_currency&quot;:&quot;CAD&quot;,&quot;delivery_mode&quot;:&quot;ENTITLEMENT&quot;,
+                        &quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:int(time.time()*1000),&quot;bytes_are_not_the_traded_scarcity&quot;:True}
+            inst_sig=self.identity.sign(self.owner,instrument); original=self.identity.sign
+            def guard_owner(entity_id,payload):
+                if entity_id==self.owner: raise AssertionError(&quot;venue must not use issuer/lister private key&quot;)
+                return original(entity_id,payload)
+            self.identity.sign=guard_owner
+            try: recorded=eep.submit_signed_instrument(instrument,inst_sig)
+            finally: self.identity.sign=original
+            self.assertEqual(recorded[&quot;instrument_id&quot;],instrument[&quot;instrument_id&quot;])
+            with self.assertRaises(PermissionError):
+                eep.submit_signed_instrument(dict(instrument,instrument_id=f&quot;{prefix}-inst-tamper&quot;),inst_sig)
+
+            content=hashlib.sha256((prefix+&quot;-offering&quot;).encode()).hexdigest()
+            disclosure={&quot;schema&quot;:&quot;entity-eep-disclosure-v1&quot;,&quot;disclosure_id&quot;:f&quot;{prefix}-disc&quot;,&quot;venue_id&quot;:venue[&quot;venue_id&quot;],
+                        &quot;instrument_id&quot;:instrument[&quot;instrument_id&quot;],&quot;publisher&quot;:self.owner,&quot;disclosure_type&quot;:&quot;OFFERING&quot;,&quot;content_sha256&quot;:content,
+                        &quot;created_at_ms&quot;:int(time.time()*1000),&quot;protected_data_included&quot;:False}
+            disc_sig=self.identity.sign(self.owner,disclosure); self.identity.sign=guard_owner
+            try: disc=eep.submit_signed_disclosure(disclosure,disc_sig)
+            finally: self.identity.sign=original
+            self.assertFalse(disc[&quot;protected_data_included&quot;])
+
+            listing={&quot;schema&quot;:&quot;entity-eep-listing-v1&quot;,&quot;listing_id&quot;:f&quot;{prefix}-listing&quot;,&quot;venue_id&quot;:venue[&quot;venue_id&quot;],
+                     &quot;instrument_id&quot;:instrument[&quot;instrument_id&quot;],&quot;lister&quot;:self.owner,&quot;min_lot&quot;:1,&quot;tick_size&quot;:1,&quot;disclosure_sha256&quot;:content,
+                     &quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            list_sig=self.identity.sign(self.owner,listing); self.identity.sign=guard_owner
+            try: listed=eep.submit_signed_listing(listing,list_sig)
+            finally: self.identity.sign=original
+            self.assertEqual(listed[&quot;disclosure_sha256&quot;],content)
+            missing=dict(listing,listing_id=f&quot;{prefix}-missing-disc&quot;,disclosure_sha256=hashlib.sha256(b&quot;missing&quot;).hexdigest())
+            missing_sig=self.identity.sign(self.owner,missing)
+            with self.assertRaises(ValueError): eep.submit_signed_listing(missing,missing_sig)
+
+    def test_entitlement_receipt_and_expiry_semantics_converge(self):
+        required={&quot;schema&quot;,&quot;entitlement_id&quot;,&quot;trade_id&quot;,&quot;instrument_id&quot;,&quot;holder&quot;,&quot;quantity&quot;,&quot;rights&quot;,
+                  &quot;expires_at_ms&quot;,&quot;created_at_ms&quot;,&quot;instrument_issuer&quot;,&quot;venue_operator&quot;,
+                  &quot;ownership_of_underlying_transferred&quot;,&quot;venue_operator_is_not_underlying_owner&quot;,&quot;signature&quot;}
+        for eep,venue,_base,prefix in (
+            (*self.make_ref_exchange(),&quot;r&quot;),
+            (*self.make_mirror_exchange(),&quot;m&quot;),
+        ):
+            inst=eep.define_instrument(self.owner,self.dco[&quot;object_id&quot;],&quot;SPOT_LICENSE&quot;,{&quot;actions&quot;:[&quot;TRAIN&quot;]},10,&quot;CAD&quot;,transferable=True,duration_ms=20)
+            content=hashlib.sha256((prefix+&quot;-expiry-disclosure&quot;).encode()).hexdigest()
+            disc=eep.publish_disclosure(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;OFFERING&quot;,content)
+            eep.list_instrument(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,min_lot=1,tick_size=1,disclosure_sha256=disc[&quot;content_sha256&quot;])
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;SELL&quot;,1,5,nonce=f&quot;{prefix}-expiry-sell&quot;)
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.buyer,&quot;BUY&quot;,1,5,nonce=f&quot;{prefix}-expiry-buy&quot;)
+            trade=eep.match_order_book(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;])[0]
+            settled=eep.settle_trade(trade[&quot;trade_id&quot;],payment_ref=f&quot;{prefix}-expiry-pay&quot;,external_verified=False)
+            entitlement=settled[&quot;entitlement&quot;]
+            self.assertEqual(set(entitlement),required)
+            self.assertFalse(entitlement[&quot;ownership_of_underlying_transferred&quot;])
+            self.assertTrue(entitlement[&quot;venue_operator_is_not_underlying_owner&quot;])
+            self.assertEqual(entitlement[&quot;instrument_issuer&quot;],self.owner)
+            self.assertEqual(entitlement[&quot;venue_operator&quot;],self.owner)
+            self.assertIsNotNone(entitlement[&quot;expires_at_ms&quot;])
+            time.sleep(0.04)
+            usage={&quot;schema&quot;:&quot;entity-eep-usage-v1&quot;,&quot;usage_id&quot;:f&quot;{prefix}-expired-usage&quot;,&quot;instrument_id&quot;:inst[&quot;instrument_id&quot;],
+                   &quot;holder&quot;:self.buyer,&quot;action&quot;:&quot;TRAIN&quot;,&quot;units&quot;:1,&quot;nonce&quot;:f&quot;{prefix}-expired-usage-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            usage_sig=self.identity.sign(self.buyer,usage)
+            with self.assertRaises(PermissionError): eep.submit_signed_usage(usage,usage_sig)
+
+    def test_self_trade_is_blocked_and_alerted_in_both(self):
+        for eep, venue, inst, prefix in (
+            (*self.make_ref_exchange(), &quot;r&quot;),
+            (*self.make_mirror_exchange(), &quot;m&quot;),
+        ):
+            iid, vid = inst[&quot;instrument_id&quot;], venue[&quot;venue_id&quot;]
+            eep.submit_order(vid, iid, self.owner, &quot;SELL&quot;, 5, 25, nonce=f&quot;{prefix}-self-sell&quot;)
+            eep.submit_order(vid, iid, self.owner, &quot;BUY&quot;, 5, 25, nonce=f&quot;{prefix}-self-buy&quot;)
+            trades = eep.match_order_book(vid, iid)
+            self.assertEqual(trades, [])
+            alerts = eep.surveillance_alerts(vid)
+            self.assertTrue(alerts)
+            self.assertTrue(any(&quot;SELF_&quot; in a[&quot;alert_type&quot;] for a in alerts))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>normalize_rules Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>normalize_rules</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/36_Adoption_Layer/rights_passport.py#L32">ENTITY/src/36_Adoption_Layer/rights_passport.py#L32</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>normalize_rules(rules: list[dict])</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>def normalize_rules(rules: list[dict]) -&gt; list[dict]:
+    out = []
+    for raw in rules:
+        effect = str(raw.get(&quot;effect&quot;) or &quot;&quot;).upper()
+        if effect not in EFFECTS:
+            raise ValueError(&quot;invalid right rule effect&quot;)
+        actions = sorted({str(x).upper() for x in (raw.get(&quot;actions&quot;) or [])})
+        if not actions or any(not x for x in actions):
+            raise ValueError(&quot;right rule requires actions&quot;)
+        out.append({
+            &quot;effect&quot;: effect,
+            &quot;actions&quot;: actions,
+            &quot;conditions&quot;: dict(raw.get(&quot;conditions&quot;) or {}),
+            &quot;obligations&quot;: sorted({str(x) for x in (raw.get(&quot;obligations&quot;) or [])}),
+            &quot;right_refs&quot;: sorted({str(x) for x in (raw.get(&quot;right_refs&quot;) or [])}),
+        })
+    return sorted(out, key=lambda x: (x[&quot;effect&quot;], x[&quot;actions&quot;], canon(x[&quot;conditions&quot;])))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

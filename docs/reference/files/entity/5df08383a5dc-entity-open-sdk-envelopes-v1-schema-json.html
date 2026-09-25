@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / sdk/open_entity_sdk/ENTITY_OPEN_SDK_ENVELOPES_v1.schema.json Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / sdk/open_entity_sdk/ENTITY_OPEN_SDK_ENVELOPES_v1.schema.json</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>sdk/open_entity_sdk/ENTITY_OPEN_SDK_ENVELOPES_v1.schema.json</code></p><p><b>SHA-256:</b> <code>58d74a315605e7da79f44a14800b4483588877ba9d1fe0a034343506236585c2</code></p><p><b>Bytes:</b> 1,263</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/open_entity_sdk/ENTITY_OPEN_SDK_ENVELOPES_v1.schema.json">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>{
+  &quot;$schema&quot;: &quot;https://json-schema.org/draft/2020-12/schema&quot;,
+  &quot;title&quot;: &quot;ENTITY Open SDK Envelopes v1&quot;,
+  &quot;oneOf&quot;: [
+    {&quot;$ref&quot;: &quot;#/$defs/asset&quot;},
+    {&quot;$ref&quot;: &quot;#/$defs/event&quot;}
+  ],
+  &quot;$defs&quot;: {
+    &quot;sha256&quot;: {&quot;type&quot;:&quot;string&quot;,&quot;pattern&quot;:&quot;^[0-9a-f]{64}$&quot;},
+    &quot;asset&quot;: {
+      &quot;type&quot;:&quot;object&quot;,
+      &quot;required&quot;:[&quot;schema&quot;,&quot;application_entity_id&quot;,&quot;idempotency_key&quot;,&quot;content_sha256&quot;,&quot;size_bytes&quot;,&quot;media_type&quot;,&quot;title&quot;,&quot;asset_kind&quot;,&quot;raw_content_included&quot;],
+      &quot;properties&quot;:{&quot;schema&quot;:{&quot;const&quot;:&quot;entity-open-sdk-asset-envelope-v1&quot;},&quot;application_entity_id&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;pattern&quot;:&quot;^(ent1|ent2)-&quot;},&quot;idempotency_key&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;minLength&quot;:1},&quot;content_sha256&quot;:{&quot;$ref&quot;:&quot;#/$defs/sha256&quot;},&quot;asset_kind&quot;:{&quot;enum&quot;:[&quot;SOFTWARE&quot;,&quot;DATA&quot;,&quot;MODEL&quot;,&quot;KNOWLEDGE&quot;,&quot;EVIDENCE&quot;]},&quot;raw_content_included&quot;:{&quot;const&quot;:false}}
+    },
+    &quot;event&quot;: {
+      &quot;type&quot;:&quot;object&quot;,
+      &quot;required&quot;:[&quot;schema&quot;,&quot;application_entity_id&quot;,&quot;idempotency_key&quot;,&quot;event_type&quot;,&quot;payload_sha256&quot;,&quot;raw_payload_included&quot;],
+      &quot;properties&quot;:{&quot;schema&quot;:{&quot;const&quot;:&quot;entity-open-sdk-event-envelope-v1&quot;},&quot;application_entity_id&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;pattern&quot;:&quot;^(ent1|ent2)-&quot;},&quot;idempotency_key&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;minLength&quot;:1},&quot;payload_sha256&quot;:{&quot;$ref&quot;:&quot;#/$defs/sha256&quot;},&quot;raw_payload_included&quot;:{&quot;const&quot;:false}}
+    }
+  }
+}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

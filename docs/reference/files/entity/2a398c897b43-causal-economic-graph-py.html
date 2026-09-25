@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/37_Verifiable_Reality/causal_economic_graph.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/37_Verifiable_Reality/causal_economic_graph.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/37_Verifiable_Reality/causal_economic_graph.py</code></p><p><b>SHA-256:</b> <code>65b60f8a026a568e62883233da2a93e8d1a92741ca1572191b586a9f677d1c74</code></p><p><b>Bytes:</b> 7,733</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/37_Verifiable_Reality/causal_economic_graph.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-ms-3fd232c22593.html">now_ms</a></li><li><a href="../../../reference/symbols/entity/canon-68fb4440d22c.html">canon</a></li><li><a href="../../../reference/symbols/entity/digest-220c22780dc2.html">digest</a></li><li><a href="../../../reference/symbols/entity/rid-71163ba81186.html">rid</a></li><li><a href="../../../reference/symbols/entity/causaleconomicattributiongraph-f51d670d33ce.html">CausalEconomicAttributionGraph</a></li><li><a href="../../../reference/symbols/entity/causaleconomicattributiongraph-init-fa586b32bd1d.html">CausalEconomicAttributionGraph.__init__</a></li><li><a href="../../../reference/symbols/entity/causaleconomicattributiongraph-add-node-290c22c03fa8.html">CausalEconomicAttributionGraph.add_node</a></li><li><a href="../../../reference/symbols/entity/causaleconomicattributiongraph-node-exists-d98b5f8b5a12.html">CausalEconomicAttributionGraph._node_exists</a></li><li><a href="../../../reference/symbols/entity/causaleconomicattributiongraph-would-cycle-ba61187e606e.html">CausalEconomicAttributionGraph._would_cycle</a></li><li><a href="../../../reference/symbols/entity/causaleconomicattributiongraph-add-edge-119401031da6.html">CausalEconomicAttributionGraph.add_edge</a></li><li><a href="../../../reference/symbols/entity/causaleconomicattributiongraph-trace-c770417df983.html">CausalEconomicAttributionGraph.trace</a></li><li><a href="../../../reference/symbols/entity/causaleconomicattributiongraph-graph-root-739a0d5c240e.html">CausalEconomicAttributionGraph.graph_root</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from typing import Any
+import hashlib, json, secrets, sqlite3, time
+
+from reality_profile import CAUSAL_NODE_TYPES, CAUSAL_EDGE_TYPES
+
+def now_ms() -&gt; int:
+    return int(time.time() * 1000)
+
+def canon(value: Any) -&gt; bytes:
+    return json.dumps(value, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False, default=str).encode()
+
+def digest(value: Any) -&gt; str:
+    return hashlib.sha256(canon(value)).hexdigest()
+
+def rid(prefix: str) -&gt; str:
+    return prefix + &quot;-&quot; + secrets.token_hex(12)
+
+class CausalEconomicAttributionGraph:
+    &quot;&quot;&quot;Evidence-bound causal lineage from source information to economic consequence.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_3_causal_economy.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS nodes(
+                node_id TEXT PRIMARY KEY, node_type TEXT NOT NULL, ref_id TEXT NOT NULL,
+                controller_entity_id TEXT NOT NULL, body_json TEXT NOT NULL,
+                signature_json TEXT NOT NULL, created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS edges(
+                edge_id TEXT PRIMARY KEY, from_node_id TEXT NOT NULL, to_node_id TEXT NOT NULL,
+                edge_type TEXT NOT NULL, body_json TEXT NOT NULL, signature_json TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+
+    def add_node(self, controller_entity_id: str, node_type: str, ref_id: str,
+                 *, evidence_refs: list[str] | None = None, event_refs: list[str] | None = None,
+                 economic_observation: dict | None = None) -&gt; dict:
+        self.identity.load_manifest(controller_entity_id)
+        node_type = str(node_type).upper()
+        if node_type not in CAUSAL_NODE_TYPES:
+            raise ValueError(&quot;unsupported causal node type&quot;)
+        observation = dict(economic_observation or {})
+        if observation:
+            observation[&quot;market_observation_is_not_accounting_fair_value&quot;] = True
+            observation[&quot;protocol_does_not_determine_legal_entitlement&quot;] = True
+        body = {
+            &quot;schema&quot;: &quot;entity-v3-causal-economic-node-v1&quot;,
+            &quot;node_id&quot;: rid(&quot;causalnode3&quot;),
+            &quot;node_type&quot;: node_type,
+            &quot;ref_id&quot;: str(ref_id),
+            &quot;controller_entity_id&quot;: controller_entity_id,
+            &quot;evidence_refs&quot;: sorted({str(x) for x in (evidence_refs or [])}),
+            &quot;event_refs&quot;: sorted({str(x) for x in (event_refs or [])}),
+            &quot;economic_observation&quot;: observation,
+            &quot;created_at_ms&quot;: now_ms(),
+        }
+        sig = self.identity.sign(controller_entity_id, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO nodes VALUES(?,?,?,?,?,?,?)&quot;, (
+                body[&quot;node_id&quot;], node_type, body[&quot;ref_id&quot;], controller_entity_id,
+                json.dumps(body, sort_keys=True), json.dumps(sig, sort_keys=True), body[&quot;created_at_ms&quot;]))
+        return dict(body, signature=sig)
+
+    def _node_exists(self, node_id: str) -&gt; bool:
+        with sqlite3.connect(self.path) as db:
+            return db.execute(&quot;SELECT 1 FROM nodes WHERE node_id=?&quot;, (node_id,)).fetchone() is not None
+
+    def _would_cycle(self, from_node_id: str, to_node_id: str) -&gt; bool:
+        if from_node_id == to_node_id:
+            return True
+        with sqlite3.connect(self.path) as db:
+            rows = db.execute(&quot;SELECT from_node_id,to_node_id FROM edges&quot;).fetchall()
+        adj: dict[str, list[str]] = {}
+        for a, b in rows:
+            adj.setdefault(a, []).append(b)
+        stack = [to_node_id]
+        seen = set()
+        while stack:
+            node = stack.pop()
+            if node == from_node_id:
+                return True
+            if node in seen:
+                continue
+            seen.add(node)
+            stack.extend(adj.get(node, []))
+        return False
+
+    def add_edge(self, actor_entity_id: str, from_node_id: str, to_node_id: str,
+                 edge_type: str, *, evidence_refs: list[str], authority_refs: list[str] | None = None,
+                 participation_rule_refs: list[str] | None = None) -&gt; dict:
+        self.identity.load_manifest(actor_entity_id)
+        edge_type = str(edge_type).upper()
+        if edge_type not in CAUSAL_EDGE_TYPES:
+            raise ValueError(&quot;unsupported causal edge type&quot;)
+        if not self._node_exists(from_node_id) or not self._node_exists(to_node_id):
+            raise KeyError(&quot;causal node missing&quot;)
+        if self._would_cycle(from_node_id, to_node_id):
+            raise ValueError(&quot;causal graph must remain acyclic&quot;)
+        refs = sorted({str(x) for x in evidence_refs if str(x)})
+        if not refs:
+            raise ValueError(&quot;causal edge requires evidence&quot;)
+        body = {
+            &quot;schema&quot;: &quot;entity-v3-causal-economic-edge-v1&quot;,
+            &quot;edge_id&quot;: rid(&quot;causedge3&quot;),
+            &quot;from_node_id&quot;: from_node_id,
+            &quot;to_node_id&quot;: to_node_id,
+            &quot;edge_type&quot;: edge_type,
+            &quot;actor_entity_id&quot;: actor_entity_id,
+            &quot;evidence_refs&quot;: refs,
+            &quot;authority_refs&quot;: sorted({str(x) for x in (authority_refs or [])}),
+            &quot;participation_rule_refs&quot;: sorted({str(x) for x in (participation_rule_refs or [])}),
+            &quot;causality_is_evidence_bound_not_assumed&quot;: True,
+            &quot;economic_attribution_is_not_accounting_fair_value&quot;: True,
+            &quot;created_at_ms&quot;: now_ms(),
+        }
+        sig = self.identity.sign(actor_entity_id, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO edges VALUES(?,?,?,?,?,?,?)&quot;, (
+                body[&quot;edge_id&quot;], from_node_id, to_node_id, edge_type,</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,31 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/verify_v3_1_0_release_manifest.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/verify_v3_1_0_release_manifest.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/verify_v3_1_0_release_manifest.py</code></p><p><b>SHA-256:</b> <code>5cc5bbf6d716db0f56133ce65935a487c912e75e4325090a34110d1fef44986e</code></p><p><b>Bytes:</b> 1,134</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/verify_v3_1_0_release_manifest.py">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json, pathlib, sys
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+PATH = ROOT / &#x27;ENTITY_V3_1_0_RELEASE_MANIFEST.json&#x27;
+manifest = json.loads(PATH.read_text(encoding=&#x27;utf-8-sig&#x27;))
+errors = []
+for entry in manifest.get(&#x27;files&#x27;, []):
+    path = ROOT / entry[&#x27;path&#x27;]
+    if not path.is_file():
+        errors.append(f&quot;missing:{entry[&#x27;path&#x27;]}&quot;)
+        continue
+    actual = hashlib.sha256(path.read_bytes()).hexdigest()
+    if actual != entry[&#x27;sha256&#x27;]:
+        errors.append(f&quot;hash:{entry[&#x27;path&#x27;]}:{actual}&quot;)
+material = &#x27;\n&#x27;.join(
+    f&quot;{x[&#x27;path&#x27;]}|{x[&#x27;sha256&#x27;]}&quot; for x in sorted(manifest.get(&#x27;files&#x27;, []), key=lambda x: x[&#x27;path&#x27;])
+).encode()
+root = hashlib.sha256(material).hexdigest()
+if root != manifest.get(&#x27;release_snapshot_sha256&#x27;):
+    errors.append(f&#x27;snapshot:{root}&#x27;)
+result = {
+    &#x27;valid&#x27;: not errors,
+    &#x27;version&#x27;: manifest.get(&#x27;version&#x27;),
+    &#x27;status&#x27;: manifest.get(&#x27;status&#x27;),
+    &#x27;files&#x27;: len(manifest.get(&#x27;files&#x27;, [])),
+    &#x27;release_snapshot_sha256&#x27;: root,
+    &#x27;errors&#x27;: errors,
+}
+print(json.dumps(result, indent=2, sort_keys=True))
+sys.exit(0 if not errors else 2)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

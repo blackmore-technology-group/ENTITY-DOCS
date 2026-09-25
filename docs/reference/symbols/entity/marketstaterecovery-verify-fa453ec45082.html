@@ -1,0 +1,92 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MarketStateRecovery.verify Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>MarketStateRecovery.verify</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/34_Market_Recovery/market_recovery.py#L195">ENTITY/src/34_Market_Recovery/market_recovery.py#L195</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>MarketStateRecovery.verify(bundle: dict, *, verify_manifest=None, verify_signature=None, verify_core_bundle=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def verify(bundle: dict, *, verify_manifest=None, verify_signature=None,
+               verify_core_bundle=None) -&gt; dict:
+        failures: list[str] = []
+        b = dict(bundle or {})
+        if b.get(&quot;schema&quot;) != SCHEMA:
+            failures.append(&quot;schema_invalid&quot;)
+        if b.get(&quot;protocol_version&quot;) != VERSION:
+            failures.append(&quot;protocol_version_invalid&quot;)
+        if b.get(&quot;provider_independent&quot;) is not True:
+            failures.append(&quot;provider_independent_flag_missing&quot;)
+        if b.get(&quot;database_bytes_are_not_authority&quot;) is not True:
+            failures.append(&quot;database_authority_boundary_missing&quot;)
+        for section_name, required in ((&quot;exchange&quot;, EEP_REQUIRED), (&quot;economic_participation&quot;, EOPP_REQUIRED)):
+            section = b.get(section_name) or {}
+            tables = section.get(&quot;tables&quot;) or {}
+            missing = sorted(set(required) - set(tables))
+            if missing:
+                failures.append(f&quot;{section_name}_tables_missing:{&#x27;,&#x27;.join(missing)}&quot;)
+            for table_name, snapshot in tables.items():
+                payload = _table_payload(snapshot)
+                if semantic_sha256(payload) != snapshot.get(&quot;semantic_sha256&quot;):
+                    failures.append(f&quot;table_hash_invalid:{section_name}:{table_name}&quot;)
+                if len(snapshot.get(&quot;rows&quot;) or []) != snapshot.get(&quot;row_count&quot;):
+                    failures.append(f&quot;row_count_invalid:{section_name}:{table_name}&quot;)
+            if semantic_sha256({&quot;tables&quot;: tables}) != section.get(&quot;state_sha256&quot;):
+                failures.append(f&quot;state_hash_invalid:{section_name}&quot;)
+            expected_rows = sum(int(x.get(&quot;row_count&quot;) or 0) for x in tables.values())
+            if expected_rows != section.get(&quot;row_count&quot;):
+                failures.append(f&quot;database_row_count_invalid:{section_name}&quot;)
+
+        manifests = {}
+        for manifest in b.get(&quot;identity_manifests&quot;) or []:
+            entity_id = str(manifest.get(&quot;entity_id&quot;) or &quot;&quot;)
+            if not entity_id or entity_id in manifests:
+                failures.append(f&quot;manifest_duplicate_or_invalid:{entity_id}&quot;)
+                continue
+            if verify_manifest is None:
+                failures.append(&quot;manifest_verifier_required&quot;)
+            elif not verify_manifest(manifest):
+                failures.append(f&quot;manifest_invalid:{entity_id}&quot;)
+            manifests[entity_id] = manifest
+
+        for core in b.get(&quot;underlying_core_bundles&quot;) or []:
+            core_semantic = {k: v for k, v in core.items() if k not in {&quot;exported_at_ms&quot;, &quot;semantic_sha256&quot;}}
+            if semantic_sha256(core_semantic) != core.get(&quot;semantic_sha256&quot;):
+                failures.append(f&quot;core_bundle_hash_invalid:{core.get(&#x27;root_object_id&#x27;)}&quot;)
+            if verify_core_bundle is not None:
+                result = verify_core_bundle(core)
+                if not result.get(&quot;valid&quot;):
+                    failures.append(f&quot;core_bundle_invalid:{core.get(&#x27;root_object_id&#x27;)}&quot;)
+
+        semantic = {k: v for k, v in b.items() if k not in {&quot;exported_at_ms&quot;, &quot;semantic_sha256&quot;, &quot;bundle_attestations&quot;}}
+        actual_semantic = semantic_sha256(semantic)
+        if actual_semantic != b.get(&quot;semantic_sha256&quot;):
+            failures.append(&quot;bundle_semantic_hash_invalid&quot;)
+
+        required_controllers = set(b.get(&quot;required_controller_attestations&quot;) or [])
+        attested = set()
+        for attestation in b.get(&quot;bundle_attestations&quot;) or []:
+            signature = attestation.get(&quot;signature&quot;)
+            body = {k: v for k, v in attestation.items() if k != &quot;signature&quot;}
+            controller = str(body.get(&quot;controller_entity_id&quot;) or &quot;&quot;)
+            if controller in attested:
+                failures.append(f&quot;controller_attestation_duplicate:{controller}&quot;)
+                continue
+            if controller not in required_controllers:
+                failures.append(f&quot;controller_attestation_unexpected:{controller}&quot;)
+            if body.get(&quot;schema&quot;) != &quot;entity-v3-market-recovery-attestation-v1&quot; or body.get(&quot;profile&quot;) != PROFILE:
+                failures.append(f&quot;controller_attestation_shape_invalid:{controller}&quot;)
+            if body.get(&quot;semantic_sha256&quot;) != b.get(&quot;semantic_sha256&quot;):
+                failures.append(f&quot;controller_attestation_root_invalid:{controller}&quot;)
+            manifest = manifests.get(controller)
+            if verify_signature is None:
+                failures.append(&quot;controller_attestation_verifier_required&quot;)
+            elif manifest is None or not verify_signature(manifest, body, signature or {}):
+                failures.append(f&quot;controller_attestation_signature_invalid:{controller}&quot;)
+            attested.add(controller)
+        for controller in sorted(required_controllers - attested):
+            failures.append(f&quot;controller_attestation_missing:{controller}&quot;)
+
+        return {
+            &quot;valid&quot;: not failures,
+            &quot;failures&quot;: failures,
+            &quot;semantic_sha256&quot;: b.get(&quot;semantic_sha256&quot;),
+            &quot;exchange_state_sha256&quot;: (b.get(&quot;exchange&quot;) or {}).get(&quot;state_sha256&quot;),
+            &quot;economic_state_sha256&quot;: (b.get(&quot;economic_participation&quot;) or {}).get(&quot;state_sha256&quot;),
+            &quot;embedded_manifest_count&quot;: len(manifests),
+            &quot;required_controller_attestation_count&quot;: len(required_controllers),
+            &quot;verified_controller_attestation_count&quot;: len(attested),
+            &quot;provider_independent&quot;: b.get(&quot;provider_independent&quot;) is True,
+            &quot;logical_state_not_database_bytes&quot;: b.get(&quot;database_bytes_are_not_authority&quot;) is True,
+        }</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MultiStakeholderGovernance.propose Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>MultiStakeholderGovernance.propose</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/institutional_semantics.py#L426">ENTITY/src/35_Global_Infrastructure/institutional_semantics.py#L426</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>MultiStakeholderGovernance.propose(self, body_id: str, proposer: str, change_class: str, target_ref: str, document: Any)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def propose(self, body_id: str, proposer: str, change_class: str,
+                target_ref: str, document: Any) -&gt; dict:
+        change_class = change_class.upper()
+        if change_class not in {&quot;CORE&quot;, &quot;PROFILE&quot;, &quot;ONTOLOGY&quot;, &quot;SCHEMA&quot;, &quot;TEST&quot;, &quot;GOVERNANCE&quot;}:
+            raise ValueError(&quot;unsupported change class&quot;)
+        with sqlite3.connect(self.path) as db:
+            member = db.execute(&quot;SELECT 1 FROM members WHERE body_id=? AND member_entity_id=? AND status=&#x27;ACTIVE&#x27;&quot;,
+                                (body_id, proposer)).fetchone()
+        if not member:
+            raise PermissionError(&quot;active governance membership required&quot;)
+        body_hash = digest(document)
+        proposal_id = &quot;proposal3-&quot; + digest({&quot;body&quot;: body_id, &quot;proposer&quot;: proposer,
+                                            &quot;target&quot;: target_ref, &quot;sha&quot;: body_hash})[:24]
+        record = {&quot;schema&quot;: &quot;entity-v3-multistakeholder-proposal-v1&quot;,
+                  &quot;proposal_id&quot;: proposal_id, &quot;body_id&quot;: body_id,
+                  &quot;proposer_entity_id&quot;: proposer, &quot;change_class&quot;: change_class,
+                  &quot;target_ref&quot;: str(target_ref), &quot;body_sha256&quot;: body_hash,
+                  &quot;status&quot;: &quot;OPEN&quot;, &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(proposer, record)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO proposals VALUES(?,?,?,?,?,?,?,?,?)&quot;, (
+                proposal_id, body_id, proposer, change_class, str(target_ref), body_hash,
+                &quot;OPEN&quot;, record[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(record, signature=sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

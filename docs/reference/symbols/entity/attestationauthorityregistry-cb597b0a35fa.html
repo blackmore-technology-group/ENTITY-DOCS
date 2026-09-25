@@ -1,0 +1,88 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AttestationAuthorityRegistry Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>AttestationAuthorityRegistry</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/37_Verifiable_Reality/attestation_authority.py#L24">ENTITY/src/37_Verifiable_Reality/attestation_authority.py#L24</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Scoped authority to attest. An attestation remains attributed evidence, not universal truth.</p><h2>Source excerpt</h2><pre><code>class AttestationAuthorityRegistry:
+    &quot;&quot;&quot;Scoped authority to attest. An attestation remains attributed evidence, not universal truth.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_3_attestation.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS grants(
+                grant_id TEXT PRIMARY KEY, grantor_entity_id TEXT NOT NULL, attestor_entity_id TEXT NOT NULL,
+                scopes_json TEXT NOT NULL, expires_at_ms INTEGER, revoked INTEGER NOT NULL DEFAULT 0,
+                body_json TEXT NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS attestations(
+                attestation_id TEXT PRIMARY KEY, claim_id TEXT NOT NULL, attestor_entity_id TEXT NOT NULL,
+                scope TEXT NOT NULL, body_sha256 TEXT NOT NULL, body_json TEXT NOT NULL,
+                signature_json TEXT NOT NULL, created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+
+    def grant(self, grantor_entity_id: str, attestor_entity_id: str, scopes: list[str],
+              authority_evidence_sha256: str, *, expires_at_ms: int | None = None) -&gt; dict:
+        self.identity.load_manifest(grantor_entity_id)
+        self.identity.load_manifest(attestor_entity_id)
+        scopes = sorted({str(x).upper() for x in scopes if str(x)})
+        if not scopes:
+            raise ValueError(&quot;attestation grant requires scopes&quot;)
+        body = {
+            &quot;schema&quot;: &quot;entity-v3-attestation-authority-grant-v1&quot;,
+            &quot;grant_id&quot;: rid(&quot;attgrant3&quot;),
+            &quot;grantor_entity_id&quot;: grantor_entity_id,
+            &quot;attestor_entity_id&quot;: attestor_entity_id,
+            &quot;scopes&quot;: scopes,
+            &quot;authority_evidence_sha256&quot;: sha256_hex(authority_evidence_sha256),
+            &quot;expires_at_ms&quot;: None if expires_at_ms is None else int(expires_at_ms),
+            &quot;attestation_authority_is_scope_limited&quot;: True,
+            &quot;attestation_does_not_create_legal_truth&quot;: True,
+            &quot;created_at_ms&quot;: now_ms(),
+        }
+        sig = self.identity.sign(grantor_entity_id, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO grants VALUES(?,?,?,?,?,0,?,?)&quot;, (
+                body[&quot;grant_id&quot;], grantor_entity_id, attestor_entity_id, json.dumps(scopes),
+                body[&quot;expires_at_ms&quot;], json.dumps(body, sort_keys=True), json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)
+
+    def revoke(self, grantor_entity_id: str, grant_id: str) -&gt; None:
+        with sqlite3.connect(self.path) as db:
+            row = db.execute(&quot;SELECT grantor_entity_id FROM grants WHERE grant_id=?&quot;, (grant_id,)).fetchone()
+            if not row or row[0] != grantor_entity_id:
+                raise PermissionError(&quot;grantor required&quot;)
+            db.execute(&quot;UPDATE grants SET revoked=1 WHERE grant_id=?&quot;, (grant_id,))
+
+    def _active_grant(self, attestor_entity_id: str, scope: str) -&gt; dict:
+        now = now_ms()
+        scope = str(scope).upper()
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            rows = db.execute(&quot;SELECT * FROM grants WHERE attestor_entity_id=? AND revoked=0&quot;, (attestor_entity_id,)).fetchall()
+        for row in rows:
+            if row[&quot;expires_at_ms&quot;] is not None and int(row[&quot;expires_at_ms&quot;]) &lt;= now:
+                continue
+            if scope in json.loads(row[&quot;scopes_json&quot;]):
+                return json.loads(row[&quot;body_json&quot;])
+        raise PermissionError(&quot;attestor lacks active scope&quot;)
+
+    def attest(self, attestor_entity_id: str, claim_id: str, scope: str,
+               evidence_refs: list[str], conclusion: str) -&gt; dict:
+        self.identity.load_manifest(attestor_entity_id)
+        grant = self._active_grant(attestor_entity_id, scope)
+        refs = sorted({str(x) for x in evidence_refs if str(x)})
+        if not refs:
+            raise ValueError(&quot;attestation requires evidence&quot;)
+        body = {
+            &quot;schema&quot;: &quot;entity-v3-attestation-v1&quot;,
+            &quot;attestation_id&quot;: rid(&quot;attest3&quot;),
+            &quot;claim_id&quot;: str(claim_id),
+            &quot;attestor_entity_id&quot;: attestor_entity_id,
+            &quot;scope&quot;: str(scope).upper(),
+            &quot;grant_id&quot;: grant[&quot;grant_id&quot;],
+            &quot;evidence_refs&quot;: refs,
+            &quot;conclusion&quot;: str(conclusion),
+            &quot;attestation_is_evidence_not_objective_truth&quot;: True,
+            &quot;created_at_ms&quot;: now_ms(),
+        }
+        body_sha = digest(body)
+        sig = self.identity.sign(attestor_entity_id, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO attestations VALUES(?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;attestation_id&quot;], body[&quot;claim_id&quot;], attestor_entity_id, body[&quot;scope&quot;],
+                body_sha, json.dumps(body, sort_keys=True), json.dumps(sig, sort_keys=True), body[&quot;created_at_ms&quot;]))
+        return dict(body, body_sha256=body_sha, signature=sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

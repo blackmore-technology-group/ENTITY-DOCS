@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V3ExchangeConvergenceTests.test_concurrent_sell_admission_is_atomic_in_both Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>V3ExchangeConvergenceTests.test_concurrent_sell_admission_is_atomic_in_both</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_exchange_convergence.py#L327">ENTITY/tests/test_v3_exchange_convergence.py#L327</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>V3ExchangeConvergenceTests.test_concurrent_sell_admission_is_atomic_in_both(self)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def test_concurrent_sell_admission_is_atomic_in_both(self):
+        for eep,venue,inst,prefix in (
+            (*self.make_ref_exchange(),&quot;r-concurrent-sell&quot;),
+            (*self.make_mirror_exchange(),&quot;m-concurrent-sell&quot;),
+        ):
+            bodies=[]
+            for i in range(2):
+                body={&quot;schema&quot;:&quot;entity-eep-order-v1&quot;,&quot;order_id&quot;:f&quot;{prefix}-order-{i}&quot;,&quot;venue_id&quot;:venue[&quot;venue_id&quot;],
+                      &quot;instrument_id&quot;:inst[&quot;instrument_id&quot;],&quot;participant&quot;:self.owner,&quot;side&quot;:&quot;SELL&quot;,&quot;quantity&quot;:600,
+                      &quot;limit_price&quot;:10,&quot;tif&quot;:&quot;GTC&quot;,&quot;nonce&quot;:f&quot;{prefix}-nonce-{i}&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)+i}
+                bodies.append((body,self.identity.sign(self.owner,body)))
+            gate=threading.Barrier(2); original_reserved=eep._reserved_sell
+            def gated_reserved(instrument_id,participant):
+                value=original_reserved(instrument_id,participant); gate.wait(timeout=5); return value
+            eep._reserved_sell=gated_reserved; results=[]; lock=threading.Lock()
+            def worker(item):
+                body,sig=item
+                try: eep.submit_signed_order(body,sig); outcome=&#x27;ok&#x27;
+                except Exception as exc: outcome=type(exc).__name__
+                with lock: results.append(outcome)
+            threads=[threading.Thread(target=worker,args=(item,)) for item in bodies]
+            for t in threads: t.start()
+            for t in threads: t.join(10)
+            eep._reserved_sell=original_reserved
+            self.assertTrue(all(not t.is_alive() for t in threads))
+            self.assertEqual(results.count(&#x27;ok&#x27;),1,results); self.assertEqual(results.count(&#x27;PermissionError&#x27;),1,results)
+            self.assertEqual(eep._reserved_sell(inst[&quot;instrument_id&quot;],self.owner),600)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ExchangeProtocol._record_signed_quote Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ExchangeProtocol._record_signed_quote</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/exchange_protocol.py#L823">ENTITY/src/31_Profiles/exchange_protocol.py#L823</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>ExchangeProtocol._record_signed_quote(self, body: dict, signature: dict)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def _record_signed_quote(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;quote_id&quot;,&quot;rfq_id&quot;,&quot;provider&quot;,&quot;price&quot;,&quot;expires_at_ms&quot;,&quot;nonce&quot;,&quot;created_at_ms&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-rfq-quote-v1&quot;: raise ValueError(&quot;invalid signed quote shape&quot;)
+        provider=str(body[&quot;provider&quot;]); price=int(body[&quot;price&quot;]); expiry=int(body[&quot;expires_at_ms&quot;]); created=int(body[&quot;created_at_ms&quot;])
+        if price&lt;0 or expiry&lt;=now_ms() or created&lt;0 or not str(body[&quot;nonce&quot;]): raise ValueError(&quot;invalid quote&quot;)
+        manifest=self.identity.load_manifest(provider)
+        if not self.identity.verify_signature(manifest,body,signature): raise PermissionError(&quot;quote signature invalid&quot;)
+        with self._db() as db:
+            rfq=db.execute(&quot;SELECT * FROM rfqs WHERE rfq_id=? AND status=&#x27;OPEN&#x27;&quot;,(body[&quot;rfq_id&quot;],)).fetchone()
+        if not rfq or now_ms()&gt;int(rfq[&quot;expires_at_ms&quot;]): raise KeyError(&quot;active RFQ required&quot;)
+        if rfq[&quot;side&quot;]==&quot;BUY&quot;:
+            available=self.balance(rfq[&quot;instrument_id&quot;],provider)-self._reserved_sell(rfq[&quot;instrument_id&quot;],provider)
+            if available&lt;int(rfq[&quot;quantity&quot;]): raise PermissionError(&quot;quote provider lacks unreserved sell entitlement&quot;)
+        received=now_ms()
+        try:
+            with self._db() as db:
+                db.execute(&quot;INSERT INTO quotes(quote_id,rfq_id,provider,price,expires_at_ms,status,created_at_ms,nonce,received_at_ms,signature_json) VALUES(?,?,?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;quote_id&quot;],body[&quot;rfq_id&quot;],provider,price,expiry,&quot;OPEN&quot;,created,str(body[&quot;nonce&quot;]),received,json.dumps(signature,sort_keys=True)))
+        except sqlite3.IntegrityError as exc: raise ValueError(&quot;duplicate/replayed quote&quot;) from exc
+        return dict(body,price=price,status=&quot;OPEN&quot;,received_at_ms=received,signature=signature)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

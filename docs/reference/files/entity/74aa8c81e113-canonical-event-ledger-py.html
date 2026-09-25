@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/04_Entity_Registry/event_ledger/canonical_event_ledger.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/04_Entity_Registry/event_ledger/canonical_event_ledger.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/04_Entity_Registry/event_ledger/canonical_event_ledger.py</code></p><p><b>SHA-256:</b> <code>935969b603d99f9781fe52c662fb302b8eab3d0e048d8be649c5419bd75a0055</code></p><p><b>Bytes:</b> 12,563</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/04_Entity_Registry/event_ledger/canonical_event_ledger.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-e18609759879.html">_now</a></li><li><a href="../../../reference/symbols/entity/canon-817c2c986759.html">_canon</a></li><li><a href="../../../reference/symbols/entity/sha-3f93b7eef478.html">_sha</a></li><li><a href="../../../reference/symbols/entity/merkle-root-7b25ecdf156f.html">_merkle_root</a></li><li><a href="../../../reference/symbols/entity/canonicaleventledger-5f295c7d2b57.html">CanonicalEventLedger</a></li><li><a href="../../../reference/symbols/entity/canonicaleventledger-init-9c559f45ee6d.html">CanonicalEventLedger.__init__</a></li><li><a href="../../../reference/symbols/entity/canonicaleventledger-connect-60a0daa369ef.html">CanonicalEventLedger._connect</a></li><li><a href="../../../reference/symbols/entity/canonicaleventledger-init-db-6a4723c610cb.html">CanonicalEventLedger._init_db</a></li><li><a href="../../../reference/symbols/entity/canonicaleventledger-append-b9b9e143b712.html">CanonicalEventLedger.append</a></li><li><a href="../../../reference/symbols/entity/canonicaleventledger-append-batch-a2f322b27244.html">CanonicalEventLedger.append_batch</a></li><li><a href="../../../reference/symbols/entity/canonicaleventledger-rows-06ef0c13a56c.html">CanonicalEventLedger.rows</a></li><li><a href="../../../reference/symbols/entity/canonicaleventledger-verify-0009a807e056.html">CanonicalEventLedger.verify</a></li><li><a href="../../../reference/symbols/entity/canonicaleventledger-checkpoint-3a9e9b0c220a.html">CanonicalEventLedger.checkpoint</a></li><li><a href="../../../reference/symbols/entity/canonicaleventledger-create-checkpoint-911c25b5c648.html">CanonicalEventLedger.create_checkpoint</a></li><li><a href="../../../reference/symbols/entity/canonicaleventledger-verify-checkpoint-5530831f531b.html">CanonicalEventLedger.verify_checkpoint</a></li><li><a href="../../../reference/symbols/entity/canonicaleventledger-status-ffd8c3e75d6f.html">CanonicalEventLedger.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from contextlib import contextmanager
+from threading import RLock
+import hashlib, json, sqlite3, time, uuid
+
+ZERO_HASH=&quot;0&quot;*64
+
+def _now(): return int(time.time()*1000)
+def _canon(v): return json.dumps(v,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False).encode()
+def _sha(v): return hashlib.sha256(v if isinstance(v,(bytes,bytearray)) else _canon(v)).hexdigest()
+
+def _merkle_root(leaves:list[str])-&gt;str:
+    if not leaves: return ZERO_HASH
+    layer=[bytes.fromhex(x) for x in leaves]
+    while len(layer)&gt;1:
+        if len(layer)%2: layer.append(layer[-1])
+        layer=[hashlib.sha256(layer[i]+layer[i+1]).digest() for i in range(0,len(layer),2)]
+    return layer[0].hex()
+
+class CanonicalEventLedger:
+    &quot;&quot;&quot;Signed append-only hash chain with independently verifiable checkpoints.&quot;&quot;&quot;
+    def __init__(self,state_dir:str|Path,identity):
+        self.root=Path(state_dir)/&quot;event_ledger&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;ledger.sqlite&quot;; self.identity=identity; self._lock=RLock(); self._init_db()
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS events(sequence INTEGER PRIMARY KEY AUTOINCREMENT,event_id TEXT UNIQUE NOT NULL,event_type TEXT NOT NULL,actor_entity_id TEXT NOT NULL,subject_ids_json TEXT NOT NULL,object_ids_json TEXT NOT NULL,payload_hash TEXT NOT NULL,evidence_origin TEXT NOT NULL,confidence REAL NOT NULL,timestamp_ms INTEGER NOT NULL,prior_hash TEXT NOT NULL,event_hash TEXT NOT NULL,signature_json TEXT NOT NULL,schema_version TEXT NOT NULL)&quot;)
+            cols={str(r[1]) for r in db.execute(&quot;PRAGMA table_info(events)&quot;).fetchall()}
+            if &quot;payload_sha256&quot; not in cols:
+                db.execute(&quot;ALTER TABLE events ADD COLUMN payload_sha256 TEXT&quot;)
+                db.execute(&quot;UPDATE events SET payload_sha256=payload_hash WHERE payload_sha256 IS NULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS checkpoints(checkpoint_id TEXT PRIMARY KEY,from_sequence INTEGER NOT NULL,to_sequence INTEGER NOT NULL,event_count INTEGER NOT NULL,merkle_root TEXT NOT NULL,head_hash TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signer_entity_id TEXT NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS meta(k TEXT PRIMARY KEY,v TEXT NOT NULL)&quot;)
+            db.execute(&quot;INSERT OR IGNORE INTO meta(k,v) VALUES(&#x27;head_hash&#x27;,?)&quot;,(ZERO_HASH,))
+
+    def append(self,actor_entity_id:str,event_type:str,*,subject_ids=None,object_ids=None,payload=None,payload_sha256=None,metadata=None,evidence_origin=&quot;DIRECT_OBSERVATION&quot;,confidence=1.0)-&gt;dict:
+        body_payload=dict(payload or {})
+        if payload_sha256 is not None:
+            payload_hash=str(payload_sha256).lower()
+            if len(payload_hash)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in payload_hash): raise ValueError(&quot;payload_sha256 must be SHA-256 hex&quot;)
+            if payload is not None and _sha(body_payload)!=payload_hash: raise ValueError(&quot;payload and payload_sha256 disagree&quot;)
+        else:
+            payload_hash=_sha(body_payload)
+        now=_now(); event_id=&quot;evt1-&quot;+uuid.uuid4().hex
+        with self._lock,self._connect() as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;)
+            prior=db.execute(&quot;SELECT v FROM meta WHERE k=&#x27;head_hash&#x27;&quot;).fetchone()[0]
+            body={&quot;schema&quot;:&quot;ENTITY-EVENT-v1&quot;,&quot;event_id&quot;:event_id,&quot;event_type&quot;:str(event_type),&quot;actor_entity_id&quot;:str(actor_entity_id),&quot;subject_ids&quot;:list(subject_ids or []),&quot;object_ids&quot;:list(object_ids or []),&quot;payload_hash&quot;:payload_hash,&quot;evidence_origin&quot;:str(evidence_origin),&quot;confidence&quot;:float(confidence),&quot;timestamp_ms&quot;:now,&quot;prior_hash&quot;:prior}
+            signature=self.identity.sign(actor_entity_id,body); event_hash=_sha({&quot;body&quot;:body,&quot;signature&quot;:signature})
+            db.execute(&quot;INSERT INTO events(event_id,event_type,actor_entity_id,subject_ids_json,object_ids_json,payload_hash,evidence_origin,confidence,timestamp_ms,prior_hash,event_hash,signature_json,schema_version,payload_sha256) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(event_id,str(event_type),str(actor_entity_id),json.dumps(body[&quot;subject_ids&quot;]),json.dumps(body[&quot;object_ids&quot;]),payload_hash,str(evidence_origin),float(confidence),now,prior,event_hash,json.dumps(signature,sort_keys=True),&quot;ENTITY-EVENT-v1&quot;,payload_hash))
+            db.execute(&quot;UPDATE meta SET v=? WHERE k=&#x27;head_hash&#x27;&quot;,(event_hash,))
+        return {&quot;event_id&quot;:event_id,&quot;event_hash&quot;:event_hash,&quot;prior_hash&quot;:prior,&quot;payload_hash&quot;:payload_hash,&quot;payload_sha256&quot;:payload_hash,&quot;signature&quot;:signature,&quot;timestamp_ms&quot;:now,&quot;raw_payload_stored&quot;:False}
+
+    def append_batch(self,actor_entity_id:str,events:list[dict])-&gt;list[dict]:
+        &quot;&quot;&quot;Append many fully signed/hash-chained events in one durable transaction.&quot;&quot;&quot;
+        items=list(events or [])
+        if not items: return []
+        sign=self.identity.open_signing_session(actor_entity_id)
+        out=[]; rows=[]
+        with self._lock,self._connect() as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;)
+            prior=db.execute(&quot;SELECT v FROM meta WHERE k=&#x27;head_hash&#x27;&quot;).fetchone()[0]
+            for item in items:
+                payload=dict(item.get(&quot;payload&quot;) or {})
+                supplied=item.get(&quot;payload_sha256&quot;)
+                payload_hash=str(supplied).lower() if supplied is not None else _sha(payload)
+                if len(payload_hash)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in payload_hash): raise ValueError(&quot;payload_sha256 must be SHA-256 hex&quot;)
+                if supplied is not None and item.get(&quot;payload&quot;) is not None and _sha(payload)!=payload_hash: raise ValueError(&quot;payload and payload_sha256 disagree&quot;)
+                now=_now(); event_id=&quot;evt1-&quot;+uuid.uuid4().hex
+                body={&quot;schema&quot;:&quot;ENTITY-EVENT-v1&quot;,&quot;event_id&quot;:event_id,&quot;event_type&quot;:str(item.get(&quot;event_type&quot;) or &quot;&quot;),&quot;actor_entity_id&quot;:str(actor_entity_id),&quot;subject_ids&quot;:list(item.get(&quot;subject_ids&quot;) or []),&quot;object_ids&quot;:list(item.get(&quot;object_ids&quot;) or []),&quot;payload_hash&quot;:payload_hash,&quot;evidence_origin&quot;:str(item.get(&quot;evidence_origin&quot;) or &quot;DIRECT_OBSERVATION&quot;),&quot;confidence&quot;:float(item.get(&quot;confidence&quot;,1.0)),&quot;timestamp_ms&quot;:now,&quot;prior_hash&quot;:prior}
+                signature=sign(body); event_hash=_sha({&quot;body&quot;:body,&quot;signature&quot;:signature})
+                rows.append((event_id,body[&quot;event_type&quot;],str(actor_entity_id),json.dumps(body[&quot;subject_ids&quot;]),json.dumps(body[&quot;object_ids&quot;]),payload_hash,body[&quot;evidence_origin&quot;],body[&quot;confidence&quot;],now,prior,event_hash,json.dumps(signature,sort_keys=True),&quot;ENTITY-EVENT-v1&quot;,payload_hash))
+                out.append({&quot;event_id&quot;:event_id,&quot;event_hash&quot;:event_hash,&quot;prior_hash&quot;:prior,&quot;payload_hash&quot;:payload_hash,&quot;payload_sha256&quot;:payload_hash,&quot;signature&quot;:signature,&quot;timestamp_ms&quot;:now,&quot;raw_payload_stored&quot;:False})
+                prior=event_hash
+            db.executemany(&quot;INSERT INTO events(event_id,event_type,actor_entity_id,subject_ids_json,object_ids_json,payload_hash,evidence_origin,confidence,timestamp_ms,prior_hash,event_hash,signature_json,schema_version,payload_sha256) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,rows)
+            db.execute(&quot;UPDATE meta SET v=? WHERE k=&#x27;head_hash&#x27;&quot;,(prior,))
+        return out
+
+    def rows(self):
+        with self._connect() as db: return [dict(r) for r in db.execute(&quot;SELECT * FROM events ORDER BY sequence&quot;)]
+
+    def verify(self)-&gt;dict:
+        &quot;&quot;&quot;Streaming full-ledger verification with bounded memory and manifest caching.&quot;&quot;&quot;
+        prior=ZERO_HASH; count=0; manifests={}
+        with self._connect() as db:
+            cur=db.execute(&quot;SELECT * FROM events ORDER BY sequence&quot;)
+            while True:
+                batch=cur.fetchmany(10000)
+                if not batch: break
+                for raw in batch:
+                    row=dict(raw)
+                    body={&quot;schema&quot;:row[&quot;schema_version&quot;],&quot;event_id&quot;:row[&quot;event_id&quot;],&quot;event_type&quot;:row[&quot;event_type&quot;],&quot;actor_entity_id&quot;:row[&quot;actor_entity_id&quot;],&quot;subject_ids&quot;:json.loads(row[&quot;subject_ids_json&quot;]),&quot;object_ids&quot;:json.loads(row[&quot;object_ids_json&quot;]),&quot;payload_hash&quot;:row[&quot;payload_hash&quot;],&quot;evidence_origin&quot;:row[&quot;evidence_origin&quot;],&quot;confidence&quot;:row[&quot;confidence&quot;],&quot;timestamp_ms&quot;:row[&quot;timestamp_ms&quot;],&quot;prior_hash&quot;:row[&quot;prior_hash&quot;]}
+                    sig=json.loads(row[&quot;signature_json&quot;])
+                    if row.get(&quot;payload_sha256&quot;) not in {None,row[&quot;payload_hash&quot;]}: return {&quot;pass&quot;:False,&quot;reason&quot;:&quot;event_hash_failure&quot;,&quot;sequence&quot;:row[&quot;sequence&quot;]}
+                    if row[&quot;prior_hash&quot;]!=prior: return {&quot;pass&quot;:False,&quot;reason&quot;:&quot;hash_chain_failure&quot;,&quot;sequence&quot;:row[&quot;sequence&quot;]}
+                    if _sha({&quot;body&quot;:body,&quot;signature&quot;:sig})!=row[&quot;event_hash&quot;]: return {&quot;pass&quot;:False,&quot;reason&quot;:&quot;event_hash_failure&quot;,&quot;sequence&quot;:row[&quot;sequence&quot;]}
+                    actor=row[&quot;actor_entity_id&quot;]; manifest=manifests.get(actor)
+                    if manifest is None: manifest=self.identity.load_manifest(actor); manifests[actor]=manifest
+                    if not self.identity.verify_signature(manifest,body,sig): return {&quot;pass&quot;:False,&quot;reason&quot;:&quot;signature_failure&quot;,&quot;sequence&quot;:row[&quot;sequence&quot;]}
+                    prior=row[&quot;event_hash&quot;]; count+=1
+            head=db.execute(&quot;SELECT v FROM meta WHERE k=&#x27;head_hash&#x27;&quot;).fetchone()[0]
+        return {&quot;pass&quot;:head==prior,&quot;blocks&quot;:count,&quot;head_hash&quot;:head,&quot;streaming&quot;:True}
+    def checkpoint(self,signer_entity_id:str,*,from_sequence:int=1,to_sequence:int|None=None)-&gt;dict:
+        rows=self.rows(); selected=[r for r in rows if int(r[&quot;sequence&quot;])&gt;=int(from_sequence) and (to_sequence is None or int(r[&quot;sequence&quot;])&lt;=int(to_sequence))]
+        if not selected: raise ValueError(&quot;checkpoint range contains no events&quot;)
+        root=_merkle_root([r[&quot;event_hash&quot;] for r in selected]); now=_now(); checkpoint_id=&quot;chk1-&quot;+uuid.uuid4().hex
+        body={&quot;schema&quot;:&quot;entity-ledger-checkpoint-v1&quot;,&quot;checkpoint_id&quot;:checkpoint_id,&quot;from_sequence&quot;:int(selected[0][&quot;sequence&quot;]),&quot;to_sequence&quot;:int(selected[-1][&quot;sequence&quot;]),&quot;event_count&quot;:len(selected),&quot;merkle_root&quot;:root,&quot;head_hash&quot;:selected[-1][&quot;event_hash&quot;],&quot;created_at_ms&quot;:now,&quot;signer_entity_id&quot;:str(signer_entity_id)}
+        signature=self.identity.sign(signer_entity_id,body)
+        with self._connect() as db:
+            db.execute(&quot;INSERT INTO checkpoints VALUES(?,?,?,?,?,?,?,?,?)&quot;,(checkpoint_id,body[&quot;from_sequence&quot;],body[&quot;to_sequence&quot;],body[&quot;event_count&quot;],root,body[&quot;head_hash&quot;],now,str(signer_entity_id),json.dumps(signature,sort_keys=True)))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

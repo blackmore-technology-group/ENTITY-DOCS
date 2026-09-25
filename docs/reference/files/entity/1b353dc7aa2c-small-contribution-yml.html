@@ -1,0 +1,59 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / .github/ISSUE_TEMPLATE/small-contribution.yml Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / .github/ISSUE_TEMPLATE/small-contribution.yml</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>.github/ISSUE_TEMPLATE/small-contribution.yml</code></p><p><b>SHA-256:</b> <code>8b6e4d6e9b79cb25293759f592b957f69af5d82d46fb707f6e3727a2ea27a1b0</code></p><p><b>Bytes:</b> 1,899</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/.github/ISSUE_TEMPLATE/small-contribution.yml">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>name: Small contribution proposal
+about: Propose a bounded documentation, test, portability, example or tooling improvement.
+title: &quot;[CONTRIB] &quot;
+labels:
+  - help wanted
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Small, independently owned contributions are encouraged. You do not need to understand or change the entire protocol.
+  - type: input
+    id: scope
+    attributes:
+      label: Proposed scope
+      placeholder: Add a minimal Evidence Object example for v3.3
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: What would you change?
+      description: Keep the proposal narrow enough that another contributor can understand the finish line.
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: Contribution type
+      options:
+        - Documentation
+        - Example
+        - Test / vector
+        - Portability / environment reproduction
+        - Benchmark
+        - Error message / developer experience
+        - Tooling
+        - Small implementation subset
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: How would we know it is complete?
+      description: Describe a test, example output, reproduction result or other objective completion evidence.
+    validations:
+      required: true
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Authority / evidence boundary affected (if any)
+      description: If the work touches identity, rights, evidence or economic state, note the boundary you expect to preserve.
+  - type: checkboxes
+    id: ownership
+    attributes:
+      label: Contributor ownership
+      options:
+        - label: I understand that implementation choices can remain mine as long as the public protocol/test boundary is preserved.
+          required: true</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

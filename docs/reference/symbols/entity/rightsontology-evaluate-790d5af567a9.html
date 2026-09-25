@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RightsOntology.evaluate Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>RightsOntology.evaluate</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/profile_core.py#L129">ENTITY/src/31_Profiles/profile_core.py#L129</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>RightsOntology.evaluate(cls, rules: list[dict], action: str, context: dict | None=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def evaluate(cls, rules: list[dict], action: str, context: dict | None = None) -&gt; dict:
+        action, context = str(action).upper(), dict(context or {})
+        if action not in cls.TERMS:
+            raise ValueError(&quot;unknown right action&quot;)
+        applicable = []
+        requested_closure = cls.closure([action])
+        for rule in rules:
+            effect = str(rule.get(&quot;effect&quot;) or &quot;&quot;).upper()
+            if effect not in {&quot;ALLOW&quot;, &quot;REQUIRE&quot;, &quot;PROHIBIT&quot;}:
+                raise ValueError(&quot;invalid rights effect&quot;)
+            rule_actions = {str(a).upper() for a in (rule.get(&quot;actions&quot;) or [])}
+            rule_closure = cls.closure(rule_actions)
+            if effect == &quot;PROHIBIT&quot;:
+                # A prohibition on a prerequisite propagates upward: e.g. READ blocks TRAIN.
+                # A prohibition on a stronger action does not propagate downward: TRAIN does not block READ.
+                if not (rule_actions &amp; requested_closure):
+                    continue
+            elif action not in rule_closure:
+                continue
+            if any(context.get(k) != v for k, v in dict(rule.get(&quot;conditions&quot;) or {}).items()):
+                continue
+            applicable.append(rule)
+        effects = {str(r[&quot;effect&quot;]).upper() for r in applicable}
+        decision = (&quot;DENY&quot; if &quot;PROHIBIT&quot; in effects else
+                    &quot;CONDITIONAL&quot; if &quot;REQUIRE&quot; in effects else
+                    &quot;ALLOW&quot; if &quot;ALLOW&quot; in effects else &quot;DENY&quot;)
+        obligations = [o for r in applicable for o in (r.get(&quot;obligations&quot;) or [])]
+        return {&quot;action&quot;: action, &quot;decision&quot;: decision, &quot;obligations&quot;: obligations,
+                &quot;applicable_rule_count&quot;: len(applicable), &quot;deny_by_default&quot;: True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

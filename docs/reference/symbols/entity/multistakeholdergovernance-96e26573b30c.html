@@ -1,0 +1,172 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MultiStakeholderGovernance Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>MultiStakeholderGovernance</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/institutional_semantics.py#L349">ENTITY/src/35_Global_Infrastructure/institutional_semantics.py#L349</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Diversity-aware standards governance. BTG participation does not create unilateral standard authority.</p><h2>Source excerpt</h2><pre><code>class MultiStakeholderGovernance:
+    &quot;&quot;&quot;Diversity-aware standards governance. BTG participation does not create unilateral standard authority.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_multistakeholder_governance.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS bodies(
+                body_id TEXT PRIMARY KEY, steward_entity_id TEXT NOT NULL, name TEXT NOT NULL,
+                charter_sha256 TEXT NOT NULL, classes_json TEXT NOT NULL,
+                approval_threshold INTEGER NOT NULL, min_approval_classes INTEGER NOT NULL,
+                status TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS members(
+                body_id TEXT NOT NULL, member_entity_id TEXT NOT NULL, stakeholder_class TEXT NOT NULL,
+                status TEXT NOT NULL, admitted_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL,
+                PRIMARY KEY(body_id,member_entity_id))&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS proposals(
+                proposal_id TEXT PRIMARY KEY, body_id TEXT NOT NULL, proposer_entity_id TEXT NOT NULL,
+                change_class TEXT NOT NULL, target_ref TEXT NOT NULL, body_sha256 TEXT NOT NULL,
+                status TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS ballots(
+                proposal_id TEXT NOT NULL, voter_entity_id TEXT NOT NULL, stakeholder_class TEXT NOT NULL,
+                decision TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL,
+                PRIMARY KEY(proposal_id,voter_entity_id))&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS conflicts(
+                proposal_id TEXT NOT NULL, member_entity_id TEXT NOT NULL, recuse INTEGER NOT NULL,
+                basis_sha256 TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL,
+                PRIMARY KEY(proposal_id,member_entity_id))&quot;&quot;&quot;)
+
+    def create_body(self, steward: str, name: str, charter_sha256: str,
+                    stakeholder_classes: list[str], *, approval_threshold: int,
+                    min_approval_classes: int) -&gt; dict:
+        classes = sorted({str(x).upper() for x in stakeholder_classes})
+        if len(classes) &lt; 2:
+            raise ValueError(&quot;at least two stakeholder classes required&quot;)
+        approval_threshold = int(approval_threshold)
+        min_approval_classes = int(min_approval_classes)
+        if approval_threshold &lt; 1 or min_approval_classes &lt; 2 or min_approval_classes &gt; len(classes):
+            raise ValueError(&quot;invalid governance thresholds&quot;)
+        charter_sha256 = _sha256(charter_sha256)
+        self.identity.load_manifest(steward)
+        body_id = &quot;gov3-&quot; + digest({&quot;name&quot;: name, &quot;charter&quot;: charter_sha256, &quot;classes&quot;: classes})[:24]
+        body = {&quot;schema&quot;: &quot;entity-v3-governance-body-v1&quot;, &quot;body_id&quot;: body_id,
+                &quot;steward_entity_id&quot;: steward, &quot;name&quot;: str(name), &quot;charter_sha256&quot;: charter_sha256,
+                &quot;stakeholder_classes&quot;: classes, &quot;approval_threshold&quot;: approval_threshold,
+                &quot;min_approval_classes&quot;: min_approval_classes, &quot;status&quot;: &quot;ACTIVE&quot;,
+                &quot;created_at_ms&quot;: now_ms(), &quot;single_implementation_is_not_standard_authority&quot;: True}
+        sig = self.identity.sign(steward, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO bodies VALUES(?,?,?,?,?,?,?,?,?,?)&quot;, (
+                body_id, steward, str(name), charter_sha256, json.dumps(classes),
+                approval_threshold, min_approval_classes, &quot;ACTIVE&quot;, body[&quot;created_at_ms&quot;],
+                json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)
+
+    def add_member(self, body_id: str, steward: str, member: str, stakeholder_class: str) -&gt; dict:
+        stakeholder_class = stakeholder_class.upper()
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            body = db.execute(&quot;SELECT * FROM bodies WHERE body_id=? AND status=&#x27;ACTIVE&#x27;&quot;, (body_id,)).fetchone()
+        if not body:
+            raise KeyError(&quot;governance body missing&quot;)
+        if body[&quot;steward_entity_id&quot;] != steward:
+            raise PermissionError(&quot;only body steward may admit member&quot;)
+        if stakeholder_class not in set(json.loads(body[&quot;classes_json&quot;])):
+            raise ValueError(&quot;stakeholder class not permitted&quot;)
+        self.identity.load_manifest(member)
+        record = {&quot;schema&quot;: &quot;entity-v3-governance-membership-v1&quot;, &quot;body_id&quot;: body_id,
+                  &quot;member_entity_id&quot;: member, &quot;stakeholder_class&quot;: stakeholder_class,
+                  &quot;status&quot;: &quot;ACTIVE&quot;, &quot;admitted_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(steward, record)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT OR REPLACE INTO members VALUES(?,?,?,?,?,?)&quot;, (
+                body_id, member, stakeholder_class, &quot;ACTIVE&quot;, record[&quot;admitted_at_ms&quot;],
+                json.dumps(sig, sort_keys=True)))
+        return dict(record, steward_entity_id=steward, signature=sig)
+
+    def propose(self, body_id: str, proposer: str, change_class: str,
+                target_ref: str, document: Any) -&gt; dict:
+        change_class = change_class.upper()
+        if change_class not in {&quot;CORE&quot;, &quot;PROFILE&quot;, &quot;ONTOLOGY&quot;, &quot;SCHEMA&quot;, &quot;TEST&quot;, &quot;GOVERNANCE&quot;}:
+            raise ValueError(&quot;unsupported change class&quot;)
+        with sqlite3.connect(self.path) as db:
+            member = db.execute(&quot;SELECT 1 FROM members WHERE body_id=? AND member_entity_id=? AND status=&#x27;ACTIVE&#x27;&quot;,
+                                (body_id, proposer)).fetchone()
+        if not member:
+            raise PermissionError(&quot;active governance membership required&quot;)
+        body_hash = digest(document)
+        proposal_id = &quot;proposal3-&quot; + digest({&quot;body&quot;: body_id, &quot;proposer&quot;: proposer,
+                                            &quot;target&quot;: target_ref, &quot;sha&quot;: body_hash})[:24]
+        record = {&quot;schema&quot;: &quot;entity-v3-multistakeholder-proposal-v1&quot;,
+                  &quot;proposal_id&quot;: proposal_id, &quot;body_id&quot;: body_id,
+                  &quot;proposer_entity_id&quot;: proposer, &quot;change_class&quot;: change_class,
+                  &quot;target_ref&quot;: str(target_ref), &quot;body_sha256&quot;: body_hash,
+                  &quot;status&quot;: &quot;OPEN&quot;, &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(proposer, record)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO proposals VALUES(?,?,?,?,?,?,?,?,?)&quot;, (
+                proposal_id, body_id, proposer, change_class, str(target_ref), body_hash,
+                &quot;OPEN&quot;, record[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(record, signature=sig)
+
+    def declare_conflict(self, proposal_id: str, member: str, basis: Any, *, recuse: bool) -&gt; dict:
+        body = {&quot;schema&quot;: &quot;entity-v3-governance-conflict-v1&quot;, &quot;proposal_id&quot;: proposal_id,
+                &quot;member_entity_id&quot;: member, &quot;recuse&quot;: bool(recuse),
+                &quot;basis_sha256&quot;: digest(basis), &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(member, body)
+        with sqlite3.connect(self.path) as db:
+            if not db.execute(&quot;SELECT 1 FROM proposals WHERE proposal_id=?&quot;, (proposal_id,)).fetchone():
+                raise KeyError(&quot;proposal missing&quot;)
+            db.execute(&quot;INSERT OR REPLACE INTO conflicts VALUES(?,?,?,?,?,?)&quot;, (
+                proposal_id, member, int(bool(recuse)), body[&quot;basis_sha256&quot;],
+                body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)
+
+    def vote(self, proposal_id: str, voter: str, decision: str) -&gt; dict:
+        decision = decision.upper()
+        if decision not in {&quot;APPROVE&quot;, &quot;REJECT&quot;, &quot;ABSTAIN&quot;}:
+            raise ValueError(&quot;invalid governance decision&quot;)
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            proposal = db.execute(&quot;SELECT * FROM proposals WHERE proposal_id=? AND status=&#x27;OPEN&#x27;&quot;, (proposal_id,)).fetchone()
+            if not proposal:
+                raise KeyError(&quot;open proposal missing&quot;)
+            member = db.execute(&quot;SELECT * FROM members WHERE body_id=? AND member_entity_id=? AND status=&#x27;ACTIVE&#x27;&quot;,
+                                (proposal[&quot;body_id&quot;], voter)).fetchone()
+            if not member:
+                raise PermissionError(&quot;active governance membership required&quot;)
+            conflict = db.execute(&quot;SELECT recuse FROM conflicts WHERE proposal_id=? AND member_entity_id=?&quot;,
+                                  (proposal_id, voter)).fetchone()
+            if conflict and int(conflict[0]):
+                raise PermissionError(&quot;member recused from proposal&quot;)
+        body = {&quot;schema&quot;: &quot;entity-v3-governance-ballot-v1&quot;, &quot;proposal_id&quot;: proposal_id,
+                &quot;voter_entity_id&quot;: voter, &quot;stakeholder_class&quot;: member[&quot;stakeholder_class&quot;],
+                &quot;decision&quot;: decision, &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(voter, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT OR REPLACE INTO ballots VALUES(?,?,?,?,?,?)&quot;, (
+                proposal_id, voter, member[&quot;stakeholder_class&quot;], decision,
+                body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        result = self.tally(proposal_id)
+        return dict(body, signature=sig, proposal_status=result[&quot;status&quot;])
+
+    def tally(self, proposal_id: str) -&gt; dict:
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            proposal = db.execute(&quot;SELECT * FROM proposals WHERE proposal_id=?&quot;, (proposal_id,)).fetchone()
+            if not proposal:
+                raise KeyError(&quot;proposal missing&quot;)
+            body = db.execute(&quot;SELECT * FROM bodies WHERE body_id=?&quot;, (proposal[&quot;body_id&quot;],)).fetchone()
+            ballots = db.execute(&quot;SELECT * FROM ballots WHERE proposal_id=?&quot;, (proposal_id,)).fetchall()
+        approvals = [r for r in ballots if r[&quot;decision&quot;] == &quot;APPROVE&quot;]
+        rejects = [r for r in ballots if r[&quot;decision&quot;] == &quot;REJECT&quot;]
+        approval_classes = {r[&quot;stakeholder_class&quot;] for r in approvals}
+        threshold = int(body[&quot;approval_threshold&quot;])
+        min_classes = int(body[&quot;min_approval_classes&quot;])
+        if len(approvals) &gt;= threshold and len(approval_classes) &gt;= min_classes:
+            status = &quot;ACCEPTED&quot;
+        elif len(rejects) &gt;= threshold:
+            status = &quot;REJECTED&quot;
+        else:
+            status = &quot;OPEN&quot;
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;UPDATE proposals SET status=? WHERE proposal_id=?&quot;, (status, proposal_id))
+        return {
+            &quot;proposal_id&quot;: proposal_id, &quot;status&quot;: status,
+            &quot;approvals&quot;: len(approvals), &quot;rejects&quot;: len(rejects),
+            &quot;approval_classes&quot;: sorted(approval_classes),
+            &quot;approval_threshold&quot;: threshold, &quot;min_approval_classes&quot;: min_classes,
+            &quot;diversity_requirement_met&quot;: len(approval_classes) &gt;= min_classes,
+            &quot;single_stakeholder_class_cannot_unilaterally_adopt&quot;: min_classes &gt; 1,
+        }</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/15_Operations/backups/canonical_portable_state.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/15_Operations/backups/canonical_portable_state.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/15_Operations/backups/canonical_portable_state.py</code></p><p><b>SHA-256:</b> <code>7a3043a498bdf592050826ffd3136de464437912e71258a65ee46c03ac047224</code></p><p><b>Bytes:</b> 10,110</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/15_Operations/backups/canonical_portable_state.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-cf54157271fe.html">_now</a></li><li><a href="../../../reference/symbols/entity/sha-6e553a2f1f99.html">_sha</a></li><li><a href="../../../reference/symbols/entity/portablestatemanager-1dfaed3d0266.html">PortableStateManager</a></li><li><a href="../../../reference/symbols/entity/portablestatemanager-init-686576699a2b.html">PortableStateManager.__init__</a></li><li><a href="../../../reference/symbols/entity/portablestatemanager-contains-token-ffe00db46306.html">PortableStateManager._contains_token</a></li><li><a href="../../../reference/symbols/entity/portablestatemanager-reference-field-b5b782498232.html">PortableStateManager._reference_field</a></li><li><a href="../../../reference/symbols/entity/portablestatemanager-collect-ids-6a74f31b2f53.html">PortableStateManager._collect_ids</a></li><li><a href="../../../reference/symbols/entity/portablestatemanager-redact-row-0b0d4a1816c3.html">PortableStateManager._redact_row</a></li><li><a href="../../../reference/symbols/entity/portablestatemanager-sqlite-scan-2b04d920c8db.html">PortableStateManager._sqlite_scan</a></li><li><a href="../../../reference/symbols/entity/portablestatemanager-resolve-entity-ref-2d0c9a3d11fd.html">PortableStateManager.resolve_entity_ref</a></li><li><a href="../../../reference/symbols/entity/portablestatemanager-export-entity-1bc812cb66c2.html">PortableStateManager.export_entity</a></li><li><a href="../../../reference/symbols/entity/portablestatemanager-create-encrypted-backup-d28754131e6c.html">PortableStateManager.create_encrypted_backup</a></li><li><a href="../../../reference/symbols/entity/portablestatemanager-restore-encrypted-backup-6d14f47baf55.html">PortableStateManager.restore_encrypted_backup</a></li><li><a href="../../../reference/symbols/entity/portablestatemanager-status-17ed9f9ebd3c.html">PortableStateManager.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+import base64, hashlib, json, os, re, secrets, shutil, sqlite3, tempfile, time, zipfile
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+
+def _now(): return int(time.time()*1000)
+def _sha(path: Path) -&gt; str:
+    h=hashlib.sha256()
+    with path.open(&quot;rb&quot;) as f:
+        for chunk in iter(lambda:f.read(1024*1024),b&quot;&quot;): h.update(chunk)
+    return h.hexdigest()
+
+
+class PortableStateManager:
+    &quot;&quot;&quot;Interoperable JSON export plus encrypted full-state backup/restore.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path,identity):
+        self.state=Path(state_dir).resolve(); self.identity=identity
+        self.root=self.state/&quot;portability&quot;; self.root.mkdir(parents=True,exist_ok=True)
+
+    _DURABLE_ID_RE=re.compile(r&quot;^[A-Za-z][A-Za-z0-9_]{0,24}[0-9]*-[A-Za-z0-9_-]{8,}$&quot;)
+    _ENTITY_ID_RE=re.compile(r&quot;^(?:ent1|ent2)-[a-z2-7]{52}$&quot;)
+    _REDACT_COLUMNS={&quot;key_path&quot;,&quot;cipher_path&quot;,&quot;local_locator&quot;,&quot;password&quot;,&quot;secret&quot;,&quot;token&quot;,&quot;private_key&quot;}
+    _NON_TRAVERSAL_ID_PREFIXES=(&quot;sig-&quot;,&quot;rec-&quot;)
+
+    @classmethod
+    def _contains_token(cls,value,tokens:set[str])-&gt;bool:
+        if isinstance(value,dict):
+            return any(cls._contains_token(v,tokens) for v in value.values())
+        if isinstance(value,list):
+            return any(cls._contains_token(v,tokens) for v in value)
+        if isinstance(value,str):
+            s=value.strip()
+            if s in tokens:
+                return True
+            if s[:1] in &quot;[{&quot;:
+                try: return cls._contains_token(json.loads(s),tokens)
+                except Exception: return False
+        return False
+
+    @classmethod
+    def _reference_field(cls,key)-&gt;bool:
+        k=str(key or &quot;&quot;).lower()
+        if k.endswith(&quot;_json&quot;):
+            k=k[:-5]
+        return k.endswith((&quot;_id&quot;,&quot;_ids&quot;,&quot;_ref&quot;,&quot;_refs&quot;)) or k in {&quot;subject_ids&quot;,&quot;object_ids&quot;,&quot;parent_asset_ids&quot;}
+
+    @classmethod
+    def _collect_ids(cls,value,key_hint=None)-&gt;set[str]:
+        found=set()
+        if isinstance(value,dict):
+            for k,v in value.items(): found |= cls._collect_ids(v,k)
+        elif isinstance(value,list):
+            for v in value: found |= cls._collect_ids(v,key_hint)
+        elif isinstance(value,str):
+            s=value.strip()
+            if s[:1] in &quot;[{&quot;:
+                try: found |= cls._collect_ids(json.loads(s),key_hint)
+                except Exception: pass
+            elif cls._reference_field(key_hint) and cls._DURABLE_ID_RE.fullmatch(s):
+                if not cls._ENTITY_ID_RE.fullmatch(s) and not s.startswith(cls._NON_TRAVERSAL_ID_PREFIXES):
+                    found.add(s)
+        return found
+
+    @classmethod
+    def _redact_row(cls,row:dict)-&gt;dict:
+        out={}
+        for k,v in row.items():
+            lk=str(k).lower()
+            if lk in cls._REDACT_COLUMNS or any(x in lk for x in (&quot;password&quot;,&quot;secret&quot;,&quot;private_key&quot;)):
+                out[k]=&quot;REDACTED_FROM_PORTABLE_EXPORT&quot;
+            else: out[k]=v
+        return out
+
+    @classmethod
+    def _sqlite_scan(cls,path:Path,tokens:set[str])-&gt;tuple[dict,set[str]]:
+        out={&quot;database&quot;:path.name,&quot;scope&quot;:&quot;ENTITY_ONLY&quot;,&quot;tables&quot;:{}}
+        discovered=set()
+        db=sqlite3.connect(path); db.row_factory=sqlite3.Row
+        try:
+            tables=[r[0] for r in db.execute(&quot;SELECT name FROM sqlite_master WHERE type=&#x27;table&#x27; AND name NOT LIKE &#x27;sqlite_%&#x27; ORDER BY name&quot;)]
+            for table in tables:
+                quoted=str(table).replace(&#x27;&quot;&#x27;,&#x27;&quot;&quot;&#x27;)
+                cur=db.execute(f&#x27;SELECT * FROM &quot;{quoted}&quot;&#x27;)
+                selected=[]
+                while True:
+                    batch=cur.fetchmany(5000)
+                    if not batch: break
+                    for raw in batch:
+                        row=dict(raw)
+                        if cls._contains_token(row,tokens):
+                            selected.append(cls._redact_row(row))
+                            discovered |= cls._collect_ids(row)
+                if selected: out[&quot;tables&quot;][table]=selected
+        finally: db.close()
+        return out,discovered
+
+    def resolve_entity_ref(self,entity_ref:str)-&gt;str:
+        ref=str(entity_ref or &quot;&quot;).strip()
+        if not ref: raise ValueError(&quot;Entity ID or alias is required&quot;)
+        try:
+            manifest=self.identity.load_manifest(ref)
+            return str(manifest[&quot;entity_id&quot;])
+        except (ValueError,FileNotFoundError,RuntimeError,KeyError):
+            pass
+        needle=ref.casefold(); matches=[]
+        for manifest in self.identity.list_local():
+            candidates=[str(manifest.get(&quot;display_name&quot;) or &quot;&quot;)]
+            candidates.extend(str(x) for x in (manifest.get(&quot;aliases&quot;) or []))
+            if any(needle==candidate.strip().casefold() for candidate in candidates if candidate.strip()):
+                matches.append(str(manifest[&quot;entity_id&quot;]))
+        matches=sorted(set(matches))
+        if not matches: raise KeyError(f&quot;unknown Entity ID or alias: {ref}&quot;)
+        if len(matches)&gt;1: raise ValueError(f&quot;ambiguous Entity alias/display name: {ref}&quot;)
+        return matches[0]
+
+    def export_entity(self,entity_id:str,destination:str|Path)-&gt;dict:
+        entity_id=self.resolve_entity_ref(entity_id)
+        dest=Path(destination).resolve(); dest.mkdir(parents=True,exist_ok=True)
+        manifest=self.identity.load_manifest(entity_id)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

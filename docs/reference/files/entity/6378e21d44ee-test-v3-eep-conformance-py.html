@@ -1,0 +1,96 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tests/test_v3_eep_conformance.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tests/test_v3_eep_conformance.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tests/test_v3_eep_conformance.py</code></p><p><b>SHA-256:</b> <code>d832cc585662a8722bb3ac95763c6f487285983818794a314826792a6c11390f</code></p><p><b>Bytes:</b> 4,095</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_eep_conformance.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-a3d95504fb19.html">load</a></li><li><a href="../../../reference/symbols/entity/v3eepconformancetests-bce7a7b275f5.html">V3EEPConformanceTests</a></li><li><a href="../../../reference/symbols/entity/v3eepconformancetests-setupclass-c445f9e00aba.html">V3EEPConformanceTests.setUpClass</a></li><li><a href="../../../reference/symbols/entity/v3eepconformancetests-schema-valid-9befcb389d86.html">V3EEPConformanceTests._schema_valid</a></li><li><a href="../../../reference/symbols/entity/v3eepconformancetests-wire-valid-122f7949462d.html">V3EEPConformanceTests._wire_valid</a></li><li><a href="../../../reference/symbols/entity/v3eepconformancetests-test-checksum-seal-852157912513.html">V3EEPConformanceTests.test_checksum_seal</a></li><li><a href="../../../reference/symbols/entity/v3eepconformancetests-test-vectors-match-schema-and-wire-expectations-9013f19d117b.html">V3EEPConformanceTests.test_vectors_match_schema_and_wire_expectations</a></li><li><a href="../../../reference/symbols/entity/v3eepconformancetests-test-every-signed-wire-schema-has-a-valid-vector-b087bdbe9bf1.html">V3EEPConformanceTests.test_every_signed_wire_schema_has_a_valid_vector</a></li><li><a href="../../../reference/symbols/entity/v3eepconformancetests-test-eep-conformance-manifest-self-verifies-2288d670d2d0.html">V3EEPConformanceTests.test_eep_conformance_manifest_self_verifies</a></li></ul><h2>Preview</h2><pre><code>import hashlib
+import importlib.util
+import json
+import pathlib
+import sys
+import unittest
+
+from jsonschema import Draft202012Validator
+
+REPO = pathlib.Path(__file__).resolve().parents[1]
+SCHEMA_PATH = REPO / &quot;protocol/v3/ENTITY_EXCHANGE_PROTOCOL.schema.json&quot;
+VECTOR_DIR = REPO / &quot;protocol/v3/eep_vectors&quot;
+
+
+def load(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+ref_eep = load(&quot;v3_eep_conf_ref&quot;, REPO / &quot;src/31_Profiles/exchange_protocol.py&quot;)
+mirror_eep = load(&quot;v3_eep_conf_mirror&quot;, REPO / &quot;src/32_V3_Hardening/exchange_protocol.py&quot;)
+
+
+class V3EEPConformanceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.schema = json.loads(SCHEMA_PATH.read_text(encoding=&quot;utf-8&quot;))
+        cls.manifest = json.loads((VECTOR_DIR / &quot;VECTOR_MANIFEST.json&quot;).read_text(encoding=&quot;utf-8&quot;))
+        Draft202012Validator.check_schema(cls.schema)
+        cls.validator = Draft202012Validator(cls.schema)
+
+    def _schema_valid(self, record):
+        return not list(self.validator.iter_errors(record))
+
+    def _wire_valid(self, module, record):
+        try:
+            module.validate_signed_wire(record)
+            return True
+        except (TypeError, ValueError):
+            return False
+
+    def test_checksum_seal(self):
+        for raw in (VECTOR_DIR / &quot;SHA256SUMS.txt&quot;).read_text(encoding=&quot;utf-8-sig&quot;).splitlines():
+            expected, rel = raw.split(&quot;  &quot;, 1)
+            target = VECTOR_DIR.parent / rel
+            actual = hashlib.sha256(target.read_bytes()).hexdigest()
+            self.assertEqual(actual, expected, rel)
+
+    def test_vectors_match_schema_and_wire_expectations(self):
+        signed = set(self.manifest[&quot;signed_wire_schemas&quot;])
+        for vector in self.manifest[&quot;vectors&quot;]:
+            with self.subTest(vector=vector[&quot;name&quot;]):
+                record = json.loads((VECTOR_DIR / vector[&quot;path&quot;]).read_text(encoding=&quot;utf-8&quot;))
+                schema_valid = self._schema_valid(record)
+                self.assertEqual(schema_valid, vector[&quot;expected_schema_valid&quot;])
+
+                wire_expected = vector.get(&quot;expected_wire_valid&quot;)
+                if record.get(&quot;schema&quot;) in signed:
+                    self.assertIsNotNone(wire_expected)
+                    ref_valid = self._wire_valid(ref_eep, record)
+                    mirror_valid = self._wire_valid(mirror_eep, record)
+                    self.assertEqual(ref_valid, wire_expected)
+                    self.assertEqual(mirror_valid, wire_expected)
+                    combined = schema_valid and ref_valid and mirror_valid
+                else:
+                    self.assertIsNone(wire_expected)
+                    combined = schema_valid
+
+                self.assertEqual(combined, vector[&quot;expected_valid&quot;])
+
+    def test_every_signed_wire_schema_has_a_valid_vector(self):
+        valid_schemas = {
+            v[&quot;record_schema&quot;] for v in self.manifest[&quot;vectors&quot;]
+            if v[&quot;expected_valid&quot;]
+        }
+        self.assertTrue(set(self.manifest[&quot;signed_wire_schemas&quot;]).issubset(valid_schemas))
+
+
+    def test_eep_conformance_manifest_self_verifies(self):
+        manifest_path = REPO / &quot;ENTITY_V3_EEP_CONFORMANCE_MANIFEST.json&quot;
+        evidence = json.loads(manifest_path.read_text(encoding=&quot;utf-8&quot;))
+        for entry in evidence[&quot;files&quot;]:
+            target = REPO / entry[&quot;path&quot;]
+            actual = hashlib.sha256(target.read_bytes()).hexdigest()
+            self.assertEqual(actual, entry[&quot;sha256&quot;], entry[&quot;path&quot;])
+        base = {k: v for k, v in evidence.items() if k not in {&quot;files&quot;, &quot;snapshot_sha256&quot;}}
+        seed = json.dumps(base, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;)).encode() + b&quot;\n&quot;
+        seed += b&quot;\n&quot;.join((e[&quot;path&quot;] + &quot; &quot; + e[&quot;sha256&quot;]).encode() for e in evidence[&quot;files&quot;])
+        self.assertEqual(hashlib.sha256(seed).hexdigest(), evidence[&quot;snapshot_sha256&quot;])
+
+
+if __name__ == &quot;__main__&quot;:
+    unittest.main()</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

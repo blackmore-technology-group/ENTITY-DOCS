@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BTGApplicationSDK Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>BTGApplicationSDK</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/btg_application_sdk/canonical_btg_application_sdk.py#L26">ENTITY/sdk/btg_application_sdk/canonical_btg_application_sdk.py#L26</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Additive application ingestion adapter. It never grants legal truth, ownership, consent or economic authority.</p><h2>Source excerpt</h2><pre><code>class BTGApplicationSDK:
+    &quot;&quot;&quot;Additive application ingestion adapter. It never grants legal truth, ownership, consent or economic authority.&quot;&quot;&quot;
+    def __init__(self,state_dir:str|Path,application_entity_id:str,organization_entity_id:str,*,authorizer=None):
+        self.state=Path(state_dir); self.application_entity_id=str(application_entity_id); self.organization_entity_id=str(organization_entity_id)
+        self.authorizer=authorizer
+        im=_load(&quot;btg_sdk_identity&quot;,ROOT/&quot;01_Core_Runtime&quot;/&quot;identity&quot;/&quot;canonical_identity.py&quot;)
+        lm=_load(&quot;btg_sdk_ledger&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;event_ledger&quot;/&quot;canonical_event_ledger.py&quot;)
+        rm=_load(&quot;btg_sdk_rights&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;ownership_graphs&quot;/&quot;canonical_rights_claims.py&quot;)
+        pm=_load(&quot;btg_sdk_prov&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;provenance&quot;/&quot;canonical_provenance.py&quot;)
+        am=_load(&quot;btg_sdk_assets&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;asset_registry&quot;/&quot;canonical_asset_registry.py&quot;)
+        km=_load(&quot;btg_sdk_knowledge&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;canonical_knowledge_capital.py&quot;)
+        sm=_load(&quot;btg_sdk_sovereign&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;relationships&quot;/&quot;canonical_sovereign_authority.py&quot;)
+        self.identity=im.EntityIdentityVault(self.state); self.identity.load_manifest(self.application_entity_id); self.identity.load_manifest(self.organization_entity_id)
+        self.ledger=lm.CanonicalEventLedger(self.state,self.identity); self.rights=rm.RightsClaimsGraph(self.state,self.identity)
+        self.provenance=pm.AssetProvenanceGraph(self.state,self.identity); self.assets=am.CanonicalAssetRegistry(self.state,self.identity,self.ledger,self.rights,self.provenance)
+        self.knowledge=km.KnowledgeCapitalRegistry(self.state,self.identity); self.sovereign=sm.SovereignAuthorityRegistry(self.state,self.identity)
+        self.root=self.state/&quot;btg_application_sdk&quot;; self.root.mkdir(parents=True,exist_ok=True); self.db_path=self.root/&quot;ingest.sqlite&quot;; self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.db_path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;); db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS idempotency(idempotency_key TEXT PRIMARY KEY,envelope_sha256 TEXT NOT NULL,result_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+
+    @classmethod
+    def provision_application(cls,state_dir:str|Path,organization_entity_id:str,display_name:str,alias:str,metadata=None)-&gt;dict:
+        state=Path(state_dir); alias=str(alias or &quot;&quot;).strip().lower()
+        if not alias.endswith(&quot;.entity&quot;) or len(alias)&gt;128: raise ValueError(&quot;application alias must end in .entity&quot;)
+        im=_load(&quot;btg_sdk_provision_identity&quot;,ROOT/&quot;01_Core_Runtime&quot;/&quot;identity&quot;/&quot;canonical_identity.py&quot;)
+        sm=_load(&quot;btg_sdk_provision_sovereign&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;relationships&quot;/&quot;canonical_sovereign_authority.py&quot;)
+        identity=im.EntityIdentityVault(state); identity.load_manifest(str(organization_entity_id))
+        for item in identity.list_local():
+            if alias in {str(x).lower() for x in (item.get(&quot;aliases&quot;) or [])}:
+                if (item.get(&quot;metadata&quot;) or {}).get(&quot;btg_controller_entity_id&quot;)!=str(organization_entity_id): raise PermissionError(&quot;alias already bound to another controller&quot;)
+                return {&quot;application_entity_id&quot;:item[&quot;entity_id&quot;],&quot;alias&quot;:alias,&quot;existing&quot;:True,&quot;manifest&quot;:item}
+        meta=dict(metadata or {}); meta.update({&quot;btg_controller_entity_id&quot;:str(organization_entity_id),&quot;application_alias&quot;:alias,&quot;entity_sdk_profile&quot;:&quot;BTG_APPLICATION_SDK_v1&quot;,&quot;asset_ownership_not_inferred&quot;:True})
+        manifest=identity.create(str(display_name),&quot;application&quot;,aliases=[alias],metadata=meta); app_id=manifest[&quot;entity_id&quot;]
+        sovereign=sm.SovereignAuthorityRegistry(state,identity)
+        relationship=sovereign.grant_relationship(app_id,str(organization_entity_id),&quot;SOVEREIGN_AUTHORITY&quot;,scope={&quot;application_control&quot;:True,&quot;asset_ownership_not_implied&quot;:True,&quot;user_data_ownership_not_implied&quot;:True},evidence_origin=&quot;ENTITY_ASSERTION&quot;,evidence={&quot;profile&quot;:&quot;BTG_APPLICATION_SDK_v1&quot;})
+        return {&quot;application_entity_id&quot;:app_id,&quot;alias&quot;:alias,&quot;existing&quot;:False,&quot;manifest&quot;:manifest,&quot;organization_control_relationship&quot;:relationship}
+
+    def _authorize(self,envelope:dict,operation:str):
+        if self.authorizer is None: raise PermissionError(&quot;application ingest requires explicit authorization&quot;)
+        decision=self.authorizer(dict(envelope),str(operation))
+        allowed=decision.get(&quot;allowed&quot;) if isinstance(decision,dict) else bool(decision)
+        if not allowed: raise PermissionError(&quot;application ingest authorization denied&quot;)
+        return decision if isinstance(decision,dict) else {&quot;allowed&quot;:True}
+
+    def _validate_common(self,envelope:dict,schema:str):
+        if envelope.get(&quot;schema&quot;)!=schema: raise ValueError(&quot;unsupported application envelope schema&quot;)
+        if envelope.get(&quot;application_entity_id&quot;)!=self.application_entity_id: raise PermissionError(&quot;application entity mismatch&quot;)
+        if envelope.get(&quot;organization_entity_id&quot;)!=self.organization_entity_id: raise PermissionError(&quot;organization entity mismatch&quot;)
+        key=str(envelope.get(&quot;idempotency_key&quot;) or &quot;&quot;).strip()
+        if not key or len(key)&gt;256: raise ValueError(&quot;idempotency_key required&quot;)
+        return key
+
+    def _replay_or_none(self,key:str,envelope:dict):
+        digest=_sha(envelope)
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM idempotency WHERE idempotency_key=?&quot;,(key,)).fetchone()
+        if not row: return None
+        if row[&quot;envelope_sha256&quot;]!=digest: raise ValueError(&quot;idempotency key reused with different envelope&quot;)
+        out=json.loads(row[&quot;result_json&quot;]); out[&quot;idempotent_replay&quot;]=True; return out
+
+    def _remember(self,key:str,envelope:dict,result:dict):
+        digest=_sha(envelope)
+        with self._connect() as db: db.execute(&quot;INSERT INTO idempotency VALUES(?,?,?,?)&quot;,(key,digest,json.dumps(result,sort_keys=True,default=str),_now()))
+
+    @staticmethod
+    def _validate_digest(value:str):
+        digest=str(value or &quot;&quot;).lower()
+        if len(digest)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in digest): raise ValueError(&quot;SHA-256 hex required&quot;)
+        return digest
+
+    def ingest_asset(self,envelope:dict)-&gt;dict:
+        envelope=dict(envelope or {}); key=self._validate_common(envelope,SCHEMA); replay=self._replay_or_none(key,envelope)
+        if replay is not None: return replay
+        self._authorize(envelope,&quot;INGEST_ASSET&quot;)
+        if envelope.get(&quot;raw_content_included&quot;) is not False: raise ValueError(&quot;raw content must not be embedded in ENTITY ingest envelope&quot;)
+        kind=str(envelope.get(&quot;asset_kind&quot;) or &quot;&quot;).upper()
+        if kind not in ASSET_KINDS: raise ValueError(&quot;unsupported asset_kind&quot;)
+        digest=self._validate_digest(envelope.get(&quot;content_sha256&quot;)); meta=dict(envelope.get(&quot;metadata&quot;) or {})
+        meta.update({&quot;asset_kind&quot;:kind,&quot;producer_application_entity_id&quot;:self.application_entity_id,&quot;btg_organization_entity_id&quot;:self.organization_entity_id,&quot;source_subject_ref&quot;:envelope.get(&quot;source_subject_ref&quot;),&quot;ownership_not_inferred&quot;:True,&quot;raw_content_stored_in_event_ledger&quot;:False})
+        asset=self.assets.register(self.application_entity_id,content_sha256=digest,size_bytes=int(envelope.get(&quot;size_bytes&quot;) or 0),media_type=str(envelope.get(&quot;media_type&quot;) or &quot;application/octet-stream&quot;),title=str(envelope.get(&quot;title&quot;) or kind),classification=str(envelope.get(&quot;classification&quot;) or &quot;PRIVATE&quot;),metadata=meta)
+        claims=[]; explicit=dict(envelope.get(&quot;explicit_rights_claim&quot;) or {})
+        if explicit:
+            if not explicit.get(&quot;legal_basis&quot;) or not explicit.get(&quot;right_type&quot;) or not explicit.get(&quot;evidence&quot;): raise ValueError(&quot;explicit rights claim requires right_type, legal_basis and evidence&quot;)
+            claims.append(self.rights.assert_claim(self.organization_entity_id,asset_id=asset[&quot;asset_id&quot;],right_type=str(explicit[&quot;right_type&quot;]),legal_basis=str(explicit[&quot;legal_basis&quot;]),scope=dict(explicit.get(&quot;scope&quot;) or {}),evidence=dict(explicit[&quot;evidence&quot;]),evidence_origin=str(explicit.get(&quot;evidence_origin&quot;) or &quot;ENTITY_ASSERTION&quot;)))
+
+        receipt=None
+        contributors=[dict(x) for x in (envelope.get(&quot;contributors&quot;) or [])]
+        if contributors:
+            receipt=self.knowledge.record(self.application_entity_id,kind=kind,title=str(envelope.get(&quot;title&quot;) or kind),contributors=contributors,artifact_sha256=digest,metadata={&quot;asset_id&quot;:asset[&quot;asset_id&quot;],&quot;organization_entity_id&quot;:self.organization_entity_id,&quot;ownership_not_inferred&quot;:True},evidence_origin=&quot;ENTITY_ASSERTION&quot;)
+        derivations=[]
+        relation=&quot;model_output&quot; if kind==&quot;MODEL&quot; else &quot;other&quot;
+        for parent in envelope.get(&quot;parent_asset_ids&quot;) or []:
+            derivations.append(self.provenance.add_derivation(self.application_entity_id,str(parent),asset[&quot;asset_id&quot;],relation,metadata={&quot;producer_application_entity_id&quot;:self.application_entity_id,&quot;automatic_sdk_capture&quot;:True},evidence_origin=&quot;ENTITY_ASSERTION&quot;))
+        accepted=self.ledger.append(self.application_entity_id,&quot;application.asset_ingested&quot;,subject_ids=[self.application_entity_id,self.organization_entity_id],object_ids=[asset[&quot;asset_id&quot;]],payload={&quot;asset_id&quot;:asset[&quot;asset_id&quot;],&quot;asset_kind&quot;:kind,&quot;content_sha256&quot;:digest,&quot;source_subject_ref&quot;:envelope.get(&quot;source_subject_ref&quot;),&quot;explicit_organization_rights_claim_count&quot;:len(claims),&quot;registration_not_ownership&quot;:True,&quot;economic_value_not_inferred&quot;:True},evidence_origin=&quot;DIRECT_OBSERVATION&quot;)
+        result={&quot;schema&quot;:&quot;entity-btg-app-ingest-result-v1&quot;,&quot;application_entity_id&quot;:self.application_entity_id,&quot;organization_entity_id&quot;:self.organization_entity_id,&quot;asset&quot;:asset,&quot;explicit_organization_rights_claims&quot;:claims,&quot;knowledge_receipt&quot;:receipt,&quot;derivations&quot;:derivations,&quot;ingest_event&quot;:accepted,&quot;ownership_not_inferred&quot;:True,&quot;economic_value_not_inferred&quot;:True,&quot;raw_content_stored&quot;:False,&quot;idempotent_replay&quot;:False}
+        self._remember(key,envelope,result); return result
+
+    def record_event(self,envelope:dict)-&gt;dict:
+        envelope=dict(envelope or {}); key=self._validate_common(envelope,EVENT_SCHEMA); replay=self._replay_or_none(key,envelope)
+        if replay is not None: return replay
+        self._authorize(envelope,&quot;RECORD_EVENT&quot;)
+        if envelope.get(&quot;raw_payload_included&quot;) is not False: raise ValueError(&quot;raw event payload must not be embedded&quot;)
+        event_type=str(envelope.get(&quot;event_type&quot;) or &quot;&quot;).lower()
+        if not event_type.startswith(ALLOWED_EVENT_PREFIXES) or any(x in event_type for x in FORBIDDEN_EVENT_TOKENS): raise PermissionError(&quot;event type would bypass canonical authority/economic subsystem&quot;)
+        digest=self._validate_digest(envelope.get(&quot;payload_sha256&quot;))
+        event=self.ledger.append(self.application_entity_id,event_type,subject_ids=envelope.get(&quot;subject_ids&quot;) or [],object_ids=envelope.get(&quot;object_ids&quot;) or [],payload_sha256=digest,evidence_origin=str(envelope.get(&quot;evidence_origin&quot;) or &quot;DIRECT_OBSERVATION&quot;),confidence=float(envelope.get(&quot;confidence&quot;,1.0)))
+        result={&quot;schema&quot;:&quot;entity-btg-app-event-result-v1&quot;,&quot;event&quot;:event,&quot;non_authoritative_application_event&quot;:True,&quot;economic_state_mutated&quot;:False,&quot;rights_state_mutated&quot;:False,&quot;idempotent_replay&quot;:False}
+        self._remember(key,envelope,result); return result
+
+    def status(self)-&gt;dict:
+        return {&quot;ready&quot;:True,&quot;schema&quot;:&quot;entity-btg-application-sdk-v1&quot;,&quot;application_entity_id&quot;:self.application_entity_id,&quot;organization_entity_id&quot;:self.organization_entity_id,&quot;default_deny_authorization&quot;:True,&quot;raw_content_not_required&quot;:True,&quot;registration_not_ownership&quot;:True,&quot;rights_require_explicit_basis&quot;:True,&quot;economic_mutation_not_exposed&quot;:True,&quot;core_registries_reused&quot;:True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / protocol/v3/ENTITY_GLOBAL_INFRASTRUCTURE.schema.json Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / protocol/v3/ENTITY_GLOBAL_INFRASTRUCTURE.schema.json</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>protocol/v3/ENTITY_GLOBAL_INFRASTRUCTURE.schema.json</code></p><p><b>SHA-256:</b> <code>e15d8f5b07c6801d108c1b15f73dd115548d4dd5f882ba4e5dfd2a9c73fea7ba</code></p><p><b>Bytes:</b> 27,726</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/protocol/v3/ENTITY_GLOBAL_INFRASTRUCTURE.schema.json">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>{
+  &quot;$defs&quot;: {
+    &quot;bounded_economic_interest&quot;: {
+      &quot;additionalProperties&quot;: false,
+      &quot;properties&quot;: {
+        &quot;actions&quot;: {
+          &quot;items&quot;: {
+            &quot;minLength&quot;: 1,
+            &quot;type&quot;: &quot;string&quot;
+          },
+          &quot;minItems&quot;: 1,
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;uniqueItems&quot;: true
+        },
+        &quot;additional_bounds&quot;: {
+          &quot;type&quot;: &quot;object&quot;
+        },
+        &quot;created_at_ms&quot;: {
+          &quot;minimum&quot;: 0,
+          &quot;type&quot;: &quot;integer&quot;
+        },
+        &quot;dco_ref&quot;: {
+          &quot;minLength&quot;: 1,
+          &quot;type&quot;: &quot;string&quot;
+        },
+        &quot;derivation_allowed&quot;: {
+          &quot;type&quot;: &quot;boolean&quot;
+        },
+        &quot;duration_ms&quot;: {
+          &quot;anyOf&quot;: [
+            {
+              &quot;minimum&quot;: 1,
+              &quot;type&quot;: &quot;integer&quot;
+            },
+            {
+              &quot;type&quot;: &quot;null&quot;
+            }
+          ]
+        },
+        &quot;holder_entity_id&quot;: {
+          &quot;minLength&quot;: 1,
+          &quot;type&quot;: &quot;string&quot;
+        },
+        &quot;interest_id&quot;: {
+          &quot;minLength&quot;: 1,
+          &quot;type&quot;: &quot;string&quot;
+        },
+        &quot;jurisdiction&quot;: {
+          &quot;anyOf&quot;: [
+            {
+              &quot;minLength&quot;: 1,
+              &quot;type&quot;: &quot;string&quot;
+            },
+            {
+              &quot;type&quot;: &quot;null&quot;
+            }
+          ]
+        },
+        &quot;participation_bps&quot;: {
+          &quot;maximum&quot;: 10000,
+          &quot;minimum&quot;: 0,
+          &quot;type&quot;: &quot;integer&quot;
+        },
+        &quot;quantity&quot;: {
+          &quot;anyOf&quot;: [
+            {
+              &quot;minimum&quot;: 1,
+              &quot;type&quot;: &quot;integer&quot;
+            },
+            {
+              &quot;type&quot;: &quot;null&quot;
+            }
+          ]
+        },
+        &quot;scarcity_sources&quot;: {
+          &quot;items&quot;: {
+            &quot;enum&quot;: [
+              &quot;RIGHT&quot;,
+              &quot;ENTITLEMENT&quot;,
+              &quot;CAPACITY&quot;,
+              &quot;DURATION&quot;,
+              &quot;JURISDICTION&quot;,
+              &quot;USAGE_QUANTITY&quot;,
+              &quot;DERIVATION&quot;,
+              &quot;PARTICIPATION&quot;,
+              &quot;TRANSFERABILITY&quot;
+            ]
+          },
+          &quot;minItems&quot;: 1,
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;uniqueItems&quot;: true
+        },
+        &quot;schema&quot;: {
+          &quot;const&quot;: &quot;entity-v3-bounded-economic-interest-v1&quot;
+        },
+        &quot;transferable&quot;: {
+          &quot;type&quot;: &quot;boolean&quot;
+        },
+        &quot;underlying_information_remains_nonrival&quot;: {
+          &quot;const&quot;: true
+        }
+      },
+      &quot;required&quot;: [
+        &quot;schema&quot;,
+        &quot;interest_id&quot;,
+        &quot;dco_ref&quot;,
+        &quot;holder_entity_id&quot;,
+        &quot;actions&quot;,
+        &quot;quantity&quot;,
+        &quot;duration_ms&quot;,
+        &quot;jurisdiction&quot;,
+        &quot;transferable&quot;,
+        &quot;derivation_allowed&quot;,
+        &quot;participation_bps&quot;,
+        &quot;additional_bounds&quot;,
+        &quot;scarcity_sources&quot;,
+        &quot;underlying_information_remains_nonrival&quot;,
+        &quot;created_at_ms&quot;
+      ],
+      &quot;type&quot;: &quot;object&quot;</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

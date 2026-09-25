@@ -1,0 +1,95 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityFullAdamRuntime Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityFullAdamRuntime</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/11_ADAM/full_runtime/canonical_full_adam_runtime.py#L41">ENTITY/src/11_ADAM/full_runtime/canonical_full_adam_runtime.py#L41</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>ENTITY-authorized bridge into the full ADAM v1.0 software reference.
+
+ENTITY remains the sovereignty/authorization root. ADAM owns atomic evidence and
+state-transition mechanics. NIKI may consume bounded projections only.</p><h2>Source excerpt</h2><pre><code>class EntityFullAdamRuntime:
+    &quot;&quot;&quot;ENTITY-authorized bridge into the full ADAM v1.0 software reference.
+
+    ENTITY remains the sovereignty/authorization root. ADAM owns atomic evidence and
+    state-transition mechanics. NIKI may consume bounded projections only.
+    &quot;&quot;&quot;
+
+    VERSION = &quot;2.0.0-alpha1&quot;
+    ADAM_VERSION = &quot;1.0.0-rc2&quot;
+    REACTION = &quot;ENTITY_AUTHORIZED_TRANSITION&quot;
+
+    def __init__(self, state_dir: str | Path, *, authorization_verifier: Callable[[Mapping[str, Any]], bool], enable_network_reference: bool = False) -&gt; None:
+        if authorization_verifier is None:
+            raise ValueError(&quot;ENTITY authorization verifier is required&quot;)
+        self.state = Path(state_dir)
+        self.state.mkdir(parents=True, exist_ok=True)
+        self.authorization_verifier = authorization_verifier
+        self.reference_pin = json.loads(PIN_PATH.read_text(encoding=&quot;utf-8&quot;))
+        modules = _load_adam_modules()
+        ArtificialLivingUniverseV1Candidate, AtomicUniverse, ReactionEngine, ReactionDefinition, ReactionIntent, Effect, TypeSpec, EvidenceAlignmentEngine = modules
+        self._ReactionDefinition = ReactionDefinition
+        self._ReactionIntent = ReactionIntent
+        self._Effect = Effect
+        self._TypeSpec = TypeSpec
+        self.full = ArtificialLivingUniverseV1Candidate.create(self.state / &quot;full_adam_candidate&quot;, enable_network_reference=enable_network_reference)
+        self.atomic = AtomicUniverse(self.state / &quot;entity_atomic_universe&quot;)
+        self._capability = self.atomic.enable_commit_guard()
+        self.reactions = ReactionEngine(self.atomic, capability=self._capability)
+        self.evidence = EvidenceAlignmentEngine(self.atomic, capability=self._capability)
+        self._install_entity_schema()
+
+    def _install_entity_schema(self) -&gt; None:
+        spec = self._TypeSpec(name=&quot;entity_record&quot;, rules=(), allow_unlisted_predicates=True, version=1, metadata={&quot;authority_root&quot;: &quot;ENTITY&quot;, &quot;state_engine&quot;: &quot;ADAM&quot;})
+        self.reactions.register_type(spec)
+        self.reactions.register_reaction(self._ReactionDefinition(
+            name=self.REACTION, version=1, roles={&quot;subject&quot;: &quot;entity_record&quot;}, actor_role=&quot;subject&quot;,
+            required_grants=(), conditions=(), reversible=False,
+            description=&quot;Mirror an ENTITY-authorized state transition into ADAM atomic history.&quot;,
+            effects=(
+                self._Effect(&quot;subject&quot;, &quot;last_event_id&quot;, &quot;set_arg&quot;, value_arg=&quot;event_id&quot;),
+                self._Effect(&quot;subject&quot;, &quot;last_event_type&quot;, &quot;set_arg&quot;, value_arg=&quot;event_type&quot;),
+                self._Effect(&quot;subject&quot;, &quot;last_event_digest&quot;, &quot;set_arg&quot;, value_arg=&quot;event_digest&quot;),
+                self._Effect(&quot;subject&quot;, &quot;last_authority_digest&quot;, &quot;set_arg&quot;, value_arg=&quot;authority_digest&quot;),
+                self._Effect(&quot;subject&quot;, &quot;last_result_digest&quot;, &quot;set_arg&quot;, value_arg=&quot;result_digest&quot;),
+                self._Effect(&quot;subject&quot;, &quot;last_evidence_object&quot;, &quot;set_arg&quot;, value_arg=&quot;evidence_object_id&quot;),
+                self._Effect(&quot;subject&quot;, &quot;last_claim_id&quot;, &quot;set_arg&quot;, value_arg=&quot;claim_id&quot;),
+            ),
+        ))
+
+    def _entity_atom_id(self, entity_id: str) -&gt; str:
+        return self.atomic.atom_id(&quot;entity&quot;, {&quot;type&quot;: &quot;entity_record&quot;, &quot;key&quot;: str(entity_id)})
+
+    def register_entity(self, entity_id: str, *, entity_kind: str = &quot;ENTITY&quot;) -&gt; dict[str, Any]:
+        atom_id = self._entity_atom_id(entity_id)
+        if atom_id in self.atomic.atoms:
+            return {&quot;entity_id&quot;: str(entity_id), &quot;adam_entity_atom_id&quot;: atom_id, &quot;existing&quot;: True, &quot;version&quot;: self.atomic.entity_versions.get(atom_id, 0)}
+        atom_id, version = self.reactions.genesis_entity(&quot;entity_record&quot;, str(entity_id), {&quot;entity_id&quot;: str(entity_id), &quot;entity_kind&quot;: str(entity_kind), &quot;authority_root&quot;: &quot;ENTITY&quot;})
+        return {&quot;entity_id&quot;: str(entity_id), &quot;adam_entity_atom_id&quot;: atom_id, &quot;existing&quot;: False, &quot;version&quot;: version}
+
+    def record_authorized_transition(self, *, entity_id: str, event_type: str, event: Mapping[str, Any], authorization_receipt: Mapping[str, Any], result: Any = None, entity_kind: str = &quot;ENTITY&quot;) -&gt; dict[str, Any]:
+        auth = dict(authorization_receipt)
+        if not self.authorization_verifier(auth):
+            raise PermissionError(&quot;ENTITY authorization verification failed; ADAM commit denied&quot;)
+        entity = self.register_entity(entity_id, entity_kind=entity_kind)
+        event_doc = {&quot;schema&quot;: &quot;entity-adam-authorized-transition-v1&quot;, &quot;entity_id&quot;: str(entity_id), &quot;event_type&quot;: str(event_type), &quot;event&quot;: dict(event), &quot;authorization_receipt&quot;: auth, &quot;result&quot;: result}
+        event_digest = _sha(event_doc); authority_digest = _sha(auth); result_digest = _sha(result); event_id = &quot;adam-event-&quot; + event_digest[:40]
+        exact = self.evidence.ingest_evidence(_canon(event_doc), media_type=&quot;application/vnd.blackmore.entity-adam-transition+json&quot;, name=event_id + &quot;.json&quot;)
+        claim = self.evidence.assert_claim(&quot;ENTITY_AUTHORIZED_TRANSITION&quot;, {&quot;entity_id&quot;: str(entity_id), &quot;event_id&quot;: event_id, &quot;event_type&quot;: str(event_type), &quot;event_digest&quot;: event_digest}, evidence_object_id=exact.object_id, extractor=&quot;ENTITY_FULL_ADAM_BRIDGE_V1&quot;, confidence=1.0, authoritative=True)
+        receipt = self.reactions.apply(self._ReactionIntent(reaction=self.REACTION, bindings={&quot;subject&quot;: entity[&quot;adam_entity_atom_id&quot;]}, args={&quot;event_id&quot;: event_id, &quot;event_type&quot;: str(event_type), &quot;event_digest&quot;: event_digest, &quot;authority_digest&quot;: authority_digest, &quot;result_digest&quot;: result_digest, &quot;evidence_object_id&quot;: exact.object_id, &quot;claim_id&quot;: claim.claim_id}, nonce=event_id))
+        return {&quot;schema&quot;: &quot;entity-adam-transition-receipt-v1&quot;, &quot;entity_id&quot;: str(entity_id), &quot;event_id&quot;: event_id, &quot;event_digest&quot;: event_digest, &quot;authority_digest&quot;: authority_digest, &quot;result_digest&quot;: result_digest, &quot;exact_evidence_object_id&quot;: exact.object_id, &quot;claim_id&quot;: claim.claim_id, &quot;claim_verification&quot;: self.evidence.verify_claim(claim.claim_id), &quot;reaction&quot;: receipt.reaction, &quot;reaction_proof_id&quot;: receipt.proof_id, &quot;sequence_before&quot;: receipt.sequence_before, &quot;sequence_after&quot;: receipt.sequence_after, &quot;root_before&quot;: receipt.root_before, &quot;root_after&quot;: receipt.root_after, &quot;checks&quot;: list(receipt.checks), &quot;committed&quot;: receipt.committed}
+
+    def reconstruct_evidence(self, object_id: str) -&gt; bytes:
+        return self.evidence.exact.reconstruct(object_id)
+
+    def project_reasoning_context(self, entity_id: str) -&gt; dict[str, Any]:
+        atom_id = self._entity_atom_id(entity_id)
+        if atom_id not in self.atomic.atoms:
+            return {&quot;schema&quot;: &quot;niki-adam-context-v2&quot;, &quot;entity_id&quot;: str(entity_id), &quot;exists&quot;: False, &quot;authority_transferred_to_niki&quot;: False}
+        view = self.atomic.entity_view(atom_id)
+        safe = {k: v for k, v in view.items() if k.startswith(&quot;_&quot;) or k.startswith(&quot;last_&quot;) or k in {&quot;entity_id&quot;, &quot;entity_kind&quot;, &quot;authority_root&quot;}}
+        return {&quot;schema&quot;: &quot;niki-adam-context-v2&quot;, &quot;entity_id&quot;: str(entity_id), &quot;exists&quot;: True, &quot;atomic_root&quot;: self.atomic.root_hash, &quot;atomic_sequence&quot;: self.atomic.sequence, &quot;state&quot;: safe, &quot;raw_content_included&quot;: False, &quot;authority_transferred_to_niki&quot;: False}
+
+    def verify(self) -&gt; dict[str, Any]:
+        atomic = self.atomic.verify()
+        claims = [self.evidence.verify_claim(atom_id) for atom_id, atom in self.atomic.atoms.items() if atom.kind == &quot;semantic_claim&quot; and isinstance(atom.value, dict) and atom.value.get(&quot;claim_type&quot;) == &quot;ENTITY_AUTHORIZED_TRANSITION&quot;]
+        return {&quot;schema&quot;: &quot;entity-adam-full-runtime-verification-v1&quot;, &quot;pass&quot;: bool(atomic.get(&quot;pass&quot;)) and all(c.get(&quot;pass&quot;) for c in claims), &quot;atomic_universe&quot;: atomic, &quot;aligned_transition_claims&quot;: len(claims), &quot;full_candidate&quot;: self.full.local_status(), &quot;authority_root&quot;: &quot;ENTITY&quot;, &quot;executor_state_engine&quot;: &quot;ADAM&quot;}
+
+    def close(self) -&gt; None:
+        self.full.close()
+
+    def __enter__(self): return self
+    def __exit__(self, exc_type, exc, tb): self.close()</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

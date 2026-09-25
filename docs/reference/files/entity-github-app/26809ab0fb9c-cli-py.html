@@ -1,0 +1,65 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY-GITHUB-APP / src/entity_github_app/cli.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY-GITHUB-APP / src/entity_github_app/cli.py</h1><div class="meta"><b>Repository:</b> ENTITY-GITHUB-APP<br><b>Commit:</b> <code>7ef6b33b5d586cabd1f912491152fcff10e0ad47</code></div><p><b>Path:</b> <code>src/entity_github_app/cli.py</code></p><p><b>SHA-256:</b> <code>74f73f26c3071dd6b99f36422333d2ab45cbaac487a8c16fdca28a0da833a4c5</code></p><p><b>Bytes:</b> 2,357</p><p><a href="https://github.com/blackmore-technology-group/ENTITY-GITHUB-APP/blob/7ef6b33b5d586cabd1f912491152fcff10e0ad47/src/entity_github_app/cli.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity-github-app/print-d6a7ea970536.html">_print</a></li><li><a href="../../../reference/symbols/entity-github-app/build-parser-03162f3705f4.html">build_parser</a></li><li><a href="../../../reference/symbols/entity-github-app/main-b30387838c4b.html">main</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+
+import argparse
+import json
+
+from .callback_server import run_callback
+from .github_api import create_app_jwt, installation_token, repository_snapshot
+from .server import run
+from .store import EvidenceStore
+
+
+def _print(value):
+    print(json.dumps(value, indent=2, sort_keys=True))
+
+
+def build_parser() -&gt; argparse.ArgumentParser:
+    p = argparse.ArgumentParser(prog=&quot;entity-github-app&quot;)
+    sp = p.add_subparsers(dest=&quot;command&quot;, required=True)
+    serve = sp.add_parser(&quot;serve&quot;)
+    serve.add_argument(&quot;--host&quot;, default=&quot;127.0.0.1&quot;)
+    serve.add_argument(&quot;--port&quot;, type=int, default=8787)
+    serve.add_argument(&quot;--db&quot;, default=&quot;entity_github_app.sqlite&quot;)
+    callback = sp.add_parser(&quot;callback&quot;)
+    callback.add_argument(&quot;--host&quot;, default=&quot;127.0.0.1&quot;)
+    callback.add_argument(&quot;--port&quot;, type=int, default=8765)
+    status = sp.add_parser(&quot;status&quot;)
+    status.add_argument(&quot;--db&quot;, default=&quot;entity_github_app.sqlite&quot;)
+    verify = sp.add_parser(&quot;verify&quot;)
+    verify.add_argument(&quot;--db&quot;, default=&quot;entity_github_app.sqlite&quot;)
+    jwt = sp.add_parser(&quot;jwt&quot;)
+    jwt.add_argument(&quot;--app-id&quot;, required=True)
+    jwt.add_argument(&quot;--private-key&quot;, required=True)
+    snap = sp.add_parser(&quot;snapshot&quot;)
+    snap.add_argument(&quot;--app-id&quot;, required=True)
+    snap.add_argument(&quot;--private-key&quot;, required=True)
+    snap.add_argument(&quot;--installation-id&quot;, required=True, type=int)
+    snap.add_argument(&quot;--repository&quot;, required=True)
+    return p
+
+
+def main() -&gt; None:
+    a = build_parser().parse_args()
+    if a.command == &quot;serve&quot;:
+        run(a.host, a.port, a.db)
+        return
+    if a.command == &quot;callback&quot;:
+        run_callback(a.host, a.port)
+        return
+    if a.command in {&quot;status&quot;, &quot;verify&quot;}:
+        store = EvidenceStore(a.db)
+        try:
+            _print(store.counts() if a.command == &quot;status&quot; else store.verify_audit())
+        finally:
+            store.close()
+        return
+    if a.command == &quot;jwt&quot;:
+        token = create_app_jwt(a.app_id, a.private_key)
+        _print({&quot;jwt_created&quot;: True, &quot;segments&quot;: len(token.split(&quot;.&quot;)), &quot;token_not_printed&quot;: True})
+        return
+    token = installation_token(a.app_id, a.private_key, a.installation_id)
+    _print(repository_snapshot(token, a.repository))
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

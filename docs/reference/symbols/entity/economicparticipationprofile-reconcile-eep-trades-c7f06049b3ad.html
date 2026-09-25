@@ -1,0 +1,47 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EconomicParticipationProfile.reconcile_eep_trades Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EconomicParticipationProfile.reconcile_eep_trades</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/33_Economic_Participation/economic_participation.py#L456">ENTITY/src/33_Economic_Participation/economic_participation.py#L456</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EconomicParticipationProfile.reconcile_eep_trades(self, exchange, instrument_id=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def reconcile_eep_trades(self,exchange,instrument_id=None):
+        with self._exchange_db(exchange) as ex:
+            if instrument_id is None:
+                trades=ex.execute(&quot;SELECT * FROM trades WHERE status=&#x27;SETTLED&#x27; ORDER BY created_at_ms,trade_id&quot;).fetchall()
+            else:
+                trades=ex.execute(&quot;SELECT * FROM trades WHERE status=&#x27;SETTLED&#x27; AND instrument_id=? ORDER BY created_at_ms,trade_id&quot;,(str(instrument_id),)).fetchall()
+            clearing={r[&#x27;trade_id&#x27;]:r for r in ex.execute(&quot;SELECT * FROM clearing WHERE status=&#x27;SETTLED&#x27;&quot;).fetchall()}
+            instruments={r[&#x27;instrument_id&#x27;]:r for r in ex.execute(&#x27;SELECT * FROM instruments&#x27;).fetchall()}
+        missing=[]; captured=[]; out_of_scope=[]; mismatches=[]; missing_obligations=[]; obligation_mismatches=[]
+        for trade in trades:
+            try: policy=self._active_policy(trade[&#x27;instrument_id&#x27;],trade[&#x27;created_at_ms&#x27;])
+            except KeyError:
+                out_of_scope.append(trade[&#x27;trade_id&#x27;]); continue
+            key=f&quot;EEP_TRADE:{trade[&#x27;trade_id&#x27;]}:{policy[&#x27;policy_id&#x27;]}&quot;
+            clear=clearing.get(trade[&#x27;trade_id&#x27;]); inst=instruments.get(trade[&#x27;instrument_id&#x27;])
+            with self._db() as db:
+                event=db.execute(&#x27;SELECT * FROM economic_events WHERE dedupe_key=?&#x27;,(key,)).fetchone()
+                obligations=db.execute(&#x27;SELECT * FROM obligations WHERE event_id=? ORDER BY obligation_id&#x27;,(event[&#x27;event_id&#x27;],)).fetchall() if event else []
+            if not event:
+                missing.append(trade[&#x27;trade_id&#x27;]); continue
+            captured.append(trade[&#x27;trade_id&#x27;])
+            if (not clear or not inst or event[&#x27;policy_id&#x27;]!=policy[&#x27;policy_id&#x27;] or
+                int(event[&#x27;gross_amount_units&#x27;])!=int(clear[&#x27;amount_units&#x27;]) or event[&#x27;currency&#x27;]!=clear[&#x27;currency&#x27;]):
+                mismatches.append(trade[&#x27;trade_id&#x27;]); continue
+            is_primary=trade[&#x27;seller&#x27;]==inst[&#x27;issuer&#x27;]
+            bps=int(policy[&#x27;primary_treasury_bps&#x27;] if is_primary else policy[&#x27;secondary_royalty_bps&#x27;])
+            basis=&#x27;PRIMARY_TREASURY_ALLOCATION&#x27; if is_primary else &#x27;SECONDARY_ORIGINATOR_ROYALTY&#x27;
+            expected_amount=int(clear[&#x27;amount_units&#x27;])*bps//10000
+            treasury=self._treasury(policy[&#x27;treasury_id&#x27;])
+            if expected_amount==0:
+                if obligations: obligation_mismatches.append(trade[&#x27;trade_id&#x27;])
+                continue
+            if len(obligations)!=1:
+                missing_obligations.append(trade[&#x27;trade_id&#x27;]); continue
+            obligation=obligations[0]
+            if (obligation[&#x27;payer_entity_id&#x27;]!=trade[&#x27;seller&#x27;] or
+                obligation[&#x27;recipient_entity_id&#x27;]!=treasury[&#x27;treasury_entity_id&#x27;] or
+                int(obligation[&#x27;amount_units&#x27;])!=expected_amount or obligation[&#x27;currency&#x27;]!=clear[&#x27;currency&#x27;] or
+                obligation[&#x27;basis&#x27;]!=basis or int(obligation[&#x27;bps&#x27;])!=bps):
+                obligation_mismatches.append(trade[&#x27;trade_id&#x27;])
+        complete=not missing and not mismatches and not missing_obligations and not obligation_mismatches
+        return {&#x27;schema&#x27;:&#x27;entity-v3-eopp-reconciliation-v1&#x27;,&#x27;scanned_settled_trades&#x27;:len(trades),
+                &#x27;in_scope_trades&#x27;:len(missing)+len(captured),&#x27;captured_trade_ids&#x27;:captured,
+                &#x27;missing_trade_ids&#x27;:missing,&#x27;out_of_scope_trade_ids&#x27;:out_of_scope,&#x27;mismatched_trade_ids&#x27;:mismatches,
+                &#x27;missing_obligation_trade_ids&#x27;:missing_obligations,
+                &#x27;mismatched_obligation_trade_ids&#x27;:obligation_mismatches,
+                &#x27;complete&#x27;:complete,&#x27;event_and_obligation_reconciled&#x27;:True,&#x27;protocol_tax_bps&#x27;:0}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

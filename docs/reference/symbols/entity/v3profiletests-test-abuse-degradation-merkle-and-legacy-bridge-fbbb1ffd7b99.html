@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V3ProfileTests.test_abuse_degradation_merkle_and_legacy_bridge Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>V3ProfileTests.test_abuse_degradation_merkle_and_legacy_bridge</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_profiles.py#L126">ENTITY/tests/test_v3_profiles.py#L126</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>V3ProfileTests.test_abuse_degradation_merkle_and_legacy_bridge(self)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def test_abuse_degradation_merkle_and_legacy_bridge(self):
+        gate=res.AdmissionController(limit=2,window_ms=1000)
+        self.assertTrue(gate.admit(&quot;anon&quot;,at_ms=100)[&quot;allowed&quot;])
+        self.assertTrue(gate.admit(&quot;anon&quot;,at_ms=200)[&quot;allowed&quot;])
+        self.assertFalse(gate.admit(&quot;anon&quot;,at_ms=300)[&quot;allowed&quot;])
+        self.assertFalse(gate.admit(&quot;anon&quot;,at_ms=300)[&quot;reputation_used&quot;])
+        mode=res.DegradationStateMachine(); mode.transition(&quot;OFFLINE_VERIFY&quot;)
+        self.assertTrue(mode.permits(&quot;VERIFY&quot;)); self.assertFalse(mode.permits(&quot;TRADE&quot;))
+        values=[{&quot;i&quot;:i} for i in range(7)]
+        proof=res.MerkleBatcher.proof(values,3)
+        self.assertTrue(res.MerkleBatcher.verify(proof))
+        proof[&quot;leaf&quot;]=&quot;00&quot;*32
+        self.assertFalse(res.MerkleBatcher.verify(proof))
+        bridge=res.LegacyBridgeRegistry.map(&quot;OIDC&quot;,&quot;legacy-123&quot;,&quot;ent3:test&quot;,evidence_sha256=&quot;d&quot;*64)
+        self.assertTrue(bridge[&quot;legacy_identifier_is_not_entity_authority&quot;])</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

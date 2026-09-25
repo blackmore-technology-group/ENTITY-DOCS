@@ -1,0 +1,38 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/37_Verifiable_Reality/reality_profile.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/37_Verifiable_Reality/reality_profile.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/37_Verifiable_Reality/reality_profile.py</code></p><p><b>SHA-256:</b> <code>3d092eaf89be3390da2fd9cc7ec1c20864e65cb5d77b3211b51206a4ebb1dd77</code></p><p><b>Bytes:</b> 1,668</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/37_Verifiable_Reality/reality_profile.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/reality-status-949e75f40980.html">reality_status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+
+CORE_PRIMITIVES = [&quot;ENTITY&quot;, &quot;AUTHORITY&quot;, &quot;RIGHT&quot;, &quot;EVENT&quot;, &quot;VALUE&quot;]
+CLAIM_STATES = [
+    &quot;OBSERVED&quot;, &quot;ASSERTED&quot;, &quot;INFERRED&quot;, &quot;ATTESTED&quot;, &quot;EXTERNALLY_VERIFIED&quot;,
+    &quot;ADJUDICATED&quot;, &quot;DISPUTED&quot;, &quot;REVOKED&quot;, &quot;UNKNOWN&quot;,
+]
+EVIDENCE_TYPES = [
+    &quot;SENSOR_OBSERVATION&quot;, &quot;DOCUMENT&quot;, &quot;REGISTRY_RECORD&quot;, &quot;LAB_RESULT&quot;,
+    &quot;PAYMENT_RECORD&quot;, &quot;IMAGE&quot;, &quot;API_RESPONSE&quot;, &quot;CERTIFICATE&quot;, &quot;COURT_RECORD&quot;, &quot;OTHER&quot;,
+]
+ANCHOR_TYPES = [
+    &quot;GOVERNMENT_REGISTRY&quot;, &quot;SENSOR_NETWORK&quot;, &quot;BANK_SETTLEMENT&quot;, &quot;LAB_SYSTEM&quot;,
+    &quot;SUPPLY_CHAIN_SYSTEM&quot;, &quot;CORPORATE_REGISTRY&quot;, &quot;COURT_RECORD&quot;,
+    &quot;CERTIFICATE_AUTHORITY&quot;, &quot;OTHER&quot;,
+]
+CAUSAL_NODE_TYPES = [
+    &quot;SOURCE_DATA&quot;, &quot;DCO&quot;, &quot;RIGHT&quot;, &quot;LICENSE&quot;, &quot;USAGE&quot;, &quot;DERIVED_ASSET&quot;,
+    &quot;PRODUCT&quot;, &quot;TRANSACTION&quot;, &quot;REVENUE&quot;, &quot;SETTLEMENT&quot;, &quot;CONTRIBUTOR&quot;,
+]
+CAUSAL_EDGE_TYPES = [
+    &quot;ORIGINATED_FROM&quot;, &quot;AUTHORIZED_BY&quot;, &quot;LICENSED_AS&quot;, &quot;USED_IN&quot;,
+    &quot;DERIVED_FROM&quot;, &quot;PRODUCED&quot;, &quot;GENERATED&quot;, &quot;SETTLED_AS&quot;, &quot;CONTRIBUTED_TO&quot;,
+]
+
+def reality_status() -&gt; dict:
+    return {
+        &quot;schema&quot;: &quot;entity-v3-verifiable-reality-status-v1&quot;,
+        &quot;core_primitives&quot;: list(CORE_PRIMITIVES),
+        &quot;core_semantics_changed&quot;: False,
+        &quot;market_engine_preserved&quot;: True,
+        &quot;reality_claims_are_evidence_bound&quot;: True,
+        &quot;cryptographic_verification_is_not_objective_truth&quot;: True,
+        &quot;protocol_verification_is_not_objective_truth&quot;: True,
+        &quot;external_evidence_is_not_automatic_entity_authority&quot;: True,
+        &quot;claim_states&quot;: list(CLAIM_STATES),
+        &quot;doctrine&quot;: &quot;ENTITY makes claims attributable, evidentiary, contestable, machine-verifiable and economically traceable; it does not make reality indisputable.&quot;,
+    }</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

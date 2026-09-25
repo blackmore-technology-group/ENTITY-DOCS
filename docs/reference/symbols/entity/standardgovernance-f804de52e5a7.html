@@ -1,0 +1,52 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>StandardGovernance Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>StandardGovernance</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/profile_core.py#L159">ENTITY/src/31_Profiles/profile_core.py#L159</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Signed RFCs with threshold endorsement; no single implementation defines truth.</p><h2>Source excerpt</h2><pre><code>class StandardGovernance:
+    &quot;&quot;&quot;Signed RFCs with threshold endorsement; no single implementation defines truth.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_standard_governance.sqlite&quot;
+        self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS rfcs(
+                rfc_id TEXT PRIMARY KEY, proposer TEXT NOT NULL, body_sha256 TEXT NOT NULL,
+                change_class TEXT NOT NULL, threshold INTEGER NOT NULL,
+                status TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS endorsements(
+                rfc_id TEXT NOT NULL, endorser TEXT NOT NULL, decision TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL,
+                PRIMARY KEY(rfc_id,endorser))&quot;&quot;&quot;)
+
+    def propose(self, proposer: str, body: Any, change_class=&quot;PROFILE&quot;, threshold=2) -&gt; dict:
+        self.identity.load_manifest(proposer)
+        digest, change_class = sha256(body), change_class.upper()
+        if change_class not in {&quot;CORE&quot;, &quot;PROFILE&quot;, &quot;SCHEMA&quot;, &quot;TEST&quot;}:
+            raise ValueError(&quot;invalid change class&quot;)
+        rfc_id = &quot;rfc3-&quot; + digest[:24]
+        record = {&quot;schema&quot;: &quot;entity-v3-rfc-v1&quot;, &quot;rfc_id&quot;: rfc_id, &quot;proposer&quot;: proposer,
+                  &quot;body_sha256&quot;: digest, &quot;change_class&quot;: change_class,
+                  &quot;threshold&quot;: max(1, int(threshold)), &quot;status&quot;: &quot;OPEN&quot;, &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(proposer, record)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO rfcs VALUES(?,?,?,?,?,?,?,?)&quot;, (
+                rfc_id, proposer, digest, change_class, record[&quot;threshold&quot;],
+                &quot;OPEN&quot;, record[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(record, signature=sig)
+
+    def endorse(self, rfc_id: str, endorser: str, decision=&quot;APPROVE&quot;) -&gt; dict:
+        decision = decision.upper()
+        if decision not in {&quot;APPROVE&quot;, &quot;REJECT&quot;}:
+            raise ValueError(&quot;invalid endorsement&quot;)
+        record = {&quot;schema&quot;: &quot;entity-v3-rfc-endorsement-v1&quot;, &quot;rfc_id&quot;: rfc_id,
+                  &quot;endorser&quot;: endorser, &quot;decision&quot;: decision, &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(endorser, record)
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            rfc = db.execute(&quot;SELECT * FROM rfcs WHERE rfc_id=? AND status=&#x27;OPEN&#x27;&quot;, (rfc_id,)).fetchone()
+            if not rfc: raise KeyError(&quot;open RFC not found&quot;)
+            db.execute(&quot;INSERT OR REPLACE INTO endorsements VALUES(?,?,?,?,?)&quot;,
+                       (rfc_id, endorser, decision, record[&quot;created_at_ms&quot;], json.dumps(sig)))
+            approvals = db.execute(&quot;SELECT COUNT(*) FROM endorsements WHERE rfc_id=? AND decision=&#x27;APPROVE&#x27;&quot;,
+                                   (rfc_id,)).fetchone()[0]
+            rejects = db.execute(&quot;SELECT COUNT(*) FROM endorsements WHERE rfc_id=? AND decision=&#x27;REJECT&#x27;&quot;,
+                                 (rfc_id,)).fetchone()[0]
+            status = &quot;ACCEPTED&quot; if approvals &gt;= rfc[&quot;threshold&quot;] else (
+                     &quot;REJECTED&quot; if rejects &gt;= rfc[&quot;threshold&quot;] else &quot;OPEN&quot;)
+            db.execute(&quot;UPDATE rfcs SET status=? WHERE rfc_id=?&quot;, (status, rfc_id))
+        return dict(record, signature=sig, rfc_status=status)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

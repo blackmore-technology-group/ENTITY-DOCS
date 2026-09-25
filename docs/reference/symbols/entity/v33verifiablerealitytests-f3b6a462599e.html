@@ -1,0 +1,143 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V33VerifiableRealityTests Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>V33VerifiableRealityTests</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_verifiable_reality.py#L23">ENTITY/tests/test_v3_verifiable_reality.py#L23</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class V33VerifiableRealityTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = pathlib.Path(self.tmp.name)
+        self.identity = identity_mod.EntityIdentityVault(self.root)
+        self.fabric = fabric_mod.UniversalTransactionFabric(self.root, self.identity)
+        self.owner = self.identity.create(&quot;Owner&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        self.buyer = self.identity.create(&quot;Buyer&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        self.lab = self.identity.create(&quot;Lab&quot;, &quot;organization&quot;)[&quot;entity_id&quot;]
+        self.registry = self.identity.create(&quot;Registry&quot;, &quot;organization&quot;)[&quot;entity_id&quot;]
+        self.dco = self.fabric.register_digital_commodity(self.owner, &quot;Training Corpus&quot;, hashlib.sha256(b&quot;corpus&quot;).hexdigest())
+        self.evidence = evidence_mod.EvidenceRegistry(self.root, self.identity)
+        self.attest = attest_mod.AttestationAuthorityRegistry(self.root, self.identity)
+        self.anchors = anchors_mod.ExternalRealityAnchorRegistry(self.root, self.identity)
+        self.causal = causal_mod.CausalEconomicAttributionGraph(self.root, self.identity)
+        self.passports = passport_mod.RightsPassportRegistry(self.root, self.identity, self.fabric)
+
+    def tearDown(self):
+        self.evidence = self.attest = self.anchors = self.causal = self.passports = None
+        gc.collect()
+        self.tmp.cleanup()
+
+    def test_01_core_and_market_semantics_are_preserved(self):
+        status = reality_profile.reality_status()
+        self.assertEqual(status[&quot;core_primitives&quot;], [&quot;ENTITY&quot;, &quot;AUTHORITY&quot;, &quot;RIGHT&quot;, &quot;EVENT&quot;, &quot;VALUE&quot;])
+        self.assertFalse(status[&quot;core_semantics_changed&quot;])
+        self.assertTrue(status[&quot;market_engine_preserved&quot;])
+
+    def test_02_evidence_object_is_signed_and_truth_bounded(self):
+        ev = self.evidence.issue_evidence(self.lab, &quot;LAB_RESULT&quot;, self.dco[&quot;object_id&quot;], hashlib.sha256(b&quot;result&quot;).hexdigest())
+        checked = self.evidence.verify_evidence(ev)
+        self.assertTrue(checked[&quot;valid&quot;])
+        self.assertFalse(checked[&quot;objective_truth_claimed&quot;])
+        self.assertTrue(ev[&quot;signature_proves_attribution_not_objective_truth&quot;])
+
+    def test_03_tampered_evidence_fails_verification(self):
+        ev = self.evidence.issue_evidence(self.lab, &quot;DOCUMENT&quot;, &quot;doc:1&quot;, hashlib.sha256(b&quot;doc&quot;).hexdigest())
+        ev[&quot;content_sha256&quot;] = &quot;0&quot; * 64
+        self.assertFalse(self.evidence.verify_evidence(ev)[&quot;valid&quot;])
+
+    def test_04_claim_states_are_typed_not_absolute(self):
+        ev = self.evidence.issue_evidence(self.lab, &quot;LAB_RESULT&quot;, &quot;sample:1&quot;, hashlib.sha256(b&quot;sample&quot;).hexdigest())
+        claim = self.evidence.issue_claim(self.owner, &quot;sample:1&quot;, &quot;temperature_c&quot;, 21.4, state=&quot;ASSERTED&quot;, evidence_refs=[ev[&quot;evidence_id&quot;]])
+        self.assertEqual(claim[&quot;state&quot;], &quot;ASSERTED&quot;)
+        self.assertTrue(claim[&quot;claim_is_not_objective_truth&quot;])
+
+    def test_05_stronger_claim_state_requires_governed_transition_and_evidence(self):
+        claim = self.evidence.issue_claim(self.owner, &quot;asset:1&quot;, &quot;registered_owner&quot;, &quot;Owner&quot;, state=&quot;ASSERTED&quot;)
+        with self.assertRaises(ValueError):
+            self.evidence.issue_claim(self.owner, &quot;asset:1&quot;, &quot;registered_owner&quot;, &quot;Owner&quot;, state=&quot;EXTERNALLY_VERIFIED&quot;)
+        with self.assertRaises(ValueError):
+            self.evidence.transition_claim(self.registry, claim[&quot;claim_id&quot;], &quot;EXTERNALLY_VERIFIED&quot;, &quot;registry check&quot;)
+        tx = self.evidence.transition_claim(self.registry, claim[&quot;claim_id&quot;], &quot;EXTERNALLY_VERIFIED&quot;, &quot;registry check&quot;, evidence_refs=[&quot;snapshot:1&quot;])
+        self.assertTrue(tx[&quot;transition_does_not_establish_objective_truth&quot;])
+
+    def test_06_dispute_preserves_claim_history(self):
+        claim = self.evidence.issue_claim(self.owner, &quot;asset:2&quot;, &quot;controller&quot;, self.owner)
+        self.evidence.transition_claim(self.buyer, claim[&quot;claim_id&quot;], &quot;DISPUTED&quot;, &quot;counterclaim&quot;, evidence_refs=[&quot;evidence:counter&quot;])
+        history = self.evidence.claim_history(claim[&quot;claim_id&quot;])
+        self.assertEqual(len(history), 1)
+        self.assertTrue(history[0][&quot;history_rewrite_prohibited&quot;])
+        self.assertEqual(self.evidence.get_claim(claim[&quot;claim_id&quot;])[&quot;state&quot;], &quot;DISPUTED&quot;)
+
+    def test_07_attestation_authority_is_scope_limited(self):
+        grant = self.attest.grant(self.registry, self.lab, [&quot;LAB_CALIBRATION&quot;], hashlib.sha256(b&quot;grant&quot;).hexdigest())
+        att = self.attest.attest(self.lab, &quot;claim:calibration&quot;, &quot;LAB_CALIBRATION&quot;, [&quot;evidence:certificate&quot;], &quot;CALIBRATED&quot;)
+        self.assertEqual(att[&quot;grant_id&quot;], grant[&quot;grant_id&quot;])
+        self.assertTrue(att[&quot;attestation_is_evidence_not_objective_truth&quot;])
+
+    def test_08_unauthorized_attestation_is_denied(self):
+        self.attest.grant(self.registry, self.lab, [&quot;LAB_CALIBRATION&quot;], hashlib.sha256(b&quot;grant&quot;).hexdigest())
+        with self.assertRaises(PermissionError):
+            self.attest.attest(self.lab, &quot;claim:title&quot;, &quot;LAND_TITLE&quot;, [&quot;evidence:title&quot;], &quot;OWNER&quot;)
+
+    def test_09_revoked_attestation_grant_is_denied(self):
+        grant = self.attest.grant(self.registry, self.lab, [&quot;LAB_CALIBRATION&quot;], hashlib.sha256(b&quot;grant&quot;).hexdigest())
+        self.attest.revoke(self.registry, grant[&quot;grant_id&quot;])
+        with self.assertRaises(PermissionError):
+            self.attest.attest(self.lab, &quot;claim:calibration&quot;, &quot;LAB_CALIBRATION&quot;, [&quot;evidence:certificate&quot;], &quot;CALIBRATED&quot;)
+
+    def test_10_external_anchor_does_not_become_entity_authority(self):
+        anchor = self.anchors.register(self.registry, &quot;GOVERNMENT_REGISTRY&quot;, hashlib.sha256(b&quot;endpoint&quot;).hexdigest(), jurisdiction=&quot;CA&quot;)
+        self.assertFalse(anchor[&quot;credentials_included&quot;])
+        self.assertTrue(anchor[&quot;external_system_is_not_automatic_entity_authority&quot;])
+
+    def test_11_external_snapshot_is_evidence_and_contestable(self):
+        anchor = self.anchors.register(self.registry, &quot;CORPORATE_REGISTRY&quot;, hashlib.sha256(b&quot;endpoint&quot;).hexdigest())
+        snap = self.anchors.snapshot(self.registry, anchor[&quot;anchor_id&quot;], &quot;corp:123&quot;, hashlib.sha256(b&quot;record&quot;).hexdigest(), verifier_evidence_refs=[&quot;transport-proof&quot;])
+        self.assertTrue(snap[&quot;external_record_is_evidence_not_protocol_truth&quot;])
+        self.assertTrue(snap[&quot;record_may_be_contested_or_superseded&quot;])
+
+    def test_12_causal_graph_requires_evidence_and_is_acyclic(self):
+        a = self.causal.add_node(self.owner, &quot;SOURCE_DATA&quot;, &quot;dataset:A&quot;, evidence_refs=[&quot;evidence:A&quot;])
+        b = self.causal.add_node(self.owner, &quot;DERIVED_ASSET&quot;, &quot;model:B&quot;)
+        with self.assertRaises(ValueError):
+            self.causal.add_edge(self.owner, a[&quot;node_id&quot;], b[&quot;node_id&quot;], &quot;DERIVED_FROM&quot;, evidence_refs=[])
+        self.causal.add_edge(self.owner, a[&quot;node_id&quot;], b[&quot;node_id&quot;], &quot;DERIVED_FROM&quot;, evidence_refs=[&quot;usage:1&quot;])
+        with self.assertRaises(ValueError):
+            self.causal.add_edge(self.owner, b[&quot;node_id&quot;], a[&quot;node_id&quot;], &quot;DERIVED_FROM&quot;, evidence_refs=[&quot;bad-cycle&quot;])
+
+    def test_13_causal_chain_reaches_economic_consequence(self):
+        source = self.causal.add_node(self.owner, &quot;SOURCE_DATA&quot;, &quot;dataset:A&quot;, evidence_refs=[&quot;origin:A&quot;])
+        model = self.causal.add_node(self.owner, &quot;DERIVED_ASSET&quot;, &quot;model:B&quot;)
+        product = self.causal.add_node(self.owner, &quot;PRODUCT&quot;, &quot;product:C&quot;)
+        revenue = self.causal.add_node(self.owner, &quot;REVENUE&quot;, &quot;revenue:D&quot;, economic_observation={&quot;amount&quot;: 5000, &quot;currency&quot;: &quot;CAD&quot;})
+        self.causal.add_edge(self.owner, source[&quot;node_id&quot;], model[&quot;node_id&quot;], &quot;DERIVED_FROM&quot;, evidence_refs=[&quot;usage:1&quot;])
+        self.causal.add_edge(self.owner, model[&quot;node_id&quot;], product[&quot;node_id&quot;], &quot;PRODUCED&quot;, evidence_refs=[&quot;build:1&quot;])
+        self.causal.add_edge(self.owner, product[&quot;node_id&quot;], revenue[&quot;node_id&quot;], &quot;GENERATED&quot;, evidence_refs=[&quot;sale:1&quot;], participation_rule_refs=[&quot;eopp:1&quot;])
+        trace = self.causal.trace(source[&quot;node_id&quot;], revenue[&quot;node_id&quot;])
+        self.assertTrue(trace[&quot;connected&quot;])
+        self.assertTrue(trace[&quot;causal_chain_is_evidence_bound&quot;])
+        self.assertTrue(trace[&quot;economic_attribution_is_not_accounting_fair_value&quot;])
+
+    def test_14_v32_rights_passport_composes_without_rewrite(self):
+        passport = self.passports.issue(self.owner, self.dco[&quot;object_id&quot;], [{&quot;effect&quot;:&quot;ALLOW&quot;,&quot;actions&quot;:[&quot;TRAIN&quot;]}], provenance_refs=[&quot;evidence:origin&quot;])
+        self.assertTrue(self.passports.verify(passport)[&quot;valid&quot;])
+        node = self.causal.add_node(self.owner, &quot;DCO&quot;, self.dco[&quot;object_id&quot;], evidence_refs=[&quot;evidence:origin&quot;])
+        right = self.causal.add_node(self.owner, &quot;RIGHT&quot;, passport[&quot;passport_id&quot;])
+        edge = self.causal.add_edge(self.owner, node[&quot;node_id&quot;], right[&quot;node_id&quot;], &quot;LICENSED_AS&quot;, evidence_refs=[passport[&quot;passport_sha256&quot;]])
+        self.assertTrue(edge[&quot;causality_is_evidence_bound_not_assumed&quot;])
+
+    def test_15_existing_exchange_lifecycle_survives_v33(self):
+        eep = eep_mod.ExchangeProtocol(self.root, self.identity, self.fabric)
+        venue = eep.create_venue(self.owner, &quot;Reality Rights Venue&quot;, &quot;CA&quot;, [&quot;ORDER_BOOK&quot;], hashlib.sha256(b&quot;venue&quot;).hexdigest())
+        inst = eep.define_instrument(self.owner, self.dco[&quot;object_id&quot;], &quot;SPOT_LICENSE&quot;, {&quot;actions&quot;:[&quot;TRAIN&quot;]}, 100, &quot;CAD&quot;, transferable=True)
+        disclosure = eep.publish_disclosure(venue[&quot;venue_id&quot;], inst[&quot;instrument_id&quot;], self.owner, &quot;LISTING&quot;, hashlib.sha256(b&quot;disc&quot;).hexdigest())
+        eep.list_instrument(venue[&quot;venue_id&quot;], inst[&quot;instrument_id&quot;], self.owner, min_lot=1, tick_size=1, disclosure_sha256=disclosure[&quot;content_sha256&quot;])
+        eep.submit_order(venue[&quot;venue_id&quot;], inst[&quot;instrument_id&quot;], self.owner, &quot;SELL&quot;, 1, 10, nonce=&quot;v33-sell&quot;)
+        eep.submit_order(venue[&quot;venue_id&quot;], inst[&quot;instrument_id&quot;], self.buyer, &quot;BUY&quot;, 1, 10, nonce=&quot;v33-buy&quot;)
+        trade = eep.match_order_book(venue[&quot;venue_id&quot;], inst[&quot;instrument_id&quot;])[0]
+        settled = eep.settle_trade(trade[&quot;trade_id&quot;], payment_ref=&quot;external:receipt&quot;, external_verified=False)
+        self.assertFalse(settled[&quot;entitlement&quot;][&quot;ownership_of_underlying_transferred&quot;])
+
+    def test_16_conformance_truth_boundaries(self):
+        records = [
+            reality_profile.reality_status(),
+            {&quot;schema&quot;:&quot;entity-v3-evidence-object-v1&quot;,&quot;evidence_type&quot;:&quot;DOCUMENT&quot;,&quot;content_sha256&quot;:&quot;0&quot;*64,&quot;signature_proves_attribution_not_objective_truth&quot;:True,&quot;immutable_evidence_record&quot;:True},
+            {&quot;schema&quot;:&quot;entity-v3-evidence-bound-claim-v1&quot;,&quot;state&quot;:&quot;ASSERTED&quot;,&quot;value_sha256&quot;:&quot;1&quot;*64,&quot;evidence_refs&quot;:[],&quot;claim_is_not_objective_truth&quot;:True,&quot;state_is_typed_not_absolute&quot;:True},
+            {&quot;schema&quot;:&quot;entity-v3-attestation-authority-grant-v1&quot;,&quot;scopes&quot;:[&quot;LAB&quot;],&quot;authority_evidence_sha256&quot;:&quot;2&quot;*64,&quot;attestation_authority_is_scope_limited&quot;:True,&quot;attestation_does_not_create_legal_truth&quot;:True},
+            {&quot;schema&quot;:&quot;entity-v3-external-reality-anchor-v1&quot;,&quot;anchor_type&quot;:&quot;LAB_SYSTEM&quot;,&quot;endpoint_descriptor_sha256&quot;:&quot;3&quot;*64,&quot;credentials_included&quot;:False,&quot;external_system_is_not_automatic_entity_authority&quot;:True},
+            {&quot;schema&quot;:&quot;entity-v3-causal-economic-edge-v1&quot;,&quot;edge_type&quot;:&quot;DERIVED_FROM&quot;,&quot;from_node_id&quot;:&quot;A&quot;,&quot;to_node_id&quot;:&quot;B&quot;,&quot;evidence_refs&quot;:[&quot;proof&quot;],&quot;authority_refs&quot;:[],&quot;participation_rule_refs&quot;:[],&quot;causality_is_evidence_bound_not_assumed&quot;:True,&quot;economic_attribution_is_not_accounting_fair_value&quot;:True},
+        ]
+        self.assertTrue(all(conf_mod.validate_reality_record(record) for record in records))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

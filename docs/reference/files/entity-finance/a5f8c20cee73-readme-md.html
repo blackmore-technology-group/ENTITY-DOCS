@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY-FINANCE / sdk/README.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY-FINANCE / sdk/README.md</h1><div class="meta"><b>Repository:</b> ENTITY-FINANCE<br><b>Commit:</b> <code>2efe26dbd906499126342af99b91ef80b05862ef</code></div><p><b>Path:</b> <code>sdk/README.md</code></p><p><b>SHA-256:</b> <code>9981c36e7b44de00a2a2627376620da3716eebe7f64ff260f1fd0a1290838be4</code></p><p><b>Bytes:</b> 1,780</p><p><a href="https://github.com/blackmore-technology-group/ENTITY-FINANCE/blob/2efe26dbd906499126342af99b91ef80b05862ef/sdk/README.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY Global Passport SDK
+
+ENTITY v3.4 exposes one Global Passport across composable jurisdiction, industry and technical profiles. The SDK wraps existing sovereign primitives, v3.2 Rights Passports, v3.3 Evidence Objects, v3.4 profiles, continuous provenance and executable industry packages.
+
+It does **not** create authority, determine legal ownership, assert regulatory compliance, establish objective truth, or make external standards subordinate to ENTITY.
+
+Built-in profile aliases are `global`, `healthcare`, `finance`, `manufacturing`, `ai`, `robotics`, and public/unclassified `defence` / `defense`.
+
+## Developer model
+
+The deployer configures organization-specific facts; the deployer does not redesign ENTITY semantics.
+
+```python
+sdk.package_plan(&quot;healthcare&quot;, config, &quot;clinical_dataset&quot;)
+sdk.map_external(&quot;healthcare&quot;, &quot;HL7-FHIR&quot;, fhir_resource)
+sdk.ingest_package_file(path, controller_entity_id, &quot;healthcare&quot;, config, &quot;clinical_dataset&quot;)
+sdk.verify_passport(global_passport_id)
+```
+
+The package layer pre-engineers object types, rights defaults, evidence expectations, privacy defaults, external-standard mappings and profile composition. Continuous ingestion registers content by SHA-256, creates the ENTITY object, Evidence Object, Rights Passport and Global Passport, records provenance, and writes a zero-value economic baseline unless supported evidence establishes a different economic state.
+
+External-standard mappings are explicitly versioned correspondences only. They do not redefine FHIR, DICOM, ISO 20022, FIX, LEI, OPC UA, AAS, SPDX, CycloneDX, NIST AI RMF, ROS 2, Open-RMF or any other external standard.
+
+The command-line deployment facade is `tools/entity_v3_4_cli.py` with `init`, `packages`, `plan`, `map`, `ingest` and `verify` operations.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,34 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityIdentityVault.verify_signature Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityIdentityVault.verify_signature</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/identity/canonical_identity.py#L296">ENTITY/src/01_Core_Runtime/identity/canonical_identity.py#L296</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EntityIdentityVault.verify_signature(cls, manifest: dict, payload: Any, signature_record: dict)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def verify_signature(cls, manifest: dict, payload: Any, signature_record: dict) -&gt; bool:
+        try:
+            if not cls.verify_manifest(manifest) or signature_record.get(&quot;entity_id&quot;) != manifest.get(&quot;entity_id&quot;):
+                return False
+            body = canonical_json(payload); payload_hash = hashlib.sha256(body).hexdigest()
+            if signature_record.get(&quot;payload_sha256&quot;) != payload_hash: return False
+            record_schema = signature_record.get(&quot;signature_schema&quot;)
+            if record_schema == &quot;entity-signature-record-v2&quot;:
+                signed_record={&quot;signature_schema&quot;:record_schema,&quot;entity_id&quot;:signature_record.get(&quot;entity_id&quot;),
+                               &quot;key_id&quot;:signature_record.get(&quot;key_id&quot;),&quot;suite&quot;:signature_record.get(&quot;suite&quot;),
+                               &quot;signed_at_ms&quot;:signature_record.get(&quot;signed_at_ms&quot;),&quot;payload_sha256&quot;:payload_hash}
+                signed_bytes=canonical_json(signed_record)
+            elif record_schema in {None,&quot;&quot;}:
+                signed_bytes=body
+            else: return False
+            if manifest.get(&quot;schema&quot;) == &quot;sovereign-entity-manifest-v1&quot;:
+                public_raw = _unb64(str(manifest[&quot;public_key&quot;]))
+            else:
+                method = cls._method(manifest, str(signature_record.get(&quot;key_id&quot;) or &quot;&quot;))
+                if not method or method.get(&quot;status&quot;) not in {&quot;active&quot;,&quot;retired&quot;,&quot;revoked&quot;} or method.get(&quot;suite&quot;) != signature_record.get(&quot;suite&quot;): return False
+                status=method.get(&quot;status&quot;)
+                if record_schema == &quot;entity-signature-record-v2&quot;:
+                    signed_at=signature_record.get(&quot;signed_at_ms&quot;); created_at=method.get(&quot;created_at_ms&quot;)
+                    if signed_at is None: return False
+                    if created_at is not None and int(signed_at) &lt; int(created_at): return False
+                if status in {&quot;retired&quot;,&quot;revoked&quot;}:
+                    if record_schema != &quot;entity-signature-record-v2&quot;: return False
+                    cutoff=method.get(&quot;retired_at_ms&quot;) if status==&quot;retired&quot; else method.get(&quot;revoked_at_ms&quot;)
+                    if cutoff is None or int(signature_record.get(&quot;signed_at_ms&quot;)) &gt; int(cutoff): return False
+                public_raw = _unb64(str(method[&quot;public_key&quot;]))
+            Ed25519PublicKey.from_public_bytes(public_raw).verify(_unb64(str(signature_record[&quot;signature&quot;])), signed_bytes)
+            return True
+        except Exception:
+            return False</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

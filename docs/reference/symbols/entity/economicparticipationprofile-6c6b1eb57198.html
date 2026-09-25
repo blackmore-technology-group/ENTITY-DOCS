@@ -1,0 +1,519 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EconomicParticipationProfile Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EconomicParticipationProfile</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/33_Economic_Participation/economic_participation.py#L24">ENTITY/src/33_Economic_Participation/economic_participation.py#L24</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Issuer-neutral treasury/originator participation profile for ENTITY/EEP.
+
+This profile creates no protocol tax and no token. Value comes from disclosed
+ownership of EEP rights units, contractual participation terms and service revenue.</p><h2>Source excerpt</h2><pre><code>class EconomicParticipationProfile:
+    &#x27;&#x27;&#x27;Issuer-neutral treasury/originator participation profile for ENTITY/EEP.
+
+    This profile creates no protocol tax and no token. Value comes from disclosed
+    ownership of EEP rights units, contractual participation terms and service revenue.
+    &#x27;&#x27;&#x27;
+    def __init__(self,root,identity):
+        self.path=Path(root)/&#x27;entity_v3_economic_participation.sqlite&#x27;
+        self.path.parent.mkdir(parents=True,exist_ok=True)
+        self.identity=identity
+        self._init()
+
+    @contextmanager
+    def _db(self):
+        db=sqlite3.connect(self.path); db.row_factory=sqlite3.Row
+        try:
+            yield db; db.commit()
+        except Exception:
+            db.rollback(); raise
+        finally:
+            db.close()
+
+    def _init(self):
+        with self._db() as db:
+            db.executescript(&#x27;&#x27;&#x27;
+            CREATE TABLE IF NOT EXISTS treasuries(
+              treasury_id TEXT PRIMARY KEY, owner_entity_id TEXT NOT NULL,
+              treasury_entity_id TEXT NOT NULL UNIQUE, name TEXT NOT NULL,
+              jurisdiction TEXT NOT NULL, policy_sha256 TEXT NOT NULL,
+              status TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+              signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS participation_policies(
+              policy_id TEXT PRIMARY KEY, instrument_id TEXT NOT NULL, version INTEGER NOT NULL,
+              originator_entity_id TEXT NOT NULL, treasury_id TEXT NOT NULL,
+              total_units INTEGER NOT NULL, reserve_units INTEGER NOT NULL,
+              primary_treasury_bps INTEGER NOT NULL, secondary_royalty_bps INTEGER NOT NULL,
+              derivative_participation_bps INTEGER NOT NULL, currency TEXT NOT NULL,
+              terms_sha256 TEXT NOT NULL, effective_at_ms INTEGER NOT NULL,
+              status TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL,
+              UNIQUE(instrument_id,version));
+            CREATE TABLE IF NOT EXISTS reserve_allocations(
+              allocation_id TEXT PRIMARY KEY, policy_id TEXT NOT NULL, instrument_id TEXT NOT NULL,
+              originator_entity_id TEXT NOT NULL, treasury_entity_id TEXT NOT NULL,
+              units INTEGER NOT NULL, created_at_ms INTEGER NOT NULL,
+              originator_signature_json TEXT NOT NULL, treasury_signature_json TEXT NOT NULL,
+              UNIQUE(policy_id));
+            CREATE TABLE IF NOT EXISTS economic_events(
+              event_id TEXT PRIMARY KEY, dedupe_key TEXT NOT NULL UNIQUE, event_type TEXT NOT NULL, policy_id TEXT,
+              treasury_id TEXT NOT NULL, instrument_id TEXT, actor_entity_id TEXT NOT NULL,
+              subject_ref TEXT NOT NULL, gross_amount_units INTEGER NOT NULL,
+              currency TEXT NOT NULL, evidence_sha256 TEXT,
+              details_json TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+              signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS obligations(
+              obligation_id TEXT PRIMARY KEY, event_id TEXT NOT NULL,
+              payer_entity_id TEXT NOT NULL, recipient_entity_id TEXT NOT NULL,
+              amount_units INTEGER NOT NULL, currency TEXT NOT NULL,
+              basis TEXT NOT NULL, bps INTEGER NOT NULL, status TEXT NOT NULL,
+              settlement_ref TEXT, verifier_entity_id TEXT, verification_evidence_sha256 TEXT,
+              external_verified INTEGER NOT NULL DEFAULT 0,
+              created_at_ms INTEGER NOT NULL, settled_at_ms INTEGER);
+            CREATE TABLE IF NOT EXISTS position_snapshots(
+              snapshot_id TEXT PRIMARY KEY, treasury_id TEXT NOT NULL,
+              snapshot_sha256 TEXT NOT NULL, snapshot_json TEXT NOT NULL,
+              created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS settlement_verifiers(
+              treasury_id TEXT NOT NULL, verifier_entity_id TEXT NOT NULL,
+              status TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+              signature_json TEXT NOT NULL, PRIMARY KEY(treasury_id,verifier_entity_id));
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_opr_reserve_once ON reserve_allocations(instrument_id);
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_opr_obligation_event ON obligations(event_id);
+            CREATE INDEX IF NOT EXISTS idx_opr_policy_instrument ON participation_policies(instrument_id,status);
+            CREATE INDEX IF NOT EXISTS idx_opr_obligation_recipient ON obligations(recipient_entity_id,status,currency);
+            &#x27;&#x27;&#x27;)
+
+    def create_treasury(self,owner_entity_id,treasury_entity_id,name,jurisdiction,policy_sha256):
+        self.identity.load_manifest(owner_entity_id); self.identity.load_manifest(treasury_entity_id)
+        body={&#x27;schema&#x27;:&#x27;entity-v3-treasury-v1&#x27;,&#x27;profile&#x27;:PROFILE_ID,&#x27;treasury_id&#x27;:rid(&#x27;treasury3&#x27;),
+              &#x27;owner_entity_id&#x27;:owner_entity_id,&#x27;treasury_entity_id&#x27;:treasury_entity_id,
+              &#x27;name&#x27;:str(name)[:256],&#x27;jurisdiction&#x27;:str(jurisdiction).upper(),
+              &#x27;policy_sha256&#x27;:require_sha256(policy_sha256),&#x27;status&#x27;:&#x27;ACTIVE&#x27;,&#x27;created_at_ms&#x27;:now_ms(),
+              &#x27;protocol_tax_bps&#x27;:0,&#x27;treasury_is_not_protocol_authority&#x27;:True}
+        sig=self.identity.sign(owner_entity_id,body)
+        with self._db() as db:
+            db.execute(&#x27;INSERT INTO treasuries VALUES(?,?,?,?,?,?,?,?,?)&#x27;,(
+                body[&#x27;treasury_id&#x27;],owner_entity_id,treasury_entity_id,body[&#x27;name&#x27;],body[&#x27;jurisdiction&#x27;],
+                body[&#x27;policy_sha256&#x27;],&#x27;ACTIVE&#x27;,body[&#x27;created_at_ms&#x27;],json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def _treasury(self,treasury_id):
+        with self._db() as db:
+            row=db.execute(&quot;SELECT * FROM treasuries WHERE treasury_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(treasury_id,)).fetchone()
+        if not row: raise KeyError(&#x27;active treasury not found&#x27;)
+        return row
+
+    def authorize_settlement_verifier(self,treasury_id,owner_entity_id,verifier_entity_id):
+        treasury=self._treasury(treasury_id)
+        if treasury[&#x27;owner_entity_id&#x27;]!=owner_entity_id:
+            raise PermissionError(&#x27;treasury owner required&#x27;)
+        self.identity.load_manifest(verifier_entity_id)
+        body={&#x27;schema&#x27;:&#x27;entity-v3-settlement-verifier-authorization-v1&#x27;,&#x27;treasury_id&#x27;:treasury_id,
+              &#x27;owner_entity_id&#x27;:owner_entity_id,&#x27;verifier_entity_id&#x27;:verifier_entity_id,
+              &#x27;status&#x27;:&#x27;ACTIVE&#x27;,&#x27;created_at_ms&#x27;:now_ms()}
+        sig=self.identity.sign(owner_entity_id,body)
+        with self._db() as db:
+            db.execute(&#x27;INSERT INTO settlement_verifiers VALUES(?,?,?,?,?) ON CONFLICT(treasury_id,verifier_entity_id) DO UPDATE SET status=excluded.status,created_at_ms=excluded.created_at_ms,signature_json=excluded.signature_json&#x27;,
+                       (treasury_id,verifier_entity_id,&#x27;ACTIVE&#x27;,body[&#x27;created_at_ms&#x27;],json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def revoke_settlement_verifier(self,treasury_id,owner_entity_id,verifier_entity_id):
+        treasury=self._treasury(treasury_id)
+        if treasury[&#x27;owner_entity_id&#x27;]!=owner_entity_id:
+            raise PermissionError(&#x27;treasury owner required&#x27;)
+        with self._db() as db:
+            row=db.execute(&#x27;SELECT 1 FROM settlement_verifiers WHERE treasury_id=? AND verifier_entity_id=?&#x27;,(treasury_id,verifier_entity_id)).fetchone()
+            if not row: raise KeyError(&#x27;settlement verifier authorization not found&#x27;)
+            db.execute(&quot;UPDATE settlement_verifiers SET status=&#x27;REVOKED&#x27; WHERE treasury_id=? AND verifier_entity_id=?&quot;,(treasury_id,verifier_entity_id))
+        return {&#x27;treasury_id&#x27;:treasury_id,&#x27;verifier_entity_id&#x27;:verifier_entity_id,&#x27;status&#x27;:&#x27;REVOKED&#x27;}
+
+    def define_participation(self,originator_entity_id,treasury_id,instrument_id,total_units,reserve_units,currency,
+                             *,primary_treasury_bps=0,secondary_royalty_bps=0,
+                             derivative_participation_bps=0,version=1,effective_at_ms=None,terms=None):
+        self.identity.load_manifest(originator_entity_id); treasury=self._treasury(treasury_id)
+        if treasury[&#x27;owner_entity_id&#x27;]!=originator_entity_id:
+            raise PermissionError(&#x27;originator must own the selected treasury&#x27;)
+        total=int(total_units); reserve=int(reserve_units); version=int(version)
+        if total&lt;1 or reserve&lt;0 or reserve&gt;total: raise ValueError(&#x27;invalid total/reserve units&#x27;)
+        if version&lt;1: raise ValueError(&#x27;positive policy version required&#x27;)
+        primary=require_bps(primary_treasury_bps,&#x27;primary_treasury_bps&#x27;)
+        secondary=require_bps(secondary_royalty_bps,&#x27;secondary_royalty_bps&#x27;)
+        derivative=require_bps(derivative_participation_bps,&#x27;derivative_participation_bps&#x27;)
+        with self._db() as db:
+            latest=db.execute(&#x27;SELECT version,effective_at_ms FROM participation_policies WHERE instrument_id=? ORDER BY version DESC LIMIT 1&#x27;,(str(instrument_id),)).fetchone()
+            allocation=db.execute(&#x27;SELECT units FROM reserve_allocations WHERE instrument_id=?&#x27;,(str(instrument_id),)).fetchone()
+        if latest is not None and version&lt;=int(latest[&#x27;version&#x27;]):
+            raise ValueError(&#x27;policy version must increase&#x27;)
+        created=now_ms()
+        if effective_at_ms is None:
+            effective=max(created,(int(latest[&#x27;effective_at_ms&#x27;])+1) if latest is not None else created)
+        else:
+            effective=int(effective_at_ms)
+            if effective&lt;created: raise ValueError(&#x27;participation policy cannot be retroactive&#x27;)
+            if latest is not None and effective&lt;=int(latest[&#x27;effective_at_ms&#x27;]):
+                raise ValueError(&#x27;policy effective time must increase&#x27;)
+        if allocation is not None and reserve!=int(allocation[&#x27;units&#x27;]):
+            raise ValueError(&#x27;reserve units are immutable after allocation; use an explicit reserve-rebalance operation&#x27;)
+        term_doc=dict(terms or {})
+        term_doc.update({&#x27;instrument_id&#x27;:str(instrument_id),&#x27;total_units&#x27;:total,&#x27;reserve_units&#x27;:reserve,
+                         &#x27;primary_treasury_bps&#x27;:primary,&#x27;secondary_royalty_bps&#x27;:secondary,
+                         &#x27;derivative_participation_bps&#x27;:derivative,&#x27;currency&#x27;:str(currency).upper(),
+                         &#x27;protocol_tax_bps&#x27;:0})
+        body={&#x27;schema&#x27;:&#x27;entity-v3-originator-participation-policy-v1&#x27;,&#x27;profile&#x27;:PROFILE_ID,
+              &#x27;policy_id&#x27;:rid(&#x27;opr3&#x27;),&#x27;instrument_id&#x27;:str(instrument_id),&#x27;version&#x27;:version,
+              &#x27;originator_entity_id&#x27;:originator_entity_id,&#x27;treasury_id&#x27;:treasury_id,
+              &#x27;treasury_entity_id&#x27;:treasury[&#x27;treasury_entity_id&#x27;],&#x27;total_units&#x27;:total,
+              &#x27;reserve_units&#x27;:reserve,&#x27;primary_treasury_bps&#x27;:primary,
+              &#x27;secondary_royalty_bps&#x27;:secondary,&#x27;derivative_participation_bps&#x27;:derivative,
+              &#x27;currency&#x27;:str(currency).upper(),&#x27;terms_sha256&#x27;:sha(term_doc),
+              &#x27;effective_at_ms&#x27;:effective,&#x27;status&#x27;:&#x27;ACTIVE&#x27;,&#x27;created_at_ms&#x27;:created,
+              &#x27;protocol_tax_bps&#x27;:0,&#x27;terms_are_disclosed_and_issuer_signed&#x27;:True,
+              &#x27;no_retroactive_economic_rights&#x27;:True}
+        sig=self.identity.sign(originator_entity_id,body)
+        with self._db() as db:
+            db.execute(&quot;UPDATE participation_policies SET status=&#x27;SUPERSEDED&#x27; WHERE instrument_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(str(instrument_id),))
+            db.execute(&#x27;INSERT INTO participation_policies VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&#x27;,(
+                body[&#x27;policy_id&#x27;],body[&#x27;instrument_id&#x27;],version,originator_entity_id,treasury_id,total,reserve,
+                primary,secondary,derivative,body[&#x27;currency&#x27;],body[&#x27;terms_sha256&#x27;],body[&#x27;effective_at_ms&#x27;],
+                &#x27;ACTIVE&#x27;,body[&#x27;created_at_ms&#x27;],json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def _active_policy(self,instrument_id,at_ms=None):
+        at=int(at_ms or now_ms())
+        with self._db() as db:
+            row=db.execute(&quot;SELECT * FROM participation_policies WHERE instrument_id=? AND effective_at_ms&lt;=? ORDER BY effective_at_ms DESC,version DESC LIMIT 1&quot;,(str(instrument_id),at)).fetchone()
+        if not row: raise KeyError(&#x27;effective participation policy not found&#x27;)
+        return row
+
+    @contextmanager
+    def _exchange_db(self,exchange):
+        db=sqlite3.connect(exchange.path); db.row_factory=sqlite3.Row
+        try:
+            yield db; db.commit()
+        except Exception:
+            db.rollback(); raise
+        finally:
+            db.close()
+
+    def allocate_eep_reserve(self,exchange,policy_id):
+        with self._db() as db:
+            policy=db.execute(&#x27;SELECT * FROM participation_policies WHERE policy_id=?&#x27;,(policy_id,)).fetchone()
+            if not policy: raise KeyError(&#x27;participation policy not found&#x27;)
+        current=self._active_policy(policy[&#x27;instrument_id&#x27;],now_ms())
+        if current[&#x27;policy_id&#x27;]!=policy_id:
+            raise ValueError(&#x27;reserve allocation requires the currently effective policy&#x27;)
+        treasury=self._treasury(policy[&#x27;treasury_id&#x27;]); originator=policy[&#x27;originator_entity_id&#x27;]; holder=treasury[&#x27;treasury_entity_id&#x27;]; units=int(policy[&#x27;reserve_units&#x27;])
+        if treasury[&#x27;owner_entity_id&#x27;]!=originator:
+            raise PermissionError(&#x27;policy originator must own treasury&#x27;)
+        self.identity.load_manifest(holder)
+        body={&#x27;schema&#x27;:&#x27;entity-v3-treasury-reserve-allocation-v1&#x27;,&#x27;allocation_id&#x27;:rid(&#x27;reserve3&#x27;),
+              &#x27;policy_id&#x27;:policy_id,&#x27;instrument_id&#x27;:policy[&#x27;instrument_id&#x27;],&#x27;originator_entity_id&#x27;:originator,
+              &#x27;treasury_entity_id&#x27;:holder,&#x27;units&#x27;:units,&#x27;created_at_ms&#x27;:now_ms(),
+              &#x27;eep_balance_transfer_enforced&#x27;:holder!=originator,&#x27;protocol_tax_bps&#x27;:0,
+              &#x27;cross_store_atomic&#x27;:True}
+        origin_sig=self.identity.sign(originator,body); treasury_sig=self.identity.sign(holder,body)
+        db=sqlite3.connect(self.path); db.row_factory=sqlite3.Row
+        try:
+            db.execute(&#x27;ATTACH DATABASE ? AS eep&#x27;,(str(exchange.path),))
+            db.execute(&#x27;BEGIN IMMEDIATE&#x27;)
+            if db.execute(&#x27;SELECT 1 FROM main.reserve_allocations WHERE instrument_id=?&#x27;,(policy[&#x27;instrument_id&#x27;],)).fetchone():
+                raise ValueError(&#x27;reserve already allocated for instrument&#x27;)
+            effective=db.execute(&quot;SELECT * FROM main.participation_policies WHERE instrument_id=? AND effective_at_ms&lt;=? ORDER BY effective_at_ms DESC,version DESC LIMIT 1&quot;,(policy[&#x27;instrument_id&#x27;],now_ms())).fetchone()
+            if not effective or effective[&#x27;policy_id&#x27;]!=policy_id:
+                raise ValueError(&#x27;reserve allocation requires the currently effective policy&#x27;)
+            inst=db.execute(&quot;SELECT * FROM eep.instruments WHERE instrument_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(policy[&#x27;instrument_id&#x27;],)).fetchone()
+            if not inst or inst[&#x27;issuer&#x27;]!=originator: raise PermissionError(&#x27;policy originator must be EEP issuer&#x27;)
+            if int(inst[&#x27;total_units&#x27;])!=int(policy[&#x27;total_units&#x27;]): raise ValueError(&#x27;EEP supply differs from signed policy&#x27;)
+            if str(inst[&#x27;settlement_currency&#x27;]).upper()!=str(policy[&#x27;currency&#x27;]).upper(): raise ValueError(&#x27;EEP currency differs from signed policy&#x27;)
+            if units:
+                row=db.execute(&#x27;SELECT units FROM eep.balances WHERE instrument_id=? AND holder=?&#x27;,(policy[&#x27;instrument_id&#x27;],originator)).fetchone()
+                available=int(row[&#x27;units&#x27;]) if row else 0
+                if available&lt;units: raise PermissionError(&#x27;issuer balance insufficient for reserve allocation&#x27;)
+                if holder!=originator:
+                    db.execute(&#x27;UPDATE eep.balances SET units=units-? WHERE instrument_id=? AND holder=?&#x27;,(units,policy[&#x27;instrument_id&#x27;],originator))
+                    db.execute(&#x27;INSERT INTO eep.balances(instrument_id,holder,units) VALUES(?,?,?) ON CONFLICT(instrument_id,holder) DO UPDATE SET units=units+excluded.units&#x27;,(policy[&#x27;instrument_id&#x27;],holder,units))
+            db.execute(&#x27;INSERT INTO main.reserve_allocations VALUES(?,?,?,?,?,?,?,?,?)&#x27;,(
+                body[&#x27;allocation_id&#x27;],policy_id,policy[&#x27;instrument_id&#x27;],originator,holder,units,body[&#x27;created_at_ms&#x27;],
+                json.dumps(origin_sig,sort_keys=True),json.dumps(treasury_sig,sort_keys=True)))
+            db.commit()
+        except Exception:
+            db.rollback(); raise
+        finally:
+            db.close()
+        return dict(body,originator_signature=origin_sig,treasury_signature=treasury_sig)
+
+    def _event(self,event_type,policy,treasury,actor,subject_ref,gross,currency,details,evidence_sha256=None,dedupe_key=None):
+        self.identity.load_manifest(actor)
+        evidence=require_sha256(evidence_sha256) if evidence_sha256 else None
+        key=str(dedupe_key or sha({&#x27;event_type&#x27;:event_type,&#x27;policy_id&#x27;:policy[&#x27;policy_id&#x27;] if policy else None,
+                                  &#x27;treasury_id&#x27;:treasury[&#x27;treasury_id&#x27;],&#x27;actor&#x27;:actor,&#x27;subject_ref&#x27;:str(subject_ref),
+                                  &#x27;gross&#x27;:int(gross),&#x27;currency&#x27;:str(currency).upper(),&#x27;evidence_sha256&#x27;:evidence}))
+        body={&#x27;schema&#x27;:&#x27;entity-v3-economic-event-v1&#x27;,&#x27;event_id&#x27;:rid(&#x27;econ3&#x27;),&#x27;dedupe_key&#x27;:key,&#x27;event_type&#x27;:event_type,
+              &#x27;policy_id&#x27;:policy[&#x27;policy_id&#x27;] if policy else None,&#x27;treasury_id&#x27;:treasury[&#x27;treasury_id&#x27;],
+              &#x27;instrument_id&#x27;:policy[&#x27;instrument_id&#x27;] if policy else None,&#x27;actor_entity_id&#x27;:actor,
+              &#x27;subject_ref&#x27;:str(subject_ref),&#x27;gross_amount_units&#x27;:int(gross),&#x27;currency&#x27;:str(currency).upper(),
+              &#x27;evidence_sha256&#x27;:evidence,&#x27;details&#x27;:dict(details or {}),&#x27;created_at_ms&#x27;:now_ms(),
+              &#x27;economic_event_is_evidence_not_market_value&#x27;:True}
+        sig=self.identity.sign(actor,body)
+        try:
+            with self._db() as db:
+                db.execute(&#x27;INSERT INTO economic_events VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)&#x27;,(
+                    body[&#x27;event_id&#x27;],key,event_type,body[&#x27;policy_id&#x27;],body[&#x27;treasury_id&#x27;],body[&#x27;instrument_id&#x27;],actor,
+                    body[&#x27;subject_ref&#x27;],body[&#x27;gross_amount_units&#x27;],body[&#x27;currency&#x27;],body[&#x27;evidence_sha256&#x27;],
+                    json.dumps(body[&#x27;details&#x27;],sort_keys=True),body[&#x27;created_at_ms&#x27;],json.dumps(sig,sort_keys=True)))
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&#x27;duplicate/replayed economic event&#x27;) from exc
+        return dict(body,signature=sig)
+
+    def _verify_eep_sell_order(self,order_row):
+        body={&#x27;schema&#x27;:&#x27;entity-eep-order-v1&#x27;,&#x27;order_id&#x27;:order_row[&#x27;order_id&#x27;],&#x27;venue_id&#x27;:order_row[&#x27;venue_id&#x27;],
+              &#x27;instrument_id&#x27;:order_row[&#x27;instrument_id&#x27;],&#x27;participant&#x27;:order_row[&#x27;participant&#x27;],&#x27;side&#x27;:order_row[&#x27;side&#x27;],
+              &#x27;quantity&#x27;:int(order_row[&#x27;quantity&#x27;]),&#x27;limit_price&#x27;:int(order_row[&#x27;limit_price&#x27;]),&#x27;tif&#x27;:order_row[&#x27;tif&#x27;],
+              &#x27;nonce&#x27;:order_row[&#x27;nonce&#x27;],&#x27;created_at_ms&#x27;:int(order_row[&#x27;created_at_ms&#x27;])}
+        manifest=self.identity.load_manifest(order_row[&#x27;participant&#x27;])
+        if not self.identity.verify_signature(manifest,body,json.loads(order_row[&#x27;signature_json&#x27;])):
+            raise PermissionError(&#x27;EEP sell order signature invalid&#x27;)
+        return True
+
+    def _obligation(self,event,payer,recipient,amount,currency,basis,bps):
+        amount=max(0,int(amount)); bps=int(bps)
+        if amount==0: return None
+        oid=rid(&#x27;obl3&#x27;)
+        with self._db() as db:
+            db.execute(&#x27;INSERT INTO obligations VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&#x27;,(
+                oid,event[&#x27;event_id&#x27;],payer,recipient,amount,str(currency).upper(),basis,bps,&#x27;ACCRUED&#x27;,
+                None,None,None,0,now_ms(),None))
+        return {&#x27;obligation_id&#x27;:oid,&#x27;event_id&#x27;:event[&#x27;event_id&#x27;],&#x27;payer_entity_id&#x27;:payer,
+                &#x27;recipient_entity_id&#x27;:recipient,&#x27;amount_units&#x27;:amount,&#x27;currency&#x27;:str(currency).upper(),
+                &#x27;basis&#x27;:basis,&#x27;bps&#x27;:bps,&#x27;status&#x27;:&#x27;ACCRUED&#x27;,&#x27;external_money_movement_verified&#x27;:False}
+
+    def _event_with_obligation(self,event_type,policy,treasury,actor,subject_ref,gross,currency,details,
+                               payer,recipient,amount,basis,bps,evidence_sha256=None,dedupe_key=None):
+        self.identity.load_manifest(actor)
+        evidence=require_sha256(evidence_sha256) if evidence_sha256 else None
+        key=str(dedupe_key or sha({&#x27;event_type&#x27;:event_type,&#x27;policy_id&#x27;:policy[&#x27;policy_id&#x27;] if policy else None,
+                                  &#x27;treasury_id&#x27;:treasury[&#x27;treasury_id&#x27;],&#x27;actor&#x27;:actor,&#x27;subject_ref&#x27;:str(subject_ref),
+                                  &#x27;gross&#x27;:int(gross),&#x27;currency&#x27;:str(currency).upper(),&#x27;evidence_sha256&#x27;:evidence}))
+        created=now_ms()
+        body={&#x27;schema&#x27;:&#x27;entity-v3-economic-event-v1&#x27;,&#x27;event_id&#x27;:rid(&#x27;econ3&#x27;),&#x27;dedupe_key&#x27;:key,&#x27;event_type&#x27;:event_type,
+              &#x27;policy_id&#x27;:policy[&#x27;policy_id&#x27;] if policy else None,&#x27;treasury_id&#x27;:treasury[&#x27;treasury_id&#x27;],
+              &#x27;instrument_id&#x27;:policy[&#x27;instrument_id&#x27;] if policy else None,&#x27;actor_entity_id&#x27;:actor,
+              &#x27;subject_ref&#x27;:str(subject_ref),&#x27;gross_amount_units&#x27;:int(gross),&#x27;currency&#x27;:str(currency).upper(),
+              &#x27;evidence_sha256&#x27;:evidence,&#x27;details&#x27;:dict(details or {}),&#x27;created_at_ms&#x27;:created,
+              &#x27;economic_event_is_evidence_not_market_value&#x27;:True}
+        sig=self.identity.sign(actor,body)
+        amount=max(0,int(amount)); bps=int(bps); obligation=None
+        if amount:
+            obligation={&#x27;obligation_id&#x27;:rid(&#x27;obl3&#x27;),&#x27;event_id&#x27;:body[&#x27;event_id&#x27;],&#x27;payer_entity_id&#x27;:payer,
+                        &#x27;recipient_entity_id&#x27;:recipient,&#x27;amount_units&#x27;:amount,&#x27;currency&#x27;:str(currency).upper(),
+                        &#x27;basis&#x27;:basis,&#x27;bps&#x27;:bps,&#x27;status&#x27;:&#x27;ACCRUED&#x27;,&#x27;external_money_movement_verified&#x27;:False}
+        try:
+            with self._db() as db:
+                db.execute(&#x27;INSERT INTO economic_events VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)&#x27;,(
+                    body[&#x27;event_id&#x27;],key,event_type,body[&#x27;policy_id&#x27;],body[&#x27;treasury_id&#x27;],body[&#x27;instrument_id&#x27;],actor,
+                    body[&#x27;subject_ref&#x27;],body[&#x27;gross_amount_units&#x27;],body[&#x27;currency&#x27;],body[&#x27;evidence_sha256&#x27;],
+                    json.dumps(body[&#x27;details&#x27;],sort_keys=True),body[&#x27;created_at_ms&#x27;],json.dumps(sig,sort_keys=True)))
+                if obligation:
+                    db.execute(&#x27;INSERT INTO obligations VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&#x27;,(
+                        obligation[&#x27;obligation_id&#x27;],body[&#x27;event_id&#x27;],payer,recipient,amount,str(currency).upper(),basis,bps,
+                        &#x27;ACCRUED&#x27;,None,None,None,0,created,None))
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&#x27;duplicate/replayed economic event or obligation&#x27;) from exc
+        return dict(body,signature=sig),obligation
+
+    def capture_settled_eep_trade(self,exchange,trade_id):
+        with self._exchange_db(exchange) as ex:
+            trade=ex.execute(&quot;SELECT * FROM trades WHERE trade_id=? AND status=&#x27;SETTLED&#x27;&quot;,(str(trade_id),)).fetchone()
+            clearing=ex.execute(&quot;SELECT * FROM clearing WHERE trade_id=? AND status=&#x27;SETTLED&#x27;&quot;,(str(trade_id),)).fetchone()
+            if not trade or not clearing: raise KeyError(&#x27;settled EEP trade required&#x27;)
+            inst=ex.execute(&#x27;SELECT * FROM instruments WHERE instrument_id=?&#x27;,(trade[&#x27;instrument_id&#x27;],)).fetchone()
+            sell_order=ex.execute(&#x27;SELECT * FROM orders WHERE order_id=?&#x27;,(trade[&#x27;sell_order_id&#x27;],)).fetchone()
+        if not sell_order or sell_order[&#x27;participant&#x27;]!=trade[&#x27;seller&#x27;]: raise PermissionError(&#x27;settled trade/sell order mismatch&#x27;)
+        self._verify_eep_sell_order(sell_order)
+        policy=self._active_policy(trade[&#x27;instrument_id&#x27;],trade[&#x27;created_at_ms&#x27;]); treasury=self._treasury(policy[&#x27;treasury_id&#x27;])
+        if inst[&#x27;issuer&#x27;]!=policy[&#x27;originator_entity_id&#x27;]: raise PermissionError(&#x27;instrument issuer/policy originator mismatch&#x27;)
+        is_primary=trade[&#x27;seller&#x27;]==inst[&#x27;issuer&#x27;]; event_type=&#x27;PRIMARY_RIGHTS_SALE&#x27; if is_primary else &#x27;SECONDARY_RIGHTS_SALE&#x27;
+        gross=int(clearing[&#x27;amount_units&#x27;]); bps=int(policy[&#x27;primary_treasury_bps&#x27;] if is_primary else policy[&#x27;secondary_royalty_bps&#x27;])
+        event,obligation=self._event_with_obligation(
+            event_type,policy,treasury,policy[&#x27;originator_entity_id&#x27;],trade_id,gross,clearing[&#x27;currency&#x27;],{
+                &#x27;buyer&#x27;:trade[&#x27;buyer&#x27;],&#x27;seller&#x27;:trade[&#x27;seller&#x27;],&#x27;quantity&#x27;:int(trade[&#x27;quantity&#x27;]),&#x27;price&#x27;:int(trade[&#x27;price&#x27;]),
+                &#x27;source_payment_ref&#x27;:clearing[&#x27;payment_ref&#x27;],&#x27;source_external_verified&#x27;:bool(clearing[&#x27;external_verified&#x27;]),
+                &#x27;sell_order_signature_verified&#x27;:True,&#x27;sell_order_id&#x27;:sell_order[&#x27;order_id&#x27;],
+                &#x27;participation_is_allocation_within_gross&#x27;:True,&#x27;atomic_event_obligation&#x27;:True},
+            trade[&#x27;seller&#x27;],treasury[&#x27;treasury_entity_id&#x27;],gross*bps//10000,
+            &#x27;PRIMARY_TREASURY_ALLOCATION&#x27; if is_primary else &#x27;SECONDARY_ORIGINATOR_ROYALTY&#x27;,bps,
+            dedupe_key=f&quot;EEP_TRADE:{trade_id}:{policy[&#x27;policy_id&#x27;]}&quot;)
+        return {&#x27;event&#x27;:event,&#x27;obligation&#x27;:obligation,&#x27;trade_class&#x27;:&#x27;PRIMARY&#x27; if is_primary else &#x27;SECONDARY&#x27;,
+                &#x27;gross_amount_units&#x27;:gross,&#x27;protocol_tax_bps&#x27;:0}
+
+    def record_derivative_revenue(self,policy_id,payer_entity_id,derivative_ref,gross_amount_units,currency,evidence_sha256,*,occurred_at_ms=None):
+        with self._db() as db:
+            policy=db.execute(&#x27;SELECT * FROM participation_policies WHERE policy_id=?&#x27;,(policy_id,)).fetchone()
+        if not policy: raise KeyError(&#x27;participation policy not found&#x27;)
+        occurred=int(occurred_at_ms or now_ms())
+        if occurred&gt;now_ms(): raise ValueError(&#x27;derivative revenue event cannot be future-dated&#x27;)
+        effective=self._active_policy(policy[&#x27;instrument_id&#x27;],occurred)
+        if effective[&#x27;policy_id&#x27;]!=policy_id:
+            raise ValueError(&#x27;selected participation policy was not effective at derivative event time&#x27;)
+        currency=str(currency).upper()
+        if currency!=str(policy[&#x27;currency&#x27;]).upper():
+            raise ValueError(&#x27;derivative revenue currency differs from participation policy&#x27;)
+        evidence=require_sha256(evidence_sha256)
+        treasury=self._treasury(policy[&#x27;treasury_id&#x27;]); bps=int(policy[&#x27;derivative_participation_bps&#x27;]); gross=max(0,int(gross_amount_units))
+        event,obligation=self._event_with_obligation(
+            &#x27;DERIVATIVE_COMMERCIAL_REVENUE&#x27;,policy,treasury,payer_entity_id,derivative_ref,gross,currency,
+            {&#x27;revenue_amount_asserted_by_payer&#x27;:True,&#x27;methodology&#x27;:&#x27;CONTRACTUAL_BPS&#x27;,&#x27;occurred_at_ms&#x27;:occurred,
+             &#x27;policy_bound_at_event_time&#x27;:True,&#x27;atomic_event_obligation&#x27;:True},
+            payer_entity_id,treasury[&#x27;treasury_entity_id&#x27;],gross*bps//10000,&#x27;DERIVATIVE_PARTICIPATION&#x27;,bps,
+            evidence,dedupe_key=f&quot;DERIVATIVE:{policy_id}:{derivative_ref}:{evidence}&quot;)
+        return {&#x27;event&#x27;:event,&#x27;obligation&#x27;:obligation,&#x27;protocol_tax_bps&#x27;:0}
+
+    def record_service_revenue(self,treasury_id,payer_entity_id,service_type,amount_units,currency,basis_ref,evidence_sha256=None):
+        service_type=str(service_type).upper()
+        if service_type not in SERVICE_TYPES: raise ValueError(&#x27;unsupported service type&#x27;)
+        treasury=self._treasury(treasury_id); amount=max(0,int(amount_units)); currency=str(currency).upper()
+        self.identity.load_manifest(payer_entity_id)
+        provider=treasury[&#x27;owner_entity_id&#x27;]
+        event,obligation=self._event_with_obligation(
+            &#x27;PROVIDER_SERVICE_REVENUE&#x27;,None,treasury,provider,basis_ref,amount,currency,
+            {&#x27;service_type&#x27;:service_type,&#x27;provider_entity_id&#x27;:provider,&#x27;payer_entity_id&#x27;:payer_entity_id,
+             &#x27;provider_identity_not_protocol_privilege&#x27;:True,&#x27;provider_asserted_receivable&#x27;:True,
+             &#x27;payer_signature_not_required_to_record_provider_receivable&#x27;:True,&#x27;atomic_event_obligation&#x27;:True},
+            payer_entity_id,treasury[&#x27;treasury_entity_id&#x27;],amount,&#x27;SERVICE_REVENUE&#x27;,10000,
+            evidence_sha256,dedupe_key=f&quot;SERVICE:{treasury_id}:{service_type}:{basis_ref}&quot;)
+        return {&#x27;event&#x27;:event,&#x27;obligation&#x27;:obligation,&#x27;protocol_tax_bps&#x27;:0}
+
+    def settle_obligation(self,obligation_id,verifier_entity_id,settlement_ref,*,external_verified=False,evidence_sha256=None):
+        if external_verified and not evidence_sha256: raise ValueError(&#x27;verification evidence required for external verification&#x27;)
+        evidence=require_sha256(evidence_sha256) if evidence_sha256 else None
+        with self._db() as db:
+            row=db.execute(&quot;SELECT * FROM obligations WHERE obligation_id=? AND status=&#x27;ACCRUED&#x27;&quot;,(obligation_id,)).fetchone()
+            if not row: raise KeyError(&#x27;accrued obligation not found&#x27;)
+            event=db.execute(&#x27;SELECT * FROM economic_events WHERE event_id=?&#x27;,(row[&#x27;event_id&#x27;],)).fetchone()
+            if not event: raise KeyError(&#x27;economic event missing&#x27;)
+            treasury=db.execute(&quot;SELECT * FROM treasuries WHERE treasury_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(event[&#x27;treasury_id&#x27;],)).fetchone()
+            if not treasury: raise KeyError(&#x27;active treasury missing&#x27;)
+            auth=db.execute(&quot;SELECT status FROM settlement_verifiers WHERE treasury_id=? AND verifier_entity_id=?&quot;,(event[&#x27;treasury_id&#x27;],verifier_entity_id)).fetchone()
+        if verifier_entity_id==row[&#x27;payer_entity_id&#x27;]:
+            authority=&#x27;PAYER_ATTESTATION&#x27;
+        elif verifier_entity_id==treasury[&#x27;owner_entity_id&#x27;]:
+            authority=&#x27;TREASURY_OWNER_ATTESTATION&#x27;
+        elif verifier_entity_id==treasury[&#x27;treasury_entity_id&#x27;]:
+            authority=&#x27;TREASURY_ENTITY_ATTESTATION&#x27;
+        elif auth and auth[&#x27;status&#x27;]==&#x27;ACTIVE&#x27;:
+            authority=&#x27;AUTHORIZED_SETTLEMENT_VERIFIER&#x27;
+        else:
+            raise PermissionError(&#x27;verifier is not authorized for this treasury obligation&#x27;)
+        self.identity.load_manifest(verifier_entity_id)
+        verification={&#x27;schema&#x27;:&#x27;entity-v3-obligation-settlement-attestation-v1&#x27;,&#x27;obligation_id&#x27;:obligation_id,
+                      &#x27;verifier_entity_id&#x27;:verifier_entity_id,&#x27;verifier_authority_basis&#x27;:authority,
+                      &#x27;settlement_ref&#x27;:str(settlement_ref),&#x27;external_verified&#x27;:bool(external_verified),
+                      &#x27;evidence_sha256&#x27;:evidence,&#x27;created_at_ms&#x27;:now_ms(),
+                      &#x27;verification_is_attestation_not_absolute_truth&#x27;:True}
+        sig=self.identity.sign(verifier_entity_id,verification)
+        with self._db() as db:
+            db.execute(&quot;UPDATE obligations SET status=&#x27;SETTLED&#x27;,settlement_ref=?,verifier_entity_id=?,verification_evidence_sha256=?,external_verified=?,settled_at_ms=? WHERE obligation_id=?&quot;,
+                       (str(settlement_ref),verifier_entity_id,evidence,int(bool(external_verified)),verification[&#x27;created_at_ms&#x27;],obligation_id))
+        return dict(verification,signature=sig,status=&#x27;SETTLED&#x27;)
+
+    def position(self,treasury_id,exchange=None):
+        treasury=self._treasury(treasury_id)
+        with self._db() as db:
+            instruments=[r[&#x27;instrument_id&#x27;] for r in db.execute(&#x27;SELECT DISTINCT instrument_id FROM participation_policies WHERE treasury_id=? ORDER BY instrument_id&#x27;,(treasury_id,)).fetchall()]
+            obs=db.execute(&quot;SELECT currency,status,SUM(amount_units) amount FROM obligations WHERE recipient_entity_id=? GROUP BY currency,status ORDER BY currency,status&quot;,(treasury[&#x27;treasury_entity_id&#x27;],)).fetchall()
+        policies=[]
+        for instrument_id in instruments:
+            try: policies.append(self._active_policy(instrument_id,now_ms()))
+            except KeyError: pass
+        monetary={}
+        for r in obs: monetary.setdefault(r[&#x27;currency&#x27;],{})[r[&#x27;status&#x27;]]=int(r[&#x27;amount&#x27;] or 0)
+        reserves=[]
+        if exchange is not None:
+            for p in policies:
+                with self._exchange_db(exchange) as ex:
+                    row=ex.execute(&#x27;SELECT units FROM balances WHERE instrument_id=? AND holder=?&#x27;,(p[&#x27;instrument_id&#x27;],treasury[&#x27;treasury_entity_id&#x27;])).fetchone()
+                reserves.append({&#x27;instrument_id&#x27;:p[&#x27;instrument_id&#x27;],&#x27;policy_version&#x27;:int(p[&#x27;version&#x27;]),
+                                 &#x27;signed_reserve_units&#x27;:int(p[&#x27;reserve_units&#x27;]),&#x27;current_eep_units&#x27;:int(row[&#x27;units&#x27;]) if row else 0})
+        return {&#x27;schema&#x27;:&#x27;entity-v3-treasury-position-v1&#x27;,&#x27;treasury_id&#x27;:treasury_id,
+                &#x27;owner_entity_id&#x27;:treasury[&#x27;owner_entity_id&#x27;],&#x27;treasury_entity_id&#x27;:treasury[&#x27;treasury_entity_id&#x27;],
+                &#x27;monetary_obligations&#x27;:monetary,&#x27;reserve_positions&#x27;:reserves,
+                &#x27;protocol_tax_bps&#x27;:0,&#x27;token_balance&#x27;:None,&#x27;value_sources&#x27;:[&#x27;RIGHTS_RESERVES&#x27;,&#x27;ORIGINATOR_PARTICIPATION&#x27;,&#x27;SERVICE_REVENUE&#x27;],
+                &#x27;position_is_auditable_record_not_a_market_valuation&#x27;:True}
+
+    def reconcile_eep_trades(self,exchange,instrument_id=None):
+        with self._exchange_db(exchange) as ex:
+            if instrument_id is None:
+                trades=ex.execute(&quot;SELECT * FROM trades WHERE status=&#x27;SETTLED&#x27; ORDER BY created_at_ms,trade_id&quot;).fetchall()
+            else:
+                trades=ex.execute(&quot;SELECT * FROM trades WHERE status=&#x27;SETTLED&#x27; AND instrument_id=? ORDER BY created_at_ms,trade_id&quot;,(str(instrument_id),)).fetchall()
+            clearing={r[&#x27;trade_id&#x27;]:r for r in ex.execute(&quot;SELECT * FROM clearing WHERE status=&#x27;SETTLED&#x27;&quot;).fetchall()}
+            instruments={r[&#x27;instrument_id&#x27;]:r for r in ex.execute(&#x27;SELECT * FROM instruments&#x27;).fetchall()}
+        missing=[]; captured=[]; out_of_scope=[]; mismatches=[]; missing_obligations=[]; obligation_mismatches=[]
+        for trade in trades:
+            try: policy=self._active_policy(trade[&#x27;instrument_id&#x27;],trade[&#x27;created_at_ms&#x27;])
+            except KeyError:
+                out_of_scope.append(trade[&#x27;trade_id&#x27;]); continue
+            key=f&quot;EEP_TRADE:{trade[&#x27;trade_id&#x27;]}:{policy[&#x27;policy_id&#x27;]}&quot;
+            clear=clearing.get(trade[&#x27;trade_id&#x27;]); inst=instruments.get(trade[&#x27;instrument_id&#x27;])
+            with self._db() as db:
+                event=db.execute(&#x27;SELECT * FROM economic_events WHERE dedupe_key=?&#x27;,(key,)).fetchone()
+                obligations=db.execute(&#x27;SELECT * FROM obligations WHERE event_id=? ORDER BY obligation_id&#x27;,(event[&#x27;event_id&#x27;],)).fetchall() if event else []
+            if not event:
+                missing.append(trade[&#x27;trade_id&#x27;]); continue
+            captured.append(trade[&#x27;trade_id&#x27;])
+            if (not clear or not inst or event[&#x27;policy_id&#x27;]!=policy[&#x27;policy_id&#x27;] or
+                int(event[&#x27;gross_amount_units&#x27;])!=int(clear[&#x27;amount_units&#x27;]) or event[&#x27;currency&#x27;]!=clear[&#x27;currency&#x27;]):
+                mismatches.append(trade[&#x27;trade_id&#x27;]); continue
+            is_primary=trade[&#x27;seller&#x27;]==inst[&#x27;issuer&#x27;]
+            bps=int(policy[&#x27;primary_treasury_bps&#x27;] if is_primary else policy[&#x27;secondary_royalty_bps&#x27;])
+            basis=&#x27;PRIMARY_TREASURY_ALLOCATION&#x27; if is_primary else &#x27;SECONDARY_ORIGINATOR_ROYALTY&#x27;
+            expected_amount=int(clear[&#x27;amount_units&#x27;])*bps//10000
+            treasury=self._treasury(policy[&#x27;treasury_id&#x27;])
+            if expected_amount==0:
+                if obligations: obligation_mismatches.append(trade[&#x27;trade_id&#x27;])
+                continue
+            if len(obligations)!=1:
+                missing_obligations.append(trade[&#x27;trade_id&#x27;]); continue
+            obligation=obligations[0]
+            if (obligation[&#x27;payer_entity_id&#x27;]!=trade[&#x27;seller&#x27;] or
+                obligation[&#x27;recipient_entity_id&#x27;]!=treasury[&#x27;treasury_entity_id&#x27;] or
+                int(obligation[&#x27;amount_units&#x27;])!=expected_amount or obligation[&#x27;currency&#x27;]!=clear[&#x27;currency&#x27;] or
+                obligation[&#x27;basis&#x27;]!=basis or int(obligation[&#x27;bps&#x27;])!=bps):
+                obligation_mismatches.append(trade[&#x27;trade_id&#x27;])
+        complete=not missing and not mismatches and not missing_obligations and not obligation_mismatches
+        return {&#x27;schema&#x27;:&#x27;entity-v3-eopp-reconciliation-v1&#x27;,&#x27;scanned_settled_trades&#x27;:len(trades),
+                &#x27;in_scope_trades&#x27;:len(missing)+len(captured),&#x27;captured_trade_ids&#x27;:captured,
+                &#x27;missing_trade_ids&#x27;:missing,&#x27;out_of_scope_trade_ids&#x27;:out_of_scope,&#x27;mismatched_trade_ids&#x27;:mismatches,
+                &#x27;missing_obligation_trade_ids&#x27;:missing_obligations,
+                &#x27;mismatched_obligation_trade_ids&#x27;:obligation_mismatches,
+                &#x27;complete&#x27;:complete,&#x27;event_and_obligation_reconciled&#x27;:True,&#x27;protocol_tax_bps&#x27;:0}
+
+    def indicative_mark(self,treasury_id,exchange,price_source=&#x27;LAST&#x27;):
+        price_source=str(price_source).upper()
+        if price_source not in {&#x27;LAST&#x27;,&#x27;BID&#x27;,&#x27;ASK&#x27;}: raise ValueError(&#x27;unsupported price source&#x27;)
+        pos=self.position(treasury_id,exchange); marks=[]
+        for r in pos[&#x27;reserve_positions&#x27;]:
+            with self._exchange_db(exchange) as ex:
+                if price_source==&#x27;LAST&#x27;: row=ex.execute(&#x27;SELECT price FROM trades WHERE instrument_id=? ORDER BY created_at_ms DESC LIMIT 1&#x27;,(r[&#x27;instrument_id&#x27;],)).fetchone()
+                elif price_source==&#x27;BID&#x27;: row=ex.execute(&quot;SELECT MAX(limit_price) price FROM orders WHERE instrument_id=? AND side=&#x27;BUY&#x27; AND status IN (&#x27;OPEN&#x27;,&#x27;PARTIAL&#x27;)&quot;,(r[&#x27;instrument_id&#x27;],)).fetchone()
+                else: row=ex.execute(&quot;SELECT MIN(limit_price) price FROM orders WHERE instrument_id=? AND side=&#x27;SELL&#x27; AND status IN (&#x27;OPEN&#x27;,&#x27;PARTIAL&#x27;)&quot;,(r[&#x27;instrument_id&#x27;],)).fetchone()
+                inst=ex.execute(&#x27;SELECT settlement_currency FROM instruments WHERE instrument_id=?&#x27;,(r[&#x27;instrument_id&#x27;],)).fetchone()
+            price=int(row[&#x27;price&#x27;]) if row and row[&#x27;price&#x27;] is not None else None
+            marks.append({&#x27;instrument_id&#x27;:r[&#x27;instrument_id&#x27;],&#x27;units&#x27;:r[&#x27;current_eep_units&#x27;],&#x27;price_source&#x27;:price_source,
+                          &#x27;observed_unit_price&#x27;:price,&#x27;currency&#x27;:inst[&#x27;settlement_currency&#x27;] if inst else None,
+                          &#x27;indicative_amount_units&#x27;:r[&#x27;current_eep_units&#x27;]*price if price is not None else None})
+        return {&#x27;schema&#x27;:&#x27;entity-v3-treasury-indicative-mark-v1&#x27;,&#x27;treasury_id&#x27;:treasury_id,&#x27;marks&#x27;:marks,
+                &#x27;indicative_only&#x27;:True,&#x27;not_accounting_fair_value&#x27;:True,&#x27;not_protocol_generated_value&#x27;:True}
+
+    def seal_snapshot(self,treasury_id,owner_entity_id,exchange=None):
+        treasury=self._treasury(treasury_id)
+        if treasury[&#x27;owner_entity_id&#x27;]!=owner_entity_id: raise PermissionError(&#x27;treasury owner required&#x27;)
+        position=self.position(treasury_id,exchange); body={&#x27;schema&#x27;:&#x27;entity-v3-treasury-snapshot-v1&#x27;,&#x27;snapshot_id&#x27;:rid(&#x27;treasnap3&#x27;),
+            &#x27;treasury_id&#x27;:treasury_id,&#x27;position_sha256&#x27;:sha(position),&#x27;created_at_ms&#x27;:now_ms(),&#x27;protocol_tax_bps&#x27;:0}
+        sig=self.identity.sign(owner_entity_id,body)
+        with self._db() as db:
+            db.execute(&#x27;INSERT INTO position_snapshots VALUES(?,?,?,?,?,?)&#x27;,(body[&#x27;snapshot_id&#x27;],treasury_id,body[&#x27;position_sha256&#x27;],json.dumps(position,sort_keys=True),body[&#x27;created_at_ms&#x27;],json.dumps(sig,sort_keys=True)))
+        return dict(body,position=position,signature=sig)
+
+    def status(self):
+        with self._db() as db:
+            counts={t:int(db.execute(f&#x27;SELECT COUNT(*) FROM {t}&#x27;).fetchone()[0]) for t in (&#x27;treasuries&#x27;,&#x27;participation_policies&#x27;,&#x27;reserve_allocations&#x27;,&#x27;economic_events&#x27;,&#x27;obligations&#x27;,&#x27;position_snapshots&#x27;,&#x27;settlement_verifiers&#x27;)}
+        return {&#x27;schema&#x27;:&#x27;entity-v3-economic-participation-status-v1&#x27;,&#x27;profile&#x27;:PROFILE_ID,&#x27;version&#x27;:PROFILE_VERSION,
+                &#x27;protocol_tax_bps&#x27;:0,&#x27;cryptocurrency_required&#x27;:False,&#x27;issuer_neutral&#x27;:True,
+                &#x27;treasury_reserves&#x27;:True,&#x27;primary_participation&#x27;:True,&#x27;secondary_royalties&#x27;:True,
+                &#x27;derivative_participation&#x27;:True,&#x27;service_revenue&#x27;:True,&#x27;auditable_positions&#x27;:True,
+                &#x27;indicative_market_marks&#x27;:True,&#x27;settlement_verifier_authorization&#x27;:True,
+                &#x27;trade_capture_reconciliation&#x27;:True,&#x27;historical_policy_resolution&#x27;:True,&#x27;counts&#x27;:counts}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

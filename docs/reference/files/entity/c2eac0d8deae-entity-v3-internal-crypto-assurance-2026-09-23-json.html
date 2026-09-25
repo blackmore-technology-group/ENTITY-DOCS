@@ -1,0 +1,57 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / docs/qualification/ENTITY_V3_INTERNAL_CRYPTO_ASSURANCE_2026-09-23.json Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / docs/qualification/ENTITY_V3_INTERNAL_CRYPTO_ASSURANCE_2026-09-23.json</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>docs/qualification/ENTITY_V3_INTERNAL_CRYPTO_ASSURANCE_2026-09-23.json</code></p><p><b>SHA-256:</b> <code>b797ba9ff3078b4dd27389e7b85c4321b61bbe0d67faf6e10569c0669666d991</code></p><p><b>Bytes:</b> 1,780</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/docs/qualification/ENTITY_V3_INTERNAL_CRYPTO_ASSURANCE_2026-09-23.json">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>{
+  &quot;additional_release_evidence&quot;: &quot;market recovery suite includes controller-signature tamper after recomputing bundle/table hashes&quot;,
+  &quot;classification&quot;: &quot;BTG_INTERNAL&quot;,
+  &quot;covered&quot;: [
+    &quot;post-signature field mutation&quot;,
+    &quot;wrong-signer substitution&quot;,
+    &quot;noncanonical signed wire&quot;,
+    &quot;exact replay&quot;,
+    &quot;nonce replay with new id&quot;,
+    &quot;payment-attestation mutation&quot;
+  ],
+  &quot;implementations&quot;: {
+    &quot;mirror&quot;: {
+      &quot;counts&quot;: {
+        &quot;duplicate_nonce_rejected&quot;: 500,
+        &quot;noncanonical_rejected&quot;: 500,
+        &quot;payment_tamper_rejected&quot;: 200,
+        &quot;replay_rejected&quot;: 500,
+        &quot;tamper_rejected&quot;: 500,
+        &quot;wrong_signer_rejected&quot;: 500
+      },
+      &quot;expected&quot;: {
+        &quot;duplicate_nonce_rejected&quot;: 500,
+        &quot;noncanonical_rejected&quot;: 500,
+        &quot;payment_tamper_rejected&quot;: 200,
+        &quot;replay_rejected&quot;: 500,
+        &quot;tamper_rejected&quot;: 500,
+        &quot;wrong_signer_rejected&quot;: 500
+      },
+      &quot;pass&quot;: true
+    },
+    &quot;reference&quot;: {
+      &quot;counts&quot;: {
+        &quot;duplicate_nonce_rejected&quot;: 500,
+        &quot;noncanonical_rejected&quot;: 500,
+        &quot;payment_tamper_rejected&quot;: 200,
+        &quot;replay_rejected&quot;: 500,
+        &quot;tamper_rejected&quot;: 500,
+        &quot;wrong_signer_rejected&quot;: 500
+      },
+      &quot;expected&quot;: {
+        &quot;duplicate_nonce_rejected&quot;: 500,
+        &quot;noncanonical_rejected&quot;: 500,
+        &quot;payment_tamper_rejected&quot;: 200,
+        &quot;replay_rejected&quot;: 500,
+        &quot;tamper_rejected&quot;: 500,
+        &quot;wrong_signer_rejected&quot;: 500
+      },
+      &quot;pass&quot;: true
+    }
+  },
+  &quot;pass&quot;: true,
+  &quot;schema&quot;: &quot;entity-v3-internal-crypto-assurance-v1&quot;,
+  &quot;scope&quot;: &quot;Internal cryptographic misuse/red-team assurance; not an independent external cryptographic audit.&quot;,
+  &quot;seed&quot;: 305031,
+  &quot;total_adversarial_cases&quot;: 5400
+}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

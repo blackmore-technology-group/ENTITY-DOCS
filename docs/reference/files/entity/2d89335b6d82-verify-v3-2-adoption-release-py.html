@@ -1,0 +1,50 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/verify_v3_2_adoption_release.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/verify_v3_2_adoption_release.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/verify_v3_2_adoption_release.py</code></p><p><b>SHA-256:</b> <code>b3d4d030b8368417e7355eef417c40f76aa73c60f01673b95c77f26ed09d4060</code></p><p><b>Bytes:</b> 2,483</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/verify_v3_2_adoption_release.py">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json, pathlib, sys
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+KIT = ROOT / &quot;protocol&quot; / &quot;v3&quot; / &quot;ENTITY_V3_2_ADOPTION_CLEANROOM_KIT.min.json&quot;
+QUAL = ROOT / &quot;docs&quot; / &quot;qualification&quot; / &quot;ENTITY_V3_2_0_RELEASE_QUALIFICATION_2026-09-24.json&quot;
+EXPECTED_KIT = &quot;44e7a00f910c89aced3b3c1b5e9cba486809ca313e9bfb4b7bc9266095c10c14&quot;
+EXPECTED_RESULT = &quot;1eb59e09ab08da86bfd8584df4a64ba331f7bbbce3d236b9b94f351606c90e18&quot;
+EXPECTED_LIFECYCLE = [
+    &quot;DCO&quot;, &quot;INSTRUMENT&quot;, &quot;LISTING&quot;, &quot;DISCLOSURE&quot;, &quot;ORDER_RFQ_AUCTION&quot;,
+    &quot;PRICE_DISCOVERY&quot;, &quot;TRADE&quot;, &quot;CLEARING&quot;, &quot;SETTLEMENT&quot;, &quot;ENTITLEMENT&quot;,
+    &quot;USAGE&quot;, &quot;DERIVED_OUTPUT&quot;, &quot;ECONOMIC_CONSEQUENCE&quot;,
+]
+errors = []
+actual_kit = hashlib.sha256(KIT.read_bytes()).hexdigest()
+if actual_kit != EXPECTED_KIT:
+    errors.append(f&quot;kit_sha256:{actual_kit}&quot;)
+kit = json.loads(KIT.read_text(encoding=&quot;utf-8&quot;))
+qual = json.loads(QUAL.read_text(encoding=&quot;utf-8&quot;))
+if kit.get(&quot;profile&quot;, {}).get(&quot;expected_result_sha256&quot;) != EXPECTED_RESULT:
+    errors.append(&quot;kit_expected_result&quot;)
+if len(kit.get(&quot;vectors&quot;, [])) != 16:
+    errors.append(&quot;vector_count&quot;)
+if qual.get(&quot;regression&quot;) != {&quot;passed&quot;: 128, &quot;total&quot;: 128, &quot;runner&quot;: &quot;tools/run_v3_regression.ps1&quot;, &quot;environment&quot;: &quot;_venv_entity_v3&quot;}:
+    errors.append(&quot;regression&quot;)
+if qual.get(&quot;targeted_adoption_tests&quot;) != {&quot;passed&quot;: 12, &quot;total&quot;: 12}:
+    errors.append(&quot;targeted_adoption_tests&quot;)
+if qual.get(&quot;market_structure_preserved&quot;) != EXPECTED_LIFECYCLE:
+    errors.append(&quot;market_lifecycle&quot;)
+conf = qual.get(&quot;adoption_conformance_vectors&quot;, {})
+if conf.get(&quot;cleanroom_result_sha256&quot;) != EXPECTED_RESULT or conf.get(&quot;sealed_kit_sha256&quot;) != EXPECTED_KIT:
+    errors.append(&quot;cleanroom_hashes&quot;)
+cleanrooms = qual.get(&quot;cleanrooms&quot;, {})
+if set(cleanrooms) != {&quot;rust&quot;, &quot;typescript&quot;, &quot;csharp&quot;, &quot;go&quot;, &quot;swift&quot;, &quot;java&quot;}:
+    errors.append(&quot;cleanroom_languages&quot;)
+for language, evidence in cleanrooms.items():
+    if evidence.get(&quot;status&quot;) != &quot;PASS&quot; or not evidence.get(&quot;commit&quot;) or not evidence.get(&quot;workflow_run&quot;):
+        errors.append(f&quot;cleanroom:{language}&quot;)
+result = {
+    &quot;valid&quot;: not errors,
+    &quot;version&quot;: qual.get(&quot;version&quot;),
+    &quot;status&quot;: qual.get(&quot;status&quot;),
+    &quot;kit_sha256&quot;: actual_kit,
+    &quot;cleanroom_result_sha256&quot;: EXPECTED_RESULT,
+    &quot;regression&quot;: qual.get(&quot;regression&quot;),
+    &quot;cleanrooms&quot;: {k: v.get(&quot;status&quot;) for k, v in sorted(cleanrooms.items())},
+    &quot;errors&quot;: errors,
+}
+print(json.dumps(result, indent=2, sort_keys=True))
+sys.exit(0 if not errors else 2)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,395 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UniversalTransactionFabric Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>UniversalTransactionFabric</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py#L25">ENTITY/src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py#L25</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>ENTITY v3 universal sovereign transaction fabric.
+
+The five primitives are ENTITY, AUTHORITY, RIGHT, EVENT and VALUE.
+Infrastructure, custody and transport never imply sovereign authority.</p><h2>Source excerpt</h2><pre><code>class UniversalTransactionFabric:
+    &quot;&quot;&quot;ENTITY v3 universal sovereign transaction fabric.
+
+    The five primitives are ENTITY, AUTHORITY, RIGHT, EVENT and VALUE.
+    Infrastructure, custody and transport never imply sovereign authority.
+    &quot;&quot;&quot;
+    def __init__(self,state_dir:str|Path,identity):
+        self.root=Path(state_dir)/&quot;entity_v3&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;universal_fabric.sqlite&quot;; self.identity=identity; self._lock=RLock(); self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;); db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS objects(object_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,object_type TEXT NOT NULL,title TEXT NOT NULL,content_sha256 TEXT,descriptor_json TEXT NOT NULL,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS authorities(authority_id TEXT PRIMARY KEY,subject_ref TEXT NOT NULL,grantor_entity_id TEXT NOT NULL,grantee_entity_id TEXT NOT NULL,actions_json TEXT NOT NULL,scope_json TEXT NOT NULL,not_before_ms INTEGER NOT NULL,expires_at_ms INTEGER,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL,revoked_at_ms INTEGER,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS rights(right_id TEXT PRIMARY KEY,object_id TEXT NOT NULL,grantor_entity_id TEXT NOT NULL,grantee_ref TEXT NOT NULL,actions_json TEXT NOT NULL,constraints_json TEXT NOT NULL,economic_terms_json TEXT NOT NULL,not_before_ms INTEGER NOT NULL,expires_at_ms INTEGER,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL,revoked_at_ms INTEGER,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS events(event_id TEXT PRIMARY KEY,actor_entity_id TEXT NOT NULL,event_type TEXT NOT NULL,subject_refs_json TEXT NOT NULL,authority_ref TEXT,right_ref TEXT,payload_sha256 TEXT NOT NULL,nonce TEXT UNIQUE,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS provenance_edges(edge_id TEXT PRIMARY KEY,parent_object_id TEXT NOT NULL,child_object_id TEXT NOT NULL,relation TEXT NOT NULL,contribution_bps INTEGER NOT NULL,evidence_json TEXT NOT NULL,actor_entity_id TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS value_records(value_id TEXT PRIMARY KEY,object_id TEXT NOT NULL,controller_entity_id TEXT NOT NULL,state TEXT NOT NULL,amount_units INTEGER NOT NULL,currency TEXT NOT NULL,basis_ref TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS attestations(attestation_id TEXT PRIMARY KEY,subject_ref TEXT NOT NULL,attestor_entity_id TEXT NOT NULL,claim_type TEXT NOT NULL,evidence_sha256 TEXT NOT NULL,claim_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS resolution(object_id TEXT NOT NULL,version INTEGER NOT NULL,endpoints_json TEXT NOT NULL,expires_at_ms INTEGER,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL,PRIMARY KEY(object_id,version))&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS trust_policies(policy_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,claim_type TEXT NOT NULL,minimum_attestations INTEGER NOT NULL,required_attestors_json TEXT NOT NULL,allowed_attestors_json TEXT NOT NULL,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_v3_auth_subject ON authorities(subject_ref,grantee_entity_id,status)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_v3_right_object ON rights(object_id,grantee_ref,status)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_v3_prov_child ON provenance_edges(child_object_id)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_v3_prov_parent ON provenance_edges(parent_object_id)&quot;)
+
+    def _require_entity(self,entity_id:str): return self.identity.load_manifest(entity_id)
+    def _sign(self,entity_id:str,body:dict)-&gt;dict: return self.identity.sign(entity_id,body)
+    def _verify(self,entity_id:str,body:dict,signature:dict)-&gt;bool:
+        return bool(self.identity.verify_signature(self.identity.load_manifest(entity_id),body,signature))
+    def register_object(self,controller_entity_id:str,object_type:str,title:str,*,descriptor=None,content_sha256=None)-&gt;dict:
+        self._require_entity(controller_entity_id); kind=str(object_type or &quot;OTHER&quot;).upper()
+        if kind not in OBJECT_TYPES: raise ValueError(&quot;unsupported object_type&quot;)
+        digest=_sha256_hex(content_sha256) if content_sha256 else None
+        oid=_id(&quot;obj3&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-v3-object-v1&quot;,&quot;primitive&quot;:&quot;ENTITY&quot;,&quot;object_id&quot;:oid,&quot;controller_entity_id&quot;:controller_entity_id,&quot;object_type&quot;:kind,&quot;title&quot;:str(title)[:256],&quot;content_sha256&quot;:digest,&quot;descriptor&quot;:dict(descriptor or {}),&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now,&quot;custody_is_not_authority&quot;:True}
+        sig=self._sign(controller_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO objects VALUES(?,?,?,?,?,?,?,?,?)&quot;,(oid,controller_entity_id,kind,body[&quot;title&quot;],digest,json.dumps(body[&quot;descriptor&quot;],sort_keys=True),&quot;ACTIVE&quot;,now,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def get_object(self,object_id:str)-&gt;dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM objects WHERE object_id=?&quot;,(str(object_id),)).fetchone()
+        if not row: raise KeyError(&quot;object not found&quot;)
+        out=dict(row); out[&quot;descriptor&quot;]=json.loads(out.pop(&quot;descriptor_json&quot;)); out[&quot;signature&quot;]=json.loads(out.pop(&quot;signature_json&quot;)); out[&quot;primitive&quot;]=&quot;ENTITY&quot;; return out
+
+    def delegate_authority(self,subject_ref:str,grantor_entity_id:str,grantee_entity_id:str,actions:list[str],*,scope=None,not_before_ms=None,expires_at_ms=None)-&gt;dict:
+        self._require_entity(grantor_entity_id); self._require_entity(grantee_entity_id)
+        acts=sorted({str(x).upper() for x in actions}); unknown=set(acts)-AUTHORITY_ACTIONS
+        if not acts or unknown: raise ValueError(&quot;invalid authority actions&quot;)
+        start=int(not_before_ms or _now()); end=int(expires_at_ms) if expires_at_ms is not None else None
+        if end is not None and end&lt;=start: raise ValueError(&quot;authority expiry must follow start&quot;)
+        aid=_id(&quot;auth3&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-v3-authority-v1&quot;,&quot;primitive&quot;:&quot;AUTHORITY&quot;,&quot;authority_id&quot;:aid,&quot;subject_ref&quot;:str(subject_ref),&quot;grantor_entity_id&quot;:grantor_entity_id,&quot;grantee_entity_id&quot;:grantee_entity_id,&quot;actions&quot;:acts,&quot;scope&quot;:dict(scope or {}),&quot;not_before_ms&quot;:start,&quot;expires_at_ms&quot;:end,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now,&quot;implicit_escalation_prohibited&quot;:True}
+        sig=self._sign(grantor_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO authorities VALUES(?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(aid,body[&quot;subject_ref&quot;],grantor_entity_id,grantee_entity_id,json.dumps(acts),json.dumps(body[&quot;scope&quot;],sort_keys=True),start,end,&quot;ACTIVE&quot;,now,None,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def revoke_authority(self,grantor_entity_id:str,authority_id:str)-&gt;dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM authorities WHERE authority_id=?&quot;,(authority_id,)).fetchone()
+        if not row: raise KeyError(&quot;authority not found&quot;)
+        if row[&quot;grantor_entity_id&quot;]!=grantor_entity_id: raise PermissionError(&quot;grantor mismatch&quot;)
+        now=_now()
+        with self._connect() as db: db.execute(&quot;UPDATE authorities SET status=&#x27;REVOKED&#x27;,revoked_at_ms=? WHERE authority_id=?&quot;,(now,authority_id))
+        return {&quot;authority_id&quot;:authority_id,&quot;status&quot;:&quot;REVOKED&quot;,&quot;revoked_at_ms&quot;:now}
+    def grant_right(self,object_id:str,grantor_entity_id:str,grantee_ref:str,actions:list[str],*,constraints=None,economic_terms=None,not_before_ms=None,expires_at_ms=None)-&gt;dict:
+        obj=self.get_object(object_id)
+        if obj[&quot;controller_entity_id&quot;]!=grantor_entity_id: raise PermissionError(&quot;object controller required&quot;)
+        acts=sorted({str(x).upper() for x in actions}); unknown=set(acts)-RIGHT_ACTIONS
+        if not acts or unknown: raise ValueError(&quot;invalid right actions&quot;)
+        start=int(not_before_ms or _now()); end=int(expires_at_ms) if expires_at_ms is not None else None
+        if end is not None and end&lt;=start: raise ValueError(&quot;right expiry must follow start&quot;)
+        rid=_id(&quot;right3&quot;); now=_now(); terms=dict(economic_terms or {})
+        body={&quot;schema&quot;:&quot;entity-v3-right-v1&quot;,&quot;primitive&quot;:&quot;RIGHT&quot;,&quot;right_id&quot;:rid,&quot;object_id&quot;:object_id,&quot;grantor_entity_id&quot;:grantor_entity_id,&quot;grantee_ref&quot;:str(grantee_ref),&quot;actions&quot;:acts,&quot;constraints&quot;:dict(constraints or {}),&quot;economic_terms&quot;:terms,&quot;not_before_ms&quot;:start,&quot;expires_at_ms&quot;:end,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now,&quot;access_is_not_ownership&quot;:True}
+        sig=self._sign(grantor_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO rights VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(rid,object_id,grantor_entity_id,body[&quot;grantee_ref&quot;],json.dumps(acts),json.dumps(body[&quot;constraints&quot;],sort_keys=True),json.dumps(terms,sort_keys=True),start,end,&quot;ACTIVE&quot;,now,None,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def active_authority(self,subject_ref:str,grantee_entity_id:str,action:str)-&gt;dict|None:
+        now=_now(); act=str(action).upper()
+        with self._connect() as db: rows=db.execute(&quot;SELECT * FROM authorities WHERE subject_ref=? AND grantee_entity_id=? AND status=&#x27;ACTIVE&#x27; AND not_before_ms&lt;=? AND (expires_at_ms IS NULL OR expires_at_ms&gt;?) ORDER BY created_at_ms&quot;,(str(subject_ref),grantee_entity_id,now,now)).fetchall()
+        for row in rows:
+            if act in set(json.loads(row[&quot;actions_json&quot;])):
+                return {&quot;authority_id&quot;:row[&quot;authority_id&quot;],&quot;grantor_entity_id&quot;:row[&quot;grantor_entity_id&quot;],&quot;scope&quot;:json.loads(row[&quot;scope_json&quot;])}
+        return None
+
+    def active_right(self,object_id:str,grantee_ref:str,action:str,*,purpose=None,jurisdiction=None)-&gt;dict|None:
+        now=_now(); act=str(action).upper()
+        with self._connect() as db: rows=db.execute(&quot;SELECT * FROM rights WHERE object_id=? AND grantee_ref IN (?, &#x27;*&#x27;) AND status=&#x27;ACTIVE&#x27; AND not_before_ms&lt;=? AND (expires_at_ms IS NULL OR expires_at_ms&gt;?) ORDER BY created_at_ms&quot;,(object_id,str(grantee_ref),now,now)).fetchall()
+        for row in rows:
+            if act not in set(json.loads(row[&quot;actions_json&quot;])): continue
+            constraints=json.loads(row[&quot;constraints_json&quot;]); purposes=set(constraints.get(&quot;purposes&quot;) or [])
+            jurisdictions={str(x).upper() for x in constraints.get(&quot;jurisdictions&quot;) or []}
+            if purposes and str(purpose or &quot;&quot;) not in purposes: continue
+            if jurisdictions and str(jurisdiction or &quot;&quot;).upper() not in jurisdictions: continue
+            return {&quot;right_id&quot;:row[&quot;right_id&quot;],&quot;grantor_entity_id&quot;:row[&quot;grantor_entity_id&quot;],&quot;constraints&quot;:constraints,&quot;economic_terms&quot;:json.loads(row[&quot;economic_terms_json&quot;])}
+        return None
+
+    def revoke_right(self,grantor_entity_id:str,right_id:str)-&gt;dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM rights WHERE right_id=?&quot;,(right_id,)).fetchone()
+        if not row: raise KeyError(&quot;right not found&quot;)
+        if row[&quot;grantor_entity_id&quot;]!=grantor_entity_id: raise PermissionError(&quot;grantor mismatch&quot;)
+        now=_now()
+        with self._connect() as db: db.execute(&quot;UPDATE rights SET status=&#x27;REVOKED&#x27;,revoked_at_ms=? WHERE right_id=?&quot;,(now,right_id))
+        return {&quot;right_id&quot;:right_id,&quot;status&quot;:&quot;REVOKED&quot;,&quot;revoked_at_ms&quot;:now}
+    def _path_exists(self,start_object_id:str,target_object_id:str)-&gt;bool:
+        seen=set(); stack=[start_object_id]
+        with self._connect() as db:
+            while stack:
+                current=stack.pop()
+                if current==target_object_id: return True
+                if current in seen: continue
+                seen.add(current)
+                rows=db.execute(&quot;SELECT child_object_id FROM provenance_edges WHERE parent_object_id=?&quot;,(current,)).fetchall()
+                stack.extend(str(r[0]) for r in rows)
+        return False
+
+    def add_provenance(self,actor_entity_id:str,parent_object_id:str,child_object_id:str,relation:str,*,contribution_bps:int,evidence=None)-&gt;dict:
+        self._require_entity(actor_entity_id); self.get_object(parent_object_id); self.get_object(child_object_id)
+        if parent_object_id==child_object_id or self._path_exists(child_object_id,parent_object_id): raise ValueError(&quot;provenance graph must remain acyclic&quot;)
+        weight=int(contribution_bps)
+        if weight&lt;0 or weight&gt;10000: raise ValueError(&quot;contribution_bps must be 0..10000&quot;)
+        with self._connect() as db:
+            total=int(db.execute(&quot;SELECT COALESCE(SUM(contribution_bps),0) FROM provenance_edges WHERE child_object_id=?&quot;,(child_object_id,)).fetchone()[0])
+        if total+weight&gt;10000: raise ValueError(&quot;incoming contribution weights exceed 10000 basis points&quot;)
+        eid=_id(&quot;prov3&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-v3-provenance-edge-v1&quot;,&quot;primitive&quot;:&quot;EVENT&quot;,&quot;edge_id&quot;:eid,&quot;parent_object_id&quot;:parent_object_id,&quot;child_object_id&quot;:child_object_id,&quot;relation&quot;:str(relation).upper(),&quot;contribution_bps&quot;:weight,&quot;evidence&quot;:dict(evidence or {}),&quot;actor_entity_id&quot;:actor_entity_id,&quot;created_at_ms&quot;:now,&quot;provenance_is_not_ownership&quot;:True}
+        sig=self._sign(actor_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO provenance_edges VALUES(?,?,?,?,?,?,?,?,?)&quot;,(eid,parent_object_id,child_object_id,body[&quot;relation&quot;],weight,json.dumps(body[&quot;evidence&quot;],sort_keys=True),actor_entity_id,now,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def _root_contributions(self,object_id:str,multiplier=Fraction(1,1),trail=None)-&gt;dict[str,Fraction]:
+        trail=set(trail or set())
+        if object_id in trail: raise RuntimeError(&quot;provenance cycle detected&quot;)
+        trail.add(object_id)
+        with self._connect() as db: rows=db.execute(&quot;SELECT parent_object_id,contribution_bps FROM provenance_edges WHERE child_object_id=? ORDER BY parent_object_id&quot;,(object_id,)).fetchall()
+        total=sum(int(r[&quot;contribution_bps&quot;]) for r in rows); out={}
+        if total&lt;10000: out[object_id]=multiplier*Fraction(10000-total,10000)
+        for row in rows:
+            sub=self._root_contributions(str(row[&quot;parent_object_id&quot;]),multiplier*Fraction(int(row[&quot;contribution_bps&quot;]),10000),trail)
+            for key,value in sub.items(): out[key]=out.get(key,Fraction(0,1))+value
+        return {k:v for k,v in out.items() if v&gt;0}
+
+    def contribution_distribution(self,object_id:str,amount_units:int)-&gt;dict:
+        self.get_object(object_id); amount=max(0,int(amount_units)); fractions=self._root_contributions(object_id)
+        raw={k:Fraction(amount,1)*v for k,v in fractions.items()}; allocation={k:int(v) for k,v in raw.items()}
+        remainder=amount-sum(allocation.values())
+        order=sorted(raw,key=lambda k:(-(raw[k]-allocation[k]),k))
+        for key in order[:remainder]: allocation[key]+=1
+        bps={k:int(fractions[k]*10000) for k in sorted(fractions)}
+        return {&quot;schema&quot;:&quot;entity-v3-derived-value-distribution-v1&quot;,&quot;primitive&quot;:&quot;VALUE&quot;,&quot;object_id&quot;:object_id,&quot;amount_units&quot;:amount,&quot;root_contribution_bps&quot;:bps,&quot;distribution&quot;:{k:allocation[k] for k in sorted(allocation)},&quot;allocated_total&quot;:sum(allocation.values()),&quot;deterministic&quot;:True}
+    def authorize_use(self,actor_entity_id:str,principal_entity_id:str,object_id:str,action:str,*,quantity:int=1,purpose=None,jurisdiction=None,nonce:str)-&gt;dict:
+        self._require_entity(actor_entity_id); self._require_entity(principal_entity_id); obj=self.get_object(object_id)
+        act=str(action).upper()
+        if act not in RIGHT_ACTIONS: raise ValueError(&quot;unsupported action&quot;)
+        authority=None
+        if actor_entity_id!=principal_entity_id:
+            required=&quot;EXECUTE&quot; if act==&quot;EXECUTE&quot; else &quot;ACCESS_DATA&quot;
+            authority=self.active_authority(principal_entity_id,actor_entity_id,required)
+            if authority is None: raise PermissionError(&quot;delegated authority missing&quot;)
+        right=self.active_right(object_id,principal_entity_id,act,purpose=purpose,jurisdiction=jurisdiction)
+        if right is None: raise PermissionError(&quot;applicable right missing&quot;)
+        qty=max(1,int(quantity)); terms=dict(right[&quot;economic_terms&quot;] or {}); price=dict(terms.get(&quot;pricing&quot;) or {})
+        amount=0; currency=None
+        if str(price.get(&quot;mode&quot;) or &quot;&quot;).upper()==&quot;PER_UNIT&quot;:
+            amount=qty*max(0,int(price.get(&quot;unit_price_units&quot;) or 0)); currency=str(price.get(&quot;currency&quot;) or &quot;&quot;).upper() or None
+        now=_now(); eid=_id(&quot;evt3&quot;); payload={&quot;object_id&quot;:object_id,&quot;action&quot;:act,&quot;quantity&quot;:qty,&quot;purpose&quot;:purpose,&quot;jurisdiction&quot;:jurisdiction,&quot;principal_entity_id&quot;:principal_entity_id}
+        body={&quot;schema&quot;:&quot;entity-v3-event-v1&quot;,&quot;primitive&quot;:&quot;EVENT&quot;,&quot;event_id&quot;:eid,&quot;actor_entity_id&quot;:actor_entity_id,&quot;event_type&quot;:&quot;AUTHORIZED_USE&quot;,&quot;subject_refs&quot;:[object_id,principal_entity_id],&quot;authority_ref&quot;:authority[&quot;authority_id&quot;] if authority else None,&quot;right_ref&quot;:right[&quot;right_id&quot;],&quot;payload_sha256&quot;:_sha(payload),&quot;nonce&quot;:str(nonce),&quot;created_at_ms&quot;:now}
+        sig=self._sign(actor_entity_id,body)
+        try:
+            with self._connect() as db: db.execute(&quot;INSERT INTO events VALUES(?,?,?,?,?,?,?,?,?,?)&quot;,(eid,actor_entity_id,&quot;AUTHORIZED_USE&quot;,json.dumps(body[&quot;subject_refs&quot;]),body[&quot;authority_ref&quot;],body[&quot;right_ref&quot;],body[&quot;payload_sha256&quot;],body[&quot;nonce&quot;],now,json.dumps(sig,sort_keys=True)))
+        except sqlite3.IntegrityError as exc: raise ValueError(&quot;duplicate/replayed event nonce&quot;) from exc
+        obligation=None
+        if amount&gt;0:
+            obligation={&quot;schema&quot;:&quot;entity-v3-settlement-obligation-v1&quot;,&quot;payer_entity_id&quot;:principal_entity_id,&quot;payee_entity_id&quot;:obj[&quot;controller_entity_id&quot;],&quot;object_id&quot;:object_id,&quot;usage_event_id&quot;:eid,&quot;amount_units&quot;:amount,&quot;currency&quot;:currency,&quot;terms_ref&quot;:right[&quot;right_id&quot;],&quot;external_money_movement_verified&quot;:False}
+        return {&quot;authorized&quot;:True,&quot;event&quot;:dict(body,signature=sig),&quot;right&quot;:right,&quot;authority&quot;:authority,&quot;settlement_obligation&quot;:obligation,&quot;ownership_transferred&quot;:False}
+
+    def record_value(self,controller_entity_id:str,object_id:str,amount_units:int,currency:str,*,state=&quot;POTENTIAL&quot;,basis_ref=&quot;asserted&quot;)-&gt;dict:
+        obj=self.get_object(object_id)
+        if obj[&quot;controller_entity_id&quot;]!=controller_entity_id: raise PermissionError(&quot;object controller required&quot;)
+        state=str(state).upper(); amount=int(amount_units); unit=str(currency).upper()
+        if state not in VALUE_STATES or amount&lt;0 or not unit: raise ValueError(&quot;invalid value record&quot;)
+        vid=_id(&quot;value3&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-v3-value-v1&quot;,&quot;primitive&quot;:&quot;VALUE&quot;,&quot;value_id&quot;:vid,&quot;object_id&quot;:object_id,&quot;controller_entity_id&quot;:controller_entity_id,&quot;state&quot;:state,&quot;amount_units&quot;:amount,&quot;currency&quot;:unit,&quot;basis_ref&quot;:str(basis_ref),&quot;created_at_ms&quot;:now,&quot;asserted_value_is_not_market_value&quot;:True}
+        sig=self._sign(controller_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO value_records VALUES(?,?,?,?,?,?,?,?,?)&quot;,(vid,object_id,controller_entity_id,state,amount,unit,body[&quot;basis_ref&quot;],now,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+    def attest(self,attestor_entity_id:str,subject_ref:str,claim_type:str,evidence_sha256:str,*,claim=None)-&gt;dict:
+        self._require_entity(attestor_entity_id); digest=_sha256_hex(evidence_sha256)
+        aid=_id(&quot;att3&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-v3-attestation-v1&quot;,&quot;primitive&quot;:&quot;EVENT&quot;,&quot;attestation_id&quot;:aid,&quot;subject_ref&quot;:str(subject_ref),&quot;attestor_entity_id&quot;:attestor_entity_id,&quot;claim_type&quot;:str(claim_type).upper(),&quot;evidence_sha256&quot;:digest,&quot;claim&quot;:dict(claim or {}),&quot;created_at_ms&quot;:now,&quot;attestation_is_evidence_not_truth&quot;:True}
+        sig=self._sign(attestor_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO attestations VALUES(?,?,?,?,?,?,?,?)&quot;,(aid,body[&quot;subject_ref&quot;],attestor_entity_id,body[&quot;claim_type&quot;],digest,json.dumps(body[&quot;claim&quot;],sort_keys=True),now,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def create_trust_policy(self,controller_entity_id:str,claim_type:str,*,minimum_attestations:int=1,required_attestors=None,allowed_attestors=None)-&gt;dict:
+        self._require_entity(controller_entity_id); minimum=max(1,int(minimum_attestations))
+        required=sorted({str(x) for x in (required_attestors or [])}); allowed=sorted({str(x) for x in (allowed_attestors or [])})
+        if allowed and not set(required).issubset(set(allowed)): raise ValueError(&quot;required attestors must be allowed&quot;)
+        pid=_id(&quot;trust3&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-v3-trust-policy-v1&quot;,&quot;policy_id&quot;:pid,&quot;controller_entity_id&quot;:controller_entity_id,&quot;claim_type&quot;:str(claim_type).upper(),&quot;minimum_attestations&quot;:minimum,&quot;required_attestors&quot;:required,&quot;allowed_attestors&quot;:allowed,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now,&quot;policy_satisfaction_is_not_truth&quot;:True}
+        sig=self._sign(controller_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO trust_policies VALUES(?,?,?,?,?,?,?,?,?)&quot;,(pid,controller_entity_id,body[&quot;claim_type&quot;],minimum,json.dumps(required),json.dumps(allowed),&quot;ACTIVE&quot;,now,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def evaluate_trust(self,policy_id:str,subject_ref:str)-&gt;dict:
+        with self._connect() as db:
+            policy=db.execute(&quot;SELECT * FROM trust_policies WHERE policy_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(policy_id,)).fetchone()
+            if not policy: raise KeyError(&quot;active trust policy not found&quot;)
+            rows=db.execute(&quot;SELECT * FROM attestations WHERE subject_ref=? AND claim_type=? ORDER BY created_at_ms,attestation_id&quot;,(str(subject_ref),policy[&quot;claim_type&quot;])).fetchall()
+        allowed=set(json.loads(policy[&quot;allowed_attestors_json&quot;])); required=set(json.loads(policy[&quot;required_attestors_json&quot;])); valid=[]; seen=set()
+        for row in rows:
+            attestor=str(row[&quot;attestor_entity_id&quot;])
+            if attestor in seen or (allowed and attestor not in allowed): continue
+            body={&quot;schema&quot;:&quot;entity-v3-attestation-v1&quot;,&quot;primitive&quot;:&quot;EVENT&quot;,&quot;attestation_id&quot;:row[&quot;attestation_id&quot;],&quot;subject_ref&quot;:row[&quot;subject_ref&quot;],&quot;attestor_entity_id&quot;:attestor,&quot;claim_type&quot;:row[&quot;claim_type&quot;],&quot;evidence_sha256&quot;:row[&quot;evidence_sha256&quot;],&quot;claim&quot;:json.loads(row[&quot;claim_json&quot;]),&quot;created_at_ms&quot;:row[&quot;created_at_ms&quot;],&quot;attestation_is_evidence_not_truth&quot;:True}
+            if self._verify(attestor,body,json.loads(row[&quot;signature_json&quot;])):
+                seen.add(attestor); valid.append(row[&quot;attestation_id&quot;])
+        minimum=int(policy[&quot;minimum_attestations&quot;]); satisfied=len(valid)&gt;=minimum and required.issubset(seen)
+        return {&quot;schema&quot;:&quot;entity-v3-trust-evaluation-v1&quot;,&quot;policy_id&quot;:policy_id,&quot;subject_ref&quot;:str(subject_ref),&quot;claim_type&quot;:policy[&quot;claim_type&quot;],&quot;policy_satisfied&quot;:satisfied,&quot;valid_attestation_count&quot;:len(valid),&quot;minimum_attestations&quot;:minimum,&quot;required_attestors_present&quot;:required.issubset(seen),&quot;attestation_ids&quot;:valid,&quot;truth_inferred&quot;:False,&quot;evaluated_at_ms&quot;:_now()}
+
+    def open_settlement(self,settlement_engine,obligation:dict,*,transaction_nonce:str,settlement_kind=&quot;INTERNAL_ACCOUNTING&quot;)-&gt;dict:
+        required={&quot;payer_entity_id&quot;,&quot;payee_entity_id&quot;,&quot;amount_units&quot;,&quot;currency&quot;,&quot;usage_event_id&quot;}
+        if not required.issubset(set(obligation or {})): raise ValueError(&quot;incomplete settlement obligation&quot;)
+        result=settlement_engine.create(str(obligation[&quot;payer_entity_id&quot;]),str(obligation[&quot;payee_entity_id&quot;]),amount_units=int(obligation[&quot;amount_units&quot;]),currency=str(obligation[&quot;currency&quot;]),obligation_ref=str(obligation[&quot;usage_event_id&quot;]),transaction_nonce=str(transaction_nonce),settlement_kind=str(settlement_kind))
+        return {&quot;schema&quot;:&quot;entity-v3-settlement-open-v1&quot;,&quot;usage_event_id&quot;:obligation[&quot;usage_event_id&quot;],&quot;settlement_id&quot;:result[&quot;settlement_id&quot;],&quot;state&quot;:result[&quot;state&quot;],&quot;amount_units&quot;:int(obligation[&quot;amount_units&quot;]),&quot;currency&quot;:str(obligation[&quot;currency&quot;]),&quot;external_money_movement_verified&quot;:False,&quot;settlement&quot;:result}
+    def publish_resolution(self,controller_entity_id:str,object_id:str,endpoints:list[dict],*,version:int,expires_at_ms=None)-&gt;dict:
+        obj=self.get_object(object_id)
+        if obj[&quot;controller_entity_id&quot;]!=controller_entity_id: raise PermissionError(&quot;object controller required&quot;)
+        ver=int(version)
+        if ver&lt;1: raise ValueError(&quot;resolution version must be positive&quot;)
+        eps=[]
+        for item in endpoints or []:
+            endpoint={&quot;service&quot;:str(item.get(&quot;service&quot;) or &quot;&quot;).upper(),&quot;uri&quot;:str(item.get(&quot;uri&quot;) or &quot;&quot;),&quot;protocol&quot;:str(item.get(&quot;protocol&quot;) or &quot;&quot;).upper()}
+            if not endpoint[&quot;service&quot;] or not endpoint[&quot;uri&quot;]: raise ValueError(&quot;resolution endpoint service and uri required&quot;)
+            eps.append(endpoint)
+        if not eps: raise ValueError(&quot;at least one endpoint required&quot;)
+        now=_now(); body={&quot;schema&quot;:&quot;entity-v3-resolution-v1&quot;,&quot;object_id&quot;:object_id,&quot;controller_entity_id&quot;:controller_entity_id,&quot;version&quot;:ver,&quot;endpoints&quot;:eps,&quot;expires_at_ms&quot;:int(expires_at_ms) if expires_at_ms is not None else None,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now,&quot;resolver_is_not_authority&quot;:True}
+        sig=self._sign(controller_entity_id,body)
+        try:
+            with self._connect() as db: db.execute(&quot;INSERT INTO resolution VALUES(?,?,?,?,?,?,?)&quot;,(object_id,ver,json.dumps(eps,sort_keys=True),body[&quot;expires_at_ms&quot;],&quot;ACTIVE&quot;,now,json.dumps(sig,sort_keys=True)))
+        except sqlite3.IntegrityError as exc: raise ValueError(&quot;resolution version already exists&quot;) from exc
+        return dict(body,signature=sig)
+
+    def resolve(self,object_id:str)-&gt;dict:
+        obj=self.get_object(object_id); now=_now()
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM resolution WHERE object_id=? AND status=&#x27;ACTIVE&#x27; AND (expires_at_ms IS NULL OR expires_at_ms&gt;?) ORDER BY version DESC LIMIT 1&quot;,(object_id,now)).fetchone()
+        if not row: raise KeyError(&quot;no current resolution record&quot;)
+        body={&quot;schema&quot;:&quot;entity-v3-resolution-v1&quot;,&quot;object_id&quot;:object_id,&quot;controller_entity_id&quot;:obj[&quot;controller_entity_id&quot;],&quot;version&quot;:int(row[&quot;version&quot;]),&quot;endpoints&quot;:json.loads(row[&quot;endpoints_json&quot;]),&quot;expires_at_ms&quot;:row[&quot;expires_at_ms&quot;],&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:int(row[&quot;created_at_ms&quot;]),&quot;resolver_is_not_authority&quot;:True}
+        sig=json.loads(row[&quot;signature_json&quot;])
+        if not self._verify(obj[&quot;controller_entity_id&quot;],body,sig): raise PermissionError(&quot;resolution signature invalid&quot;)
+        return {&quot;schema&quot;:&quot;entity-v3-resolution-proof-v1&quot;,&quot;object&quot;:obj,&quot;resolution&quot;:dict(body,signature=sig),&quot;verified&quot;:True,&quot;resolved_at_ms&quot;:now,&quot;resolver_is_not_authority&quot;:True}
+    def _collect_ancestry(self,object_id:str)-&gt;tuple[set[str],list[dict]]:
+        objects={object_id}; edges=[]; stack=[object_id]
+        with self._connect() as db:
+            while stack:
+                child=stack.pop()
+                rows=db.execute(&quot;SELECT * FROM provenance_edges WHERE child_object_id=? ORDER BY parent_object_id,edge_id&quot;,(child,)).fetchall()
+                for row in rows:
+                    edge=dict(row); edge[&quot;evidence&quot;]=json.loads(edge.pop(&quot;evidence_json&quot;)); edge[&quot;signature&quot;]=json.loads(edge.pop(&quot;signature_json&quot;)); edges.append(edge)
+                    parent=str(row[&quot;parent_object_id&quot;])
+                    if parent not in objects: objects.add(parent); stack.append(parent)
+        return objects,edges
+
+    def _active_right_records(self,object_ids:set[str])-&gt;list[dict]:
+        if not object_ids: return []
+        marks=&quot;,&quot;.join(&quot;?&quot; for _ in object_ids); now=_now()
+        with self._connect() as db: rows=db.execute(f&quot;SELECT * FROM rights WHERE object_id IN ({marks}) AND status=&#x27;ACTIVE&#x27; AND not_before_ms&lt;=? AND (expires_at_ms IS NULL OR expires_at_ms&gt;?) ORDER BY right_id&quot;,[*sorted(object_ids),now,now]).fetchall()
+        out=[]
+        for row in rows:
+            x=dict(row); x[&quot;actions&quot;]=json.loads(x.pop(&quot;actions_json&quot;)); x[&quot;constraints&quot;]=json.loads(x.pop(&quot;constraints_json&quot;)); x[&quot;economic_terms&quot;]=json.loads(x.pop(&quot;economic_terms_json&quot;)); x[&quot;signature&quot;]=json.loads(x.pop(&quot;signature_json&quot;)); out.append(x)
+        return out
+
+    def _active_authority_records(self,subject_refs:set[str])-&gt;list[dict]:
+        if not subject_refs: return []
+        marks=&quot;,&quot;.join(&quot;?&quot; for _ in subject_refs); now=_now()
+        with self._connect() as db: rows=db.execute(f&quot;SELECT * FROM authorities WHERE subject_ref IN ({marks}) AND status=&#x27;ACTIVE&#x27; AND not_before_ms&lt;=? AND (expires_at_ms IS NULL OR expires_at_ms&gt;?) ORDER BY authority_id&quot;,[*sorted(subject_refs),now,now]).fetchall()
+        out=[]
+        for row in rows:
+            x=dict(row); x[&quot;actions&quot;]=json.loads(x.pop(&quot;actions_json&quot;)); x[&quot;scope&quot;]=json.loads(x.pop(&quot;scope_json&quot;)); x[&quot;signature&quot;]=json.loads(x.pop(&quot;signature_json&quot;)); out.append(x)
+        return out
+    def _bundle_manifests(self,records:dict)-&gt;list[dict]:
+        signer_ids=set()
+        for obj in records.get(&quot;objects&quot;) or []: signer_ids.add(obj[&quot;controller_entity_id&quot;])
+        for row in records.get(&quot;authorities&quot;) or []: signer_ids.add(row[&quot;grantor_entity_id&quot;])
+        for row in records.get(&quot;rights&quot;) or []: signer_ids.add(row[&quot;grantor_entity_id&quot;])
+        for row in records.get(&quot;events&quot;) or []: signer_ids.add(row[&quot;actor_entity_id&quot;])
+        for row in records.get(&quot;provenance_edges&quot;) or []: signer_ids.add(row[&quot;actor_entity_id&quot;])
+        for row in records.get(&quot;values&quot;) or []: signer_ids.add(row[&quot;controller_entity_id&quot;])
+        for row in records.get(&quot;attestations&quot;) or []: signer_ids.add(row[&quot;attestor_entity_id&quot;])
+        for row in records.get(&quot;resolution&quot;) or []: signer_ids.add(row[&quot;controller_entity_id&quot;])
+        manifests=[]
+        for entity_id in sorted(signer_ids): manifests.append(self.identity.load_manifest(entity_id))
+        return manifests
+
+    def export_bundle(self,object_id:str)-&gt;dict:
+        object_ids,edges=self._collect_ancestry(object_id)
+        objects=[self.get_object(x) for x in sorted(object_ids)]
+        controllers={x[&quot;controller_entity_id&quot;] for x in objects}
+        rights=self._active_right_records(object_ids)
+        authorities=self._active_authority_records(object_ids|controllers)
+        with self._connect() as db:
+            vals=[dict(r) for r in db.execute(&quot;SELECT * FROM value_records ORDER BY value_id&quot;) if r[&quot;object_id&quot;] in object_ids]
+            atts=[dict(r) for r in db.execute(&quot;SELECT * FROM attestations ORDER BY attestation_id&quot;) if r[&quot;subject_ref&quot;] in object_ids]
+            events=[dict(r) for r in db.execute(&quot;SELECT * FROM events ORDER BY event_id&quot;) if object_ids.intersection(set(json.loads(r[&quot;subject_refs_json&quot;])))]
+            resolutions=[]
+            for oid in sorted(object_ids):
+                row=db.execute(&quot;SELECT * FROM resolution WHERE object_id=? AND status=&#x27;ACTIVE&#x27; ORDER BY version DESC LIMIT 1&quot;,(oid,)).fetchone()
+                if row:
+                    x=dict(row); x[&quot;controller_entity_id&quot;]=next(o[&quot;controller_entity_id&quot;] for o in objects if o[&quot;object_id&quot;]==oid); resolutions.append(x)
+        for x in vals: x[&quot;signature&quot;]=json.loads(x.pop(&quot;signature_json&quot;))
+        for x in atts: x[&quot;claim&quot;]=json.loads(x.pop(&quot;claim_json&quot;)); x[&quot;signature&quot;]=json.loads(x.pop(&quot;signature_json&quot;))
+        for x in events: x[&quot;subject_refs&quot;]=json.loads(x.pop(&quot;subject_refs_json&quot;)); x[&quot;signature&quot;]=json.loads(x.pop(&quot;signature_json&quot;))
+        for x in resolutions: x[&quot;endpoints&quot;]=json.loads(x.pop(&quot;endpoints_json&quot;)); x[&quot;signature&quot;]=json.loads(x.pop(&quot;signature_json&quot;))
+        records={&quot;objects&quot;:objects,&quot;authorities&quot;:authorities,&quot;rights&quot;:rights,&quot;events&quot;:events,&quot;provenance_edges&quot;:edges,&quot;values&quot;:vals,&quot;attestations&quot;:atts,&quot;resolution&quot;:resolutions}
+        manifests=self._bundle_manifests(records)
+        bundle={&quot;schema&quot;:&quot;entity-v3-sovereign-bundle-v1&quot;,&quot;protocol_version&quot;:&quot;3.0.0&quot;,&quot;root_object_id&quot;:object_id,&quot;primitives&quot;:list(PRIMITIVES),&quot;identity_manifests&quot;:manifests,**records,&quot;provider_independent&quot;:True,&quot;exported_at_ms&quot;:_now()}
+        bundle[&quot;semantic_sha256&quot;]=_sha({k:v for k,v in bundle.items() if k!=&quot;exported_at_ms&quot;})
+        return bundle
+
+    @staticmethod
+    def _record_body(kind:str,row:dict)-&gt;tuple[str,dict]:
+        if kind==&quot;object&quot;:
+            return row[&quot;controller_entity_id&quot;],{&quot;schema&quot;:&quot;entity-v3-object-v1&quot;,&quot;primitive&quot;:&quot;ENTITY&quot;,&quot;object_id&quot;:row[&quot;object_id&quot;],&quot;controller_entity_id&quot;:row[&quot;controller_entity_id&quot;],&quot;object_type&quot;:row[&quot;object_type&quot;],&quot;title&quot;:row[&quot;title&quot;],&quot;content_sha256&quot;:row.get(&quot;content_sha256&quot;),&quot;descriptor&quot;:row.get(&quot;descriptor&quot;) or {},&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:row[&quot;created_at_ms&quot;],&quot;custody_is_not_authority&quot;:True}
+        if kind==&quot;authority&quot;:
+            return row[&quot;grantor_entity_id&quot;],{&quot;schema&quot;:&quot;entity-v3-authority-v1&quot;,&quot;primitive&quot;:&quot;AUTHORITY&quot;,&quot;authority_id&quot;:row[&quot;authority_id&quot;],&quot;subject_ref&quot;:row[&quot;subject_ref&quot;],&quot;grantor_entity_id&quot;:row[&quot;grantor_entity_id&quot;],&quot;grantee_entity_id&quot;:row[&quot;grantee_entity_id&quot;],&quot;actions&quot;:row[&quot;actions&quot;],&quot;scope&quot;:row[&quot;scope&quot;],&quot;not_before_ms&quot;:row[&quot;not_before_ms&quot;],&quot;expires_at_ms&quot;:row.get(&quot;expires_at_ms&quot;),&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:row[&quot;created_at_ms&quot;],&quot;implicit_escalation_prohibited&quot;:True}
+        if kind==&quot;right&quot;:
+            return row[&quot;grantor_entity_id&quot;],{&quot;schema&quot;:&quot;entity-v3-right-v1&quot;,&quot;primitive&quot;:&quot;RIGHT&quot;,&quot;right_id&quot;:row[&quot;right_id&quot;],&quot;object_id&quot;:row[&quot;object_id&quot;],&quot;grantor_entity_id&quot;:row[&quot;grantor_entity_id&quot;],&quot;grantee_ref&quot;:row[&quot;grantee_ref&quot;],&quot;actions&quot;:row[&quot;actions&quot;],&quot;constraints&quot;:row[&quot;constraints&quot;],&quot;economic_terms&quot;:row[&quot;economic_terms&quot;],&quot;not_before_ms&quot;:row[&quot;not_before_ms&quot;],&quot;expires_at_ms&quot;:row.get(&quot;expires_at_ms&quot;),&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:row[&quot;created_at_ms&quot;],&quot;access_is_not_ownership&quot;:True}
+        if kind==&quot;event&quot;:
+            return row[&quot;actor_entity_id&quot;],{&quot;schema&quot;:&quot;entity-v3-event-v1&quot;,&quot;primitive&quot;:&quot;EVENT&quot;,&quot;event_id&quot;:row[&quot;event_id&quot;],&quot;actor_entity_id&quot;:row[&quot;actor_entity_id&quot;],&quot;event_type&quot;:row[&quot;event_type&quot;],&quot;subject_refs&quot;:row[&quot;subject_refs&quot;],&quot;authority_ref&quot;:row.get(&quot;authority_ref&quot;),&quot;right_ref&quot;:row.get(&quot;right_ref&quot;),&quot;payload_sha256&quot;:row[&quot;payload_sha256&quot;],&quot;nonce&quot;:row.get(&quot;nonce&quot;),&quot;created_at_ms&quot;:row[&quot;created_at_ms&quot;]}
+        if kind==&quot;provenance&quot;:
+            return row[&quot;actor_entity_id&quot;],{&quot;schema&quot;:&quot;entity-v3-provenance-edge-v1&quot;,&quot;primitive&quot;:&quot;EVENT&quot;,&quot;edge_id&quot;:row[&quot;edge_id&quot;],&quot;parent_object_id&quot;:row[&quot;parent_object_id&quot;],&quot;child_object_id&quot;:row[&quot;child_object_id&quot;],&quot;relation&quot;:row[&quot;relation&quot;],&quot;contribution_bps&quot;:row[&quot;contribution_bps&quot;],&quot;evidence&quot;:row.get(&quot;evidence&quot;) or {},&quot;actor_entity_id&quot;:row[&quot;actor_entity_id&quot;],&quot;created_at_ms&quot;:row[&quot;created_at_ms&quot;],&quot;provenance_is_not_ownership&quot;:True}
+        if kind==&quot;value&quot;:
+            return row[&quot;controller_entity_id&quot;],{&quot;schema&quot;:&quot;entity-v3-value-v1&quot;,&quot;primitive&quot;:&quot;VALUE&quot;,&quot;value_id&quot;:row[&quot;value_id&quot;],&quot;object_id&quot;:row[&quot;object_id&quot;],&quot;controller_entity_id&quot;:row[&quot;controller_entity_id&quot;],&quot;state&quot;:row[&quot;state&quot;],&quot;amount_units&quot;:row[&quot;amount_units&quot;],&quot;currency&quot;:row[&quot;currency&quot;],&quot;basis_ref&quot;:row[&quot;basis_ref&quot;],&quot;created_at_ms&quot;:row[&quot;created_at_ms&quot;],&quot;asserted_value_is_not_market_value&quot;:True}
+        if kind==&quot;attestation&quot;:
+            return row[&quot;attestor_entity_id&quot;],{&quot;schema&quot;:&quot;entity-v3-attestation-v1&quot;,&quot;primitive&quot;:&quot;EVENT&quot;,&quot;attestation_id&quot;:row[&quot;attestation_id&quot;],&quot;subject_ref&quot;:row[&quot;subject_ref&quot;],&quot;attestor_entity_id&quot;:row[&quot;attestor_entity_id&quot;],&quot;claim_type&quot;:row[&quot;claim_type&quot;],&quot;evidence_sha256&quot;:row[&quot;evidence_sha256&quot;],&quot;claim&quot;:row.get(&quot;claim&quot;) or {},&quot;created_at_ms&quot;:row[&quot;created_at_ms&quot;],&quot;attestation_is_evidence_not_truth&quot;:True}
+        if kind==&quot;resolution&quot;:
+            return row[&quot;controller_entity_id&quot;],{&quot;schema&quot;:&quot;entity-v3-resolution-v1&quot;,&quot;object_id&quot;:row[&quot;object_id&quot;],&quot;controller_entity_id&quot;:row[&quot;controller_entity_id&quot;],&quot;version&quot;:row[&quot;version&quot;],&quot;endpoints&quot;:row[&quot;endpoints&quot;],&quot;expires_at_ms&quot;:row.get(&quot;expires_at_ms&quot;),&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:row[&quot;created_at_ms&quot;],&quot;resolver_is_not_authority&quot;:True}
+        raise ValueError(&quot;unsupported record kind&quot;)
+
+    def verify_bundle(self,bundle:dict)-&gt;dict:
+        failures=[]; b=dict(bundle or {})
+        if b.get(&quot;schema&quot;)!=&quot;entity-v3-sovereign-bundle-v1&quot;: failures.append(&quot;schema_invalid&quot;)
+        expected=_sha({k:v for k,v in b.items() if k not in {&quot;exported_at_ms&quot;,&quot;semantic_sha256&quot;}})
+        if b.get(&quot;semantic_sha256&quot;)!=expected: failures.append(&quot;semantic_hash_invalid&quot;)
+        if set(b.get(&quot;primitives&quot;) or [])!=set(PRIMITIVES): failures.append(&quot;primitive_set_incomplete&quot;)
+        manifests={}
+        for manifest in b.get(&quot;identity_manifests&quot;) or []:
+            entity_id=str(manifest.get(&quot;entity_id&quot;) or &quot;&quot;)
+            if not self.identity.verify_manifest(manifest): failures.append(f&quot;manifest_invalid:{entity_id}&quot;)
+            elif entity_id in manifests: failures.append(f&quot;manifest_duplicate:{entity_id}&quot;)
+            else: manifests[entity_id]=manifest
+        object_ids={str(x.get(&quot;object_id&quot;)) for x in b.get(&quot;objects&quot;) or []}
+        if b.get(&quot;root_object_id&quot;) not in object_ids: failures.append(&quot;root_object_missing&quot;)
+        collections=((&quot;object&quot;,&quot;objects&quot;),(&quot;authority&quot;,&quot;authorities&quot;),(&quot;right&quot;,&quot;rights&quot;),(&quot;event&quot;,&quot;events&quot;),(&quot;provenance&quot;,&quot;provenance_edges&quot;),(&quot;value&quot;,&quot;values&quot;),(&quot;attestation&quot;,&quot;attestations&quot;),(&quot;resolution&quot;,&quot;resolution&quot;))
+        for kind,key in collections:
+            for row in b.get(key) or []:
+                try:
+                    signer,body=self._record_body(kind,row); manifest=manifests.get(signer)
+                    if manifest is None: failures.append(f&quot;manifest_missing:{signer}&quot;)
+                    elif not self.identity.verify_signature(manifest,body,row[&quot;signature&quot;]): failures.append(f&quot;signature_invalid:{kind}:{next((str(v) for k,v in row.items() if k.endswith(&#x27;_id&#x27;)), &#x27;?&#x27;)}&quot;)
+                except Exception as exc: failures.append(f&quot;record_invalid:{kind}:{type(exc).__name__}&quot;)
+        incoming={}; adjacency={oid:[] for oid in object_ids}
+        for edge in b.get(&quot;provenance_edges&quot;) or []:
+            parent=str(edge.get(&quot;parent_object_id&quot;)); child=str(edge.get(&quot;child_object_id&quot;)); weight=int(edge.get(&quot;contribution_bps&quot;) or 0)
+            if parent not in object_ids or child not in object_ids: failures.append(&quot;provenance_reference_missing&quot;)
+            incoming[child]=incoming.get(child,0)+weight; adjacency.setdefault(parent,[]).append(child)
+        if any(v&gt;10000 for v in incoming.values()): failures.append(&quot;provenance_weight_overflow&quot;)
+        visiting=set(); visited=set()
+        def visit(node):
+            if node in visiting: return False
+            if node in visited: return True
+            visiting.add(node)
+            for child in adjacency.get(node,[]):
+                if not visit(child): return False
+            visiting.remove(node); visited.add(node); return True
+        if any(not visit(oid) for oid in sorted(object_ids) if oid not in visited): failures.append(&quot;provenance_cycle&quot;)
+        return {&quot;valid&quot;:not failures,&quot;failures&quot;:failures,&quot;root_object_id&quot;:b.get(&quot;root_object_id&quot;),&quot;semantic_sha256&quot;:b.get(&quot;semantic_sha256&quot;),&quot;provider_independent&quot;:bool(b.get(&quot;provider_independent&quot;)),&quot;portable_verification_uses_embedded_manifests&quot;:True,&quot;primitive_set_complete&quot;:set(b.get(&quot;primitives&quot;) or [])==set(PRIMITIVES),&quot;verified_manifest_count&quot;:len(manifests)}
+    def register_digital_commodity(self,controller_entity_id:str,title:str,content_sha256:str,*,commodity_class=&quot;DATA&quot;,measurement_unit=&quot;USE&quot;,metadata=None)-&gt;dict:
+        descriptor={&quot;digital_commodity&quot;:True,&quot;commodity_class&quot;:str(commodity_class).upper(),&quot;measurement_unit&quot;:str(measurement_unit).upper(),&quot;raw_data_transfer_default&quot;:False,&quot;metadata&quot;:dict(metadata or {})}
+        result=self.register_object(controller_entity_id,&quot;DATASET&quot;,title,descriptor=descriptor,content_sha256=content_sha256)
+        result[&quot;digital_commodity_object&quot;]=True; return result
+
+    def register_ai_agent(self,controller_entity_id:str,agent_entity_id:str,title:str,*,model_ref=None,policy_refs=None,capabilities=None)-&gt;dict:
+        self._require_entity(agent_entity_id)
+        descriptor={&quot;agent_entity_id&quot;:agent_entity_id,&quot;model_ref&quot;:model_ref,&quot;policy_refs&quot;:sorted({str(x) for x in (policy_refs or [])}),&quot;declared_capabilities&quot;:sorted({str(x).upper() for x in (capabilities or [])}),&quot;self_authority_inferred&quot;:False}
+        result=self.register_object(controller_entity_id,&quot;AI_AGENT&quot;,title,descriptor=descriptor)
+        result[&quot;agent_entity_id&quot;]=agent_entity_id; return result
+
+    def status(self)-&gt;dict:
+        with self._connect() as db:
+            counts={name:int(db.execute(f&quot;SELECT COUNT(*) FROM {table}&quot;).fetchone()[0]) for name,table in {&quot;entities&quot;:&quot;objects&quot;,&quot;authorities&quot;:&quot;authorities&quot;,&quot;rights&quot;:&quot;rights&quot;,&quot;events&quot;:&quot;events&quot;,&quot;values&quot;:&quot;value_records&quot;,&quot;provenance_edges&quot;:&quot;provenance_edges&quot;,&quot;attestations&quot;:&quot;attestations&quot;,&quot;trust_policies&quot;:&quot;trust_policies&quot;,&quot;resolution_records&quot;:&quot;resolution&quot;}.items()}
+        return {&quot;ready&quot;:True,&quot;schema&quot;:&quot;entity-v3-universal-transaction-fabric-v1&quot;,&quot;protocol_version&quot;:&quot;3.0.0&quot;,&quot;primitives&quot;:list(PRIMITIVES),&quot;counts&quot;:counts,&quot;machine_readable_rights&quot;:True,&quot;delegated_ai_authority&quot;:True,&quot;digital_commodity_objects&quot;:True,&quot;causal_provenance&quot;:True,&quot;derived_value_distribution&quot;:True,&quot;settlement_obligations&quot;:True,&quot;entity_native_resolution&quot;:True,&quot;trust_attestations&quot;:True,&quot;trust_policy_thresholds&quot;:True,&quot;settlement_engine_bridge&quot;:True,&quot;provider_independent_exports&quot;:True,&quot;infrastructure_possession_is_not_authority&quot;:True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

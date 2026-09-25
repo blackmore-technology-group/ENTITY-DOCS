@@ -1,0 +1,119 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/build_v3_2_adoption_conformance.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/build_v3_2_adoption_conformance.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/build_v3_2_adoption_conformance.py</code></p><p><b>SHA-256:</b> <code>e0bac1231e08913574ec95aec4cd9c7fd23b606c6a9d3854b19fa37dd13949b8</code></p><p><b>Bytes:</b> 8,746</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/build_v3_2_adoption_conformance.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/sha-9df88047b930.html">sha</a></li><li><a href="../../../reference/symbols/entity/obj-a05577cd5bd4.html">obj</a></li><li><a href="../../../reference/symbols/entity/s-40abcfc37218.html">s</a></li><li><a href="../../../reference/symbols/entity/b-49a9d0e65e7b.html">b</a></li><li><a href="../../../reference/symbols/entity/sh-80a7b2b4c7fe.html">sh</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json, pathlib
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+PROTO = ROOT / &quot;protocol&quot; / &quot;v3&quot;
+VECTORS = PROTO / &quot;adoption_vectors&quot;
+SCHEMA_PATH = PROTO / &quot;ENTITY_ADOPTION_LAYER.schema.json&quot;
+Z = &quot;0&quot; * 64
+PRIMITIVES = [&quot;ENTITY&quot;, &quot;AUTHORITY&quot;, &quot;RIGHT&quot;, &quot;EVENT&quot;, &quot;VALUE&quot;]
+LIFECYCLE = [&quot;DCO&quot;, &quot;INSTRUMENT&quot;, &quot;LISTING&quot;, &quot;DISCLOSURE&quot;, &quot;ORDER_RFQ_AUCTION&quot;,
+             &quot;PRICE_DISCOVERY&quot;, &quot;TRADE&quot;, &quot;CLEARING&quot;, &quot;SETTLEMENT&quot;, &quot;ENTITLEMENT&quot;,
+             &quot;USAGE&quot;, &quot;DERIVED_OUTPUT&quot;, &quot;ECONOMIC_CONSEQUENCE&quot;]
+
+def sha(data: bytes) -&gt; str:
+    return hashlib.sha256(data).hexdigest()
+
+def obj(schema_name: str, required: list[str], properties: dict) -&gt; dict:
+    return {&quot;type&quot;: &quot;object&quot;, &quot;required&quot;: [&quot;schema&quot;, *required],
+            &quot;properties&quot;: {&quot;schema&quot;: {&quot;const&quot;: schema_name}, **properties}}
+
+def s(): return {&quot;type&quot;: &quot;string&quot;, &quot;minLength&quot;: 1}
+def b(value): return {&quot;const&quot;: value}
+def sh(): return {&quot;type&quot;: &quot;string&quot;, &quot;pattern&quot;: &quot;^[0-9a-f]{64}$&quot;}
+
+rights_rule = {&quot;type&quot;: &quot;object&quot;, &quot;required&quot;: [&quot;effect&quot;, &quot;actions&quot;],
+               &quot;properties&quot;: {&quot;effect&quot;: {&quot;enum&quot;: [&quot;ALLOW&quot;, &quot;REQUIRE&quot;, &quot;PROHIBIT&quot;]},
+                              &quot;actions&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;minItems&quot;: 1, &quot;uniqueItems&quot;: True,
+                                          &quot;items&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;pattern&quot;: &quot;^[A-Z0-9_]+$&quot;}}}}
+defs = {
+    &quot;rights_passport&quot;: obj(&quot;entity-v3-rights-passport-v1&quot;,
+        [&quot;core_primitives&quot;, &quot;rights&quot;, &quot;provider_custody_is_not_authority&quot;,
+         &quot;underlying_data_not_silently_transferred&quot;, &quot;legal_effect_is_deployment_specific&quot;],
+        {&quot;core_primitives&quot;: {&quot;const&quot;: PRIMITIVES}, &quot;rights&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;minItems&quot;: 1, &quot;items&quot;: rights_rule},
+         &quot;provider_custody_is_not_authority&quot;: b(True), &quot;underlying_data_not_silently_transferred&quot;: b(True),
+         &quot;legal_effect_is_deployment_specific&quot;: b(True)}),
+    &quot;custody_locator&quot;: obj(&quot;entity-v3-custody-locator-v1&quot;,
+        [&quot;entity_object_id&quot;, &quot;provider&quot;, &quot;locator&quot;, &quot;content_sha256&quot;, &quot;provider_is_authority&quot;,
+         &quot;credentials_included&quot;, &quot;entity_identity_changes_with_provider&quot;],
+        {&quot;entity_object_id&quot;: s(), &quot;provider&quot;: {&quot;enum&quot;: [&quot;AWS_S3&quot;,&quot;AZURE_BLOB&quot;,&quot;GOOGLE_CLOUD_STORAGE&quot;,&quot;SNOWFLAKE&quot;,&quot;DATABRICKS&quot;,&quot;POSTGRESQL&quot;,&quot;SQL_SERVER&quot;,&quot;LOCAL_FILESYSTEM&quot;,&quot;HTTP_API&quot;]},
+         &quot;locator&quot;: s(), &quot;content_sha256&quot;: sh(), &quot;provider_is_authority&quot;: b(False),
+         &quot;credentials_included&quot;: b(False), &quot;entity_identity_changes_with_provider&quot;: b(False)}),
+    &quot;standards_mapping&quot;: obj(&quot;entity-v3-standards-mapping-v1&quot;,
+        [&quot;source_standard&quot;, &quot;source_sha256&quot;, &quot;silent_semantic_equivalence&quot;, &quot;external_standard_is_not_entity_authority&quot;],
+        {&quot;source_standard&quot;: {&quot;enum&quot;: [&quot;ODRL&quot;,&quot;W3C_VC&quot;,&quot;DID&quot;,&quot;GAIA_X&quot;,&quot;IDS&quot;]}, &quot;source_sha256&quot;: sh(),
+         &quot;silent_semantic_equivalence&quot;: b(False), &quot;external_standard_is_not_entity_authority&quot;: b(True)}),
+    &quot;credential_evidence&quot;: obj(&quot;entity-v3-external-credential-evidence-v1&quot;,
+        [&quot;source_standard&quot;, &quot;credential_sha256&quot;, &quot;credential_is_evidence_not_entity_authority&quot;],
+        {&quot;source_standard&quot;: {&quot;const&quot;: &quot;W3C_VC&quot;}, &quot;credential_sha256&quot;: sh(),
+         &quot;credential_is_evidence_not_entity_authority&quot;: b(True)}),
+    &quot;resolver_deployment&quot;: obj(&quot;entity-v3-resolver-deployment-v1&quot;,
+        [&quot;mode&quot;, &quot;minimum_resolvers&quot;, &quot;resolver_is_not_authority&quot;, &quot;single_provider_dependency_prohibited&quot;, &quot;fail_closed&quot;],
+        {&quot;mode&quot;: {&quot;const&quot;: &quot;FEDERATED&quot;}, &quot;minimum_resolvers&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 2},
+         &quot;resolver_is_not_authority&quot;: b(True), &quot;single_provider_dependency_prohibited&quot;: b(True), &quot;fail_closed&quot;: b(True)}),
+    &quot;exchange_adoption&quot;: obj(&quot;entity-v3-exchange-adoption-profile-v1&quot;,
+        [&quot;market_engine_preserved&quot;, &quot;rights_are_traded_not_bytes&quot;, &quot;market_lifecycle&quot;],
+        {&quot;market_engine_preserved&quot;: b(True), &quot;rights_are_traded_not_bytes&quot;: b(True), &quot;market_lifecycle&quot;: {&quot;const&quot;: LIFECYCLE}}),
+    &quot;adoption_status&quot;: obj(&quot;entity-v3-adoption-profile-status-v1&quot;,
+        [&quot;core_primitives&quot;, &quot;core_semantics_changed&quot;, &quot;market_engine_preserved&quot;],
+        {&quot;core_primitives&quot;: {&quot;const&quot;: PRIMITIVES}, &quot;core_semantics_changed&quot;: b(False), &quot;market_engine_preserved&quot;: b(True)}),
+    &quot;legal_assertion&quot;: obj(&quot;entity-v3-legal-classification-assertion-v1&quot;,
+        [&quot;asserted_by&quot;, &quot;classification&quot;, &quot;classification_is_assertion_not_protocol_legal_truth&quot;],
+        {&quot;asserted_by&quot;: s(), &quot;classification&quot;: s(), &quot;classification_is_assertion_not_protocol_legal_truth&quot;: b(True)}),
+}
+schema = {&quot;$schema&quot;: &quot;https://json-schema.org/draft/2020-12/schema&quot;,
+          &quot;$id&quot;: &quot;https://entity.invalid/protocol/v3/ENTITY_ADOPTION_LAYER.schema.json&quot;,
+          &quot;title&quot;: &quot;ENTITY v3.2 Adoption Layer Records&quot;,
+          &quot;oneOf&quot;: [{&quot;$ref&quot;: f&quot;#/$defs/{name}&quot;} for name in defs], &quot;$defs&quot;: defs}
+
+valid = {
+    &quot;valid_rights_passport&quot;: {&quot;schema&quot;:&quot;entity-v3-rights-passport-v1&quot;,&quot;core_primitives&quot;:PRIMITIVES,
+        &quot;rights&quot;:[{&quot;effect&quot;:&quot;ALLOW&quot;,&quot;actions&quot;:[&quot;DERIVE&quot;,&quot;TRAIN&quot;]}],
+        &quot;provider_custody_is_not_authority&quot;:True,&quot;underlying_data_not_silently_transferred&quot;:True,
+        &quot;legal_effect_is_deployment_specific&quot;:True},
+    &quot;valid_custody_locator&quot;: {&quot;schema&quot;:&quot;entity-v3-custody-locator-v1&quot;,&quot;entity_object_id&quot;:&quot;obj3-data&quot;,
+        &quot;provider&quot;:&quot;SNOWFLAKE&quot;,&quot;locator&quot;:&quot;DB.SCHEMA.DATA&quot;,&quot;content_sha256&quot;:Z,
+        &quot;provider_is_authority&quot;:False,&quot;credentials_included&quot;:False,&quot;entity_identity_changes_with_provider&quot;:False},
+    &quot;valid_standards_mapping&quot;: {&quot;schema&quot;:&quot;entity-v3-standards-mapping-v1&quot;,&quot;source_standard&quot;:&quot;ODRL&quot;,
+        &quot;source_sha256&quot;:Z,&quot;silent_semantic_equivalence&quot;:False,&quot;external_standard_is_not_entity_authority&quot;:True},
+    &quot;valid_credential_evidence&quot;: {&quot;schema&quot;:&quot;entity-v3-external-credential-evidence-v1&quot;,&quot;source_standard&quot;:&quot;W3C_VC&quot;,
+        &quot;credential_sha256&quot;:Z,&quot;credential_is_evidence_not_entity_authority&quot;:True},
+    &quot;valid_resolver_deployment&quot;: {&quot;schema&quot;:&quot;entity-v3-resolver-deployment-v1&quot;,&quot;mode&quot;:&quot;FEDERATED&quot;,&quot;minimum_resolvers&quot;:2,
+        &quot;resolver_is_not_authority&quot;:True,&quot;single_provider_dependency_prohibited&quot;:True,&quot;fail_closed&quot;:True},
+    &quot;valid_exchange_adoption&quot;: {&quot;schema&quot;:&quot;entity-v3-exchange-adoption-profile-v1&quot;,&quot;market_engine_preserved&quot;:True,
+        &quot;rights_are_traded_not_bytes&quot;:True,&quot;market_lifecycle&quot;:LIFECYCLE},
+    &quot;valid_adoption_status&quot;: {&quot;schema&quot;:&quot;entity-v3-adoption-profile-status-v1&quot;,&quot;core_primitives&quot;:PRIMITIVES,
+        &quot;core_semantics_changed&quot;:False,&quot;market_engine_preserved&quot;:True},
+    &quot;valid_legal_assertion&quot;: {&quot;schema&quot;:&quot;entity-v3-legal-classification-assertion-v1&quot;,&quot;asserted_by&quot;:&quot;ent-gov&quot;,
+        &quot;classification&quot;:&quot;CONTRACTUAL_USAGE_RIGHT&quot;,&quot;classification_is_assertion_not_protocol_legal_truth&quot;:True},
+}
+invalid = {name.replace(&quot;valid_&quot;, &quot;invalid_&quot;): dict(value) for name, value in valid.items()}
+invalid[&quot;invalid_rights_passport&quot;][&quot;core_primitives&quot;] = [&quot;ENTITY&quot;,&quot;RIGHT&quot;,&quot;EVENT&quot;,&quot;VALUE&quot;]
+invalid[&quot;invalid_custody_locator&quot;][&quot;provider_is_authority&quot;] = True
+invalid[&quot;invalid_standards_mapping&quot;][&quot;silent_semantic_equivalence&quot;] = True
+invalid[&quot;invalid_credential_evidence&quot;][&quot;credential_is_evidence_not_entity_authority&quot;] = False
+invalid[&quot;invalid_resolver_deployment&quot;][&quot;minimum_resolvers&quot;] = 1
+invalid[&quot;invalid_exchange_adoption&quot;][&quot;rights_are_traded_not_bytes&quot;] = False
+invalid[&quot;invalid_adoption_status&quot;][&quot;core_semantics_changed&quot;] = True
+invalid[&quot;invalid_legal_assertion&quot;][&quot;classification_is_assertion_not_protocol_legal_truth&quot;] = False
+
+VECTORS.mkdir(parents=True, exist_ok=True)
+SCHEMA_PATH.write_text(json.dumps(schema, indent=2, sort_keys=True) + &quot;\n&quot;, encoding=&quot;utf-8&quot;)
+entries = []
+for name, expectation, record in [(n,&quot;VALID&quot;,r) for n,r in valid.items()] + [(n,&quot;INVALID&quot;,r) for n,r in invalid.items()]:
+    path = VECTORS / f&quot;{name}.json&quot;
+    path.write_text(json.dumps({&quot;expect&quot;:expectation,&quot;record&quot;:record}, indent=2, sort_keys=True) + &quot;\n&quot;, encoding=&quot;utf-8&quot;)
+    entries.append({&quot;file&quot;:path.name,&quot;expect&quot;:expectation,&quot;sha256&quot;:sha(path.read_bytes())})
+entries.sort(key=lambda x: x[&quot;file&quot;])
+manifest = {&quot;schema&quot;:&quot;entity-v3.2-adoption-vector-manifest-v1&quot;,&quot;status&quot;:&quot;DEVELOPMENT&quot;,
+            &quot;schema_file&quot;:SCHEMA_PATH.name,&quot;schema_sha256&quot;:sha(SCHEMA_PATH.read_bytes()),
+            &quot;valid_vectors&quot;:8,&quot;invalid_vectors&quot;:8,&quot;vectors&quot;:entries}
+manifest_path = VECTORS / &quot;VECTOR_MANIFEST.json&quot;
+manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + &quot;\n&quot;, encoding=&quot;utf-8&quot;)
+checksum_targets = [SCHEMA_PATH, manifest_path] + [VECTORS / x[&quot;file&quot;] for x in entries]
+lines = []
+for path in sorted(checksum_targets, key=lambda p: str(p)):
+    rel = path.name if path.parent == VECTORS else f&quot;../{path.name}&quot;
+    lines.append(f&quot;{sha(path.read_bytes())}  {rel}&quot;)
+(VECTORS / &quot;SHA256SUMS.txt&quot;).write_text(&quot;\n&quot;.join(lines) + &quot;\n&quot;, encoding=&quot;utf-8&quot;)
+print(json.dumps({&quot;vectors&quot;:16,&quot;valid&quot;:8,&quot;invalid&quot;:8,&quot;manifest_sha256&quot;:sha(manifest_path.read_bytes())}, indent=2))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

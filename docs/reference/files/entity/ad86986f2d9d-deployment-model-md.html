@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / docs/v3.4/DEPLOYMENT_MODEL.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / docs/v3.4/DEPLOYMENT_MODEL.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>docs/v3.4/DEPLOYMENT_MODEL.md</code></p><p><b>SHA-256:</b> <code>d2183a9768cdc96754eb8d6e24b72735364a514ee6b0f666c54463e2c710771b</code></p><p><b>Bytes:</b> 965</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/docs/v3.4/DEPLOYMENT_MODEL.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY v3.4.0 Deployment Model
+
+The v3.4 adoption path is designed so a developer configures organization-specific facts instead of redesigning ENTITY identity, authority, rights, provenance, evidence or economic semantics.
+
+1. Clone `blackmore-technology-group/ENTITY` and run the reference implementation tests.
+2. Select one or more compatible v3.4 domain packages.
+3. Replace every `CONFIGURE-ME` value with real organization-specific facts.
+4. Bind the deployment to its jurisdiction and authority source.
+5. Connect external systems through mappings/adapters; do not make those systems ENTITY authority by implication.
+6. Ingest governed objects/evidence.
+7. Derive and verify the Global Passport.
+8. Run the package conformance verifier.
+9. Keep production state, keys and backups outside the public repository.
+
+Composable profiles allow one asset or identity to carry multiple contexts where the registered profile parents and constraints are satisfied.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

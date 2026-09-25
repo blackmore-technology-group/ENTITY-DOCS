@@ -1,0 +1,68 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DomainPortabilityManager Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>DomainPortabilityManager</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/portability/canonical_domain_portability.py#L9">ENTITY/src/22_Sovereign_Domain/portability/canonical_domain_portability.py#L9</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Documented sovereign-domain export independent of the source SQLite representation.</p><h2>Source excerpt</h2><pre><code>class DomainPortabilityManager:
+    &quot;&quot;&quot;Documented sovereign-domain export independent of the source SQLite representation.&quot;&quot;&quot;
+    def __init__(self,identity,domain_authority): self.identity=identity; self.domain=domain_authority
+    def export_domain(self,entity_id:str,domain_id:str,destination:str|Path,*,state_refs:dict|None=None,external_dependencies:list|None=None)-&gt;dict:
+        domain=self.domain.get_domain(domain_id)
+        if domain[&#x27;entity_root&#x27;]!=entity_id: raise PermissionError(&#x27;domain controller mismatch&#x27;)
+        snapshot=self.domain.public_snapshot(domain_id); identity_manifest=self.identity.load_manifest(entity_id); now=_now()
+        body={&#x27;schema&#x27;:&#x27;entity-domain-export-manifest-v1&#x27;,&#x27;entity_root&#x27;:entity_id,&#x27;domain_id&#x27;:domain_id,
+              &#x27;domain_snapshot_sha256&#x27;:_sha(snapshot),&#x27;identity_manifest_sha256&#x27;:_sha(identity_manifest),
+              &#x27;schema_versions&#x27;:[&#x27;entity-domain-v1&#x27;,&#x27;entity-name-claim-v1&#x27;,&#x27;entity-node-authorization-v1&#x27;,&#x27;entity-node-revocation-v1&#x27;,&#x27;entity-service-manifest-v1&#x27;],
+              &#x27;cryptographic_algorithms&#x27;:[&#x27;Ed25519&#x27;,&#x27;SHA-256&#x27;],&#x27;state_refs&#x27;:dict(state_refs or {}),
+              &#x27;known_external_dependencies&#x27;:list(external_dependencies or []),&#x27;created_at_ms&#x27;:now,
+              &#x27;proprietary_btg_database_required&#x27;:False,&#x27;dns_required_for_interpretation&#x27;:False}
+        signature=self.identity.sign(entity_id,body)
+        package={&#x27;schema&#x27;:&#x27;entity-domain-export-package-v1&#x27;,&#x27;identity_manifest&#x27;:identity_manifest,&#x27;domain_snapshot&#x27;:snapshot,
+                 &#x27;export_manifest&#x27;:{**body,&#x27;signature&#x27;:signature}}
+        package[&#x27;package_sha256&#x27;]=_sha({k:v for k,v in package.items() if k!=&#x27;package_sha256&#x27;})
+        path=Path(destination); path.parent.mkdir(parents=True,exist_ok=True); path.write_text(json.dumps(package,indent=2,sort_keys=True)+&#x27;\n&#x27;,encoding=&#x27;utf-8&#x27;)
+        return {&#x27;path&#x27;:str(path),&#x27;entity_root&#x27;:entity_id,&#x27;domain_id&#x27;:domain_id,&#x27;package_sha256&#x27;:package[&#x27;package_sha256&#x27;],
+                &#x27;source_database_required&#x27;:False,&#x27;portable_interpretation&#x27;:True}
+    def verify_export(self,path:str|Path)-&gt;dict:
+        package=json.loads(Path(path).read_text(encoding=&#x27;utf-8&#x27;))
+        if package.get(&#x27;schema&#x27;)!=&#x27;entity-domain-export-package-v1&#x27;: return {&#x27;valid&#x27;:False,&#x27;reason&#x27;:&#x27;schema&#x27;}
+        expected=package.get(&#x27;package_sha256&#x27;); material={k:v for k,v in package.items() if k!=&#x27;package_sha256&#x27;}
+        if expected!=_sha(material): return {&#x27;valid&#x27;:False,&#x27;reason&#x27;:&#x27;package_hash&#x27;}
+        manifest=dict(package.get(&#x27;export_manifest&#x27;) or {}); signature=manifest.pop(&#x27;signature&#x27;,None)
+        snapshot=dict(package.get(&#x27;domain_snapshot&#x27;) or {}); identity_manifest=dict(package.get(&#x27;identity_manifest&#x27;) or {})
+        if manifest.get(&#x27;domain_snapshot_sha256&#x27;)!=_sha(snapshot) or manifest.get(&#x27;identity_manifest_sha256&#x27;)!=_sha(identity_manifest):
+            return {&#x27;valid&#x27;:False,&#x27;reason&#x27;:&#x27;manifest_commitment&#x27;}
+        if manifest.get(&#x27;entity_root&#x27;)!=identity_manifest.get(&#x27;entity_id&#x27;) or manifest.get(&#x27;entity_root&#x27;)!=(snapshot.get(&#x27;domain&#x27;) or {}).get(&#x27;entity_root&#x27;):
+            return {&#x27;valid&#x27;:False,&#x27;reason&#x27;:&#x27;root_binding&#x27;}
+        if not self.identity.verify_manifest(identity_manifest): return {&#x27;valid&#x27;:False,&#x27;reason&#x27;:&#x27;identity_manifest&#x27;}
+        if not self.identity.verify_signature(identity_manifest,manifest,signature or {}): return {&#x27;valid&#x27;:False,&#x27;reason&#x27;:&#x27;export_signature&#x27;}
+        return {&#x27;valid&#x27;:True,&#x27;entity_root&#x27;:manifest[&#x27;entity_root&#x27;],&#x27;domain_id&#x27;:manifest[&#x27;domain_id&#x27;],&#x27;package_sha256&#x27;:expected,
+                &#x27;proprietary_database_required&#x27;:False,&#x27;dns_required&#x27;:False}
+
+    def restore_public_state(self,path:str|Path,target_domain)-&gt;dict:
+        check=self.verify_export(path)
+        if not check[&#x27;valid&#x27;]: raise PermissionError(&#x27;domain export verification failed: &#x27;+str(check.get(&#x27;reason&#x27;)))
+        package=json.loads(Path(path).read_text(encoding=&#x27;utf-8&#x27;)); snap=package[&#x27;domain_snapshot&#x27;]; d=snap[&#x27;domain&#x27;]
+        with target_domain._connect() as db:
+            exists=db.execute(&#x27;SELECT 1 FROM domains WHERE domain_id=?&#x27;,(d[&#x27;domain_id&#x27;],)).fetchone()
+            if not exists:
+                db.execute(&#x27;INSERT INTO domains VALUES(?,?,?,?,?,?,?,?)&#x27;,(d[&#x27;domain_id&#x27;],d[&#x27;entity_root&#x27;],d[&#x27;namespace&#x27;],d.get(&#x27;current_name&#x27;),int(d[&#x27;version&#x27;]),d[&#x27;status&#x27;],int(d[&#x27;created_at_ms&#x27;]),int(d.get(&#x27;updated_at_ms&#x27;) or d[&#x27;created_at_ms&#x27;])))
+        claim=snap.get(&#x27;name_claim&#x27;)
+        if claim:
+            with target_domain._connect() as db:
+                if not db.execute(&#x27;SELECT 1 FROM name_claims WHERE claim_id=?&#x27;,(claim[&#x27;claim_id&#x27;],)).fetchone():
+                    db.execute(&#x27;INSERT INTO name_claims VALUES(?,?,?,?,?,?,?,?,?,?)&#x27;,(claim[&#x27;claim_id&#x27;],claim[&#x27;domain_id&#x27;],claim[&#x27;entity_root&#x27;],claim[&#x27;normalized_name&#x27;],claim[&#x27;namespace&#x27;],claim[&#x27;status&#x27;],claim[&#x27;conflict_state&#x27;],json.dumps(claim.get(&#x27;evidence&#x27;) or {},sort_keys=True),json.dumps(claim[&#x27;signature&#x27;],sort_keys=True),int(claim[&#x27;created_at_ms&#x27;])))
+        for node in snap.get(&#x27;nodes&#x27;) or []:
+            with target_domain._connect() as db:
+                if not db.execute(&#x27;SELECT 1 FROM nodes WHERE node_id=?&#x27;,(node[&#x27;node_id&#x27;],)).fetchone():
+                    db.execute(&#x27;INSERT INTO nodes VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&#x27;,(node[&#x27;node_id&#x27;],node[&#x27;domain_id&#x27;],node[&#x27;entity_root&#x27;],node[&#x27;public_key_b64&#x27;],json.dumps(node[&#x27;permitted_services&#x27;]),json.dumps(node[&#x27;network_scopes&#x27;]),json.dumps(node[&#x27;publication_scopes&#x27;]),json.dumps(node[&#x27;data_scopes&#x27;]),int(node[&#x27;not_before_ms&#x27;]),node.get(&#x27;expires_at_ms&#x27;),json.dumps(node.get(&#x27;delegation&#x27;) or {},sort_keys=True),node[&#x27;status&#x27;],int(node[&#x27;auth_version&#x27;]),json.dumps(node[&#x27;signature&#x27;],sort_keys=True),int(node[&#x27;created_at_ms&#x27;]),int(node[&#x27;created_at_ms&#x27;])))
+            rev=node.get(&#x27;revocation&#x27;)
+            if rev:
+                with target_domain._connect() as db:
+                    if not db.execute(&#x27;SELECT 1 FROM revocations WHERE revocation_id=?&#x27;,(rev[&#x27;revocation_id&#x27;],)).fetchone():
+                        db.execute(&#x27;INSERT INTO revocations VALUES(?,?,?,?,?,?,?,?)&#x27;,(rev[&#x27;revocation_id&#x27;],rev[&#x27;domain_id&#x27;],rev[&#x27;node_id&#x27;],rev[&#x27;entity_root&#x27;],rev[&#x27;reason&#x27;],int(rev[&#x27;effective_at_ms&#x27;]),json.dumps(rev[&#x27;signature&#x27;],sort_keys=True),int(rev[&#x27;created_at_ms&#x27;])))
+        for svc in snap.get(&#x27;services&#x27;) or []:
+            with target_domain._connect() as db:
+                if not db.execute(&#x27;SELECT 1 FROM services WHERE service_id=?&#x27;,(svc[&#x27;service_id&#x27;],)).fetchone():
+                    db.execute(&#x27;INSERT INTO services VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&#x27;,(svc[&#x27;service_id&#x27;],svc[&#x27;domain_id&#x27;],svc[&#x27;node_id&#x27;],svc[&#x27;service_type&#x27;],json.dumps(svc[&#x27;endpoint&#x27;],sort_keys=True),svc[&#x27;protocol_version&#x27;],json.dumps(svc[&#x27;capabilities&#x27;]),svc[&#x27;access_class&#x27;],json.dumps(svc[&#x27;required_credentials&#x27;]),json.dumps(svc[&#x27;policy_refs&#x27;]),json.dumps(svc[&#x27;data_classifications&#x27;]),svc.get(&#x27;economic_terms_ref&#x27;),json.dumps(svc.get(&#x27;availability&#x27;) or {},sort_keys=True),int(svc[&#x27;manifest_version&#x27;]),svc.get(&#x27;expires_at_ms&#x27;),svc[&#x27;status&#x27;],json.dumps(svc[&#x27;signature&#x27;],sort_keys=True),int(svc[&#x27;created_at_ms&#x27;]),int(svc[&#x27;created_at_ms&#x27;])))
+        for mig in snap.get(&#x27;migrations&#x27;) or []:
+            with target_domain._connect() as db:
+                if not db.execute(&#x27;SELECT 1 FROM migrations WHERE migration_id=?&#x27;,(mig[&#x27;migration_id&#x27;],)).fetchone():
+                    db.execute(&#x27;INSERT INTO migrations VALUES(?,?,?,?,?,?,?,?,?,?)&#x27;,(mig[&#x27;migration_id&#x27;],mig[&#x27;domain_id&#x27;],mig.get(&#x27;from_node&#x27;),mig.get(&#x27;to_node&#x27;),mig.get(&#x27;from_provider&#x27;),mig.get(&#x27;to_provider&#x27;),mig[&#x27;semantic_hash_before&#x27;],mig[&#x27;semantic_hash_after&#x27;],json.dumps(mig[&#x27;signature&#x27;],sort_keys=True),int(mig[&#x27;created_at_ms&#x27;])))
+        return {&#x27;restored&#x27;:True,&#x27;entity_root&#x27;:d[&#x27;entity_root&#x27;],&#x27;domain_id&#x27;:d[&#x27;domain_id&#x27;],&#x27;same_identity&#x27;:True,
+                &#x27;same_domain&#x27;:True,&#x27;proprietary_database_required_for_export_interpretation&#x27;:False}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

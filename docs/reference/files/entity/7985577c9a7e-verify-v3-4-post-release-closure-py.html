@@ -1,0 +1,36 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/verify_v3_4_post_release_closure.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/verify_v3_4_post_release_closure.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/verify_v3_4_post_release_closure.py</code></p><p><b>SHA-256:</b> <code>eeb399a4123d8f0e52daa39c63b63e33788ca967fdb7049da587781573354077</code></p><p><b>Bytes:</b> 3,347</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/verify_v3_4_post_release_closure.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/sha-5aa3b8a34dd2.html">sha</a></li><li><a href="../../../reference/symbols/entity/main-6699001ec353.html">main</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json, pathlib, sys
+
+ROOT=pathlib.Path(__file__).resolve().parents[1]
+REPORT=ROOT/&quot;docs/qualification/ENTITY_V3_4_0_POST_RELEASE_RECURSIVE_CLOSURE_2026-09-24.json&quot;
+CATALOG=ROOT/&quot;docs/qualification/ENTITY_V3_4_0_POST_RELEASE_RECURSIVE_CLOSURE_CATALOG_2026-09-24.json&quot;
+EXPECTED_COMMIT=&quot;2db5bff64507b8d67642122a5ff2fc73dfef9152&quot;
+EXPECTED_ROOT=&quot;4feb51a4bd0d958b7beb3eddbe9fd78678b7c31c2a4fe3d6cf7d9f4d87aa6e06&quot;
+
+def sha(data:bytes)-&gt;str: return hashlib.sha256(data).hexdigest()
+
+def main():
+    report=json.loads(REPORT.read_text(encoding=&quot;utf-8&quot;)); catalog=json.loads(CATALOG.read_text(encoding=&quot;utf-8&quot;)); errors=[]
+    if report.get(&quot;status&quot;)!=&quot;PASS&quot; or report.get(&quot;target&quot;,{}).get(&quot;commit&quot;)!=EXPECTED_COMMIT: errors.append(&quot;target&quot;)
+    roots=report.get(&quot;roots&quot;,{})
+    if roots.get(&quot;frozen_constituent_root_sha256&quot;)!=EXPECTED_ROOT or roots.get(&quot;entity_ingested_constituent_root_sha256&quot;)!=EXPECTED_ROOT: errors.append(&quot;constituent_root&quot;)
+    records=list(catalog.get(&quot;records&quot;) or []); constituents=[r for r in records if r.get(&quot;category&quot;)!=&quot;closure_anchor&quot;]
+    material=&quot;\n&quot;.join(f&quot;{r[&#x27;content_sha256&#x27;]}  {r[&#x27;logical_path&#x27;]}&quot; for r in constituents).encode()
+    if len(records)!=1041 or len(constituents)!=1040 or sha(material)!=EXPECTED_ROOT: errors.append(&quot;catalog&quot;)
+    if len({r[&quot;logical_path&quot;] for r in records})!=len(records): errors.append(&quot;duplicate_paths&quot;)
+    cov=report.get(&quot;coverage&quot;,{}); counts=report.get(&quot;entity_native_records&quot;,{}); recovery=report.get(&quot;destructive_recovery&quot;,{})
+    if cov.get(&quot;constituents&quot;)!=1040 or cov.get(&quot;total_ingested_objects&quot;)!=1041: errors.append(&quot;coverage&quot;)
+    for key in (&quot;objects&quot;,&quot;rights&quot;,&quot;values&quot;,&quot;evidence_objects&quot;,&quot;rights_passports&quot;,&quot;global_passports&quot;):
+        if counts.get(key)!=1041: errors.append(&quot;count_&quot;+key)
+    if counts.get(&quot;provenance_edges&quot;)!=1040: errors.append(&quot;count_provenance&quot;)
+    if not all(recovery.get(k) is True for k in (&quot;performed&quot;,&quot;identical_state_tree&quot;,&quot;identical_sqlite_semantics&quot;,&quot;identical_content_vault&quot;,&quot;all_objects_evidence_rights_passports_global_passports_and_vault_bytes_reverified&quot;)): errors.append(&quot;recovery&quot;)
+    if roots.get(&quot;state_tree_before_destruction&quot;)!=roots.get(&quot;state_tree_after_recovery&quot;): errors.append(&quot;state_root&quot;)
+    if roots.get(&quot;sqlite_semantic_before_destruction&quot;)!=roots.get(&quot;sqlite_semantic_after_recovery&quot;): errors.append(&quot;semantic_root&quot;)
+    if roots.get(&quot;content_vault_before_destruction&quot;)!=roots.get(&quot;content_vault_after_recovery&quot;): errors.append(&quot;vault_root&quot;)
+    boundary=report.get(&quot;claim_boundary&quot;,{})
+    if boundary.get(&quot;btg_controlled_evidence_is_not_independent_third_party_validation&quot;) is not True: errors.append(&quot;claim_boundary&quot;)
+    if any(boundary.get(k) is True for k in (&quot;objective_external_truth_claimed&quot;,&quot;legal_or_regulatory_compliance_claimed&quot;,&quot;independent_security_review_claimed&quot;,&quot;market_adoption_or_liquidity_claimed&quot;,&quot;accounting_fair_value_claimed&quot;,&quot;custody_is_authority&quot;,&quot;economic_value_invented&quot;)): errors.append(&quot;overclaim&quot;)
+    result={&quot;valid&quot;:not errors,&quot;errors&quot;:errors,&quot;records&quot;:len(records),&quot;constituents&quot;:len(constituents),&quot;constituent_root_sha256&quot;:sha(material),&quot;target_commit&quot;:report.get(&quot;target&quot;,{}).get(&quot;commit&quot;)}
+    print(json.dumps(result,indent=2,sort_keys=True)); return 0 if not errors else 2
+
+if __name__==&quot;__main__&quot;: raise SystemExit(main())</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

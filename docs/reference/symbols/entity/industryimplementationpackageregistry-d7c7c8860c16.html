@@ -1,0 +1,48 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IndustryImplementationPackageRegistry Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>IndustryImplementationPackageRegistry</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/39_Implementation_Packages/industry_packages.py#L90">ENTITY/src/39_Implementation_Packages/industry_packages.py#L90</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Executable industry package semantics layered on the one ENTITY Global Passport.</p><h2>Source excerpt</h2><pre><code>class IndustryImplementationPackageRegistry:
+    &quot;&quot;&quot;Executable industry package semantics layered on the one ENTITY Global Passport.&quot;&quot;&quot;
+    def list_packages(self)-&gt;list[str]: return sorted(PACKAGE_SPECS)
+    def get(self,name:str)-&gt;dict:
+        key=str(name).lower()
+        if key not in PACKAGE_SPECS: raise KeyError(&quot;industry package missing&quot;)
+        spec=deepcopy(PACKAGE_SPECS[key]); spec[&quot;name&quot;]=key; spec[&quot;version&quot;]=PACKAGE_VERSION
+        spec[&quot;package_sha256&quot;]=_sha(spec); spec.update(COMMON_DEFAULTS)
+        return spec
+
+    def validate_configuration(self,name:str,config:dict)-&gt;dict:
+        spec=self.get(name); cfg=dict(config or {})
+        missing=[k for k in spec[&quot;required_config&quot;] if not str(cfg.get(k) or &quot;&quot;).strip()]
+        if missing: raise ValueError(&quot;missing configuration: &quot;+&quot;,&quot;.join(missing))
+        if name==&quot;defence-public&quot; and str(cfg.get(&quot;classification&quot;,&quot;&quot;)).upper() not in {&quot;&quot;,&quot;PUBLIC&quot;,&quot;UNCLASSIFIED&quot;}:
+            raise ValueError(&quot;defence-public package cannot ingest classified material&quot;)
+        return {&quot;valid&quot;:True,&quot;package&quot;:name,&quot;configuration_sha256&quot;:_sha(cfg),&quot;profile_refs&quot;:spec[&quot;profile_refs&quot;],
+                &quot;configuration_does_not_create_authority&quot;:True,&quot;legal_compliance_not_implied&quot;:True}
+    def template(self,name:str,asset_kind:str)-&gt;dict:
+        spec=self.get(name); kind=str(asset_kind)
+        if kind not in spec[&quot;object_types&quot;]: raise ValueError(&quot;unsupported package asset kind&quot;)
+        return {&quot;schema&quot;:&quot;entity-v3-industry-asset-template-v1&quot;,&quot;package&quot;:name,&quot;package_version&quot;:spec[&quot;version&quot;],
+                &quot;asset_kind&quot;:kind,&quot;object_type&quot;:spec[&quot;object_types&quot;][kind],&quot;profile_refs&quot;:spec[&quot;profile_refs&quot;],
+                &quot;default_right_actions&quot;:spec[&quot;rights&quot;],&quot;required_evidence_types&quot;:spec[&quot;evidence_types&quot;],
+                &quot;privacy_defaults&quot;:spec[&quot;privacy&quot;],&quot;economic_value_invented&quot;:False,&quot;profile_is_not_authority&quot;:True}
+
+    def map_external(self,name:str,standard:str,record:dict)-&gt;dict:
+        spec=self.get(name); mapping=next((m for m in spec[&quot;mappings&quot;] if m[&quot;standard&quot;].upper()==str(standard).upper()),None)
+        if not mapping: raise ValueError(&quot;standard mapping unavailable&quot;)
+        source=dict(record or {}); descriptor={}
+        for external,target in mapping[&quot;field_map&quot;].items():
+            current:Any=source
+            for part in external.split(&quot;.&quot;):
+                if not isinstance(current,dict) or part not in current: current=None; break
+                current=current[part]
+            if current is not None: descriptor[target.removeprefix(&quot;descriptor.&quot;)]=current
+        return {&quot;schema&quot;:&quot;entity-v3-industry-mapping-result-v1&quot;,&quot;package&quot;:name,&quot;standard&quot;:mapping[&quot;standard&quot;],
+                &quot;mapping_version&quot;:mapping[&quot;mapping_version&quot;],&quot;descriptor&quot;:descriptor,&quot;source_sha256&quot;:_sha(source),
+                &quot;normative_equivalence_claimed&quot;:False,&quot;external_standard_not_redefined&quot;:True}
+
+    def deployment_plan(self,name:str,config:dict,asset_kind:str)-&gt;dict:
+        validated=self.validate_configuration(name,config); template=self.template(name,asset_kind); spec=self.get(name)
+        return {&quot;schema&quot;:&quot;entity-v3-industry-deployment-plan-v1&quot;,&quot;package&quot;:name,&quot;package_version&quot;:spec[&quot;version&quot;],
+                &quot;configuration_sha256&quot;:validated[&quot;configuration_sha256&quot;],&quot;profile_refs&quot;:template[&quot;profile_refs&quot;],
+                &quot;object_type&quot;:template[&quot;object_type&quot;],&quot;rights_actions&quot;:template[&quot;default_right_actions&quot;],
+                &quot;evidence_types&quot;:template[&quot;required_evidence_types&quot;],&quot;privacy&quot;:template[&quot;privacy_defaults&quot;],
+                &quot;steps&quot;:[&quot;validate_configuration&quot;,&quot;connect_source&quot;,&quot;ingest_content&quot;,&quot;issue_evidence&quot;,&quot;issue_rights_passport&quot;,&quot;issue_global_passport&quot;,&quot;verify_passport&quot;,&quot;run_conformance&quot;],
+                &quot;developer_configures_not_redesigns&quot;:True,&quot;core_semantics_changed&quot;:False,&quot;legal_compliance_not_implied&quot;:True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

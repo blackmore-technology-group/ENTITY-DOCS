@@ -1,0 +1,48 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / START_HERE.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / START_HERE.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>START_HERE.md</code></p><p><b>SHA-256:</b> <code>ec72055fdf1fe2d2a7a02e3a0041abf09d48026c2df3aa37036d3818a0a956cb</code></p><p><b>Bytes:</b> 2,245</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/START_HERE.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># Start Here
+
+ENTITY is a provider-independent authority, rights, evidence and economic-state protocol built around five primitives:
+
+**ENTITY · AUTHORITY · RIGHT · EVENT · VALUE**
+
+&gt; Infrastructure possession does not become sovereign authority.
+
+## Understand the current release
+
+**ENTITY v3.4.0 — Global Passport &amp; Continuous Provenance** is the current protected release. It retains the v3.3 evidence/truth boundaries and adds one universal Global Passport with composable jurisdiction, industry, privacy, trust and technical profiles.
+
+Read in this order:
+
+1. [README](README.md)
+2. [v3.4.0 portal](docs/v3.4/README.md)
+3. [Global Passport architecture](docs/v3.4/GLOBAL_PASSPORT.md)
+4. [Six domain packages](docs/v3.4/DOMAIN_PACKAGES.md)
+5. [Engineering Evidence](docs/ENGINEERING_EVIDENCE.md)
+6. [Sovereign Authority Doctrine](docs/architecture/ADR-0004-SOVEREIGN-AUTHORITY-DOCTRINE.md)
+
+## Run ENTITY
+
+```bash
+git clone https://github.com/blackmore-technology-group/ENTITY.git
+cd ENTITY
+python -m pip install -r requirements.txt
+python -m compileall -q src sdk protocol
+python -m unittest discover -s tests -v
+```
+
+For v3.4.0 inspect `src/38_Global_Passports/`, `src/39_Implementation_Packages/`, `profiles/registry.json`, `protocol/v3/ENTITY_GLOBAL_PASSPORT.schema.json`, `sdk/global_passport_sdk/` and `tests/test_v3_global_passports.py`.
+
+## Deploy a domain package
+
+Choose Healthcare, Finance, Manufacturing, AI, Robotics or Defence/Public-Unclassified from [Domain Packages](docs/v3.4/DOMAIN_PACKAGES.md), configure organization-specific facts, connect governed systems/data, ingest, verify the passport and run package conformance.
+
+## Independent implementation
+
+Use the [Interoperability Challenge](docs/INTEROPERABILITY_CHALLENGE.md). BTG-controlled implementations are reproducibility baselines, not independent external validation.
+
+## Evaluate the engineering
+
+Start with [Engineering Evidence](docs/ENGINEERING_EVIDENCE.md) and the [v3.4 post-release closure](docs/v3.4/RECURSIVE_CLOSURE.md).
+
+## Found a problem?
+
+Security-sensitive findings belong in private vulnerability reporting. Specification ambiguities and reproducible bugs belong in issues with the exact version/commit, expected result and actual result.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

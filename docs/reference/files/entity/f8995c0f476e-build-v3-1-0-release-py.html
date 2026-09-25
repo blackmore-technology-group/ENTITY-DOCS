@@ -1,0 +1,74 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/build_v3_1_0_release.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/build_v3_1_0_release.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/build_v3_1_0_release.py</code></p><p><b>SHA-256:</b> <code>87dfa01922c4f04c1b08feb36cd9896aecbaa522b4bbd3f0b090fb5b4c9c7c93</code></p><p><b>Bytes:</b> 3,857</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/build_v3_1_0_release.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/sha-8bef42eacb9b.html">sha</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json, pathlib
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+base_manifest_path = ROOT / &#x27;ENTITY_V3_0_1_RELEASE_MANIFEST.json&#x27;
+base_manifest = json.loads(base_manifest_path.read_text(encoding=&#x27;utf-8-sig&#x27;))
+files = {x[&#x27;path&#x27;] for x in base_manifest[&#x27;files&#x27;]}
+files.add(&#x27;ENTITY_V3_0_1_RELEASE_MANIFEST.json&#x27;)
+overlay = {
+    &#x27;ENTITY_V3_GLOBAL_INFRASTRUCTURE_MANIFEST.json&#x27;,
+    &#x27;RELEASE_NOTES_v3.1.0.md&#x27;,
+    &#x27;docs/qualification/ENTITY_V3_1_0_RELEASE_QUALIFICATION_2026-09-24.json&#x27;,
+    &#x27;docs/qualification/ENTITY_V3_1_0_RELEASE_QUALIFICATION_2026-09-24.md&#x27;,
+    &#x27;src/35_Global_Infrastructure/institutional_semantics.py&#x27;,
+    &#x27;src/35_Global_Infrastructure/privacy_provenance.py&#x27;,
+    &#x27;src/35_Global_Infrastructure/topology_crypto.py&#x27;,
+    &#x27;src/35_Global_Infrastructure/data_economic_sovereignty.py&#x27;,
+    &#x27;protocol/v3/ENTITY_GLOBAL_INFRASTRUCTURE_PROFILE.md&#x27;,
+    &#x27;protocol/v3/ENTITY_GLOBAL_INFRASTRUCTURE_GAP_CLOSURE.md&#x27;,
+    &#x27;protocol/v3/ENTITY_GLOBAL_INFRASTRUCTURE.schema.json&#x27;,
+    &#x27;protocol/v3/ENTITY_DATA_ECONOMIC_SOVEREIGNTY_DOCTRINE.md&#x27;,
+    &#x27;protocol/v3/ENTITY_GLOBAL_CLEANROOM_PROFILE.json&#x27;,
+}
+files.update(overlay)
+files.update({
+    &#x27;tests/test_v3_global_infrastructure.py&#x27;,
+    &#x27;tests/test_v3_global_conformance.py&#x27;,
+    &#x27;tests/test_v3_data_economic_sovereignty.py&#x27;,
+    &#x27;tools/build_v3_global_conformance.py&#x27;,
+    &#x27;tools/build_v3_global_cleanroom_profile.py&#x27;,
+    &#x27;tools/seal_v3_global_infrastructure.py&#x27;,
+    &#x27;tools/verify_v3_global_infrastructure_manifest.py&#x27;,
+    &#x27;tools/build_v3_1_0_release.py&#x27;,
+    &#x27;tools/verify_v3_1_0_release_manifest.py&#x27;,
+    &#x27;tools/run_v3_1_0_release_gate.ps1&#x27;,
+})
+vector_dir = ROOT / &#x27;protocol&#x27; / &#x27;v3&#x27; / &#x27;global_vectors&#x27;
+for path in vector_dir.glob(&#x27;*&#x27;):
+    if path.is_file():
+        files.add(path.relative_to(ROOT).as_posix())
+missing = [rel for rel in sorted(files) if not (ROOT / rel).is_file()]
+if missing:
+    raise SystemExit(&#x27;missing release-critical files: &#x27; + &#x27;, &#x27;.join(missing))
+def sha(path: pathlib.Path) -&gt; str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+entries = [{&#x27;path&#x27;: rel, &#x27;sha256&#x27;: sha(ROOT / rel)} for rel in sorted(files)]
+material = &#x27;\n&#x27;.join(f&quot;{x[&#x27;path&#x27;]}|{x[&#x27;sha256&#x27;]}&quot; for x in entries).encode()
+feature = json.loads((ROOT / &#x27;ENTITY_V3_GLOBAL_INFRASTRUCTURE_MANIFEST.json&#x27;).read_text(encoding=&#x27;utf-8-sig&#x27;))
+qualification = json.loads((ROOT / &#x27;docs/qualification/ENTITY_V3_1_0_RELEASE_QUALIFICATION_2026-09-24.json&#x27;).read_text(encoding=&#x27;utf-8-sig&#x27;))
+manifest = {
+    &#x27;schema&#x27;: &#x27;entity-v3-1-0-release-manifest-v1&#x27;,
+    &#x27;version&#x27;: &#x27;3.1.0&#x27;,
+    &#x27;status&#x27;: &#x27;BTG_INTERNAL_QUALIFIED_FEATURE_RELEASE&#x27;,
+    &#x27;release_date&#x27;: &#x27;2026-09-24&#x27;,
+    &#x27;repository&#x27;: &#x27;blackmore-technology-group/ENTITY&#x27;,
+    &#x27;supersedes&#x27;: &#x27;v3.0.1&#x27;,
+    &#x27;base_commit&#x27;: &#x27;a977b013cb29504f04953c4fce33d2372e91097b&#x27;,
+    &#x27;base_release_manifest_sha256&#x27;: sha(base_manifest_path),
+    &#x27;base_release_snapshot_sha256&#x27;: base_manifest[&#x27;release_snapshot_sha256&#x27;],
+    &#x27;feature_manifest_snapshot_sha256&#x27;: feature[&#x27;snapshot_sha256&#x27;],
+    &#x27;qualification&#x27;: qualification,
+    &#x27;external_remaining&#x27;: qualification[&#x27;external_remaining&#x27;],
+    &#x27;permanent_truth_boundaries&#x27;: qualification[&#x27;permanent_truth_boundaries&#x27;],
+    &#x27;files&#x27;: entries,
+    &#x27;release_snapshot_sha256&#x27;: hashlib.sha256(material).hexdigest(),
+}
+out = ROOT / &#x27;ENTITY_V3_1_0_RELEASE_MANIFEST.json&#x27;
+out.write_text(json.dumps(manifest, indent=2, sort_keys=True) + &#x27;\n&#x27;, encoding=&#x27;utf-8&#x27;)
+print(json.dumps({
+    &#x27;version&#x27;: manifest[&#x27;version&#x27;], &#x27;status&#x27;: manifest[&#x27;status&#x27;],
+    &#x27;files&#x27;: len(entries), &#x27;release_snapshot_sha256&#x27;: manifest[&#x27;release_snapshot_sha256&#x27;],
+    &#x27;base_release_snapshot_sha256&#x27;: manifest[&#x27;base_release_snapshot_sha256&#x27;],
+    &#x27;feature_manifest_snapshot_sha256&#x27;: manifest[&#x27;feature_manifest_snapshot_sha256&#x27;],
+}, indent=2))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

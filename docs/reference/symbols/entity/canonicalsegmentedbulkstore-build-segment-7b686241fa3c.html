@@ -1,0 +1,34 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CanonicalSegmentedBulkStore._build_segment Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>CanonicalSegmentedBulkStore._build_segment</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/04_Entity_Registry/bulk_ingest/canonical_segmented_bulk_ingest.py#L79">ENTITY/src/04_Entity_Registry/bulk_ingest/canonical_segmented_bulk_ingest.py#L79</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>CanonicalSegmentedBulkStore._build_segment(self, records: Iterable[dict], batch_id: str, start_prior: str, created_at_ms: int, temp_path: Path)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def _build_segment(self,records:Iterable[dict],batch_id:str,start_prior:str,created_at_ms:int,temp_path:Path):
+        if temp_path.exists(): temp_path.unlink()
+        db=sqlite3.connect(temp_path,timeout=120)
+        try:
+            db.execute(&quot;PRAGMA journal_mode=OFF&quot;); db.execute(&quot;PRAGMA synchronous=OFF&quot;); db.execute(&quot;PRAGMA temp_store=MEMORY&quot;)
+            db.execute(&quot;CREATE TABLE assets(asset_ordinal INTEGER PRIMARY KEY,asset_id TEXT UNIQUE NOT NULL,controller_entity_id TEXT NOT NULL,content_sha256 TEXT NOT NULL,size_bytes INTEGER NOT NULL,media_type TEXT NOT NULL,title TEXT NOT NULL,classification TEXT NOT NULL,metadata_sha256 TEXT NOT NULL,record_sha256 TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE events(local_sequence INTEGER PRIMARY KEY,event_id TEXT UNIQUE NOT NULL,event_type TEXT NOT NULL,actor_entity_id TEXT NOT NULL,asset_id TEXT NOT NULL,payload_sha256 TEXT NOT NULL,prior_hash TEXT NOT NULL,event_hash TEXT NOT NULL,timestamp_ms INTEGER NOT NULL)&quot;)
+            asset_rows=[]; event_rows=[]; leaves=[]; prior=start_prior
+            for ordinal,item in enumerate(records):
+                digest=self._valid_digest(item.get(&quot;content_sha256&quot;)); metadata=dict(item.get(&quot;metadata&quot;) or {})
+                asset_id=f&quot;assets1-{batch_id}-{ordinal:05d}-{digest[:16]}&quot;
+                body={&quot;schema&quot;:&quot;entity-segmented-asset-v1&quot;,&quot;asset_id&quot;:asset_id,&quot;controller_entity_id&quot;:self.controller_entity_id,&quot;content_sha256&quot;:digest,&quot;size_bytes&quot;:max(0,int(item.get(&quot;size_bytes&quot;) or 0)),&quot;media_type&quot;:str(item.get(&quot;media_type&quot;) or &quot;application/octet-stream&quot;)[:128],&quot;title&quot;:str(item.get(&quot;title&quot;) or &quot;&quot;)[:512],&quot;classification&quot;:str(item.get(&quot;classification&quot;) or &quot;PRIVATE&quot;).upper()[:32],&quot;metadata_sha256&quot;:_sha(metadata),&quot;created_at_ms&quot;:created_at_ms,&quot;registration_not_ownership&quot;:True}
+                record_sha=_sha(body); leaves.append(record_sha)
+                asset_rows.append((ordinal,asset_id,self.controller_entity_id,digest,body[&quot;size_bytes&quot;],body[&quot;media_type&quot;],body[&quot;title&quot;],body[&quot;classification&quot;],body[&quot;metadata_sha256&quot;],record_sha,created_at_ms))
+                for suffix,event_type,payload in (
+                    (&quot;r&quot;,&quot;asset.registered&quot;,{&quot;asset_id&quot;:asset_id,&quot;content_sha256&quot;:digest,&quot;registration_not_ownership&quot;:True}),
+                    (&quot;p&quot;,&quot;provenance.recorded&quot;,{&quot;asset_id&quot;:asset_id,&quot;content_sha256&quot;:digest,&quot;truth_not_inferred&quot;:True}),
+                    (&quot;c&quot;,&quot;controller.claimed&quot;,{&quot;asset_id&quot;:asset_id,&quot;right_type&quot;:&quot;DATA_CONTROLLER&quot;,&quot;legal_truth_not_inferred&quot;:True}),
+                ):
+                    event_id=f&quot;evts1-{batch_id}-{ordinal:05d}-{suffix}&quot;
+                    payload_sha=_sha(payload)
+                    ev_body={&quot;schema&quot;:&quot;ENTITY-SEGMENT-EVENT-v1&quot;,&quot;event_id&quot;:event_id,&quot;event_type&quot;:event_type,&quot;actor_entity_id&quot;:self.controller_entity_id,&quot;asset_id&quot;:asset_id,&quot;payload_sha256&quot;:payload_sha,&quot;prior_hash&quot;:prior,&quot;batch_id&quot;:batch_id,&quot;timestamp_ms&quot;:created_at_ms}
+                    event_hash=_sha(ev_body)
+                    event_rows.append((len(event_rows)+1,event_id,event_type,self.controller_entity_id,asset_id,payload_sha,prior,event_hash,created_at_ms))
+                    prior=event_hash
+            if not asset_rows: raise ValueError(&quot;segment batch must contain at least one asset&quot;)
+            db.execute(&quot;BEGIN&quot;)
+            db.executemany(&quot;INSERT INTO assets VALUES(?,?,?,?,?,?,?,?,?,?,?)&quot;,asset_rows)
+            db.executemany(&quot;INSERT INTO events VALUES(?,?,?,?,?,?,?,?,?)&quot;,event_rows)
+            db.commit()
+            db.execute(&quot;PRAGMA optimize&quot;)
+            return {&quot;asset_count&quot;:len(asset_rows),&quot;event_count&quot;:len(event_rows),&quot;asset_merkle_root&quot;:_merkle(leaves),&quot;end_event_hash&quot;:prior}
+        finally:
+            db.close()</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,142 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CryptoSuiteMigration Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>CryptoSuiteMigration</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/topology_crypto.py#L217">ENTITY/src/35_Global_Infrastructure/topology_crypto.py#L217</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Algorithm-agility policy with explicit dual-sign transition and downgrade resistance.</p><h2>Source excerpt</h2><pre><code>class CryptoSuiteMigration:
+    &quot;&quot;&quot;Algorithm-agility policy with explicit dual-sign transition and downgrade resistance.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_crypto_migration.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        self._verifiers: dict[str, Callable[[bytes, Any], bool]] = {}
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS suites(
+                suite_id TEXT PRIMARY KEY, governance_entity_id TEXT NOT NULL,
+                algorithm TEXT NOT NULL, security_bits INTEGER NOT NULL,
+                verifier_sha256 TEXT NOT NULL, not_before_ms INTEGER NOT NULL,
+                deprecate_at_ms INTEGER, retire_at_ms INTEGER,
+                status TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+                signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS transitions(
+                transition_id TEXT PRIMARY KEY, governance_entity_id TEXT NOT NULL,
+                old_suite_id TEXT NOT NULL, new_suite_id TEXT NOT NULL,
+                dual_sign_from_ms INTEGER NOT NULL, old_retire_at_ms INTEGER NOT NULL,
+                created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+
+    def register_suite(self, governance_entity: str, suite_id: str, algorithm: str,
+                       security_bits: int, verifier_sha256: str, *, not_before_ms: int,
+                       deprecate_at_ms: int | None = None, retire_at_ms: int | None = None) -&gt; dict:
+        suite_id = suite_id.upper(); verifier_sha256 = sha256_hex(verifier_sha256)
+        security_bits = int(security_bits); start = int(not_before_ms)
+        dep = None if deprecate_at_ms is None else int(deprecate_at_ms)
+        ret = None if retire_at_ms is None else int(retire_at_ms)
+        if security_bits &lt; 64:
+            raise ValueError(&quot;security_bits below policy floor&quot;)
+        if dep is not None and dep &lt;= start:
+            raise ValueError(&quot;deprecation must follow activation&quot;)
+        if ret is not None and (dep is None or ret &lt;= dep):
+            raise ValueError(&quot;retirement must follow deprecation&quot;)
+        body = {&quot;schema&quot;: &quot;entity-v3-crypto-suite-v1&quot;, &quot;suite_id&quot;: suite_id,
+                &quot;governance_entity_id&quot;: governance_entity, &quot;algorithm&quot;: str(algorithm),
+                &quot;security_bits&quot;: security_bits, &quot;verifier_sha256&quot;: verifier_sha256,
+                &quot;not_before_ms&quot;: start, &quot;deprecate_at_ms&quot;: dep, &quot;retire_at_ms&quot;: ret,
+                &quot;status&quot;: &quot;ACTIVE&quot;, &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(governance_entity, body)
+        with sqlite3.connect(self.path) as db:
+            old = db.execute(&quot;SELECT algorithm,security_bits,verifier_sha256,not_before_ms,deprecate_at_ms,retire_at_ms FROM suites WHERE suite_id=?&quot;,
+                             (suite_id,)).fetchone()
+            expected = (str(algorithm), security_bits, verifier_sha256, start, dep, ret)
+            if old:
+                if tuple(old) != expected:
+                    raise ValueError(&quot;immutable crypto suite definition changed&quot;)
+                return dict(body, signature=sig, existing=True)
+            db.execute(&quot;INSERT INTO suites VALUES(?,?,?,?,?,?,?,?,?,?,?)&quot;, (
+                suite_id, governance_entity, str(algorithm), security_bits, verifier_sha256,
+                start, dep, ret, &quot;ACTIVE&quot;, body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig, existing=False)
+
+    def bind_verifier(self, suite_id: str, verifier_sha256: str,
+                      callback: Callable[[bytes, Any], bool]) -&gt; None:
+        suite_id = suite_id.upper(); verifier_sha256 = sha256_hex(verifier_sha256)
+        with sqlite3.connect(self.path) as db:
+            row = db.execute(&quot;SELECT verifier_sha256 FROM suites WHERE suite_id=?&quot;, (suite_id,)).fetchone()
+        if not row or row[0] != verifier_sha256:
+            raise PermissionError(&quot;crypto verifier hash mismatch&quot;)
+        self._verifiers[suite_id] = callback
+
+    def register_transition(self, governance_entity: str, old_suite_id: str, new_suite_id: str,
+                            *, dual_sign_from_ms: int, old_retire_at_ms: int) -&gt; dict:
+        old_suite_id, new_suite_id = old_suite_id.upper(), new_suite_id.upper()
+        if old_suite_id == new_suite_id:
+            raise ValueError(&quot;crypto transition requires distinct suites&quot;)
+        with sqlite3.connect(self.path) as db:
+            rows = db.execute(&quot;SELECT suite_id FROM suites WHERE suite_id IN (?,?)&quot;,
+                              (old_suite_id, new_suite_id)).fetchall()
+        if {r[0] for r in rows} != {old_suite_id, new_suite_id}:
+            raise KeyError(&quot;crypto transition suite missing&quot;)
+        start, retire = int(dual_sign_from_ms), int(old_retire_at_ms)
+        if retire &lt;= start:
+            raise ValueError(&quot;retirement must follow dual-sign transition&quot;)
+        transition_id = &quot;cryptotransition3-&quot; + digest({&quot;old&quot;: old_suite_id, &quot;new&quot;: new_suite_id,
+                                                       &quot;start&quot;: start, &quot;retire&quot;: retire})[:24]
+        body = {&quot;schema&quot;: &quot;entity-v3-crypto-transition-v1&quot;, &quot;transition_id&quot;: transition_id,
+                &quot;governance_entity_id&quot;: governance_entity, &quot;old_suite_id&quot;: old_suite_id,
+                &quot;new_suite_id&quot;: new_suite_id, &quot;dual_sign_from_ms&quot;: start,
+                &quot;old_retire_at_ms&quot;: retire, &quot;created_at_ms&quot;: now_ms(),
+                &quot;downgrade_after_transition_prohibited&quot;: True}
+        sig = self.identity.sign(governance_entity, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT OR REPLACE INTO transitions VALUES(?,?,?,?,?,?,?,?)&quot;, (
+                transition_id, governance_entity, old_suite_id, new_suite_id, start,
+                retire, body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)
+
+    def suite_state(self, suite_id: str, *, at_ms: int | None = None) -&gt; str:
+        at = int(at_ms or now_ms()); suite_id = suite_id.upper()
+        with sqlite3.connect(self.path) as db:
+            row = db.execute(&quot;SELECT not_before_ms,deprecate_at_ms,retire_at_ms FROM suites WHERE suite_id=?&quot;,
+                             (suite_id,)).fetchone()
+        if not row:
+            raise KeyError(&quot;crypto suite missing&quot;)
+        start, dep, ret = int(row[0]), row[1], row[2]
+        if at &lt; start:
+            return &quot;NOT_YET_ACTIVE&quot;
+        if ret is not None and at &gt;= int(ret):
+            return &quot;RETIRED&quot;
+        if dep is not None and at &gt;= int(dep):
+            return &quot;DEPRECATED&quot;
+        return &quot;ACTIVE&quot;
+
+    def required_suites(self, old_suite_id: str, new_suite_id: str, *, at_ms: int) -&gt; list[str]:
+        old_suite_id, new_suite_id = old_suite_id.upper(), new_suite_id.upper()
+        with sqlite3.connect(self.path) as db:
+            row = db.execute(&quot;SELECT dual_sign_from_ms,old_retire_at_ms FROM transitions WHERE old_suite_id=? AND new_suite_id=? ORDER BY created_at_ms DESC LIMIT 1&quot;,
+                             (old_suite_id, new_suite_id)).fetchone()
+        if not row:
+            raise KeyError(&quot;crypto transition missing&quot;)
+        start, retire = int(row[0]), int(row[1])
+        at = int(at_ms)
+        if at &lt; start:
+            return [old_suite_id]
+        if at &lt; retire:
+            return [old_suite_id, new_suite_id]
+        return [new_suite_id]
+
+    def verify_transition_payload(self, payload: Any, signatures: dict[str, bytes],
+                                  old_suite_id: str, new_suite_id: str, *, at_ms: int) -&gt; dict:
+        required = self.required_suites(old_suite_id, new_suite_id, at_ms=at_ms)
+        supplied = {str(k).upper(): bytes(v) for k, v in signatures.items()}
+        missing = [suite for suite in required if suite not in supplied]
+        if missing:
+            return {&quot;valid&quot;: False, &quot;reason&quot;: &quot;MISSING_REQUIRED_SUITE&quot;, &quot;missing&quot;: missing,
+                    &quot;required_suites&quot;: required, &quot;downgrade_rejected&quot;: True}
+        raw = canon(payload)
+        for suite in required:
+            if self.suite_state(suite, at_ms=at_ms) == &quot;RETIRED&quot;:
+                return {&quot;valid&quot;: False, &quot;reason&quot;: &quot;RETIRED_SUITE_REQUIRED_BY_STALE_POLICY&quot;,
+                        &quot;suite_id&quot;: suite, &quot;required_suites&quot;: required}
+            verifier = self._verifiers.get(suite)
+            if verifier is None:
+                return {&quot;valid&quot;: False, &quot;reason&quot;: &quot;VERIFIER_UNAVAILABLE&quot;, &quot;suite_id&quot;: suite,
+                        &quot;required_suites&quot;: required}
+            if not bool(verifier(supplied[suite], raw)):
+                return {&quot;valid&quot;: False, &quot;reason&quot;: &quot;SIGNATURE_INVALID&quot;, &quot;suite_id&quot;: suite,
+                        &quot;required_suites&quot;: required}
+        return {&quot;valid&quot;: True, &quot;reason&quot;: &quot;OK&quot;, &quot;required_suites&quot;: required,
+                &quot;verified_suites&quot;: required, &quot;downgrade_resistance&quot;: True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,148 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SemanticRegistry Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>SemanticRegistry</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/institutional_semantics.py#L200">ENTITY/src/35_Global_Infrastructure/institutional_semantics.py#L200</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Versioned semantic terms and explicit crosswalks; no silent semantic equivalence.</p><h2>Source excerpt</h2><pre><code>class SemanticRegistry:
+    &quot;&quot;&quot;Versioned semantic terms and explicit crosswalks; no silent semantic equivalence.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_semantic_registry.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS namespaces(
+                namespace_id TEXT PRIMARY KEY, owner_entity_id TEXT NOT NULL,
+                description TEXT NOT NULL, governance_ref TEXT,
+                created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS terms(
+                namespace_id TEXT NOT NULL, kind TEXT NOT NULL, term_id TEXT NOT NULL,
+                version TEXT NOT NULL, definition_sha256 TEXT NOT NULL,
+                definition_json TEXT NOT NULL, status TEXT NOT NULL,
+                supersedes_ref TEXT, created_at_ms INTEGER NOT NULL,
+                signature_json TEXT NOT NULL,
+                PRIMARY KEY(namespace_id,kind,term_id,version))&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS crosswalks(
+                crosswalk_id TEXT PRIMARY KEY, actor_entity_id TEXT NOT NULL,
+                source_ref TEXT NOT NULL, target_ref TEXT NOT NULL,
+                relation TEXT NOT NULL, evidence_sha256 TEXT NOT NULL,
+                jurisdiction_scope_json TEXT NOT NULL, confidence_bps INTEGER NOT NULL,
+                created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+
+    def register_namespace(self, owner: str, namespace_id: str, description: str,
+                           governance_ref: str | None = None) -&gt; dict:
+        namespace_id = str(namespace_id).strip().lower()
+        if not namespace_id or len(namespace_id) &gt; 128:
+            raise ValueError(&quot;invalid namespace_id&quot;)
+        self.identity.load_manifest(owner)
+        body = {&quot;schema&quot;: &quot;entity-v3-semantic-namespace-v1&quot;, &quot;namespace_id&quot;: namespace_id,
+                &quot;owner_entity_id&quot;: owner, &quot;description&quot;: str(description).strip(),
+                &quot;governance_ref&quot;: governance_ref, &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(owner, body)
+        with sqlite3.connect(self.path) as db:
+            old = db.execute(&quot;SELECT owner_entity_id FROM namespaces WHERE namespace_id=?&quot;,
+                             (namespace_id,)).fetchone()
+            if old:
+                if old[0] != owner:
+                    raise PermissionError(&quot;namespace already owned&quot;)
+                return dict(body, signature=sig, existing=True)
+            db.execute(&quot;INSERT INTO namespaces VALUES(?,?,?,?,?,?)&quot;, (
+                namespace_id, owner, body[&quot;description&quot;], governance_ref,
+                body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig, existing=False)
+
+    def register_term(self, owner: str, namespace_id: str, kind: str, term_id: str,
+                      version: str, definition: dict, *, supersedes_ref: str | None = None) -&gt; dict:
+        namespace_id, kind = namespace_id.lower(), kind.upper()
+        if kind not in REGISTRY_KINDS:
+            raise ValueError(&quot;unsupported semantic registry kind&quot;)
+        term_id, version = str(term_id).strip(), str(version).strip()
+        if not term_id or not version:
+            raise ValueError(&quot;term_id and version required&quot;)
+        with sqlite3.connect(self.path) as db:
+            ns = db.execute(&quot;SELECT owner_entity_id FROM namespaces WHERE namespace_id=?&quot;,
+                            (namespace_id,)).fetchone()
+            if not ns:
+                raise KeyError(&quot;semantic namespace missing&quot;)
+            if ns[0] != owner:
+                raise PermissionError(&quot;only namespace owner may register term&quot;)
+            old = db.execute(&quot;SELECT definition_sha256 FROM terms WHERE namespace_id=? AND kind=? AND term_id=? AND version=?&quot;,
+                             (namespace_id, kind, term_id, version)).fetchone()
+            definition_hash = digest(definition)
+            if old:
+                if old[0] != definition_hash:
+                    raise ValueError(&quot;immutable semantic term version changed&quot;)
+                return {&quot;namespace_id&quot;: namespace_id, &quot;kind&quot;: kind, &quot;term_id&quot;: term_id,
+                        &quot;version&quot;: version, &quot;definition_sha256&quot;: definition_hash, &quot;existing&quot;: True}
+        body = {&quot;schema&quot;: &quot;entity-v3-semantic-term-v1&quot;, &quot;namespace_id&quot;: namespace_id,
+                &quot;kind&quot;: kind, &quot;term_id&quot;: term_id, &quot;version&quot;: version,
+                &quot;definition_sha256&quot;: definition_hash, &quot;definition&quot;: dict(definition),
+                &quot;status&quot;: &quot;ACTIVE&quot;, &quot;supersedes_ref&quot;: supersedes_ref,
+                &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(owner, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO terms VALUES(?,?,?,?,?,?,?,?,?,?)&quot;, (
+                namespace_id, kind, term_id, version, definition_hash,
+                json.dumps(definition, sort_keys=True), &quot;ACTIVE&quot;, supersedes_ref,
+                body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig, existing=False)
+
+    def term_ref(self, namespace_id: str, kind: str, term_id: str, version: str) -&gt; str:
+        return f&quot;{namespace_id.lower()}:{kind.upper()}:{term_id}@{version}&quot;
+
+    def resolve(self, term_ref: str) -&gt; dict:
+        try:
+            head, version = term_ref.rsplit(&quot;@&quot;, 1)
+            namespace_id, kind, term_id = head.split(&quot;:&quot;, 2)
+        except ValueError as exc:
+            raise ValueError(&quot;invalid semantic term reference&quot;) from exc
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            row = db.execute(&quot;SELECT * FROM terms WHERE namespace_id=? AND kind=? AND term_id=? AND version=?&quot;,
+                             (namespace_id.lower(), kind.upper(), term_id, version)).fetchone()
+        if not row:
+            raise KeyError(&quot;semantic term not found&quot;)
+        item = dict(row)
+        item[&quot;definition&quot;] = json.loads(item.pop(&quot;definition_json&quot;))
+        item[&quot;signature&quot;] = json.loads(item.pop(&quot;signature_json&quot;))
+        item[&quot;term_ref&quot;] = self.term_ref(namespace_id, kind, term_id, version)
+        return item
+
+    def map_terms(self, actor: str, source_ref: str, target_ref: str, relation: str,
+                  evidence_sha256: str, *, jurisdiction_scope: list[str] | None = None,
+                  confidence_bps: int = 10000) -&gt; dict:
+        relation = relation.upper()
+        if relation not in MAPPING_RELATIONS:
+            raise ValueError(&quot;invalid semantic mapping relation&quot;)
+        self.resolve(source_ref); self.resolve(target_ref)
+        confidence_bps = int(confidence_bps)
+        if confidence_bps &lt; 0 or confidence_bps &gt; 10000:
+            raise ValueError(&quot;invalid confidence_bps&quot;)
+        evidence_sha256 = _sha256(evidence_sha256)
+        body = {&quot;schema&quot;: &quot;entity-v3-semantic-crosswalk-v1&quot;, &quot;crosswalk_id&quot;: rid(&quot;xwalk3&quot;),
+                &quot;actor_entity_id&quot;: actor, &quot;source_ref&quot;: source_ref, &quot;target_ref&quot;: target_ref,
+                &quot;relation&quot;: relation, &quot;evidence_sha256&quot;: evidence_sha256,
+                &quot;jurisdiction_scope&quot;: sorted({str(x).upper() for x in (jurisdiction_scope or [])}),
+                &quot;confidence_bps&quot;: confidence_bps, &quot;created_at_ms&quot;: now_ms(),
+                &quot;mapping_is_attestation_not_identity&quot;: True,
+                &quot;silent_semantic_coercion_prohibited&quot;: True}
+        sig = self.identity.sign(actor, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO crosswalks VALUES(?,?,?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;crosswalk_id&quot;], actor, source_ref, target_ref, relation,
+                evidence_sha256, json.dumps(body[&quot;jurisdiction_scope&quot;]), confidence_bps,
+                body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)
+
+    def mappings(self, source_ref: str, *, target_namespace: str | None = None) -&gt; dict:
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            rows = db.execute(&quot;SELECT * FROM crosswalks WHERE source_ref=? ORDER BY created_at_ms,crosswalk_id&quot;,
+                              (source_ref,)).fetchall()
+        out = []
+        for row in rows:
+            if target_namespace and not row[&quot;target_ref&quot;].startswith(target_namespace.lower() + &quot;:&quot;):
+                continue
+            item = dict(row)
+            item[&quot;jurisdiction_scope&quot;] = json.loads(item.pop(&quot;jurisdiction_scope_json&quot;))
+            item[&quot;signature&quot;] = json.loads(item.pop(&quot;signature_json&quot;))
+            out.append(item)
+        exact = [x for x in out if x[&quot;relation&quot;] == &quot;EXACT&quot; and x[&quot;confidence_bps&quot;] == 10000]
+        return {&quot;source_ref&quot;: source_ref, &quot;mappings&quot;: out,
+                &quot;unambiguous_exact_candidate&quot;: exact[0][&quot;target_ref&quot;] if len(exact) == 1 else None,
+                &quot;automatic_translation_permitted&quot;: False,
+                &quot;profile_or_human_semantic_decision_required&quot;: True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

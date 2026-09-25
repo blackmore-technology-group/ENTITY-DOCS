@@ -1,0 +1,64 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/build_v3_4_cleanroom_kit.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/build_v3_4_cleanroom_kit.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/build_v3_4_cleanroom_kit.py</code></p><p><b>SHA-256:</b> <code>f8a42497336233c358f2582386365790783c221646cc3f15b5600d888503a009</code></p><p><b>Bytes:</b> 6,129</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/build_v3_4_cleanroom_kit.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-8bb87b048c5d.html">load</a></li><li><a href="../../../reference/symbols/entity/profile-f38fe3ef2b9e.html">profile</a></li><li><a href="../../../reference/symbols/entity/stack-e469b52551cf.html">stack</a></li><li><a href="../../../reference/symbols/entity/passport-384ccb47c075.html">passport</a></li><li><a href="../../../reference/symbols/entity/status-0a23625e1232.html">status</a></li><li><a href="../../../reference/symbols/entity/ingest-e828ce6126c8.html">ingest</a></li><li><a href="../../../reference/symbols/entity/add-db9bb9462795.html">add</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, importlib.util, json, pathlib, sys
+
+ROOT=pathlib.Path(__file__).resolve().parents[1]
+def load(name,path):
+    spec=importlib.util.spec_from_file_location(name,path); mod=importlib.util.module_from_spec(spec); sys.modules[name]=mod; spec.loader.exec_module(mod); return mod
+conf=load(&quot;v34_kit_conf&quot;,ROOT/&quot;src/38_Global_Passports/passport_conformance.py&quot;)
+Z=&quot;0&quot;*64; O=&quot;1&quot;*64; T=&quot;2&quot;*64
+CORE=[&quot;ENTITY&quot;,&quot;AUTHORITY&quot;,&quot;RIGHT&quot;,&quot;EVENT&quot;,&quot;VALUE&quot;]
+def profile(pid,kind=&quot;INDUSTRY&quot;,public=True):
+    return {&quot;schema&quot;:&quot;entity-v3-global-profile-v1&quot;,&quot;profile_ref&quot;:pid+&quot;@1.0&quot;,&quot;profile_id&quot;:pid,&quot;version&quot;:&quot;1.0&quot;,&quot;kind&quot;:kind,&quot;schema_sha256&quot;:Z,&quot;profile_is_not_authority&quot;:True,&quot;standards_mapping_is_not_normative_equivalence&quot;:True,&quot;public_unclassified&quot;:public}
+def stack(refs):
+    return {&quot;schema&quot;:&quot;entity-v3-profile-stack-resolution-v1&quot;,&quot;profile_refs&quot;:refs,&quot;profile_hashes&quot;:[O for _ in refs],&quot;fail_closed&quot;:True,&quot;profile_composition_does_not_create_authority&quot;:True,&quot;standards_mapping_is_not_normative_equivalence&quot;:True}
+def passport(refs,mappings=None):
+    return {&quot;schema&quot;:&quot;entity-v3-global-passport-v1&quot;,&quot;core_primitives&quot;:CORE,&quot;rights_passport_id&quot;:&quot;passport3-example&quot;,&quot;rights_passport_sha256&quot;:T,&quot;profile_stack&quot;:stack(refs),&quot;standards_mappings&quot;:mappings or [],&quot;economic_state&quot;:{&quot;state&quot;:&quot;POTENTIAL&quot;,&quot;amount_units&quot;:0,&quot;currency&quot;:&quot;UNSPECIFIED&quot;,&quot;market_observation_is_not_accounting_fair_value&quot;:True},&quot;one_passport_many_profiles&quot;:True,&quot;profile_composition_does_not_create_authority&quot;:True,&quot;standards_mapping_is_not_normative_equivalence&quot;:True,&quot;evidence_does_not_establish_objective_truth&quot;:True,&quot;legal_effect_is_deployment_specific&quot;:True,&quot;underlying_information_remains_nonrival&quot;:True}
+def status():
+    return {&quot;schema&quot;:&quot;entity-v3-global-passport-profile-status-v1&quot;,&quot;core_primitives&quot;:CORE,&quot;core_semantics_changed&quot;:False,&quot;market_engine_preserved&quot;:True,&quot;one_passport_many_profiles&quot;:True,&quot;evidence_truth_boundary_preserved&quot;:True}
+def ingest():
+    return {&quot;schema&quot;:&quot;entity-v3-continuous-ingest-result-v1&quot;,&quot;files&quot;:3,&quot;inventory_sha256&quot;:Z,&quot;content_addressed&quot;:True,&quot;custody_is_not_authority&quot;:True,&quot;economic_value_invented&quot;:False}
+
+cases=[]
+def add(cid,expect,record): cases.append({&quot;id&quot;:cid,&quot;expect&quot;:expect,&quot;record&quot;:record})
+add(&quot;valid_status&quot;,&quot;VALID&quot;,status())
+add(&quot;valid_global_profile&quot;,&quot;VALID&quot;,profile(&quot;entity-profile:global&quot;,&quot;GLOBAL&quot;))
+add(&quot;valid_healthcare_profile&quot;,&quot;VALID&quot;,profile(&quot;entity-profile:healthcare&quot;))
+add(&quot;valid_finance_profile&quot;,&quot;VALID&quot;,profile(&quot;entity-profile:finance&quot;))
+add(&quot;valid_manufacturing_profile&quot;,&quot;VALID&quot;,profile(&quot;entity-profile:manufacturing&quot;))
+add(&quot;valid_ai_profile&quot;,&quot;VALID&quot;,profile(&quot;entity-profile:ai&quot;))
+add(&quot;valid_robotics_profile&quot;,&quot;VALID&quot;,profile(&quot;entity-profile:robotics&quot;))
+add(&quot;valid_defence_profile&quot;,&quot;VALID&quot;,profile(&quot;entity-profile:defence-public&quot;,public=True))
+add(&quot;valid_stack_multi&quot;,&quot;VALID&quot;,stack([&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:healthcare@1.0&quot;,&quot;entity-profile:ai@1.0&quot;]))
+add(&quot;valid_passport_ai&quot;,&quot;VALID&quot;,passport([&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;]))
+add(&quot;valid_passport_finance_mapping&quot;,&quot;VALID&quot;,passport([&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:finance@1.0&quot;],[{&quot;standard&quot;:&quot;ISO-20022&quot;,&quot;normative_equivalence_claimed&quot;:False}]))
+add(&quot;valid_ingest&quot;,&quot;VALID&quot;,ingest())
+x=status(); x[&quot;core_semantics_changed&quot;]=True; add(&quot;invalid_status_core_change&quot;,&quot;INVALID&quot;,x)
+x=profile(&quot;entity-profile:ai&quot;); x[&quot;profile_is_not_authority&quot;]=False; add(&quot;invalid_profile_authority&quot;,&quot;INVALID&quot;,x)
+x=profile(&quot;entity-profile:ai&quot;); x[&quot;kind&quot;]=&quot;UNKNOWN&quot;; add(&quot;invalid_profile_kind&quot;,&quot;INVALID&quot;,x)
+x=profile(&quot;entity-profile:defence-public&quot;,public=False); add(&quot;invalid_defence_not_public&quot;,&quot;INVALID&quot;,x)
+x=stack([&quot;entity-profile:ai@1.0&quot;]); add(&quot;invalid_stack_missing_global&quot;,&quot;INVALID&quot;,x)
+x=stack([&quot;entity-profile:global@1.0&quot;]); x[&quot;profile_hashes&quot;]=[&quot;bad&quot;]; add(&quot;invalid_stack_bad_hash&quot;,&quot;INVALID&quot;,x)
+x=passport([&quot;entity-profile:global@1.0&quot;]); x[&quot;evidence_does_not_establish_objective_truth&quot;]=False; add(&quot;invalid_passport_truth&quot;,&quot;INVALID&quot;,x)
+x=passport([&quot;entity-profile:global@1.0&quot;],[{&quot;standard&quot;:&quot;FHIR&quot;,&quot;normative_equivalence_claimed&quot;:True}]); add(&quot;invalid_passport_equivalence&quot;,&quot;INVALID&quot;,x)
+x=passport([&quot;entity-profile:global@1.0&quot;]); x[&quot;underlying_information_remains_nonrival&quot;]=False; add(&quot;invalid_passport_scarcity&quot;,&quot;INVALID&quot;,x)
+x=passport([&quot;entity-profile:global@1.0&quot;]); x[&quot;core_primitives&quot;]=[&quot;ENTITY&quot;,&quot;TOKEN&quot;]; add(&quot;invalid_passport_core&quot;,&quot;INVALID&quot;,x)
+x=ingest(); x[&quot;files&quot;]=-1; add(&quot;invalid_ingest_negative_files&quot;,&quot;INVALID&quot;,x)
+x=ingest(); x[&quot;economic_value_invented&quot;]=True; add(&quot;invalid_ingest_fake_value&quot;,&quot;INVALID&quot;,x)
+
+cases.sort(key=lambda x:x[&quot;id&quot;])
+for case in cases:
+    actual=&quot;VALID&quot; if conf.validate_global_passport_record(case[&quot;record&quot;]) else &quot;INVALID&quot;
+    if actual!=case[&quot;expect&quot;]: raise SystemExit(f&quot;vector expectation mismatch {case[&#x27;id&#x27;]}: {actual}&quot;)
+rows=[{&quot;id&quot;:c[&quot;id&quot;],&quot;actual&quot;:&quot;VALID&quot; if conf.validate_global_passport_record(c[&quot;record&quot;]) else &quot;INVALID&quot;} for c in cases]
+result_sha=hashlib.sha256(json.dumps(rows,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False).encode()).hexdigest()
+schema_path=ROOT/&quot;protocol/v3/ENTITY_GLOBAL_PASSPORT.schema.json&quot;
+kit={&quot;schema&quot;:&quot;entity-v3.4-global-passport-cleanroom-kit-v1&quot;,&quot;version&quot;:&quot;3.4.0&quot;,&quot;base_release&quot;:&quot;v3.3.0&quot;,
+     &quot;base_commit&quot;:&quot;9c79f987207592cb6791e1a8956f23351cdfb2d3&quot;,&quot;schema_sha256&quot;:hashlib.sha256(schema_path.read_bytes()).hexdigest(),
+     &quot;doctrine&quot;:&quot;One ENTITY Passport. Many jurisdictions, industries, standards and contexts. No new sovereignty silos.&quot;,
+     &quot;valid_vectors&quot;:sum(c[&quot;expect&quot;]==&quot;VALID&quot; for c in cases),&quot;invalid_vectors&quot;:sum(c[&quot;expect&quot;]==&quot;INVALID&quot; for c in cases),
+     &quot;expected_result_sha256&quot;:result_sha,&quot;cases&quot;:cases}
+out=ROOT/&quot;protocol/v3/ENTITY_V3_4_GLOBAL_PASSPORT_CLEANROOM_KIT.min.json&quot;
+out.write_bytes(json.dumps(kit,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False).encode())
+print(json.dumps({&quot;kit&quot;:str(out),&quot;cases&quot;:len(cases),&quot;valid&quot;:kit[&quot;valid_vectors&quot;],&quot;invalid&quot;:kit[&quot;invalid_vectors&quot;],
+                  &quot;schema_sha256&quot;:kit[&quot;schema_sha256&quot;],&quot;expected_result_sha256&quot;:result_sha,
+                  &quot;kit_sha256&quot;:hashlib.sha256(out.read_bytes()).hexdigest()},indent=2))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

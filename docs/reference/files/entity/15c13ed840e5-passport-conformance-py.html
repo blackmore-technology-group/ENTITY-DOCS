@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/38_Global_Passports/passport_conformance.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/38_Global_Passports/passport_conformance.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/38_Global_Passports/passport_conformance.py</code></p><p><b>SHA-256:</b> <code>7be41341e74bb7f841e47e53097482daf31030adb1c8115126a6417850c01473</code></p><p><b>Bytes:</b> 2,727</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/38_Global_Passports/passport_conformance.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/sha-3295d65a9f5d.html">_sha</a></li><li><a href="../../../reference/symbols/entity/stack-ok-cc5ec8e2b0b4.html">_stack_ok</a></li><li><a href="../../../reference/symbols/entity/passport-ok-923b0fe50961.html">_passport_ok</a></li><li><a href="../../../reference/symbols/entity/validate-global-passport-record-b2f46a890cb9.html">validate_global_passport_record</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+
+CORE=[&quot;ENTITY&quot;,&quot;AUTHORITY&quot;,&quot;RIGHT&quot;,&quot;EVENT&quot;,&quot;VALUE&quot;]
+KINDS={&quot;GLOBAL&quot;,&quot;JURISDICTION&quot;,&quot;INDUSTRY&quot;,&quot;DOMAIN&quot;,&quot;PRIVACY&quot;,&quot;TRUST&quot;,&quot;DISCLOSURE&quot;}
+def _sha(v)-&gt;bool:
+    s=str(v or &quot;&quot;); return len(s)==64 and all(c in &quot;0123456789abcdef&quot; for c in s)
+
+def _stack_ok(r:dict)-&gt;bool:
+    refs=r.get(&quot;profile_refs&quot;) or []; hashes=r.get(&quot;profile_hashes&quot;) or []
+    return bool(refs) and &quot;entity-profile:global@1.0&quot; in refs and len(refs)==len(hashes) and all(_sha(x) for x in hashes) and r.get(&quot;fail_closed&quot;) is True and r.get(&quot;profile_composition_does_not_create_authority&quot;) is True and r.get(&quot;standards_mapping_is_not_normative_equivalence&quot;) is True
+
+def _passport_ok(r:dict)-&gt;bool:
+    flags=(&quot;one_passport_many_profiles&quot;,&quot;profile_composition_does_not_create_authority&quot;,&quot;standards_mapping_is_not_normative_equivalence&quot;,&quot;evidence_does_not_establish_objective_truth&quot;,&quot;legal_effect_is_deployment_specific&quot;,&quot;underlying_information_remains_nonrival&quot;)
+    econ=r.get(&quot;economic_state&quot;) or {}; mappings=r.get(&quot;standards_mappings&quot;) or []
+    return r.get(&quot;core_primitives&quot;)==CORE and bool(r.get(&quot;rights_passport_id&quot;)) and _sha(r.get(&quot;rights_passport_sha256&quot;)) and isinstance(r.get(&quot;profile_stack&quot;),dict) and _stack_ok(r[&quot;profile_stack&quot;]) and all(r.get(x) is True for x in flags) and all(m.get(&quot;normative_equivalence_claimed&quot;) is False for m in mappings) and int(econ.get(&quot;amount_units&quot;,-1))&gt;=0 and econ.get(&quot;market_observation_is_not_accounting_fair_value&quot;) is True
+
+def validate_global_passport_record(r:dict)-&gt;bool:
+    try:
+        schema=r.get(&quot;schema&quot;)
+        if schema==&quot;entity-v3-global-passport-profile-status-v1&quot;:
+            return r.get(&quot;core_primitives&quot;)==CORE and r.get(&quot;core_semantics_changed&quot;) is False and r.get(&quot;market_engine_preserved&quot;) is True and r.get(&quot;one_passport_many_profiles&quot;) is True and r.get(&quot;evidence_truth_boundary_preserved&quot;) is True
+        if schema==&quot;entity-v3-global-profile-v1&quot;:
+            return bool(r.get(&quot;profile_ref&quot;)) and r.get(&quot;kind&quot;) in KINDS and _sha(r.get(&quot;schema_sha256&quot;)) and r.get(&quot;profile_is_not_authority&quot;) is True and r.get(&quot;standards_mapping_is_not_normative_equivalence&quot;) is True and (&quot;DEFENCE&quot; not in str(r.get(&quot;profile_id&quot;,&quot;&quot;)).upper() or r.get(&quot;public_unclassified&quot;) is True)
+        if schema==&quot;entity-v3-profile-stack-resolution-v1&quot;: return _stack_ok(r)
+        if schema==&quot;entity-v3-global-passport-v1&quot;: return _passport_ok(r)
+        if schema==&quot;entity-v3-continuous-ingest-result-v1&quot;:
+            return int(r.get(&quot;files&quot;,-1))&gt;=0 and _sha(r.get(&quot;inventory_sha256&quot;)) and r.get(&quot;content_addressed&quot;) is True and r.get(&quot;custody_is_not_authority&quot;) is True and r.get(&quot;economic_value_invented&quot;) is False
+        return False
+    except Exception: return False</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

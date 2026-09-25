@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/39_Implementation_Packages/industry_packages.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/39_Implementation_Packages/industry_packages.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/39_Implementation_Packages/industry_packages.py</code></p><p><b>SHA-256:</b> <code>cd75a4aa24daf798e97632a8fca2ed0f2c1ce031bcefc3938ff066b830f7d8a1</code></p><p><b>Bytes:</b> 10,202</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/39_Implementation_Packages/industry_packages.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/sha-b012546c7e3c.html">_sha</a></li><li><a href="../../../reference/symbols/entity/mapping-a1a9f4ea4a15.html">_mapping</a></li><li><a href="../../../reference/symbols/entity/industryimplementationpackageregistry-d7c7c8860c16.html">IndustryImplementationPackageRegistry</a></li><li><a href="../../../reference/symbols/entity/industryimplementationpackageregistry-list-packages-f354ce057b86.html">IndustryImplementationPackageRegistry.list_packages</a></li><li><a href="../../../reference/symbols/entity/industryimplementationpackageregistry-get-ac2bce2b26cc.html">IndustryImplementationPackageRegistry.get</a></li><li><a href="../../../reference/symbols/entity/industryimplementationpackageregistry-validate-configuration-af996be7ad04.html">IndustryImplementationPackageRegistry.validate_configuration</a></li><li><a href="../../../reference/symbols/entity/industryimplementationpackageregistry-template-cfe28dd9a34e.html">IndustryImplementationPackageRegistry.template</a></li><li><a href="../../../reference/symbols/entity/industryimplementationpackageregistry-map-external-62c3c4b450d2.html">IndustryImplementationPackageRegistry.map_external</a></li><li><a href="../../../reference/symbols/entity/industryimplementationpackageregistry-deployment-plan-4a5a38866e54.html">IndustryImplementationPackageRegistry.deployment_plan</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from copy import deepcopy
+from typing import Any
+import hashlib, json
+
+PACKAGE_VERSION=&quot;1.0&quot;
+GLOBAL_PROFILE=&quot;entity-profile:global@1.0&quot;
+
+def _sha(value:Any)-&gt;str:
+    return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False).encode()).hexdigest()
+
+def _mapping(standard:str,fields:dict[str,str])-&gt;dict:
+    return {&quot;standard&quot;:standard,&quot;mapping_version&quot;:&quot;1.0&quot;,&quot;field_map&quot;:dict(fields),
+            &quot;normative_equivalence_claimed&quot;:False,&quot;external_standard_not_redefined&quot;:True}
+
+COMMON_DEFAULTS={
+    &quot;fail_closed&quot;:True,
+    &quot;custody_is_not_authority&quot;:True,
+    &quot;evidence_does_not_establish_objective_truth&quot;:True,
+    &quot;profile_is_not_regulatory_compliance&quot;:True,
+    &quot;economic_value_invented&quot;:False,
+    &quot;developer_configures_not_redesigns&quot;:True,
+}
+
+PACKAGE_SPECS={
+    &quot;healthcare&quot;:{
+        &quot;profile_refs&quot;:[GLOBAL_PROFILE,&quot;entity-profile:healthcare@1.0&quot;],
+        &quot;required_config&quot;:[&quot;organization&quot;,&quot;jurisdiction&quot;,&quot;authority_source&quot;,&quot;privacy_policy&quot;],
+        &quot;object_types&quot;:{&quot;clinical_dataset&quot;:&quot;DATASET&quot;,&quot;clinical_document&quot;:&quot;DOCUMENT&quot;,&quot;diagnostic_model&quot;:&quot;MODEL&quot;,&quot;medical_device&quot;:&quot;DEVICE&quot;},
+        &quot;rights&quot;:[&quot;INSPECT&quot;,&quot;READ&quot;,&quot;DERIVE&quot;],
+        &quot;evidence_types&quot;:[&quot;DOCUMENT&quot;,&quot;REGISTRY_RECORD&quot;],
+        &quot;mappings&quot;:[_mapping(&quot;HL7-FHIR&quot;,{&quot;resourceType&quot;:&quot;descriptor.fhir_resource_type&quot;,&quot;id&quot;:&quot;descriptor.external_id&quot;,&quot;meta.versionId&quot;:&quot;descriptor.external_version&quot;}),
+                    _mapping(&quot;DICOM&quot;,{&quot;SOPInstanceUID&quot;:&quot;descriptor.dicom_sop_instance_uid&quot;,&quot;StudyInstanceUID&quot;:&quot;descriptor.dicom_study_instance_uid&quot;,&quot;Modality&quot;:&quot;descriptor.modality&quot;})],
+        &quot;privacy&quot;:{&quot;default&quot;:&quot;RESTRICTED_DISCLOSURE&quot;,&quot;minimum_data&quot;:True,&quot;purpose_bound&quot;:True},
+    },
+    &quot;finance&quot;:{
+        &quot;profile_refs&quot;:[GLOBAL_PROFILE,&quot;entity-profile:finance@1.0&quot;],
+        &quot;required_config&quot;:[&quot;organization&quot;,&quot;jurisdiction&quot;,&quot;authority_source&quot;,&quot;settlement_policy&quot;],
+        &quot;object_types&quot;:{&quot;instrument&quot;:&quot;FINANCIAL_INSTRUMENT&quot;,&quot;trade_record&quot;:&quot;DOCUMENT&quot;,&quot;settlement_record&quot;:&quot;DOCUMENT&quot;,&quot;market_dataset&quot;:&quot;DATASET&quot;},
+        &quot;rights&quot;:[&quot;INSPECT&quot;,&quot;READ&quot;,&quot;DERIVE&quot;,&quot;COMMERCIALIZE&quot;],
+        &quot;evidence_types&quot;:[&quot;PAYMENT_RECORD&quot;,&quot;REGISTRY_RECORD&quot;,&quot;DOCUMENT&quot;],
+        &quot;mappings&quot;:[_mapping(&quot;ISO-20022&quot;,{&quot;MsgId&quot;:&quot;descriptor.message_id&quot;,&quot;CreDtTm&quot;:&quot;descriptor.created_at&quot;,&quot;TxId&quot;:&quot;descriptor.transaction_id&quot;}),
+                    _mapping(&quot;FIX&quot;,{&quot;11&quot;:&quot;descriptor.cl_ord_id&quot;,&quot;17&quot;:&quot;descriptor.exec_id&quot;,&quot;55&quot;:&quot;descriptor.symbol&quot;}),
+                    _mapping(&quot;LEI&quot;,{&quot;lei&quot;:&quot;descriptor.legal_entity_identifier&quot;})],
+        &quot;privacy&quot;:{&quot;default&quot;:&quot;SELECTIVE_DISCLOSURE&quot;,&quot;minimum_data&quot;:True,&quot;purpose_bound&quot;:True},
+    },
+    &quot;manufacturing&quot;:{
+        &quot;profile_refs&quot;:[GLOBAL_PROFILE,&quot;entity-profile:manufacturing@1.0&quot;],
+        &quot;required_config&quot;:[&quot;organization&quot;,&quot;jurisdiction&quot;,&quot;authority_source&quot;,&quot;asset_namespace&quot;],
+        &quot;object_types&quot;:{&quot;machine&quot;:&quot;PHYSICAL_ASSET&quot;,&quot;digital_twin&quot;:&quot;DIGITAL_TWIN&quot;,&quot;firmware&quot;:&quot;SOFTWARE&quot;,&quot;telemetry&quot;:&quot;DATASET&quot;,&quot;maintenance_record&quot;:&quot;DOCUMENT&quot;},
+        &quot;rights&quot;:[&quot;INSPECT&quot;,&quot;READ&quot;,&quot;DERIVE&quot;,&quot;CONTROL&quot;],
+        &quot;evidence_types&quot;:[&quot;SENSOR_OBSERVATION&quot;,&quot;DOCUMENT&quot;],
+        &quot;mappings&quot;:[_mapping(&quot;OPC-UA&quot;,{&quot;NodeId&quot;:&quot;descriptor.opcua_node_id&quot;,&quot;BrowseName&quot;:&quot;descriptor.opcua_browse_name&quot;,&quot;DataType&quot;:&quot;descriptor.opcua_data_type&quot;}),
+                    _mapping(&quot;ASSET-ADMINISTRATION-SHELL&quot;,{&quot;id&quot;:&quot;descriptor.aas_id&quot;,&quot;idShort&quot;:&quot;descriptor.aas_id_short&quot;,&quot;assetInformation.globalAssetId&quot;:&quot;descriptor.global_asset_id&quot;})],
+        &quot;privacy&quot;:{&quot;default&quot;:&quot;RESTRICTED_DISCLOSURE&quot;,&quot;minimum_data&quot;:True,&quot;purpose_bound&quot;:True},
+    },
+    &quot;ai&quot;:{
+        &quot;profile_refs&quot;:[GLOBAL_PROFILE,&quot;entity-profile:ai@1.0&quot;],
+        &quot;required_config&quot;:[&quot;organization&quot;,&quot;jurisdiction&quot;,&quot;authority_source&quot;,&quot;model_governance_policy&quot;],
+        &quot;object_types&quot;:{&quot;training_dataset&quot;:&quot;DATASET&quot;,&quot;corpus&quot;:&quot;DATASET&quot;,&quot;model&quot;:&quot;MODEL&quot;,&quot;weights&quot;:&quot;MODEL&quot;,&quot;evaluation&quot;:&quot;DOCUMENT&quot;,&quot;agent&quot;:&quot;AI_AGENT&quot;,&quot;output&quot;:&quot;DOCUMENT&quot;},
+        &quot;rights&quot;:[&quot;INSPECT&quot;,&quot;READ&quot;,&quot;DERIVE&quot;,&quot;TRAIN&quot;,&quot;INFER&quot;,&quot;EXECUTE&quot;],
+        &quot;evidence_types&quot;:[&quot;DOCUMENT&quot;,&quot;REGISTRY_RECORD&quot;,&quot;OTHER&quot;],
+        &quot;mappings&quot;:[_mapping(&quot;SPDX-3&quot;,{&quot;name&quot;:&quot;descriptor.component_name&quot;,&quot;version&quot;:&quot;descriptor.component_version&quot;,&quot;license&quot;:&quot;descriptor.license_expression&quot;}),
+                    _mapping(&quot;CYCLONEDX&quot;,{&quot;bom-ref&quot;:&quot;descriptor.bom_ref&quot;,&quot;name&quot;:&quot;descriptor.component_name&quot;,&quot;version&quot;:&quot;descriptor.component_version&quot;}),
+                    _mapping(&quot;NIST-AI-RMF&quot;,{&quot;risk_category&quot;:&quot;descriptor.risk_category&quot;,&quot;control&quot;:&quot;descriptor.control_ref&quot;})],
+        &quot;privacy&quot;:{&quot;default&quot;:&quot;SELECTIVE_DISCLOSURE&quot;,&quot;minimum_data&quot;:True,&quot;purpose_bound&quot;:True},
+    },
+    &quot;robotics&quot;:{
+        &quot;profile_refs&quot;:[GLOBAL_PROFILE,&quot;entity-profile:robotics@1.0&quot;],
+        &quot;required_config&quot;:[&quot;organization&quot;,&quot;jurisdiction&quot;,&quot;authority_source&quot;,&quot;safety_policy&quot;],
+        &quot;object_types&quot;:{&quot;robot&quot;:&quot;DEVICE&quot;,&quot;controller&quot;:&quot;DEVICE&quot;,&quot;model&quot;:&quot;MODEL&quot;,&quot;software&quot;:&quot;SOFTWARE&quot;,&quot;telemetry&quot;:&quot;DATASET&quot;,&quot;action_record&quot;:&quot;DOCUMENT&quot;},
+        &quot;rights&quot;:[&quot;INSPECT&quot;,&quot;READ&quot;,&quot;INFER&quot;,&quot;EXECUTE&quot;,&quot;CONTROL&quot;],
+        &quot;evidence_types&quot;:[&quot;SENSOR_OBSERVATION&quot;,&quot;DOCUMENT&quot;,&quot;OTHER&quot;],
+        &quot;mappings&quot;:[_mapping(&quot;ROS-2&quot;,{&quot;topic&quot;:&quot;descriptor.ros_topic&quot;,&quot;type&quot;:&quot;descriptor.ros_type&quot;,&quot;node&quot;:&quot;descriptor.ros_node&quot;}),
+                    _mapping(&quot;OPEN-RMF&quot;,{&quot;fleet_name&quot;:&quot;descriptor.rmf_fleet&quot;,&quot;robot_name&quot;:&quot;descriptor.rmf_robot&quot;,&quot;task_id&quot;:&quot;descriptor.rmf_task&quot;})],
+        &quot;privacy&quot;:{&quot;default&quot;:&quot;RESTRICTED_DISCLOSURE&quot;,&quot;minimum_data&quot;:True,&quot;purpose_bound&quot;:True},
+    },
+    &quot;defence-public&quot;:{
+        &quot;profile_refs&quot;:[GLOBAL_PROFILE,&quot;entity-profile:defence-public@1.0&quot;],
+        &quot;required_config&quot;:[&quot;organization&quot;,&quot;jurisdiction&quot;,&quot;authority_source&quot;,&quot;release_policy&quot;],
+        &quot;object_types&quot;:{&quot;public_asset&quot;:&quot;PHYSICAL_ASSET&quot;,&quot;public_dataset&quot;:&quot;DATASET&quot;,&quot;software&quot;:&quot;SOFTWARE&quot;,&quot;device&quot;:&quot;DEVICE&quot;,&quot;model&quot;:&quot;MODEL&quot;,&quot;custody_record&quot;:&quot;DOCUMENT&quot;},
+        &quot;rights&quot;:[&quot;INSPECT&quot;,&quot;READ&quot;,&quot;DERIVE&quot;],
+        &quot;evidence_types&quot;:[&quot;DOCUMENT&quot;,&quot;REGISTRY_RECORD&quot;],
+        &quot;mappings&quot;:[_mapping(&quot;PUBLIC-DATA-GOVERNANCE&quot;,{&quot;asset_id&quot;:&quot;descriptor.public_asset_id&quot;,&quot;release&quot;:&quot;descriptor.release_status&quot;,&quot;originator&quot;:&quot;descriptor.originator_ref&quot;}),
+                    _mapping(&quot;ORIGINATOR-CONTROL&quot;,{&quot;originator&quot;:&quot;descriptor.originator_ref&quot;,&quot;dissemination&quot;:&quot;descriptor.dissemination_rule&quot;})],
+        &quot;privacy&quot;:{&quot;default&quot;:&quot;RESTRICTED_DISCLOSURE&quot;,&quot;minimum_data&quot;:True,&quot;purpose_bound&quot;:True,&quot;classified_material_prohibited&quot;:True},
+    },
+}
+
+class IndustryImplementationPackageRegistry:
+    &quot;&quot;&quot;Executable industry package semantics layered on the one ENTITY Global Passport.&quot;&quot;&quot;
+    def list_packages(self)-&gt;list[str]: return sorted(PACKAGE_SPECS)
+    def get(self,name:str)-&gt;dict:
+        key=str(name).lower()
+        if key not in PACKAGE_SPECS: raise KeyError(&quot;industry package missing&quot;)
+        spec=deepcopy(PACKAGE_SPECS[key]); spec[&quot;name&quot;]=key; spec[&quot;version&quot;]=PACKAGE_VERSION
+        spec[&quot;package_sha256&quot;]=_sha(spec); spec.update(COMMON_DEFAULTS)
+        return spec
+
+    def validate_configuration(self,name:str,config:dict)-&gt;dict:
+        spec=self.get(name); cfg=dict(config or {})
+        missing=[k for k in spec[&quot;required_config&quot;] if not str(cfg.get(k) or &quot;&quot;).strip()]
+        if missing: raise ValueError(&quot;missing configuration: &quot;+&quot;,&quot;.join(missing))
+        if name==&quot;defence-public&quot; and str(cfg.get(&quot;classification&quot;,&quot;&quot;)).upper() not in {&quot;&quot;,&quot;PUBLIC&quot;,&quot;UNCLASSIFIED&quot;}:
+            raise ValueError(&quot;defence-public package cannot ingest classified material&quot;)
+        return {&quot;valid&quot;:True,&quot;package&quot;:name,&quot;configuration_sha256&quot;:_sha(cfg),&quot;profile_refs&quot;:spec[&quot;profile_refs&quot;],
+                &quot;configuration_does_not_create_authority&quot;:True,&quot;legal_compliance_not_implied&quot;:True}
+    def template(self,name:str,asset_kind:str)-&gt;dict:
+        spec=self.get(name); kind=str(asset_kind)
+        if kind not in spec[&quot;object_types&quot;]: raise ValueError(&quot;unsupported package asset kind&quot;)
+        return {&quot;schema&quot;:&quot;entity-v3-industry-asset-template-v1&quot;,&quot;package&quot;:name,&quot;package_version&quot;:spec[&quot;version&quot;],
+                &quot;asset_kind&quot;:kind,&quot;object_type&quot;:spec[&quot;object_types&quot;][kind],&quot;profile_refs&quot;:spec[&quot;profile_refs&quot;],
+                &quot;default_right_actions&quot;:spec[&quot;rights&quot;],&quot;required_evidence_types&quot;:spec[&quot;evidence_types&quot;],
+                &quot;privacy_defaults&quot;:spec[&quot;privacy&quot;],&quot;economic_value_invented&quot;:False,&quot;profile_is_not_authority&quot;:True}
+
+    def map_external(self,name:str,standard:str,record:dict)-&gt;dict:
+        spec=self.get(name); mapping=next((m for m in spec[&quot;mappings&quot;] if m[&quot;standard&quot;].upper()==str(standard).upper()),None)
+        if not mapping: raise ValueError(&quot;standard mapping unavailable&quot;)
+        source=dict(record or {}); descriptor={}
+        for external,target in mapping[&quot;field_map&quot;].items():</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

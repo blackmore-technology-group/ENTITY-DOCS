@@ -1,0 +1,82 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EvidenceStore Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EvidenceStore</h1><div class="meta"><b>Repository:</b> ENTITY-GITHUB-APP<br><b>Commit:</b> <code>7ef6b33b5d586cabd1f912491152fcff10e0ad47</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY-GITHUB-APP/blob/7ef6b33b5d586cabd1f912491152fcff10e0ad47/src/entity_github_app/store.py#L28">ENTITY-GITHUB-APP/src/entity_github_app/store.py#L28</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class EvidenceStore:
+    def __init__(self, path: str | Path):
+        self.path = Path(path)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.db = sqlite3.connect(self.path)
+        self.db.row_factory = sqlite3.Row
+        self.db.executescript(SCHEMA)
+
+    def close(self) -&gt; None:
+        self.db.close()
+
+    def _audit(self, action: str, object_id: str, payload: Dict[str, Any]) -&gt; None:
+        row = self.db.execute(&quot;SELECT event_hash FROM audit ORDER BY seq DESC LIMIT 1&quot;).fetchone()
+        prev = row[0] if row else &quot;0&quot; * 64
+        event = {
+            &quot;timestamp&quot;: utc_now(),
+            &quot;action&quot;: action,
+            &quot;object_id&quot;: object_id,
+            &quot;payload&quot;: payload,
+            &quot;prev_hash&quot;: prev,
+        }
+        event_hash = sha256_bytes(canonical_json(event).encode(&quot;utf-8&quot;))
+        self.db.execute(
+            &quot;INSERT INTO audit(timestamp,action,object_id,payload_json,prev_hash,event_hash) VALUES(?,?,?,?,?,?)&quot;,
+            (event[&quot;timestamp&quot;], action, object_id, canonical_json(payload), prev, event_hash),
+        )
+
+    def record(self, event: str, delivery_id: str, candidate: Dict[str, Any]) -&gt; bool:
+        if self.db.execute(&quot;SELECT 1 FROM deliveries WHERE delivery_id=?&quot;, (delivery_id,)).fetchone():
+            return False
+        repo = ((candidate.get(&quot;source&quot;) or {}).get(&quot;repository&quot;) or {}).get(&quot;full_name&quot;)
+        payload_hash = (candidate.get(&quot;integrity&quot;) or {}).get(&quot;webhook_payload_sha256&quot;)
+        candidate_hash = candidate.get(&quot;candidate_sha256&quot;)
+        recorded_at = utc_now()
+        with self.db:
+            self.db.execute(
+                &quot;INSERT INTO deliveries(delivery_id,event,received_at,payload_sha256,candidate_sha256) VALUES(?,?,?,?,?)&quot;,
+                (delivery_id, event, recorded_at, payload_hash, candidate_hash),
+            )
+            self.db.execute(
+                &quot;INSERT INTO candidates(candidate_id,delivery_id,event,repository,candidate_json,candidate_sha256,recorded_at) VALUES(?,?,?,?,?,?,?)&quot;,
+                (candidate[&quot;candidate_id&quot;], delivery_id, event, repo, canonical_json(candidate), candidate_hash, recorded_at),
+            )
+            self._audit(&quot;CANDIDATE_RECORDED&quot;, candidate[&quot;candidate_id&quot;], {&quot;delivery_id&quot;: delivery_id, &quot;event&quot;: event, &quot;repository&quot;: repo, &quot;candidate_sha256&quot;: candidate_hash})
+        return True
+
+    def get_candidate(self, candidate_id: str) -&gt; Dict[str, Any] | None:
+        row = self.db.execute(&quot;SELECT candidate_json FROM candidates WHERE candidate_id=?&quot;, (candidate_id,)).fetchone()
+        return json.loads(row[0]) if row else None
+
+    def counts(self) -&gt; Dict[str, int]:
+        return {
+            &quot;deliveries&quot;: self.db.execute(&quot;SELECT count(*) FROM deliveries&quot;).fetchone()[0],
+            &quot;candidates&quot;: self.db.execute(&quot;SELECT count(*) FROM candidates&quot;).fetchone()[0],
+            &quot;audit_events&quot;: self.db.execute(&quot;SELECT count(*) FROM audit&quot;).fetchone()[0],
+        }
+
+    def verify_audit(self) -&gt; Dict[str, Any]:
+        prev = &quot;0&quot; * 64
+        errors = []
+        count = 0
+        for row in self.db.execute(&quot;SELECT * FROM audit ORDER BY seq&quot;):
+            payload = json.loads(row[&quot;payload_json&quot;])
+            event = {
+                &quot;timestamp&quot;: row[&quot;timestamp&quot;],
+                &quot;action&quot;: row[&quot;action&quot;],
+                &quot;object_id&quot;: row[&quot;object_id&quot;],
+                &quot;payload&quot;: payload,
+                &quot;prev_hash&quot;: row[&quot;prev_hash&quot;],
+            }
+            expected = sha256_bytes(canonical_json(event).encode(&quot;utf-8&quot;))
+            if row[&quot;prev_hash&quot;] != prev or row[&quot;event_hash&quot;] != expected:
+                errors.append(row[&quot;seq&quot;])
+            prev = row[&quot;event_hash&quot;]
+            count += 1
+        return {
+            &quot;ok&quot;: not errors,
+            &quot;events&quot;: count,
+            &quot;last_hash&quot;: prev,
+            &quot;errors&quot;: errors,
+            &quot;boundary&quot;: &quot;Local hash chain; external/WORM preservation is a separate control.&quot;,
+        }</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

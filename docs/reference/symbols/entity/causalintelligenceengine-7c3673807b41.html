@@ -1,0 +1,164 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CausalIntelligenceEngine Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>CausalIntelligenceEngine</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/10_NIKI/causal_intelligence.py#L192">ENTITY/src/10_NIKI/causal_intelligence.py#L192</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Bounded causal/counterfactual reasoning with no execution authority.</p><h2>Source excerpt</h2><pre><code>class CausalIntelligenceEngine:
+    &quot;&quot;&quot;Bounded causal/counterfactual reasoning with no execution authority.&quot;&quot;&quot;
+
+    VERSION = &quot;1.0&quot;
+
+    def __init__(self, state_dir: str | Path):
+        self.registry = CausalModelRegistry(state_dir)
+
+    def evaluate(self, spec: dict[str, Any], observed: dict[str, Any], interventions: dict[str, Any] | None = None) -&gt; dict[str, Any]:
+        validate_model_spec(spec)
+        variables = spec[&quot;variables&quot;]
+        order = _topological_order(variables)
+        result = deepcopy(observed or {})
+        forced = dict(interventions or {})
+        unknown = [name for name in forced if name not in variables]
+        if unknown:
+            raise CausalModelError(f&quot;intervention targets unknown variables: {unknown}&quot;)
+        for name in order:
+            if name in forced:
+                result[name] = forced[name]
+            else:
+                result[name] = _evaluate_equation(name, variables[name], result)
+        return result
+
+    @staticmethod
+    def compare(baseline: dict[str, Any], counterfactual: dict[str, Any], variables: list[str]) -&gt; dict[str, Any]:
+        differences: dict[str, Any] = {}
+        for name in variables:
+            before, after = baseline.get(name), counterfactual.get(name)
+            if before == after:
+                continue
+            delta = after - before if isinstance(before, (int, float)) and isinstance(after, (int, float)) else None
+            differences[name] = {&quot;baseline&quot;: before, &quot;counterfactual&quot;: after, &quot;delta&quot;: delta}
+        return differences
+
+    @staticmethod
+    def _objective_effect(baseline: Any, after: Any, direction: str) -&gt; tuple[float | None, str]:
+        if not isinstance(baseline, (int, float)) or not isinstance(after, (int, float)):
+            return None, &quot;not_numeric&quot;
+        raw = float(after) - float(baseline)
+        improvement = raw if direction == &quot;maximize&quot; else -raw
+        if improvement &gt; 1e-12:
+            return improvement, &quot;improves&quot;
+        if improvement &lt; -1e-12:
+            return improvement, &quot;degrades&quot;
+        return 0.0, &quot;no_effect&quot;
+
+    def analyze(self, request: dict[str, Any]) -&gt; dict[str, Any]:
+        if not isinstance(request, dict):
+            return {&quot;schema&quot;: ANALYSIS_SCHEMA, &quot;performed&quot;: False, &quot;reason&quot;: &quot;no_causal_request&quot;}
+        spec = request.get(&quot;model&quot;)
+        if spec is None and request.get(&quot;model_id&quot;):
+            spec = self.registry.get(str(request[&quot;model_id&quot;]))
+        if not isinstance(spec, dict):
+            return {&quot;schema&quot;: ANALYSIS_SCHEMA, &quot;performed&quot;: False, &quot;reason&quot;: &quot;no_qualified_causal_model&quot;}
+        validate_model_spec(spec)
+        observed = request.get(&quot;observed&quot;) or {}
+        baseline = self.evaluate(spec, observed)
+        scenarios = request.get(&quot;interventions&quot;) or []
+        objectives = request.get(&quot;objectives&quot;) or []
+        if not isinstance(scenarios, list):
+            raise CausalModelError(&quot;interventions must be a list&quot;)
+        if not isinstance(objectives, list):
+            raise CausalModelError(&quot;objectives must be a list&quot;)
+        variable_names = list(spec[&quot;variables&quot;].keys())
+        outcomes = []
+        for idx, scenario in enumerate(scenarios[:32]):
+            if not isinstance(scenario, dict):
+                continue
+            changes = scenario.get(&quot;set&quot;) or scenario.get(&quot;interventions&quot;) or {}
+            if not isinstance(changes, dict) or not changes:
+                continue
+            cf = self.evaluate(spec, observed, changes)
+            effects = []
+            total_positive = 0.0
+            total_negative = 0.0
+            for objective in objectives[:16]:
+                if not isinstance(objective, dict):
+                    continue
+                name = str(objective.get(&quot;variable&quot;) or &quot;&quot;)
+                if name not in spec[&quot;variables&quot;]:
+                    continue
+                direction = str(objective.get(&quot;direction&quot;) or &quot;maximize&quot;).lower()
+                if direction not in {&quot;maximize&quot;, &quot;minimize&quot;}:
+                    direction = &quot;maximize&quot;
+                improvement, classification = self._objective_effect(baseline.get(name), cf.get(name), direction)
+                weight = max(0.0, _num(objective.get(&quot;weight&quot;, 1.0), 1.0))
+                if improvement is not None:
+                    weighted = improvement * weight
+                    if weighted &gt; 0: total_positive += weighted
+                    elif weighted &lt; 0: total_negative += weighted
+                effects.append({
+                    &quot;variable&quot;: name, &quot;direction&quot;: direction, &quot;weight&quot;: weight,
+                    &quot;baseline&quot;: baseline.get(name), &quot;counterfactual&quot;: cf.get(name),
+                    &quot;improvement&quot;: improvement, &quot;classification&quot;: classification,
+                })
+            net = total_positive + total_negative
+            classification = &quot;improves&quot; if net &gt; 1e-12 else (&quot;degrades&quot; if net &lt; -1e-12 else &quot;no_effect&quot;)
+            outcomes.append({
+                &quot;scenario_id&quot;: str(scenario.get(&quot;scenario_id&quot;) or f&quot;cf-{idx+1}&quot;),
+                &quot;interventions&quot;: deepcopy(changes),
+                &quot;state&quot;: cf,
+                &quot;differences&quot;: self.compare(baseline, cf, variable_names),
+                &quot;objective_effects&quot;: effects,
+                &quot;net_improvement&quot;: net,
+                &quot;classification&quot;: classification,
+                &quot;recommended&quot;: classification == &quot;improves&quot;,
+            })
+        outcomes.sort(key=lambda row: (row[&quot;net_improvement&quot;], row[&quot;scenario_id&quot;]), reverse=True)
+        provenance = deepcopy(spec.get(&quot;provenance&quot;) or {})
+        return {
+            &quot;schema&quot;: ANALYSIS_SCHEMA,
+            &quot;performed&quot;: True,
+            &quot;model_id&quot;: spec[&quot;model_id&quot;],
+            &quot;model_version&quot;: str(spec.get(&quot;model_version&quot;) or &quot;unspecified&quot;),
+            &quot;model_sha256&quot;: _digest(spec),
+            &quot;model_provenance&quot;: provenance,
+            &quot;baseline&quot;: baseline,
+            &quot;counterfactuals&quot;: outcomes,
+            &quot;best_positive_intervention&quot;: next((x for x in outcomes if x[&quot;recommended&quot;]), None),
+            &quot;authority&quot;: &quot;NIKI_REASONING_ONLY&quot;,
+            &quot;authoritative_state_mutation&quot;: False,
+            &quot;execution_authority&quot;: &quot;ENTITY&quot;,
+            &quot;executor&quot;: &quot;ADAM&quot;,
+            &quot;claim_boundary&quot;: &quot;counterfactual output is model-dependent analytical evidence, not proof of causation or authority to act&quot;,
+        }
+
+    @staticmethod
+    def stability(feature: str, environments: list[dict[str, Any]]) -&gt; dict[str, Any]:
+        samples = []
+        for env in environments or []:
+            metrics = env.get(&quot;metrics&quot;) if isinstance(env, dict) else None
+            if isinstance(metrics, dict) and isinstance(metrics.get(feature), (int, float)):
+                samples.append(float(metrics[feature]))
+        if not samples:
+            return {&quot;feature&quot;: feature, &quot;sample_count&quot;: 0, &quot;stable&quot;: False, &quot;method&quot;: &quot;empirical_stability_heuristic_not_IRM_proof&quot;}
+        mean = statistics.fmean(samples)
+        std = statistics.pstdev(samples) if len(samples) &gt; 1 else 0.0
+        scale = max(abs(mean), 1e-9)
+        cv = std / scale
+        return {
+            &quot;feature&quot;: feature,
+            &quot;sample_count&quot;: len(samples),
+            &quot;mean&quot;: mean,
+            &quot;std_dev&quot;: std,
+            &quot;coefficient_of_variation&quot;: cv,
+            &quot;stable&quot;: len(samples) &gt;= 2 and cv &lt;= 0.05,
+            &quot;method&quot;: &quot;empirical_stability_heuristic_not_IRM_proof&quot;,
+        }
+
+    def status(self) -&gt; dict[str, Any]:
+        return {
+            &quot;schema&quot;: &quot;niki-causal-intelligence-status-v1&quot;,
+            &quot;version&quot;: self.VERSION,
+            &quot;structural_causal_models&quot;: True,
+            &quot;hard_interventions&quot;: True,
+            &quot;counterfactuals&quot;: True,
+            &quot;objective_ranking&quot;: True,
+            &quot;invariant_stability_heuristic&quot;: True,
+            &quot;arbitrary_code_equations&quot;: False,
+            &quot;autonomous_model_activation&quot;: False,
+            &quot;autonomous_execution&quot;: False,
+            &quot;registry&quot;: self.registry.status(),
+        }</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

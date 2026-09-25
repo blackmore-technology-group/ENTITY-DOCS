@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / sdk/open_entity_sdk/canonical_open_entity_sdk_v1_1.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / sdk/open_entity_sdk/canonical_open_entity_sdk_v1_1.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>sdk/open_entity_sdk/canonical_open_entity_sdk_v1_1.py</code></p><p><b>SHA-256:</b> <code>3f3d81a44651a85b1389023345e5cb28bd4a3dab0c8b215fabd1405c8adeae72</code></p><p><b>Bytes:</b> 15,633</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/open_entity_sdk/canonical_open_entity_sdk_v1_1.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-a44289d82422.html">_now</a></li><li><a href="../../../reference/symbols/entity/canon-a83544b05444.html">_canon</a></li><li><a href="../../../reference/symbols/entity/sha-97d7714ec234.html">_sha</a></li><li><a href="../../../reference/symbols/entity/load-88508d63d018.html">_load</a></li><li><a href="../../../reference/symbols/entity/normalize-alias-84c105e71191.html">normalize_alias</a></li><li><a href="../../../reference/symbols/entity/address-descriptor-a778e7bd141b.html">address_descriptor</a></li><li><a href="../../../reference/symbols/entity/make-asset-envelope-0e0c200b675b.html">make_asset_envelope</a></li><li><a href="../../../reference/symbols/entity/make-event-envelope-ce3a9c14fc1b.html">make_event_envelope</a></li><li><a href="../../../reference/symbols/entity/openentitydevelopersdk-381c8090dab1.html">OpenEntityDeveloperSDK</a></li><li><a href="../../../reference/symbols/entity/openentitydevelopersdk-init-45d5875bd924.html">OpenEntityDeveloperSDK.__init__</a></li><li><a href="../../../reference/symbols/entity/openentitydevelopersdk-connect-31d3fa4b7e14.html">OpenEntityDeveloperSDK._connect</a></li><li><a href="../../../reference/symbols/entity/openentitydevelopersdk-init-db-681cd27d6de4.html">OpenEntityDeveloperSDK._init_db</a></li><li><a href="../../../reference/symbols/entity/openentitydevelopersdk-provision-application-b2cec0cda968.html">OpenEntityDeveloperSDK.provision_application</a></li><li><a href="../../../reference/symbols/entity/openentitydevelopersdk-authorize-954e6714d7b3.html">OpenEntityDeveloperSDK._authorize</a></li><li><a href="../../../reference/symbols/entity/openentitydevelopersdk-digest-8f39f03d8a19.html">OpenEntityDeveloperSDK._digest</a></li><li><a href="../../../reference/symbols/entity/openentitydevelopersdk-check-17bc0cd6b689.html">OpenEntityDeveloperSDK._check</a></li><li><a href="../../../reference/symbols/entity/openentitydevelopersdk-remember-04ecd1473724.html">OpenEntityDeveloperSDK._remember</a></li><li><a href="../../../reference/symbols/entity/openentitydevelopersdk-ingest-asset-d199c7eff1b5.html">OpenEntityDeveloperSDK.ingest_asset</a></li><li><a href="../../../reference/symbols/entity/openentitydevelopersdk-record-event-69c11df572a4.html">OpenEntityDeveloperSDK.record_event</a></li><li><a href="../../../reference/symbols/entity/openentitydevelopersdk-status-906b787292c6.html">OpenEntityDeveloperSDK.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from contextlib import contextmanager
+import hashlib, importlib.util, json, sqlite3, time, uuid
+
+ROOT=Path(__file__).resolve().parents[2] / &quot;src&quot;
+ASSET_SCHEMA=&quot;entity-open-sdk-asset-envelope-v1.1&quot;
+EVENT_SCHEMA=&quot;entity-open-sdk-event-envelope-v1&quot;
+ASSET_KINDS={&quot;SOFTWARE&quot;,&quot;DATA&quot;,&quot;MODEL&quot;,&quot;KNOWLEDGE&quot;,&quot;EVIDENCE&quot;}
+ALLOWED_EVENT_PREFIXES=(&quot;application.&quot;,&quot;data.&quot;,&quot;model.&quot;,&quot;knowledge.&quot;,&quot;software.&quot;,&quot;evidence.&quot;)
+FORBIDDEN_EVENT_TOKENS=(&quot;ownership&quot;,&quot;licence&quot;,&quot;license&quot;,&quot;settlement&quot;,&quot;payment&quot;,&quot;capital&quot;,&quot;authority&quot;,&quot;consent&quot;,&quot;rights.verify&quot;,&quot;commodity&quot;)
+
+def _now(): return int(time.time()*1000)
+def _canon(v): return json.dumps(v,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False,default=str).encode()
+def _sha(v): return hashlib.sha256(v if isinstance(v,(bytes,bytearray)) else _canon(v)).hexdigest()
+def _load(name,path):
+    spec=importlib.util.spec_from_file_location(name,path); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+def normalize_alias(alias:str)-&gt;str:
+    value=&quot;.&quot;.join(p.strip().lower() for p in str(alias or &quot;&quot;).strip().split(&quot;.&quot;) if p.strip())
+    if not value or len(value)&gt;253: raise ValueError(&quot;invalid Entity alias&quot;)
+    if any(not all(c.isalnum() or c in &quot;-_&quot; for c in part) for part in value.split(&quot;.&quot;)):
+        raise ValueError(&quot;unsupported Entity alias characters&quot;)
+    return value
+
+def address_descriptor(alias:str,entity_id:str,namespace:str=&quot;entity&quot;,domain_id:str|None=None)-&gt;dict:
+    name=normalize_alias(alias); root=str(entity_id); ns=str(namespace or &quot;entity&quot;).lower()
+    binding=_sha({&quot;namespace&quot;:ns,&quot;normalized_name&quot;:name,&quot;entity_root&quot;:root})
+    addr_hash=hashlib.sha256(root.encode(&quot;utf-8&quot;)).hexdigest()
+    return {&quot;schema&quot;:&quot;entity-address-descriptor-v1&quot;,&quot;display_alias&quot;:name,&quot;namespace&quot;:ns,
+            &quot;entity_address&quot;:root,&quot;entity_address_sha256&quot;:addr_hash,&quot;alias_binding_sha256&quot;:binding,
+            &quot;collision_safe_display&quot;:f&quot;{name}~{binding[:12]}&quot;,&quot;domain_id&quot;:domain_id,
+            &quot;alias_is_authority&quot;:False,&quot;entity_address_is_authority&quot;:True}
+
+def make_asset_envelope(*,application_entity_id,content_sha256,size_bytes,media_type,title,asset_kind,
+                        classification=&quot;PRIVATE&quot;,metadata=None,source_subject_ref=None,asset_controller_entity_id=None,idempotency_key=None,
+                        explicit_rights_claim=None,contributors=None,parent_asset_ids=None):
+    return {&quot;schema&quot;:ASSET_SCHEMA,&quot;application_entity_id&quot;:str(application_entity_id),
+            &quot;idempotency_key&quot;:str(idempotency_key or uuid.uuid4()),&quot;content_sha256&quot;:str(content_sha256).lower(),
+            &quot;size_bytes&quot;:int(size_bytes),&quot;media_type&quot;:str(media_type),&quot;title&quot;:str(title),
+            &quot;asset_kind&quot;:str(asset_kind).upper(),&quot;classification&quot;:str(classification).upper(),
+            &quot;metadata&quot;:dict(metadata or {}),&quot;source_subject_ref&quot;:source_subject_ref,
+            &quot;explicit_rights_claim&quot;:dict(explicit_rights_claim or {}),&quot;contributors&quot;:[dict(x) for x in (contributors or [])],
+            &quot;parent_asset_ids&quot;:[str(x) for x in (parent_asset_ids or [])],&quot;raw_content_included&quot;:False}
+def make_event_envelope(*,application_entity_id,event_type,payload_sha256,subject_ids=None,object_ids=None,
+                        idempotency_key=None,evidence_origin=&quot;DIRECT_OBSERVATION&quot;,confidence=1.0):
+    return {&quot;schema&quot;:EVENT_SCHEMA,&quot;application_entity_id&quot;:str(application_entity_id),
+            &quot;idempotency_key&quot;:str(idempotency_key or uuid.uuid4()),&quot;event_type&quot;:str(event_type),
+            &quot;payload_sha256&quot;:str(payload_sha256).lower(),&quot;subject_ids&quot;:[str(x) for x in (subject_ids or [])],
+            &quot;object_ids&quot;:[str(x) for x in (object_ids or [])],&quot;evidence_origin&quot;:str(evidence_origin),
+            &quot;confidence&quot;:float(confidence),&quot;raw_payload_included&quot;:False}
+
+class OpenEntityDeveloperSDK:
+    &quot;&quot;&quot;Open, provider-neutral application/data integration adapter for ENTITY.&quot;&quot;&quot;
+    def __init__(self,state_dir:str|Path,application_entity_id:str,*,authorizer=None):
+        self.state=Path(state_dir); self.application_entity_id=str(application_entity_id); self.authorizer=authorizer
+        im=_load(&quot;open_sdk_identity&quot;,ROOT/&quot;01_Core_Runtime&quot;/&quot;identity&quot;/&quot;canonical_identity.py&quot;)
+        lm=_load(&quot;open_sdk_ledger&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;event_ledger&quot;/&quot;canonical_event_ledger.py&quot;)
+        rm=_load(&quot;open_sdk_rights&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;ownership_graphs&quot;/&quot;canonical_rights_claims.py&quot;)
+        pm=_load(&quot;open_sdk_prov&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;provenance&quot;/&quot;canonical_provenance.py&quot;)
+        am=_load(&quot;open_sdk_assets&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;asset_registry&quot;/&quot;canonical_asset_registry.py&quot;)
+        km=_load(&quot;open_sdk_knowledge&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;canonical_knowledge_capital.py&quot;)
+        self.identity=im.EntityIdentityVault(self.state); self.identity.load_manifest(self.application_entity_id)
+        self.ledger=lm.CanonicalEventLedger(self.state,self.identity); self.rights=rm.RightsClaimsGraph(self.state,self.identity)
+        self.provenance=pm.AssetProvenanceGraph(self.state,self.identity)
+        self.assets=am.CanonicalAssetRegistry(self.state,self.identity,self.ledger,self.rights,self.provenance)
+        self.knowledge=km.KnowledgeCapitalRegistry(self.state,self.identity)
+        self.root=self.state/&quot;open_entity_sdk&quot;; self.root.mkdir(parents=True,exist_ok=True); self.db_path=self.root/&quot;ingest.sqlite&quot;; self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.db_path,timeout=30); db.row_factory=sqlite3.Row
+        try:
+            yield db
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        finally:
+            db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;); db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS idempotency(idempotency_key TEXT PRIMARY KEY,envelope_sha256 TEXT NOT NULL,result_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+
+    @classmethod
+    def provision_application(cls,state_dir:str|Path,display_name:str,alias:str,*,controller_entity_id:str|None=None,metadata=None)-&gt;dict:
+        state=Path(state_dir); name=normalize_alias(alias)
+        im=_load(&quot;open_sdk_provision_identity&quot;,ROOT/&quot;01_Core_Runtime&quot;/&quot;identity&quot;/&quot;canonical_identity.py&quot;)
+        dm=_load(&quot;open_sdk_provision_domain&quot;,ROOT/&quot;22_Sovereign_Domain&quot;/&quot;core&quot;/&quot;canonical_domain.py&quot;)
+        sm=_load(&quot;open_sdk_provision_sovereign&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;relationships&quot;/&quot;canonical_sovereign_authority.py&quot;)
+        identity=im.EntityIdentityVault(state)
+        if controller_entity_id: identity.load_manifest(str(controller_entity_id))
+        meta=dict(metadata or {}); meta.update({&quot;entity_sdk_profile&quot;:&quot;ENTITY_OPEN_SDK_v1&quot;,&quot;application_alias&quot;:name,
+                                                &quot;alias_is_not_authority&quot;:True,&quot;asset_ownership_not_inferred&quot;:True})
+        manifest=identity.create(str(display_name),&quot;application&quot;,aliases=[name],metadata=meta); app_id=manifest[&quot;entity_id&quot;]
+        domain=dm.EntityDomainAuthority(state,identity).create_domain(app_id,namespace=&quot;entity&quot;,requested_name=name)
+        descriptor=address_descriptor(name,app_id,&quot;entity&quot;,domain[&quot;domain_id&quot;])
+        control=None
+        if controller_entity_id:
+            control=sm.SovereignAuthorityRegistry(state,identity).grant_relationship(app_id,str(controller_entity_id),&quot;SOVEREIGN_AUTHORITY&quot;,
+                scope={&quot;application_control&quot;:True,&quot;asset_ownership_not_implied&quot;:True,&quot;user_data_ownership_not_implied&quot;:True},
+                evidence_origin=&quot;ENTITY_ASSERTION&quot;,evidence={&quot;profile&quot;:&quot;ENTITY_OPEN_SDK_v1&quot;})
+        return {&quot;application_entity_id&quot;:app_id,&quot;entity_address&quot;:app_id,&quot;alias&quot;:name,&quot;manifest&quot;:manifest,
+                &quot;domain&quot;:domain,&quot;address&quot;:descriptor,&quot;controller_relationship&quot;:control}
+
+    def _authorize(self,envelope:dict,operation:str):
+        if self.authorizer is None: raise PermissionError(&quot;open SDK ingest requires explicit authorization&quot;)
+        decision=self.authorizer(dict(envelope),str(operation)); allowed=decision.get(&quot;allowed&quot;) if isinstance(decision,dict) else bool(decision)
+        if not allowed: raise PermissionError(&quot;open SDK ingest authorization denied&quot;)
+        return decision if isinstance(decision,dict) else {&quot;allowed&quot;:True}
+    @staticmethod
+    def _digest(value:str):
+        d=str(value or &quot;&quot;).lower()
+        if len(d)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in d): raise ValueError(&quot;SHA-256 hex required&quot;)
+        return d
+
+    def _check(self,envelope:dict,schema:str):
+        if envelope.get(&quot;schema&quot;)!=schema: raise ValueError(&quot;unsupported open SDK envelope schema&quot;)
+        if envelope.get(&quot;application_entity_id&quot;)!=self.application_entity_id: raise PermissionError(&quot;application entity mismatch&quot;)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

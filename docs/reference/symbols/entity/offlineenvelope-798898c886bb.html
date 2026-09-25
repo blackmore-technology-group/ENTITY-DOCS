@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OfflineEnvelope Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>OfflineEnvelope</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/topology_crypto.py#L184">ENTITY/src/35_Global_Infrastructure/topology_crypto.py#L184</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Signed, expiry-bounded payload envelope for disconnected/edge operation.</p><h2>Source excerpt</h2><pre><code>class OfflineEnvelope:
+    &quot;&quot;&quot;Signed, expiry-bounded payload envelope for disconnected/edge operation.&quot;&quot;&quot;
+    @staticmethod
+    def create(identity, actor: str, node_id: str, partition_id: str, sequence: int,
+               payload: Any, *, expires_at_ms: int) -&gt; dict:
+        payload_sha = digest(payload)
+        body = {&quot;schema&quot;: &quot;entity-v3-offline-envelope-v1&quot;, &quot;envelope_id&quot;: rid(&quot;offline3&quot;),
+                &quot;actor_entity_id&quot;: actor, &quot;node_id&quot;: node_id, &quot;partition_id&quot;: partition_id,
+                &quot;sequence&quot;: int(sequence), &quot;payload_sha256&quot;: payload_sha,
+                &quot;created_at_ms&quot;: now_ms(), &quot;expires_at_ms&quot;: int(expires_at_ms)}
+        if body[&quot;expires_at_ms&quot;] &lt;= body[&quot;created_at_ms&quot;]:
+            raise ValueError(&quot;offline envelope expiry must be in the future&quot;)
+        sig = identity.sign(actor, body)
+        return dict(body, payload=payload, signature=sig)
+
+    @staticmethod
+    def verify(identity, envelope: dict, *, at_ms: int | None = None) -&gt; dict:
+        at = int(at_ms or now_ms())
+        body = {k: envelope[k] for k in (
+            &quot;schema&quot;, &quot;envelope_id&quot;, &quot;actor_entity_id&quot;, &quot;node_id&quot;, &quot;partition_id&quot;,
+            &quot;sequence&quot;, &quot;payload_sha256&quot;, &quot;created_at_ms&quot;, &quot;expires_at_ms&quot;)}
+        if body[&quot;schema&quot;] != &quot;entity-v3-offline-envelope-v1&quot;:
+            return {&quot;valid&quot;: False, &quot;reason&quot;: &quot;SCHEMA&quot;}
+        if digest(envelope.get(&quot;payload&quot;)) != body[&quot;payload_sha256&quot;]:
+            return {&quot;valid&quot;: False, &quot;reason&quot;: &quot;PAYLOAD_HASH&quot;}
+        if at &gt; int(body[&quot;expires_at_ms&quot;]):
+            return {&quot;valid&quot;: False, &quot;reason&quot;: &quot;EXPIRED&quot;}
+        manifest = identity.load_manifest(body[&quot;actor_entity_id&quot;])
+        if not identity.verify_signature(manifest, body, dict(envelope.get(&quot;signature&quot;) or {})):
+            return {&quot;valid&quot;: False, &quot;reason&quot;: &quot;SIGNATURE&quot;}
+        return {&quot;valid&quot;: True, &quot;reason&quot;: &quot;OK&quot;, &quot;partition_id&quot;: body[&quot;partition_id&quot;],
+                &quot;sequence&quot;: int(body[&quot;sequence&quot;]), &quot;offline_evidence_is_not_automatic_merge_authority&quot;: True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

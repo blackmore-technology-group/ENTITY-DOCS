@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/35_Global_Infrastructure/data_economic_sovereignty.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/35_Global_Infrastructure/data_economic_sovereignty.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/35_Global_Infrastructure/data_economic_sovereignty.py</code></p><p><b>SHA-256:</b> <code>1d078b5ae13ed8b71c3499b3010fcb5db9052764741447ffc2e7ad44574915ce</code></p><p><b>Bytes:</b> 9,607</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/data_economic_sovereignty.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-ms-583c629179fe.html">now_ms</a></li><li><a href="../../../reference/symbols/entity/canon-02362116bce3.html">canon</a></li><li><a href="../../../reference/symbols/entity/sha-5b89f7f610f0.html">sha</a></li><li><a href="../../../reference/symbols/entity/require-sha256-790cf2ec5a50.html">require_sha256</a></li><li><a href="../../../reference/symbols/entity/dataeconomicsovereignty-5882a534a8fb.html">DataEconomicSovereignty</a></li><li><a href="../../../reference/symbols/entity/dataeconomicsovereignty-doctrine-status-bb351743d4ac.html">DataEconomicSovereignty.doctrine_status</a></li><li><a href="../../../reference/symbols/entity/dataeconomicsovereignty-declare-digital-capital-1d5b162fa956.html">DataEconomicSovereignty.declare_digital_capital</a></li><li><a href="../../../reference/symbols/entity/dataeconomicsovereignty-define-bounded-interest-02641d9f4f20.html">DataEconomicSovereignty.define_bounded_interest</a></li><li><a href="../../../reference/symbols/entity/dataeconomicsovereignty-validate-interest-5d382a6ca4fb.html">DataEconomicSovereignty.validate_interest</a></li><li><a href="../../../reference/symbols/entity/dataeconomicsovereignty-bind-economic-consequence-5ded592f76ce.html">DataEconomicSovereignty.bind_economic_consequence</a></li><li><a href="../../../reference/symbols/entity/dataeconomicsovereignty-validate-market-instrument-3c5341f37b5d.html">DataEconomicSovereignty.validate_market_instrument</a></li><li><a href="../../../reference/symbols/entity/dataeconomicsovereignty-doctrine-invariants-acb20b3bf4fc.html">DataEconomicSovereignty.doctrine_invariants</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from typing import Any
+import hashlib, json, time
+
+DOCTRINE_ID = &quot;ENTITY-DATA-ECONOMIC-SOVEREIGNTY&quot;
+PROFILE_ID = &quot;DATA-ECONOMIC-SOVEREIGNTY&quot;
+PROFILE_VERSION = &quot;1.0&quot;
+SCARCITY_SOURCES = {
+    &quot;RIGHT&quot;, &quot;ENTITLEMENT&quot;, &quot;CAPACITY&quot;, &quot;DURATION&quot;, &quot;JURISDICTION&quot;,
+    &quot;USAGE_QUANTITY&quot;, &quot;DERIVATION&quot;, &quot;PARTICIPATION&quot;, &quot;TRANSFERABILITY&quot;,
+}
+
+def now_ms() -&gt; int: return int(time.time() * 1000)
+def canon(v: Any) -&gt; bytes:
+    return json.dumps(v, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False, default=str).encode()
+def sha(v: Any) -&gt; str:
+    return hashlib.sha256(v if isinstance(v, (bytes, bytearray)) else canon(v)).hexdigest()
+def require_sha256(v: str) -&gt; str:
+    s = str(v or &quot;&quot;).lower()
+    if len(s) != 64 or any(c not in &quot;0123456789abcdef&quot; for c in s): raise ValueError(&quot;SHA-256 required&quot;)
+    return s
+
+class DataEconomicSovereignty:
+    &quot;&quot;&quot;Machine-enforced doctrine for data as productive capital without byte scarcity.&quot;&quot;&quot;
+    @staticmethod
+    def doctrine_status() -&gt; dict:
+        return {
+            &quot;schema&quot;: &quot;entity-v3-data-economic-sovereignty-status-v1&quot;,
+            &quot;doctrine_id&quot;: DOCTRINE_ID,
+            &quot;profile_id&quot;: PROFILE_ID,
+            &quot;profile_version&quot;: PROFILE_VERSION,
+            &quot;data_may_be_productive_capital&quot;: True,
+            &quot;artificial_information_scarcity_required&quot;: False,
+            &quot;scarcity_may_exist_in_bounded_economic_interests&quot;: True,
+            &quot;originator_participation_requires_validly_established_terms&quot;: True,
+            &quot;provenance_must_link_information_right_use_derivative_value&quot;: True,
+            &quot;protocol_determines_legal_title&quot;: False,
+            &quot;protocol_determines_fair_value&quot;: False,
+            &quot;protocol_determines_regulatory_classification&quot;: False,
+        }
+
+    @staticmethod
+    def declare_digital_capital(dco_ref: str, originator_entity_id: str,
+                                provenance_root: str, content_sha256: str,
+                                *, asset_class=&quot;DATA&quot;, metadata=None) -&gt; dict:
+        if not str(dco_ref): raise ValueError(&quot;DCO reference required&quot;)
+        if not str(originator_entity_id): raise ValueError(&quot;originator required&quot;)
+        return {
+            &quot;schema&quot;: &quot;entity-v3-data-economic-capital-v1&quot;,
+            &quot;dco_ref&quot;: str(dco_ref), &quot;originator_entity_id&quot;: str(originator_entity_id),
+            &quot;asset_class&quot;: str(asset_class).upper(), &quot;provenance_root&quot;: require_sha256(provenance_root),
+            &quot;content_sha256&quot;: require_sha256(content_sha256), &quot;metadata&quot;: dict(metadata or {}),
+            &quot;information_bytes_are_not_declared_scarce&quot;: True, &quot;created_at_ms&quot;: now_ms(),
+        }
+
+    @staticmethod
+    def define_bounded_interest(capital_record: dict, holder_entity_id: str, *,
+                                actions: list[str], quantity: int | None = None,
+                                duration_ms: int | None = None, jurisdiction: str | None = None,
+                                transferable=False, derivation_allowed=False,
+                                participation_bps=0, additional_bounds=None) -&gt; dict:
+        if capital_record.get(&quot;schema&quot;) != &quot;entity-v3-data-economic-capital-v1&quot;:
+            raise ValueError(&quot;data economic capital record required&quot;)
+        acts = sorted({str(a).upper() for a in actions if str(a).strip()})
+        if not acts: raise ValueError(&quot;at least one economic right action required&quot;)
+        if quantity is not None and int(quantity) &lt; 1: raise ValueError(&quot;quantity must be positive&quot;)
+        if duration_ms is not None and int(duration_ms) &lt; 1: raise ValueError(&quot;duration must be positive&quot;)
+        participation = int(participation_bps)
+        if participation &lt; 0 or participation &gt; 10000: raise ValueError(&quot;participation_bps must be 0..10000&quot;)
+        bounds = dict(additional_bounds or {})
+        sources = {&quot;RIGHT&quot;}
+        if quantity is not None: sources.add(&quot;USAGE_QUANTITY&quot;)
+        if duration_ms is not None: sources.add(&quot;DURATION&quot;)
+        if jurisdiction: sources.add(&quot;JURISDICTION&quot;)
+        if transferable: sources.add(&quot;TRANSFERABILITY&quot;)
+        if derivation_allowed: sources.add(&quot;DERIVATION&quot;)
+        if participation: sources.add(&quot;PARTICIPATION&quot;)
+        body = {
+            &quot;schema&quot;: &quot;entity-v3-bounded-economic-interest-v1&quot;,
+            &quot;interest_id&quot;: &quot;interest3-&quot; + sha([capital_record[&quot;dco_ref&quot;], holder_entity_id, acts, quantity,
+                                                duration_ms, jurisdiction, transferable, derivation_allowed,
+                                                participation, bounds])[:24],
+            &quot;dco_ref&quot;: capital_record[&quot;dco_ref&quot;], &quot;holder_entity_id&quot;: str(holder_entity_id),
+            &quot;actions&quot;: acts, &quot;quantity&quot;: None if quantity is None else int(quantity),
+            &quot;duration_ms&quot;: None if duration_ms is None else int(duration_ms),
+            &quot;jurisdiction&quot;: None if jurisdiction is None else str(jurisdiction).upper(),
+            &quot;transferable&quot;: bool(transferable), &quot;derivation_allowed&quot;: bool(derivation_allowed),
+            &quot;participation_bps&quot;: participation, &quot;additional_bounds&quot;: bounds,
+            &quot;scarcity_sources&quot;: sorted(sources), &quot;underlying_information_remains_nonrival&quot;: True,
+            &quot;created_at_ms&quot;: now_ms(),
+        }
+        return body
+
+    @staticmethod
+    def validate_interest(interest: dict) -&gt; dict:
+        failures = []
+        if interest.get(&quot;schema&quot;) != &quot;entity-v3-bounded-economic-interest-v1&quot;: failures.append(&quot;wrong_schema&quot;)
+        actions = interest.get(&quot;actions&quot;) or []
+        if not actions or actions != sorted(set(actions)): failures.append(&quot;actions_not_canonical&quot;)
+        sources = set(interest.get(&quot;scarcity_sources&quot;) or [])
+        if not sources or not sources.issubset(SCARCITY_SOURCES): failures.append(&quot;invalid_scarcity_source&quot;)
+        if &quot;RIGHT&quot; not in sources: failures.append(&quot;right_boundary_missing&quot;)
+        if interest.get(&quot;underlying_information_remains_nonrival&quot;) is not True:
+            failures.append(&quot;information_scarcity_asserted&quot;)
+        q = interest.get(&quot;quantity&quot;)
+        if q is not None and (type(q) is not int or q &lt; 1): failures.append(&quot;invalid_quantity&quot;)
+        d = interest.get(&quot;duration_ms&quot;)
+        if d is not None and (type(d) is not int or d &lt; 1): failures.append(&quot;invalid_duration&quot;)
+        p = interest.get(&quot;participation_bps&quot;)
+        if type(p) is not int or p &lt; 0 or p &gt; 10000: failures.append(&quot;invalid_participation&quot;)
+        return {&quot;valid&quot;: not failures, &quot;failures&quot;: failures,
+                &quot;information_scarcity_required&quot;: False,
+                &quot;economic_scarcity_is_rights_based&quot;: True}
+
+    @staticmethod
+    def bind_economic_consequence(*, dco_ref: str, interest_id: str, use_event_ref: str,
+                                  derivative_ref: str | None, value_ref: str,
+                                  evidence_sha256: str, methodology_ref: str | None = None) -&gt; dict:
+        required = {&quot;dco_ref&quot;: dco_ref, &quot;interest_id&quot;: interest_id,
+                    &quot;use_event_ref&quot;: use_event_ref, &quot;value_ref&quot;: value_ref}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

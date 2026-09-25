@@ -1,0 +1,34 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SelectiveDisclosure Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>SelectiveDisclosure</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/governance_privacy.py#L11">ENTITY/src/31_Profiles/governance_privacy.py#L11</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Salted per-claim commitments. Hidden claims remain commitments, not disclosed values.</p><h2>Source excerpt</h2><pre><code>class SelectiveDisclosure:
+    &quot;&quot;&quot;Salted per-claim commitments. Hidden claims remain commitments, not disclosed values.&quot;&quot;&quot;
+    @staticmethod
+    def commit(claims: dict[str, Any]) -&gt; dict:
+        entries, secrets_out = {}, {}
+        for key in sorted(claims):
+            salt = secrets.token_hex(24)
+            commitment = digest({&quot;key&quot;: key, &quot;value&quot;: claims[key], &quot;salt&quot;: salt})
+            entries[key] = commitment
+            secrets_out[key] = {&quot;value&quot;: claims[key], &quot;salt&quot;: salt}
+        root = digest({&quot;claims&quot;: entries})
+        return {&quot;schema&quot;: &quot;entity-v3-private-claims-v1&quot;, &quot;root&quot;: root,
+                &quot;commitments&quot;: entries, &quot;private_openings&quot;: secrets_out}
+
+    @staticmethod
+    def disclose(package: dict, keys: list[str]) -&gt; dict:
+        openings = package.get(&quot;private_openings&quot;) or {}
+        revealed = {}
+        for key in sorted(set(keys)):
+            if key not in openings: raise KeyError(key)
+            revealed[key] = openings[key]
+        return {&quot;schema&quot;: &quot;entity-v3-selective-disclosure-v1&quot;, &quot;root&quot;: package[&quot;root&quot;],
+                &quot;commitments&quot;: dict(package[&quot;commitments&quot;]), &quot;revealed&quot;: revealed}
+
+    @staticmethod
+    def verify(proof: dict) -&gt; dict:
+        commitments = dict(proof.get(&quot;commitments&quot;) or {})
+        root_ok = digest({&quot;claims&quot;: commitments}) == proof.get(&quot;root&quot;)
+        bad = []
+        for key, opening in dict(proof.get(&quot;revealed&quot;) or {}).items():
+            expected = digest({&quot;key&quot;: key, &quot;value&quot;: opening.get(&quot;value&quot;), &quot;salt&quot;: opening.get(&quot;salt&quot;)})
+            if commitments.get(key) != expected: bad.append(key)
+        return {&quot;valid&quot;: root_ok and not bad, &quot;root_valid&quot;: root_ok,
+                &quot;invalid_reveals&quot;: bad, &quot;revealed_keys&quot;: sorted((proof.get(&quot;revealed&quot;) or {}).keys())}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

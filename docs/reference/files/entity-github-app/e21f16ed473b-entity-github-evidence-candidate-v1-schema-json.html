@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY-GITHUB-APP / schemas/entity-github-evidence-candidate-v1.schema.json Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY-GITHUB-APP / schemas/entity-github-evidence-candidate-v1.schema.json</h1><div class="meta"><b>Repository:</b> ENTITY-GITHUB-APP<br><b>Commit:</b> <code>7ef6b33b5d586cabd1f912491152fcff10e0ad47</code></div><p><b>Path:</b> <code>schemas/entity-github-evidence-candidate-v1.schema.json</code></p><p><b>SHA-256:</b> <code>4447f4c0f5ceed643bd3766c0c55a61e17bbb01ebd6f0895d113b86ed15f7e70</code></p><p><b>Bytes:</b> 959</p><p><a href="https://github.com/blackmore-technology-group/ENTITY-GITHUB-APP/blob/7ef6b33b5d586cabd1f912491152fcff10e0ad47/schemas/entity-github-evidence-candidate-v1.schema.json">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>{
+  &quot;$schema&quot;: &quot;https://json-schema.org/draft/2020-12/schema&quot;,
+  &quot;$id&quot;: &quot;https://blackmoretechgroup.com/schemas/entity-github-evidence-candidate-v1.schema.json&quot;,
+  &quot;title&quot;: &quot;ENTITY GitHub Evidence Candidate v1&quot;,
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;additionalProperties&quot;: false,
+  &quot;required&quot;: [&quot;schema&quot;, &quot;candidate_id&quot;, &quot;observed_at&quot;, &quot;source&quot;, &quot;subject&quot;, &quot;integrity&quot;, &quot;claim_boundary&quot;, &quot;candidate_sha256&quot;],
+  &quot;properties&quot;: {
+    &quot;schema&quot;: {&quot;const&quot;: &quot;entity.github.evidence-candidate.v1&quot;},
+    &quot;candidate_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;pattern&quot;: &quot;^github:&quot;},
+    &quot;observed_at&quot;: {&quot;type&quot;: &quot;string&quot;},
+    &quot;source&quot;: {&quot;type&quot;: &quot;object&quot;},
+    &quot;subject&quot;: {&quot;type&quot;: &quot;object&quot;},
+    &quot;integrity&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;webhook_payload_sha256&quot;],
+      &quot;properties&quot;: {&quot;webhook_payload_sha256&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;pattern&quot;: &quot;^[0-9a-f]{64}$&quot;}}
+    },
+    &quot;claim_boundary&quot;: {&quot;type&quot;: &quot;object&quot;},
+    &quot;candidate_sha256&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;pattern&quot;: &quot;^[0-9a-f]{64}$&quot;}
+  }
+}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

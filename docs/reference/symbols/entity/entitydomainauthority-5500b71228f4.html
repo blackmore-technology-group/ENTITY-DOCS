@@ -1,0 +1,346 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityDomainAuthority Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityDomainAuthority</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/core/canonical_domain.py#L12">ENTITY/src/22_Sovereign_Domain/core/canonical_domain.py#L12</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Sovereign Entity-domain registry. Nodes, endpoints and providers never become the Entity root.</p><h2>Source excerpt</h2><pre><code>class EntityDomainAuthority:
+    &quot;&quot;&quot;Sovereign Entity-domain registry. Nodes, endpoints and providers never become the Entity root.&quot;&quot;&quot;
+    def __init__(self,state_dir:str|Path,identity):
+        self.root=Path(state_dir)/&quot;sovereign_domain&quot;
+        self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;domain.sqlite&quot;
+        self.identity=identity
+        self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30)
+        db.row_factory=sqlite3.Row
+        try:
+            yield db
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        finally:
+            db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS domains(
+                domain_id TEXT PRIMARY KEY,entity_id TEXT NOT NULL,namespace TEXT NOT NULL,
+                current_name TEXT,version INTEGER NOT NULL,status TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS name_claims(
+                claim_id TEXT PRIMARY KEY,domain_id TEXT NOT NULL,entity_id TEXT NOT NULL,
+                normalized_name TEXT NOT NULL,namespace TEXT NOT NULL,status TEXT NOT NULL,
+                conflict_state TEXT NOT NULL,evidence_json TEXT NOT NULL,signature_json TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS nodes(
+                node_id TEXT PRIMARY KEY,domain_id TEXT NOT NULL,entity_id TEXT NOT NULL,
+                public_key_b64 TEXT NOT NULL,permitted_services_json TEXT NOT NULL,
+                network_scopes_json TEXT NOT NULL,publication_scopes_json TEXT NOT NULL,
+                data_scopes_json TEXT NOT NULL,not_before_ms INTEGER NOT NULL,expires_at_ms INTEGER,
+                delegation_json TEXT NOT NULL,status TEXT NOT NULL,auth_version INTEGER NOT NULL,
+                signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS services(
+                service_id TEXT PRIMARY KEY,domain_id TEXT NOT NULL,node_id TEXT NOT NULL,
+                service_type TEXT NOT NULL,endpoint_json TEXT NOT NULL,protocol_version TEXT NOT NULL,
+                capabilities_json TEXT NOT NULL,access_class TEXT NOT NULL,
+                required_credentials_json TEXT NOT NULL,policy_refs_json TEXT NOT NULL,
+                data_classifications_json TEXT NOT NULL,economic_terms_ref TEXT,
+                availability_json TEXT NOT NULL,manifest_version INTEGER NOT NULL,
+                expires_at_ms INTEGER,status TEXT NOT NULL,signature_json TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS migrations(
+                migration_id TEXT PRIMARY KEY,domain_id TEXT NOT NULL,from_node TEXT,to_node TEXT,
+                from_provider TEXT,to_provider TEXT,semantic_hash_before TEXT NOT NULL,
+                semantic_hash_after TEXT NOT NULL,signature_json TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS revocations(
+                revocation_id TEXT PRIMARY KEY,domain_id TEXT NOT NULL,node_id TEXT NOT NULL,
+                entity_id TEXT NOT NULL,reason TEXT NOT NULL,effective_at_ms INTEGER NOT NULL,
+                signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS audit(
+                audit_id TEXT PRIMARY KEY,domain_id TEXT,event_type TEXT NOT NULL,
+                actor_entity_id TEXT NOT NULL,payload_json TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+
+    @staticmethod
+    def normalize_name(value:str)-&gt;str:
+        name=&quot;.&quot;.join(part.strip().lower() for part in str(value or &quot;&quot;).strip().split(&quot;.&quot;) if part.strip())
+        if not name or len(name)&gt;253: raise ValueError(&quot;invalid Entity name&quot;)
+        if any(not all(c.isalnum() or c in &quot;-_&quot; for c in part) for part in name.split(&quot;.&quot;)):
+            raise ValueError(&quot;Entity name contains unsupported characters&quot;)
+        return name
+
+    def _audit(self,db,domain_id,event_type,actor,payload):
+        db.execute(&quot;INSERT INTO audit VALUES(?,?,?,?,?,?)&quot;,
+                   (_id(&quot;daud1&quot;),domain_id,str(event_type),actor,json.dumps(dict(payload or {}),sort_keys=True),_now()))
+
+    def create_domain(self,entity_id:str,*,namespace:str=&quot;entity&quot;,requested_name:str|None=None)-&gt;dict:
+        self.identity.load_manifest(entity_id)
+        did=_id(&quot;domain1&quot;); now=_now(); ns=str(namespace or &quot;entity&quot;).lower()
+        with self._connect() as db:
+            db.execute(&quot;INSERT INTO domains VALUES(?,?,?,?,?,?,?,?)&quot;,(did,entity_id,ns,None,1,&quot;ACTIVE&quot;,now,now))
+            self._audit(db,did,&quot;DOMAIN_CREATED&quot;,entity_id,{&quot;namespace&quot;:ns})
+        out={&quot;schema&quot;:&quot;entity-domain-v1&quot;,&quot;domain_id&quot;:did,&quot;entity_root&quot;:entity_id,&quot;namespace&quot;:ns,
+             &quot;version&quot;:1,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now,
+             &quot;dns_required&quot;:False,&quot;registrar_required&quot;:False,&quot;btg_host_required&quot;:False}
+        if requested_name:
+            out[&quot;name_claim&quot;]=self.claim_name(entity_id,did,requested_name)
+        return out
+
+    def claim_name(self,entity_id:str,domain_id:str,name:str,*,evidence:dict|None=None)-&gt;dict:
+        row=self.get_domain(domain_id)
+        if row[&quot;entity_root&quot;]!=entity_id: raise PermissionError(&quot;domain controller mismatch&quot;)
+        normalized=self.normalize_name(name); now=_now(); cid=_id(&quot;name1&quot;)
+        with self._connect() as db:
+            clashes=db.execute(&quot;SELECT domain_id FROM name_claims WHERE namespace=? AND normalized_name=? AND status=&#x27;ACTIVE&#x27; AND domain_id&lt;&gt;?&quot;,
+                               (row[&quot;namespace&quot;],normalized,domain_id)).fetchall()
+        conflict=&quot;CONFLICT&quot; if clashes else &quot;CLEAR&quot;
+        body={&quot;schema&quot;:&quot;entity-name-claim-v1&quot;,&quot;claim_id&quot;:cid,&quot;domain_id&quot;:domain_id,&quot;entity_root&quot;:entity_id,
+              &quot;normalized_name&quot;:normalized,&quot;namespace&quot;:row[&quot;namespace&quot;],&quot;status&quot;:&quot;ACTIVE&quot;,
+              &quot;conflict_state&quot;:conflict,&quot;evidence&quot;:dict(evidence or {}),&quot;created_at_ms&quot;:now,
+              &quot;first_seen_is_not_ownership&quot;:True,&quot;dns_possession_is_not_authority&quot;:True}
+        sig=self.identity.sign(entity_id,body)
+        with self._connect() as db:
+            db.execute(&quot;INSERT INTO name_claims VALUES(?,?,?,?,?,?,?,?,?,?)&quot;,
+                       (cid,domain_id,entity_id,normalized,row[&quot;namespace&quot;],&quot;ACTIVE&quot;,conflict,
+                        json.dumps(body[&quot;evidence&quot;],sort_keys=True),json.dumps(sig,sort_keys=True),now))
+            db.execute(&quot;UPDATE domains SET current_name=?,version=version+1,updated_at_ms=? WHERE domain_id=?&quot;,
+                       (normalized,now,domain_id))
+            self._audit(db,domain_id,&quot;NAME_CLAIMED&quot;,entity_id,{&quot;claim_id&quot;:cid,&quot;name&quot;:normalized,&quot;conflict&quot;:conflict})
+        return {**body,&quot;signature&quot;:sig}
+
+    def authorize_node(self,entity_id:str,domain_id:str,public_key_b64:str,*,permitted_services:list[str],
+                       network_scopes:list[str]|None=None,publication_scopes:list[str]|None=None,
+                       data_scopes:list[str]|None=None,not_before_ms:int|None=None,expires_at_ms:int|None=None,
+                       delegation:dict|None=None,node_id:str|None=None)-&gt;dict:
+        domain=self.get_domain(domain_id)
+        if domain[&quot;entity_root&quot;]!=entity_id: raise PermissionError(&quot;domain controller mismatch&quot;)
+        nid=str(node_id or _id(&quot;node1&quot;)); now=_now(); start=int(not_before_ms or now)
+        services=sorted({str(x).upper() for x in permitted_services})
+        if not services: raise ValueError(&quot;permitted_services required&quot;)
+        body={&quot;schema&quot;:&quot;entity-node-authorization-v1&quot;,&quot;domain_id&quot;:domain_id,&quot;entity_root&quot;:entity_id,&quot;node_id&quot;:nid,
+              &quot;public_key_b64&quot;:str(public_key_b64),&quot;permitted_services&quot;:services,
+              &quot;network_scopes&quot;:sorted({str(x) for x in network_scopes or [&quot;*&quot;]}),
+              &quot;publication_scopes&quot;:sorted({str(x) for x in publication_scopes or services}),
+              &quot;data_scopes&quot;:sorted({str(x) for x in data_scopes or []}),
+              &quot;not_before_ms&quot;:start,&quot;expires_at_ms&quot;:int(expires_at_ms) if expires_at_ms is not None else None,
+              &quot;delegation&quot;:dict(delegation or {}),&quot;status&quot;:&quot;ACTIVE&quot;,&quot;auth_version&quot;:1,&quot;created_at_ms&quot;:now}
+        sig=self.identity.sign(entity_id,body)
+        with self._connect() as db:
+            db.execute(&quot;INSERT INTO nodes VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,
+                       (nid,domain_id,entity_id,body[&quot;public_key_b64&quot;],json.dumps(services),json.dumps(body[&quot;network_scopes&quot;]),
+                        json.dumps(body[&quot;publication_scopes&quot;]),json.dumps(body[&quot;data_scopes&quot;]),start,body[&quot;expires_at_ms&quot;],
+                        json.dumps(body[&quot;delegation&quot;],sort_keys=True),&quot;ACTIVE&quot;,1,json.dumps(sig,sort_keys=True),now,now))
+            self._audit(db,domain_id,&quot;NODE_AUTHORIZED&quot;,entity_id,{&quot;node_id&quot;:nid,&quot;services&quot;:services})
+        return {**body,&quot;signature&quot;:sig}
+
+    def revoke_node(self,entity_id:str,node_id:str,reason:str=&quot;owner_action&quot;)-&gt;dict:
+        node=self.get_node(node_id)
+        if node[&quot;entity_root&quot;]!=entity_id: raise PermissionError(&quot;node controller mismatch&quot;)
+        if node.get(&quot;effective_status&quot;)==&quot;REVOKED&quot;: raise ValueError(&quot;node already revoked&quot;)
+        now=_now(); rid=_id(&quot;rev1&quot;)
+        body={&quot;schema&quot;:&quot;entity-node-revocation-v1&quot;,&quot;revocation_id&quot;:rid,&quot;domain_id&quot;:node[&quot;domain_id&quot;],
+              &quot;node_id&quot;:node_id,&quot;entity_root&quot;:entity_id,&quot;reason&quot;:str(reason)[:1024],
+              &quot;effective_at_ms&quot;:now,&quot;created_at_ms&quot;:now}
+        sig=self.identity.sign(entity_id,body)
+        with self._connect() as db:
+            db.execute(&quot;INSERT INTO revocations VALUES(?,?,?,?,?,?,?,?)&quot;,
+                       (rid,node[&quot;domain_id&quot;],node_id,entity_id,body[&quot;reason&quot;],now,json.dumps(sig,sort_keys=True),now))
+            self._audit(db,node[&quot;domain_id&quot;],&quot;NODE_REVOKED&quot;,entity_id,
+                        {&quot;node_id&quot;:node_id,&quot;revocation_id&quot;:rid,&quot;reason&quot;:body[&quot;reason&quot;]})
+        return {**body,&quot;signature&quot;:sig,&quot;status&quot;:&quot;REVOKED&quot;,&quot;entity_root_unchanged&quot;:True,
+                &quot;historical_evidence_preserved&quot;:True}
+
+    def publish_service(self,entity_id:str,domain_id:str,node_id:str,service_type:str,endpoint:dict, *,
+                        protocol_version:str=&quot;1&quot;,capabilities:list[str]|None=None,access_class:str=&quot;PUBLIC&quot;,
+                        required_credentials:list[str]|None=None,policy_refs:list[str]|None=None,
+                        data_classifications:list[str]|None=None,economic_terms_ref:str|None=None,
+                        availability:dict|None=None,expires_at_ms:int|None=None,service_id:str|None=None)-&gt;dict:
+        domain=self.get_domain(domain_id); node=self.get_node(node_id)
+        if domain[&quot;entity_root&quot;]!=entity_id or node[&quot;entity_root&quot;]!=entity_id or node[&quot;domain_id&quot;]!=domain_id:
+            raise PermissionError(&quot;domain/node controller mismatch&quot;)
+        if node.get(&quot;effective_status&quot;)!=&quot;ACTIVE&quot;: raise PermissionError(&quot;node not active&quot;)
+        now=_now()
+        if node.get(&quot;not_before_ms&quot;,0)&gt;now or (node.get(&quot;expires_at_ms&quot;) is not None and int(node[&quot;expires_at_ms&quot;])&lt;=now):
+            raise PermissionError(&quot;node authorization outside validity window&quot;)
+        st=str(service_type).upper()
+        if st not in SERVICE_TYPES: raise ValueError(&quot;unsupported service type&quot;)
+        if st not in set(node[&quot;permitted_services&quot;]) and &quot;*&quot; not in set(node[&quot;permitted_services&quot;]):
+            raise PermissionError(&quot;service outside node authorization&quot;)
+        ac=str(access_class).upper()
+        if ac not in ACCESS_CLASSES: raise ValueError(&quot;unsupported access class&quot;)
+        sid=str(service_id or _id(&quot;svc1&quot;))
+        prior=None
+        with self._connect() as db:
+            prior=db.execute(&quot;SELECT manifest_version FROM services WHERE service_id=?&quot;,(sid,)).fetchone()
+        version=int(prior[&quot;manifest_version&quot;])+1 if prior else 1
+        body={&quot;schema&quot;:&quot;entity-service-manifest-v1&quot;,&quot;entity_root&quot;:entity_id,&quot;domain_id&quot;:domain_id,
+              &quot;domain_name&quot;:domain.get(&quot;current_name&quot;),&quot;service_id&quot;:sid,&quot;service_type&quot;:st,&quot;node_id&quot;:node_id,
+              &quot;endpoint&quot;:dict(endpoint),&quot;protocol_version&quot;:str(protocol_version),
+              &quot;capabilities&quot;:sorted({str(x) for x in capabilities or []}),&quot;access_class&quot;:ac,
+              &quot;required_credentials&quot;:sorted({str(x) for x in required_credentials or []}),
+              &quot;policy_refs&quot;:sorted({str(x) for x in policy_refs or []}),
+              &quot;data_classifications&quot;:sorted({str(x).upper() for x in data_classifications or []}),
+              &quot;economic_terms_ref&quot;:economic_terms_ref,&quot;availability&quot;:dict(availability or {}),
+              &quot;manifest_version&quot;:version,&quot;expires_at_ms&quot;:int(expires_at_ms) if expires_at_ms is not None else None,
+              &quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now,
+              &quot;source_data_custody_transferred&quot;:False,&quot;provider_authority_inferred&quot;:False}
+        sig=self.identity.sign(entity_id,body)
+        with self._connect() as db:
+            if prior:
+                db.execute(&quot;&quot;&quot;UPDATE services SET node_id=?,service_type=?,endpoint_json=?,protocol_version=?,
+                    capabilities_json=?,access_class=?,required_credentials_json=?,policy_refs_json=?,
+                    data_classifications_json=?,economic_terms_ref=?,availability_json=?,manifest_version=?,
+                    expires_at_ms=?,status=&#x27;ACTIVE&#x27;,signature_json=?,created_at_ms=?,updated_at_ms=? WHERE service_id=?&quot;&quot;&quot;,
+                    (node_id,st,json.dumps(body[&quot;endpoint&quot;],sort_keys=True),body[&quot;protocol_version&quot;],
+                     json.dumps(body[&quot;capabilities&quot;]),ac,json.dumps(body[&quot;required_credentials&quot;]),
+                     json.dumps(body[&quot;policy_refs&quot;]),json.dumps(body[&quot;data_classifications&quot;]),economic_terms_ref,
+                     json.dumps(body[&quot;availability&quot;],sort_keys=True),version,body[&quot;expires_at_ms&quot;],
+                     json.dumps(sig,sort_keys=True),now,now,sid))
+            else:
+                db.execute(&quot;INSERT INTO services VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,
+                           (sid,domain_id,node_id,st,json.dumps(body[&quot;endpoint&quot;],sort_keys=True),body[&quot;protocol_version&quot;],
+                            json.dumps(body[&quot;capabilities&quot;]),ac,json.dumps(body[&quot;required_credentials&quot;]),
+                            json.dumps(body[&quot;policy_refs&quot;]),json.dumps(body[&quot;data_classifications&quot;]),economic_terms_ref,
+                            json.dumps(body[&quot;availability&quot;],sort_keys=True),version,body[&quot;expires_at_ms&quot;],&quot;ACTIVE&quot;,
+                            json.dumps(sig,sort_keys=True),now,now))
+            self._audit(db,domain_id,&quot;SERVICE_PUBLISHED&quot;,entity_id,{&quot;service_id&quot;:sid,&quot;node_id&quot;:node_id,&quot;version&quot;:version})
+        return {**body,&quot;signature&quot;:sig}
+
+    def get_domain(self,domain_id:str)-&gt;dict:
+        with self._connect() as db:
+            row=db.execute(&quot;SELECT * FROM domains WHERE domain_id=?&quot;,(domain_id,)).fetchone()
+        if not row: raise KeyError(&quot;domain not found&quot;)
+        out=dict(row)
+        return {&quot;schema&quot;:&quot;entity-domain-v1&quot;,&quot;domain_id&quot;:out[&quot;domain_id&quot;],&quot;entity_root&quot;:out[&quot;entity_id&quot;],
+                &quot;namespace&quot;:out[&quot;namespace&quot;],&quot;current_name&quot;:out[&quot;current_name&quot;],&quot;version&quot;:int(out[&quot;version&quot;]),
+                &quot;status&quot;:out[&quot;status&quot;],&quot;created_at_ms&quot;:out[&quot;created_at_ms&quot;],&quot;updated_at_ms&quot;:out[&quot;updated_at_ms&quot;]}
+
+    def get_node(self,node_id:str)-&gt;dict:
+        with self._connect() as db:
+            row=db.execute(&quot;SELECT * FROM nodes WHERE node_id=?&quot;,(node_id,)).fetchone()
+            rev=db.execute(&quot;SELECT * FROM revocations WHERE node_id=? ORDER BY effective_at_ms DESC LIMIT 1&quot;,(node_id,)).fetchone()
+        if not row: raise KeyError(&quot;node not found&quot;)
+        out=dict(row)
+        result={&quot;schema&quot;:&quot;entity-node-authorization-v1&quot;,&quot;node_id&quot;:out[&quot;node_id&quot;],&quot;domain_id&quot;:out[&quot;domain_id&quot;],
+                &quot;entity_root&quot;:out[&quot;entity_id&quot;],&quot;public_key_b64&quot;:out[&quot;public_key_b64&quot;],
+                &quot;permitted_services&quot;:json.loads(out[&quot;permitted_services_json&quot;]),
+                &quot;network_scopes&quot;:json.loads(out[&quot;network_scopes_json&quot;]),
+                &quot;publication_scopes&quot;:json.loads(out[&quot;publication_scopes_json&quot;]),
+                &quot;data_scopes&quot;:json.loads(out[&quot;data_scopes_json&quot;]),&quot;not_before_ms&quot;:out[&quot;not_before_ms&quot;],
+                &quot;expires_at_ms&quot;:out[&quot;expires_at_ms&quot;],&quot;delegation&quot;:json.loads(out[&quot;delegation_json&quot;]),
+                &quot;status&quot;:out[&quot;status&quot;],&quot;auth_version&quot;:int(out[&quot;auth_version&quot;]),
+                &quot;created_at_ms&quot;:out[&quot;created_at_ms&quot;],&quot;signature&quot;:json.loads(out[&quot;signature_json&quot;])}
+        if rev:
+            rb={&quot;schema&quot;:&quot;entity-node-revocation-v1&quot;,&quot;revocation_id&quot;:rev[&quot;revocation_id&quot;],
+                &quot;domain_id&quot;:rev[&quot;domain_id&quot;],&quot;node_id&quot;:rev[&quot;node_id&quot;],&quot;entity_root&quot;:rev[&quot;entity_id&quot;],
+                &quot;reason&quot;:rev[&quot;reason&quot;],&quot;effective_at_ms&quot;:rev[&quot;effective_at_ms&quot;],&quot;created_at_ms&quot;:rev[&quot;created_at_ms&quot;]}
+            result[&quot;revocation&quot;]={**rb,&quot;signature&quot;:json.loads(rev[&quot;signature_json&quot;])}
+            result[&quot;effective_status&quot;]=&quot;REVOKED&quot;
+        else:
+            result[&quot;revocation&quot;]=None; result[&quot;effective_status&quot;]=out[&quot;status&quot;]
+        return result
+
+    def get_service(self,service_id:str)-&gt;dict:
+        with self._connect() as db:
+            row=db.execute(&quot;SELECT * FROM services WHERE service_id=?&quot;,(service_id,)).fetchone()
+        if not row: raise KeyError(&quot;service not found&quot;)
+        domain=self.get_domain(row[&quot;domain_id&quot;])
+        return {&quot;schema&quot;:&quot;entity-service-manifest-v1&quot;,&quot;entity_root&quot;:domain[&quot;entity_root&quot;],&quot;domain_id&quot;:row[&quot;domain_id&quot;],
+                &quot;domain_name&quot;:domain.get(&quot;current_name&quot;),&quot;service_id&quot;:row[&quot;service_id&quot;],&quot;service_type&quot;:row[&quot;service_type&quot;],
+                &quot;node_id&quot;:row[&quot;node_id&quot;],&quot;endpoint&quot;:json.loads(row[&quot;endpoint_json&quot;]),
+                &quot;protocol_version&quot;:row[&quot;protocol_version&quot;],&quot;capabilities&quot;:json.loads(row[&quot;capabilities_json&quot;]),
+                &quot;access_class&quot;:row[&quot;access_class&quot;],&quot;required_credentials&quot;:json.loads(row[&quot;required_credentials_json&quot;]),
+                &quot;policy_refs&quot;:json.loads(row[&quot;policy_refs_json&quot;]),&quot;data_classifications&quot;:json.loads(row[&quot;data_classifications_json&quot;]),
+                &quot;economic_terms_ref&quot;:row[&quot;economic_terms_ref&quot;],&quot;availability&quot;:json.loads(row[&quot;availability_json&quot;]),
+                &quot;manifest_version&quot;:int(row[&quot;manifest_version&quot;]),&quot;expires_at_ms&quot;:row[&quot;expires_at_ms&quot;],
+                &quot;status&quot;:row[&quot;status&quot;],&quot;created_at_ms&quot;:row[&quot;created_at_ms&quot;],
+                &quot;source_data_custody_transferred&quot;:False,&quot;provider_authority_inferred&quot;:False,
+                &quot;signature&quot;:json.loads(row[&quot;signature_json&quot;])}
+
+    def list_services(self,domain_id:str)-&gt;list[dict]:
+        with self._connect() as db:
+            rows=db.execute(&quot;SELECT service_id FROM services WHERE domain_id=? ORDER BY service_type,service_id&quot;,(domain_id,)).fetchall()
+        return [self.get_service(r[&quot;service_id&quot;]) for r in rows]
+
+    def current_name_claim(self,domain_id:str)-&gt;dict|None:
+        with self._connect() as db:
+            row=db.execute(&quot;SELECT * FROM name_claims WHERE domain_id=? AND status=&#x27;ACTIVE&#x27; ORDER BY created_at_ms DESC LIMIT 1&quot;,(domain_id,)).fetchone()
+        if not row: return None
+        body={&quot;schema&quot;:&quot;entity-name-claim-v1&quot;,&quot;claim_id&quot;:row[&quot;claim_id&quot;],&quot;domain_id&quot;:row[&quot;domain_id&quot;],
+              &quot;entity_root&quot;:row[&quot;entity_id&quot;],&quot;normalized_name&quot;:row[&quot;normalized_name&quot;],&quot;namespace&quot;:row[&quot;namespace&quot;],
+              &quot;status&quot;:row[&quot;status&quot;],&quot;conflict_state&quot;:row[&quot;conflict_state&quot;],&quot;evidence&quot;:json.loads(row[&quot;evidence_json&quot;]),
+              &quot;created_at_ms&quot;:row[&quot;created_at_ms&quot;],&quot;first_seen_is_not_ownership&quot;:True,&quot;dns_possession_is_not_authority&quot;:True}
+        return {**body,&quot;signature&quot;:json.loads(row[&quot;signature_json&quot;])}
+
+    def verify_node(self,node:dict)-&gt;bool:
+        body={k:node[k] for k in (&quot;schema&quot;,&quot;domain_id&quot;,&quot;entity_root&quot;,&quot;node_id&quot;,&quot;public_key_b64&quot;,&quot;permitted_services&quot;,
+              &quot;network_scopes&quot;,&quot;publication_scopes&quot;,&quot;data_scopes&quot;,&quot;not_before_ms&quot;,&quot;expires_at_ms&quot;,&quot;delegation&quot;,&quot;status&quot;,&quot;auth_version&quot;,&quot;created_at_ms&quot;)}
+        return bool(self.identity.verify_signature(self.identity.load_manifest(node[&quot;entity_root&quot;]),body,node[&quot;signature&quot;]))
+
+    def verify_service(self,service:dict)-&gt;bool:
+        body={k:service[k] for k in (&quot;schema&quot;,&quot;entity_root&quot;,&quot;domain_id&quot;,&quot;domain_name&quot;,&quot;service_id&quot;,&quot;service_type&quot;,&quot;node_id&quot;,
+              &quot;endpoint&quot;,&quot;protocol_version&quot;,&quot;capabilities&quot;,&quot;access_class&quot;,&quot;required_credentials&quot;,&quot;policy_refs&quot;,
+              &quot;data_classifications&quot;,&quot;economic_terms_ref&quot;,&quot;availability&quot;,&quot;manifest_version&quot;,&quot;expires_at_ms&quot;,&quot;status&quot;,&quot;created_at_ms&quot;,
+              &quot;source_data_custody_transferred&quot;,&quot;provider_authority_inferred&quot;)}
+        return bool(self.identity.verify_signature(self.identity.load_manifest(service[&quot;entity_root&quot;]),body,service[&quot;signature&quot;]))
+
+    def semantic_hash(self,domain_id:str)-&gt;str:
+        &quot;&quot;&quot;Hash sovereign meaning, deliberately excluding replaceable infrastructure bindings.&quot;&quot;&quot;
+        import hashlib
+        snapshot=self.public_snapshot(domain_id)
+        claim=snapshot.get(&quot;name_claim&quot;) or {}
+        semantic={&quot;domain_id&quot;:snapshot[&quot;domain&quot;][&quot;domain_id&quot;],&quot;entity_root&quot;:snapshot[&quot;domain&quot;][&quot;entity_root&quot;],
+                  &quot;name&quot;:{&quot;normalized_name&quot;:claim.get(&quot;normalized_name&quot;),&quot;namespace&quot;:claim.get(&quot;namespace&quot;),
+                          &quot;conflict_state&quot;:claim.get(&quot;conflict_state&quot;)},
+                  &quot;services&quot;:[{k:s.get(k) for k in (&quot;service_id&quot;,&quot;service_type&quot;,&quot;access_class&quot;,&quot;required_credentials&quot;,
+                              &quot;policy_refs&quot;,&quot;data_classifications&quot;,&quot;economic_terms_ref&quot;,&quot;status&quot;)}
+                              for s in snapshot[&quot;services&quot;]]}
+        raw=json.dumps(semantic,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),default=str).encode()
+        return hashlib.sha256(raw).hexdigest()
+
+    def record_migration(self,entity_id:str,domain_id:str,*,from_node:str|None,to_node:str|None,
+                         from_provider:str|None,to_provider:str|None,semantic_hash_before:str,semantic_hash_after:str)-&gt;dict:
+        domain=self.get_domain(domain_id)
+        if domain[&quot;entity_root&quot;]!=entity_id: raise PermissionError(&quot;domain controller mismatch&quot;)
+        if semantic_hash_before!=semantic_hash_after:
+            raise RuntimeError(&quot;provider/device migration changed sovereign domain semantics&quot;)
+        mid=_id(&quot;dmig1&quot;); now=_now()
+        body={&quot;schema&quot;:&quot;entity-domain-migration-v1&quot;,&quot;migration_id&quot;:mid,&quot;domain_id&quot;:domain_id,&quot;entity_root&quot;:entity_id,
+              &quot;from_node&quot;:from_node,&quot;to_node&quot;:to_node,&quot;from_provider&quot;:from_provider,&quot;to_provider&quot;:to_provider,
+              &quot;semantic_hash_before&quot;:semantic_hash_before,&quot;semantic_hash_after&quot;:semantic_hash_after,
+              &quot;created_at_ms&quot;:now,&quot;provider_replacement_is_not_entity_replacement&quot;:True}
+        sig=self.identity.sign(entity_id,body)
+        with self._connect() as db:
+            db.execute(&quot;INSERT INTO migrations VALUES(?,?,?,?,?,?,?,?,?,?)&quot;,
+                       (mid,domain_id,from_node,to_node,from_provider,to_provider,semantic_hash_before,semantic_hash_after,
+                        json.dumps(sig,sort_keys=True),now))
+            self._audit(db,domain_id,&quot;DOMAIN_MIGRATED&quot;,entity_id,{&quot;migration_id&quot;:mid,&quot;from_provider&quot;:from_provider,&quot;to_provider&quot;:to_provider})
+        return {**body,&quot;signature&quot;:sig}
+
+    def public_snapshot(self,domain_id:str)-&gt;dict:
+        domain=self.get_domain(domain_id)
+        with self._connect() as db:
+            node_ids=[r[&quot;node_id&quot;] for r in db.execute(&quot;SELECT node_id FROM nodes WHERE domain_id=? ORDER BY node_id&quot;,(domain_id,))]
+            migrations=[dict(r) for r in db.execute(&quot;SELECT * FROM migrations WHERE domain_id=? ORDER BY created_at_ms&quot;,(domain_id,))]
+        migration_records=[]
+        for m in migrations:
+            sig=json.loads(m.pop(&quot;signature_json&quot;))
+            migration_records.append({&quot;schema&quot;:&quot;entity-domain-migration-v1&quot;,&quot;migration_id&quot;:m[&quot;migration_id&quot;],
+                &quot;domain_id&quot;:m[&quot;domain_id&quot;],&quot;entity_root&quot;:domain[&quot;entity_root&quot;],&quot;from_node&quot;:m.get(&quot;from_node&quot;),
+                &quot;to_node&quot;:m.get(&quot;to_node&quot;),&quot;from_provider&quot;:m.get(&quot;from_provider&quot;),&quot;to_provider&quot;:m.get(&quot;to_provider&quot;),
+                &quot;semantic_hash_before&quot;:m[&quot;semantic_hash_before&quot;],&quot;semantic_hash_after&quot;:m[&quot;semantic_hash_after&quot;],
+                &quot;created_at_ms&quot;:m[&quot;created_at_ms&quot;],&quot;provider_replacement_is_not_entity_replacement&quot;:True,&quot;signature&quot;:sig})
+        return {&quot;schema&quot;:&quot;entity-domain-public-snapshot-v1&quot;,&quot;domain&quot;:domain,&quot;name_claim&quot;:self.current_name_claim(domain_id),
+                &quot;nodes&quot;:[self.get_node(x) for x in node_ids],&quot;services&quot;:self.list_services(domain_id),
+                &quot;migrations&quot;:migration_records,&quot;dns_authority_required&quot;:False,&quot;btg_authority_required&quot;:False,
+                &quot;cloud_host_required&quot;:False}
+
+    def status(self)-&gt;dict:
+        with self._connect() as db:
+            domains=int(db.execute(&quot;SELECT COUNT(*) FROM domains&quot;).fetchone()[0])
+            nodes=int(db.execute(&quot;SELECT COUNT(*) FROM nodes&quot;).fetchone()[0])
+            services=int(db.execute(&quot;SELECT COUNT(*) FROM services&quot;).fetchone()[0])
+        return {&quot;ready&quot;:True,&quot;schema&quot;:&quot;entity-sovereign-domain-authority-v1&quot;,&quot;domains&quot;:domains,&quot;nodes&quot;:nodes,&quot;services&quot;:services,
+                &quot;domain_is_dns&quot;:False,&quot;domain_is_device&quot;:False,&quot;provider_is_authority&quot;:False,&quot;owner_controlled_hosting&quot;:True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

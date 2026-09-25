@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/35_Global_Infrastructure/topology_crypto.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/35_Global_Infrastructure/topology_crypto.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/35_Global_Infrastructure/topology_crypto.py</code></p><p><b>SHA-256:</b> <code>8eae91134a87ac563270c0b60b2e0c19c6daae4e6722f5693ef0341c9cb9f855</code></p><p><b>Bytes:</b> 21,452</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/topology_crypto.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-ms-48a5aef8e3e9.html">now_ms</a></li><li><a href="../../../reference/symbols/entity/canon-eed94d2a2475.html">canon</a></li><li><a href="../../../reference/symbols/entity/digest-3be790d4ba02.html">digest</a></li><li><a href="../../../reference/symbols/entity/rid-5c4c7dfd5b5e.html">rid</a></li><li><a href="../../../reference/symbols/entity/sha256-hex-7b5476c75c27.html">sha256_hex</a></li><li><a href="../../../reference/symbols/entity/clock-6b5c41d893d5.html">_clock</a></li><li><a href="../../../reference/symbols/entity/topologyregistry-913649b7c43a.html">TopologyRegistry</a></li><li><a href="../../../reference/symbols/entity/partitionsync-cf0e729b8c8e.html">PartitionSync</a></li><li><a href="../../../reference/symbols/entity/offlineenvelope-798898c886bb.html">OfflineEnvelope</a></li><li><a href="../../../reference/symbols/entity/cryptosuitemigration-6676de2d7ec4.html">CryptoSuiteMigration</a></li><li><a href="../../../reference/symbols/entity/topologyregistry-init-1090b43bb3da.html">TopologyRegistry.__init__</a></li><li><a href="../../../reference/symbols/entity/topologyregistry-register-node-1ef2ab511d05.html">TopologyRegistry.register_node</a></li><li><a href="../../../reference/symbols/entity/partitionsync-init-146a4dd78e18.html">PartitionSync.__init__</a></li><li><a href="../../../reference/symbols/entity/partitionsync-dominates-80851acb611d.html">PartitionSync.dominates</a></li><li><a href="../../../reference/symbols/entity/partitionsync-publish-3b8f61489f15.html">PartitionSync.publish</a></li><li><a href="../../../reference/symbols/entity/partitionsync-latest-009a6e152eb9.html">PartitionSync._latest</a></li><li><a href="../../../reference/symbols/entity/partitionsync-merge-61730ed811f1.html">PartitionSync.merge</a></li><li><a href="../../../reference/symbols/entity/offlineenvelope-create-4beddab0f3d7.html">OfflineEnvelope.create</a></li><li><a href="../../../reference/symbols/entity/offlineenvelope-verify-907cd28e89a5.html">OfflineEnvelope.verify</a></li><li><a href="../../../reference/symbols/entity/cryptosuitemigration-init-a04467680f75.html">CryptoSuiteMigration.__init__</a></li><li><a href="../../../reference/symbols/entity/cryptosuitemigration-register-suite-18c6cb8c6821.html">CryptoSuiteMigration.register_suite</a></li><li><a href="../../../reference/symbols/entity/cryptosuitemigration-bind-verifier-e2daf204b1fd.html">CryptoSuiteMigration.bind_verifier</a></li><li><a href="../../../reference/symbols/entity/cryptosuitemigration-register-transition-1ce05749b931.html">CryptoSuiteMigration.register_transition</a></li><li><a href="../../../reference/symbols/entity/cryptosuitemigration-suite-state-773ff3cd9813.html">CryptoSuiteMigration.suite_state</a></li><li><a href="../../../reference/symbols/entity/cryptosuitemigration-required-suites-d2e7bcf5e2a0.html">CryptoSuiteMigration.required_suites</a></li><li><a href="../../../reference/symbols/entity/cryptosuitemigration-verify-transition-payload-6b79820dde27.html">CryptoSuiteMigration.verify_transition_payload</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from typing import Any, Callable
+import hashlib, json, secrets, sqlite3, time
+
+TOPOLOGY_CLASSES = {&quot;CORE&quot;, &quot;REGIONAL&quot;, &quot;EDGE&quot;, &quot;SATELLITE&quot;, &quot;OFFLINE&quot;}
+
+def now_ms() -&gt; int:
+    return int(time.time() * 1000)
+
+def canon(value: Any) -&gt; bytes:
+    return json.dumps(value, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False, default=str).encode()
+
+def digest(value: Any) -&gt; str:
+    raw = value if isinstance(value, (bytes, bytearray)) else canon(value)
+    return hashlib.sha256(raw).hexdigest()
+
+def rid(prefix: str) -&gt; str:
+    return prefix + &quot;-&quot; + secrets.token_hex(12)
+
+def sha256_hex(value: str) -&gt; str:
+    value = str(value).lower()
+    if len(value) != 64 or any(c not in &quot;0123456789abcdef&quot; for c in value):
+        raise ValueError(&quot;expected lowercase SHA-256&quot;)
+    return value
+
+def _clock(value: dict[str, int]) -&gt; dict[str, int]:
+    out = {str(k): int(v) for k, v in value.items()}
+    if any(v &lt; 0 for v in out.values()):
+        raise ValueError(&quot;vector clock values must be non-negative&quot;)
+    return dict(sorted(out.items()))
+
+class TopologyRegistry:
+    &quot;&quot;&quot;Signed infrastructure-node descriptors. Topology membership never grants sovereign authority.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_topology.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS nodes(
+                node_id TEXT PRIMARY KEY, operator_entity_id TEXT NOT NULL,
+                topology_class TEXT NOT NULL, jurisdiction TEXT NOT NULL,
+                trust_domain TEXT NOT NULL, capabilities_json TEXT NOT NULL,
+                status TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+                signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+
+    def register_node(self, operator: str, node_id: str, topology_class: str,
+                      jurisdiction: str, trust_domain: str, capabilities: list[str]) -&gt; dict:
+        topology_class = topology_class.upper()
+        if topology_class not in TOPOLOGY_CLASSES:
+            raise ValueError(&quot;unsupported topology class&quot;)
+        caps = sorted({str(x).upper() for x in capabilities})
+        if not node_id or not trust_domain:
+            raise ValueError(&quot;node_id and trust_domain required&quot;)
+        body = {&quot;schema&quot;: &quot;entity-v3-topology-node-v1&quot;, &quot;node_id&quot;: str(node_id),
+                &quot;operator_entity_id&quot;: operator, &quot;topology_class&quot;: topology_class,
+                &quot;jurisdiction&quot;: str(jurisdiction).upper(), &quot;trust_domain&quot;: str(trust_domain),
+                &quot;capabilities&quot;: caps, &quot;status&quot;: &quot;ACTIVE&quot;, &quot;created_at_ms&quot;: now_ms(),
+                &quot;infrastructure_membership_is_not_sovereign_authority&quot;: True}
+        sig = self.identity.sign(operator, body)
+        with sqlite3.connect(self.path) as db:
+            old = db.execute(&quot;SELECT operator_entity_id,topology_class,jurisdiction,trust_domain,capabilities_json FROM nodes WHERE node_id=?&quot;,
+                             (node_id,)).fetchone()
+            if old:
+                existing = (old[0], old[1], old[2], old[3], json.loads(old[4]))
+                desired = (operator, topology_class, body[&quot;jurisdiction&quot;], str(trust_domain), caps)
+                if existing != desired:
+                    raise ValueError(&quot;immutable node registration changed&quot;)
+                return dict(body, signature=sig, existing=True)
+            db.execute(&quot;INSERT INTO nodes VALUES(?,?,?,?,?,?,?,?,?)&quot;, (
+                str(node_id), operator, topology_class, body[&quot;jurisdiction&quot;], str(trust_domain),
+                json.dumps(caps), &quot;ACTIVE&quot;, body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig, existing=False)
+
+class PartitionSync:
+    &quot;&quot;&quot;Signed causal checkpoints with fail-closed merge semantics for partitioned networks.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_partition_sync.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS checkpoints(
+                checkpoint_id TEXT PRIMARY KEY, node_id TEXT NOT NULL,
+                operator_entity_id TEXT NOT NULL, partition_id TEXT NOT NULL,
+                sequence INTEGER NOT NULL, epoch INTEGER NOT NULL,
+                previous_checkpoint_sha256 TEXT, state_root_sha256 TEXT NOT NULL,
+                vector_clock_json TEXT NOT NULL, checkpoint_sha256 TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL,
+                UNIQUE(node_id,partition_id,sequence))&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS conflicts(
+                conflict_id TEXT PRIMARY KEY, partition_id TEXT NOT NULL,
+                checkpoint_ids_json TEXT NOT NULL, reason TEXT NOT NULL,
+                detected_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+
+    @staticmethod
+    def dominates(left: dict[str, int], right: dict[str, int]) -&gt; bool:
+        keys = set(left) | set(right)
+        ge = all(int(left.get(k, 0)) &gt;= int(right.get(k, 0)) for k in keys)
+        gt = any(int(left.get(k, 0)) &gt; int(right.get(k, 0)) for k in keys)
+        return ge and gt
+
+    def publish(self, node_id: str, operator: str, partition_id: str, *,
+                sequence: int, epoch: int, state_root_sha256: str,
+                vector_clock: dict[str, int], previous_checkpoint_sha256: str | None = None) -&gt; dict:
+        state_root_sha256 = sha256_hex(state_root_sha256)
+        clock = _clock(vector_clock)
+        sequence = int(sequence); epoch = int(epoch)
+        if sequence &lt; 1 or epoch &lt; 0:
+            raise ValueError(&quot;invalid checkpoint sequence/epoch&quot;)
+        if clock.get(node_id) != sequence:
+            raise ValueError(&quot;node vector-clock component must equal checkpoint sequence&quot;)
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            last = db.execute(&quot;SELECT * FROM checkpoints WHERE node_id=? AND partition_id=? ORDER BY sequence DESC LIMIT 1&quot;,
+                              (node_id, partition_id)).fetchone()
+            if last:
+                if sequence != int(last[&quot;sequence&quot;]) + 1:
+                    raise ValueError(&quot;checkpoint sequence must increase by one&quot;)
+                if previous_checkpoint_sha256 != last[&quot;checkpoint_sha256&quot;]:
+                    raise ValueError(&quot;checkpoint chain mismatch&quot;)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

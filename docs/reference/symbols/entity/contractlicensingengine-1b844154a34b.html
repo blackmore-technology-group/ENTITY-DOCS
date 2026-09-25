@@ -1,0 +1,147 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ContractLicensingEngine Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ContractLicensingEngine</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/contracts/canonical_contracts.py#L14">ENTITY/src/01_Core_Runtime/contracts/canonical_contracts.py#L14</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Signed bilateral licence state machine bound to recorded licensing authority.</p><h2>Source excerpt</h2><pre><code>class ContractLicensingEngine:
+    &quot;&quot;&quot;Signed bilateral licence state machine bound to recorded licensing authority.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path,identity,rights_graph,event_ledger=None,local_controller_check=None):
+        self.root=Path(state_dir)/&quot;contracts&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;licensing.sqlite&quot;; self.identity=identity; self.rights=rights_graph
+        self.ledger=event_ledger; self.local_controller_check=local_controller_check or self._default_local
+        self._lock=RLock(); self._init_db()
+    def _default_local(self,entity_id: str) -&gt; bool:
+        try: self.identity.load_manifest(entity_id); return True
+        except Exception: return False
+    def _require_id(self,entity_id: str):
+        if not ENTITY_ID_RE.fullmatch(str(entity_id or &quot;&quot;)): raise ValueError(&quot;invalid Entity ID&quot;)
+    def _require_local(self,entity_id: str):
+        self._require_id(entity_id)
+        if not self.local_controller_check(entity_id): raise PermissionError(&quot;operation requires locally controlled Entity&quot;)
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS licences(licence_id TEXT PRIMARY KEY,grantor_entity_id TEXT NOT NULL,licensee_entity_id TEXT NOT NULL,terms_json TEXT NOT NULL,terms_version INTEGER NOT NULL,state TEXT NOT NULL,authority_basis_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL,expires_at_ms INTEGER)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS licence_events(event_id TEXT PRIMARY KEY,licence_id TEXT NOT NULL,event_type TEXT NOT NULL,actor_entity_id TEXT NOT NULL,from_state TEXT,to_state TEXT,terms_version INTEGER NOT NULL,payload_json TEXT NOT NULL,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_licence_parties ON licences(grantor_entity_id,licensee_entity_id,state)&quot;)
+    @staticmethod
+    def _normalize_terms(terms: dict) -&gt; dict:
+        t=dict(terms or {})
+        required=(&quot;assets&quot;,&quot;rights&quot;,&quot;purpose&quot;,&quot;scope&quot;,&quot;territory&quot;,&quot;duration&quot;,&quot;consideration&quot;,&quot;usage_requirements&quot;,&quot;reporting_requirements&quot;,&quot;retention_requirements&quot;,&quot;derivative_rules&quot;,&quot;revocation_rules&quot;,&quot;termination_rules&quot;)
+        missing=[k for k in required if k not in t]
+        if missing: raise ValueError(f&quot;licence terms missing required fields: {missing}&quot;)
+        t[&quot;assets&quot;]=sorted({str(x) for x in (t.get(&quot;assets&quot;) or []) if str(x)})
+        t[&quot;rights&quot;]=sorted({str(x).upper() for x in (t.get(&quot;rights&quot;) or []) if str(x)})
+        if not t[&quot;assets&quot;] or not t[&quot;rights&quot;]: raise ValueError(&quot;licence requires assets and rights&quot;)
+        return t
+    def _authority_basis(self,grantor: str,terms: dict) -&gt; list[str]:
+        claim_ids=[]
+        for asset_id in terms[&quot;assets&quot;]:
+            decision=self.rights.can_license(grantor,asset_id)
+            if not decision.get(&quot;allowed&quot;): raise PermissionError(f&quot;recorded licensing authority unavailable for asset {asset_id}&quot;)
+            claim_ids.extend(str(c[&quot;claim_id&quot;]) for c in decision.get(&quot;eligible_claims&quot;) or [])
+        return sorted(set(claim_ids))
+    def _event(self,db,licence_id,event_type,actor,from_state,to_state,version,payload):
+        event_id=_id(&quot;lev2&quot;); created=_now()
+        body={&quot;schema&quot;:&quot;entity-licence-event-v2&quot;,&quot;event_id&quot;:event_id,&quot;licence_id&quot;:licence_id,&quot;event_type&quot;:event_type,
+              &quot;actor_entity_id&quot;:actor,&quot;from_state&quot;:from_state,&quot;to_state&quot;:to_state,&quot;terms_version&quot;:int(version),
+              &quot;payload&quot;:dict(payload or {}),&quot;created_at_ms&quot;:created}
+        sig=self.identity.sign(actor,body)
+        db.execute(&quot;INSERT INTO licence_events VALUES(?,?,?,?,?,?,?,?,?,?)&quot;,(event_id,licence_id,event_type,actor,from_state,to_state,int(version),json.dumps(body[&quot;payload&quot;],sort_keys=True),json.dumps(sig,sort_keys=True),created))
+        return dict(body,signature=sig)
+    def _audit(self,actor: str,event_type: str,payload: dict):
+        if self.ledger is not None:
+            self.ledger.append(actor,event_type,subject_ids=[str(payload.get(&quot;licence_id&quot;) or &quot;&quot;)],object_ids=list(payload.get(&quot;assets&quot;) or []),payload=payload,evidence_origin=&quot;DIRECT_OBSERVATION&quot;,confidence=1.0)
+    def create_draft(self,grantor_entity_id: str,licensee_entity_id: str,terms: dict,*,expires_at_ms: int|None=None) -&gt; dict:
+        self._require_local(grantor_entity_id); self._require_id(licensee_entity_id)
+        normalized=self._normalize_terms(terms); licence_id=_id(&quot;lic2&quot;); now=_now()
+        with self._lock,self._connect() as db:
+            db.execute(&quot;INSERT INTO licences VALUES(?,?,?,?,?,?,?,?,?,?)&quot;,(licence_id,grantor_entity_id,licensee_entity_id,json.dumps(normalized,sort_keys=True),1,&quot;DRAFT&quot;,&quot;[]&quot;,now,now,expires_at_ms))
+            event=self._event(db,licence_id,&quot;LICENCE_DRAFT_CREATED&quot;,grantor_entity_id,None,&quot;DRAFT&quot;,1,{&quot;terms&quot;:normalized,&quot;expires_at_ms&quot;:expires_at_ms})
+        self._audit(grantor_entity_id,&quot;licence.draft_created&quot;,{&quot;licence_id&quot;:licence_id,&quot;assets&quot;:normalized[&quot;assets&quot;]})
+        return {&quot;licence_id&quot;:licence_id,&quot;state&quot;:&quot;DRAFT&quot;,&quot;terms_version&quot;:1,&quot;event&quot;:event}
+    def _load(self,licence_id: str):
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM licences WHERE licence_id=?&quot;,(licence_id,)).fetchone()
+        if not row: raise KeyError(&quot;licence not found&quot;)
+        return row
+    def _transition(self,row,actor: str,to_state: str,event_type: str,payload: dict|None=None,authority_basis: list[str]|None=None) -&gt; dict:
+        from_state=str(row[&quot;state&quot;]); version=int(row[&quot;terms_version&quot;]); now=_now()
+        if to_state not in LICENCE_STATES: raise ValueError(&quot;unsupported licence state&quot;)
+        if from_state in TERMINAL_STATES: raise ValueError(&quot;terminal licence state cannot transition&quot;)
+        basis=json.loads(row[&quot;authority_basis_json&quot;] or &quot;[]&quot;) if authority_basis is None else list(authority_basis)
+        with self._lock,self._connect() as db:
+            current=db.execute(&quot;SELECT state,terms_version FROM licences WHERE licence_id=?&quot;,(row[&quot;licence_id&quot;],)).fetchone()
+            if not current or current[&quot;state&quot;]!=from_state or int(current[&quot;terms_version&quot;])!=version: raise RuntimeError(&quot;licence state changed concurrently&quot;)
+            db.execute(&quot;UPDATE licences SET state=?,authority_basis_json=?,updated_at_ms=? WHERE licence_id=?&quot;,(to_state,json.dumps(basis,sort_keys=True),now,row[&quot;licence_id&quot;]))
+            event=self._event(db,row[&quot;licence_id&quot;],event_type,actor,from_state,to_state,version,dict(payload or {}))
+        self._audit(actor,event_type.lower().replace(&quot;_&quot;,&quot;.&quot;),{&quot;licence_id&quot;:row[&quot;licence_id&quot;],&quot;assets&quot;:json.loads(row[&quot;terms_json&quot;])[&quot;assets&quot;],&quot;to_state&quot;:to_state})
+        return {&quot;licence_id&quot;:row[&quot;licence_id&quot;],&quot;state&quot;:to_state,&quot;terms_version&quot;:version,&quot;authority_basis_claim_ids&quot;:basis,&quot;event&quot;:event}
+    def offer(self,grantor_entity_id: str,licence_id: str) -&gt; dict:
+        row=self._load(licence_id); self._require_local(grantor_entity_id)
+        if row[&quot;grantor_entity_id&quot;]!=grantor_entity_id: raise PermissionError(&quot;only grantor may offer&quot;)
+        if row[&quot;state&quot;] not in {&quot;DRAFT&quot;,&quot;COUNTERED&quot;}: raise ValueError(&quot;invalid transition to OFFERED&quot;)
+        terms=json.loads(row[&quot;terms_json&quot;]); basis=self._authority_basis(grantor_entity_id,terms)
+        return self._transition(row,grantor_entity_id,&quot;OFFERED&quot;,&quot;LICENCE_OFFERED&quot;,{&quot;authority_basis_claim_ids&quot;:basis},basis)
+    def counter(self,licensee_entity_id: str,licence_id: str,terms: dict) -&gt; dict:
+        row=self._load(licence_id); self._require_local(licensee_entity_id)
+        if row[&quot;licensee_entity_id&quot;]!=licensee_entity_id: raise PermissionError(&quot;only licensee may counter&quot;)
+        if row[&quot;state&quot;]!=&quot;OFFERED&quot;: raise ValueError(&quot;only an offered licence may be countered&quot;)
+        normalized=self._normalize_terms(terms); version=int(row[&quot;terms_version&quot;])+1; now=_now()
+        with self._lock,self._connect() as db:
+            db.execute(&quot;UPDATE licences SET terms_json=?,terms_version=?,state=&#x27;COUNTERED&#x27;,authority_basis_json=&#x27;[]&#x27;,updated_at_ms=? WHERE licence_id=?&quot;,(json.dumps(normalized,sort_keys=True),version,now,licence_id))
+            event=self._event(db,licence_id,&quot;LICENCE_COUNTERED&quot;,licensee_entity_id,&quot;OFFERED&quot;,&quot;COUNTERED&quot;,version,{&quot;terms&quot;:normalized})
+        self._audit(licensee_entity_id,&quot;licence.countered&quot;,{&quot;licence_id&quot;:licence_id,&quot;assets&quot;:normalized[&quot;assets&quot;]})
+        return {&quot;licence_id&quot;:licence_id,&quot;state&quot;:&quot;COUNTERED&quot;,&quot;terms_version&quot;:version,&quot;event&quot;:event}
+    def accept(self,actor_entity_id: str,licence_id: str) -&gt; dict:
+        row=self._load(licence_id); state=str(row[&quot;state&quot;])
+        expected=row[&quot;licensee_entity_id&quot;] if state==&quot;OFFERED&quot; else row[&quot;grantor_entity_id&quot;] if state==&quot;COUNTERED&quot; else None
+        if not expected: raise ValueError(&quot;licence is not in an acceptable state&quot;)
+        if actor_entity_id!=expected: raise PermissionError(&quot;wrong party for licence acceptance&quot;)
+        self._require_local(actor_entity_id)
+        basis=None
+        if state==&quot;COUNTERED&quot;:
+            terms=json.loads(row[&quot;terms_json&quot;]); basis=self._authority_basis(actor_entity_id,terms)
+        return self._transition(row,actor_entity_id,&quot;ACCEPTED&quot;,&quot;LICENCE_ACCEPTED&quot;,authority_basis=basis)
+    def activate(self,grantor_entity_id: str,licence_id: str) -&gt; dict:
+        row=self._load(licence_id); self._require_local(grantor_entity_id)
+        if row[&quot;grantor_entity_id&quot;]!=grantor_entity_id: raise PermissionError(&quot;only grantor may activate&quot;)
+        if row[&quot;state&quot;]!=&quot;ACCEPTED&quot;: raise ValueError(&quot;licence must be ACCEPTED before activation&quot;)
+        terms=json.loads(row[&quot;terms_json&quot;]); basis=self._authority_basis(grantor_entity_id,terms)
+        return self._transition(row,grantor_entity_id,&quot;ACTIVE&quot;,&quot;LICENCE_ACTIVATED&quot;,{&quot;authority_rechecked&quot;:True},basis)
+    def future_revoke(self,grantor_entity_id: str,licence_id: str,reason: str=&quot;&quot;) -&gt; dict:
+        row=self._load(licence_id); self._require_local(grantor_entity_id)
+        if row[&quot;grantor_entity_id&quot;]!=grantor_entity_id: raise PermissionError(&quot;only grantor may revoke future use&quot;)
+        if row[&quot;state&quot;] not in {&quot;ACTIVE&quot;,&quot;SUSPENDED&quot;,&quot;DISPUTED&quot;}: raise ValueError(&quot;licence is not revocable for future use&quot;)
+        return self._transition(row,grantor_entity_id,&quot;REVOKED_FOR_FUTURE_USE&quot;,&quot;LICENCE_FUTURE_USE_REVOKED&quot;,{&quot;reason&quot;:str(reason)[:1024],&quot;historical_authorized_use_preserved&quot;:True})
+    def terminate(self,actor_entity_id: str,licence_id: str,reason: str=&quot;&quot;) -&gt; dict:
+        row=self._load(licence_id); self._require_local(actor_entity_id)
+        if actor_entity_id not in {row[&quot;grantor_entity_id&quot;],row[&quot;licensee_entity_id&quot;]}: raise PermissionError(&quot;party required&quot;)
+        if row[&quot;state&quot;] in TERMINAL_STATES: raise ValueError(&quot;licence already terminal&quot;)
+        return self._transition(row,actor_entity_id,&quot;TERMINATED&quot;,&quot;LICENCE_TERMINATED&quot;,{&quot;reason&quot;:str(reason)[:1024]})
+    def get(self,licence_id: str) -&gt; dict:
+        row=self._load(licence_id); out=dict(row)
+        out[&quot;terms&quot;]=json.loads(out.pop(&quot;terms_json&quot;)); out[&quot;authority_basis_claim_ids&quot;]=json.loads(out.pop(&quot;authority_basis_json&quot;) or &quot;[]&quot;)
+        with self._connect() as db:
+            events=db.execute(&quot;SELECT * FROM licence_events WHERE licence_id=? ORDER BY created_at_ms,event_id&quot;,(licence_id,)).fetchall()
+        out[&quot;events&quot;]=[]
+        for raw in events:
+            e=dict(raw); e[&quot;payload&quot;]=json.loads(e.pop(&quot;payload_json&quot;)); e[&quot;signature&quot;]=json.loads(e.pop(&quot;signature_json&quot;)); out[&quot;events&quot;].append(e)
+        return out
+    def verify_history(self,licence_id: str) -&gt; dict:
+        item=self.get(licence_id); failures=[]
+        for event in item[&quot;events&quot;]:
+            body={&quot;schema&quot;:&quot;entity-licence-event-v2&quot;,&quot;event_id&quot;:event[&quot;event_id&quot;],&quot;licence_id&quot;:event[&quot;licence_id&quot;],&quot;event_type&quot;:event[&quot;event_type&quot;],
+                  &quot;actor_entity_id&quot;:event[&quot;actor_entity_id&quot;],&quot;from_state&quot;:event[&quot;from_state&quot;],&quot;to_state&quot;:event[&quot;to_state&quot;],
+                  &quot;terms_version&quot;:event[&quot;terms_version&quot;],&quot;payload&quot;:event[&quot;payload&quot;],&quot;created_at_ms&quot;:event[&quot;created_at_ms&quot;]}
+            try:
+                manifest=self.identity.load_manifest(event[&quot;actor_entity_id&quot;])
+                if not self.identity.verify_signature(manifest,body,event[&quot;signature&quot;]): failures.append(event[&quot;event_id&quot;])
+            except Exception: failures.append(event[&quot;event_id&quot;])
+        return {&quot;pass&quot;:not failures,&quot;licence_id&quot;:licence_id,&quot;events&quot;:len(item[&quot;events&quot;]),&quot;failed_event_ids&quot;:failures}
+    def status(self) -&gt; dict:
+        with self._connect() as db:
+            total=int(db.execute(&quot;SELECT COUNT(*) FROM licences&quot;).fetchone()[0]); active=int(db.execute(&quot;SELECT COUNT(*) FROM licences WHERE state=&#x27;ACTIVE&#x27;&quot;).fetchone()[0])
+        return {&quot;ready&quot;:True,&quot;schema&quot;:&quot;entity-contract-licensing-v2&quot;,&quot;bilateral_signed_state_machine&quot;:True,&quot;rights_authority_rechecked_on_activation&quot;:True,
+                &quot;offers_are_not_active&quot;:True,&quot;future_revocation_preserves_history&quot;:True,&quot;licences&quot;:total,&quot;active&quot;:active,&quot;database&quot;:str(self.path)}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

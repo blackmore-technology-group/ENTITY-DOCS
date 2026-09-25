@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>provision_btg_treasury Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>provision_btg_treasury</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/33_Economic_Participation/btg_deployment.py#L16">ENTITY/src/33_Economic_Participation/btg_deployment.py#L16</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>provision_btg_treasury(profile, btg_legal_entity_id, btg_treasury_entity_id, policy_document)</code></p><h2>Documentation</h2><p>Bind the generic profile to verified BTG identities supplied by the operator.
+
+No BTG identifier is hard-coded, and no personal/test ENTITY is accepted implicitly.</p><h2>Source excerpt</h2><pre><code>def provision_btg_treasury(profile,btg_legal_entity_id,btg_treasury_entity_id,policy_document):
+    &#x27;&#x27;&#x27;Bind the generic profile to verified BTG identities supplied by the operator.
+
+    No BTG identifier is hard-coded, and no personal/test ENTITY is accepted implicitly.
+    &#x27;&#x27;&#x27;
+    if not str(btg_legal_entity_id).startswith(&#x27;ent&#x27;) or not str(btg_treasury_entity_id).startswith(&#x27;ent&#x27;):
+        raise ValueError(&#x27;verified ENTITY identifiers required for BTG deployment&#x27;)
+    if btg_legal_entity_id==btg_treasury_entity_id:
+        raise ValueError(&#x27;BTG Treasury ENTITY must be distinct from the BTG legal ENTITY&#x27;)
+    if not isinstance(policy_document,dict) or not policy_document:
+        raise ValueError(&#x27;non-empty BTG treasury governance policy required&#x27;)
+    record=profile.create_treasury(
+        btg_legal_entity_id,btg_treasury_entity_id,BTG_TREASURY_NAME,
+        BTG_JURISDICTION,_policy_hash(policy_document))
+    return dict(record,btg_deployment=True,value_channels=list(BTG_VALUE_CHANNELS),
+                hard_coded_protocol_privilege=False,protocol_tax_bps=0)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,73 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityNodeRuntime Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityNodeRuntime</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/node_runtime/canonical_node_runtime.py#L57">ENTITY/src/22_Sovereign_Domain/node_runtime/canonical_node_runtime.py#L57</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Owner-controlled DNS-free node runtime with signed ephemeral E2E session establishment.</p><h2>Source excerpt</h2><pre><code>class EntityNodeRuntime:
+    &quot;&quot;&quot;Owner-controlled DNS-free node runtime with signed ephemeral E2E session establishment.&quot;&quot;&quot;
+    def __init__(self,node_root:str|Path,node_id:str):
+        self.root=Path(node_root).resolve(); self.root.mkdir(parents=True,exist_ok=True)
+        self.node_id=str(node_id); self.keys=NodeKeyMaterial(self.root/&#x27;node_ed25519.key&#x27;)
+        self.services={}; self._seen=set(); self._lock=threading.RLock(); self._server=None; self._thread=None
+    @property
+    def public_key_b64(self): return self.keys.public_b64
+    def add_content_service(self,service_id:str,content_root:str|Path):
+        root=Path(content_root).resolve(); root.mkdir(parents=True,exist_ok=True)
+        self.services[str(service_id)]={&#x27;type&#x27;:&#x27;CONTENT&#x27;,&#x27;root&#x27;:root}
+        return {&#x27;service_id&#x27;:str(service_id),&#x27;content_root&#x27;:str(root),&#x27;source_data_uploaded_centrally&#x27;:False}
+    def add_api_service(self,service_id:str,handler):
+        if not callable(handler): raise TypeError(&#x27;handler must be callable&#x27;)
+        self.services[str(service_id)]={&#x27;type&#x27;:&#x27;API&#x27;,&#x27;handler&#x27;:handler}; return {&#x27;service_id&#x27;:str(service_id),&#x27;type&#x27;:&#x27;API&#x27;}
+    def _derive(self,private:X25519PrivateKey,peer_public_b64:str,aad:bytes)-&gt;bytes:
+        shared=private.exchange(X25519PublicKey.from_public_bytes(_unb64(peer_public_b64)))
+        return HKDF(algorithm=hashes.SHA256(),length=32,salt=hashlib.sha256(aad).digest(),info=b&#x27;ENTITY-DIRECT-SESSION-v1&#x27;).derive(shared)
+    def _application(self,service_id:str,request:dict)-&gt;dict:
+        svc=self.services.get(str(service_id))
+        if not svc: return {&#x27;status&#x27;:404,&#x27;error&#x27;:&#x27;service_not_found&#x27;}
+        if svc[&#x27;type&#x27;]==&#x27;CONTENT&#x27;:
+            if str(request.get(&#x27;operation&#x27;) or &#x27;GET&#x27;).upper()!=&#x27;GET&#x27;: return {&#x27;status&#x27;:405,&#x27;error&#x27;:&#x27;operation_denied&#x27;}
+            rel=str(request.get(&#x27;path&#x27;) or &#x27;index.html&#x27;).lstrip(&#x27;/\\&#x27;)
+            target=(svc[&#x27;root&#x27;]/rel).resolve()
+            try: target.relative_to(svc[&#x27;root&#x27;])
+            except ValueError: return {&#x27;status&#x27;:403,&#x27;error&#x27;:&#x27;path_scope_denied&#x27;}
+            if not target.is_file(): return {&#x27;status&#x27;:404,&#x27;error&#x27;:&#x27;content_not_found&#x27;}
+            raw=target.read_bytes()
+            return {&#x27;status&#x27;:200,&#x27;content_b64&#x27;:_b64(raw),&#x27;sha256&#x27;:hashlib.sha256(raw).hexdigest(),
+                    &#x27;media_type&#x27;:mimetypes.guess_type(target.name)[0] or &#x27;application/octet-stream&#x27;,
+                    &#x27;source_path_exposed&#x27;:False,&#x27;central_upload_required&#x27;:False}
+        result=svc[&#x27;handler&#x27;](dict(request))
+        return {&#x27;status&#x27;:200,&#x27;result&#x27;:result,&#x27;central_upload_required&#x27;:False}
+
+    def _handle(self,sock):
+        hello=_recv(sock); service_id=str(hello.get(&#x27;service_id&#x27;) or &#x27;&#x27;); nonce=str(hello.get(&#x27;nonce&#x27;) or &#x27;&#x27;)
+        if hello.get(&#x27;schema&#x27;)!=&#x27;entity-direct-hello-v1&#x27; or hello.get(&#x27;node_id&#x27;)!=self.node_id or service_id not in self.services:
+            raise PermissionError(&#x27;invalid direct-session hello&#x27;)
+        if not nonce or nonce in self._seen: raise ValueError(&#x27;direct-session replay&#x27;)
+        with self._lock: self._seen.add(nonce)
+        client_pub=str(hello.get(&#x27;client_x25519_b64&#x27;) or &#x27;&#x27;); ephemeral=X25519PrivateKey.generate()
+        server_pub=_b64(ephemeral.public_key().public_bytes(serialization.Encoding.Raw,serialization.PublicFormat.Raw))
+        body={&#x27;schema&#x27;:&#x27;entity-direct-server-hello-v1&#x27;,&#x27;node_id&#x27;:self.node_id,&#x27;service_id&#x27;:service_id,
+              &#x27;client_x25519_b64&#x27;:client_pub,&#x27;server_x25519_b64&#x27;:server_pub,&#x27;nonce&#x27;:nonce,&#x27;created_at_ms&#x27;:_now()}
+        signature=self.keys.sign(body); _send(sock,{**body,&#x27;node_signature&#x27;:signature})
+        aad=_canon(body); key=self._derive(ephemeral,client_pub,aad)
+        packet=_recv(sock)
+        iv=_unb64(packet[&#x27;nonce_b64&#x27;]); plain=AESGCM(key).decrypt(iv,_unb64(packet[&#x27;ciphertext_b64&#x27;]),aad)
+        request=json.loads(plain.decode()); response=self._application(service_id,request)
+        raw=_canon(response); out_iv=os.urandom(12); cipher=AESGCM(key).encrypt(out_iv,raw,aad)
+        _send(sock,{&#x27;schema&#x27;:&#x27;entity-direct-data-v1&#x27;,&#x27;nonce_b64&#x27;:_b64(out_iv),&#x27;ciphertext_b64&#x27;:_b64(cipher)})
+
+    def start(self,host:str=&#x27;127.0.0.1&#x27;,port:int=0)-&gt;dict:
+        ipaddress.ip_address(host)
+        runtime=self
+        class Handler(socketserver.BaseRequestHandler):
+            def handle(self):
+                try: runtime._handle(self.request)
+                except Exception as exc:
+                    try: _send(self.request,{&#x27;schema&#x27;:&#x27;entity-direct-error-v1&#x27;,&#x27;error&#x27;:type(exc).__name__})
+                    except Exception: pass
+        self._server=_ThreadingTCPServer((host,int(port)),Handler)
+        self._thread=threading.Thread(target=self._server.serve_forever,daemon=True); self._thread.start()
+        addr=self._server.server_address
+        return {&#x27;node_id&#x27;:self.node_id,&#x27;host&#x27;:addr[0],&#x27;port&#x27;:addr[1],&#x27;dns_name&#x27;:None,&#x27;dns_required&#x27;:False,
+                &#x27;encrypted_sessions&#x27;:True,&#x27;owner_controlled_runtime&#x27;:True}
+    def stop(self):
+        if self._server: self._server.shutdown(); self._server.server_close(); self._server=None
+        if self._thread: self._thread.join(timeout=2); self._thread=None
+    def status(self):
+        return {&#x27;ready&#x27;:True,&#x27;node_id&#x27;:self.node_id,&#x27;services&#x27;:sorted(self.services),&#x27;dns_required&#x27;:False,
+                &#x27;owner_controlled&#x27;:True,&#x27;encrypted_direct_session&#x27;:True,&#x27;replay_protected&#x27;:True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

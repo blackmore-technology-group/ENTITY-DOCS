@@ -1,0 +1,46 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/build_v3_global_cleanroom_profile.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/build_v3_global_cleanroom_profile.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/build_v3_global_cleanroom_profile.py</code></p><p><b>SHA-256:</b> <code>c4e22bb93d59578658482efbd56bb63f33735396564be813c9041bb62c995da2</code></p><p><b>Bytes:</b> 2,275</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/build_v3_global_cleanroom_profile.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/canon-57b10d302630.html">canon</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json, pathlib
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+V = ROOT / &quot;protocol&quot; / &quot;v3&quot; / &quot;global_vectors&quot;
+OUT = ROOT / &quot;protocol&quot; / &quot;v3&quot; / &quot;ENTITY_GLOBAL_CLEANROOM_PROFILE.json&quot;
+INVARIANTS = [
+    &quot;DATA_MAY_BE_PRODUCTIVE_CAPITAL&quot;,
+    &quot;INFORMATION_SCARCITY_NOT_REQUIRED&quot;,
+    &quot;SCARCITY_MUST_BE_EXPLICITLY_BOUNDED&quot;,
+    &quot;ORIGINATOR_PARTICIPATION_MUST_BE_ESTABLISHED_BY_TERMS&quot;,
+    &quot;PROVENANCE_LINKS_RIGHT_USE_DERIVATION_VALUE&quot;,
+    &quot;PROTOCOL_DOES_NOT_DETERMINE_LEGAL_TITLE&quot;,
+    &quot;PROTOCOL_DOES_NOT_DETERMINE_FAIR_VALUE&quot;,
+    &quot;PROTOCOL_DOES_NOT_DETERMINE_REGULATORY_CLASSIFICATION&quot;,
+]
+
+def canon(v):
+    return json.dumps(v, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False).encode()
+
+manifest = json.loads((V / &quot;VECTOR_MANIFEST.json&quot;).read_text(encoding=&quot;utf-8&quot;))
+rows = []
+for entry in sorted(manifest[&quot;vectors&quot;], key=lambda x: x[&quot;file&quot;]):
+    payload = json.loads((V / entry[&quot;file&quot;]).read_text(encoding=&quot;utf-8&quot;))
+    expected = str(payload[&quot;expect&quot;])
+    rows.append({&quot;name&quot;: pathlib.Path(entry[&quot;file&quot;]).stem,
+                 &quot;accepted&quot;: expected == &quot;VALID&quot;,
+                 &quot;expected&quot;: expected,
+                 &quot;ok&quot;: True})
+summary = {&quot;schema&quot;: &quot;entity-v3.1-global-cleanroom-result-v1&quot;,
+           &quot;profile&quot;: &quot;ENTITY-GLOBAL-INFRASTRUCTURE&quot;,
+           &quot;doctrine_invariants&quot;: INVARIANTS,
+           &quot;vectors&quot;: rows}
+result_sha256 = hashlib.sha256(canon(summary)).hexdigest()
+profile = {&quot;schema&quot;: &quot;entity-v3.1-global-cleanroom-profile-v1&quot;,
+           &quot;release_candidate&quot;: &quot;v3.1.0&quot;,
+           &quot;base_release&quot;: &quot;v3.0.1&quot;,
+           &quot;vector_manifest_sha256&quot;: hashlib.sha256((V / &quot;VECTOR_MANIFEST.json&quot;).read_bytes()).hexdigest(),
+           &quot;schema_sha256&quot;: manifest[&quot;schema_sha256&quot;],
+           &quot;valid_vectors&quot;: manifest[&quot;valid_vectors&quot;], &quot;invalid_vectors&quot;: manifest[&quot;invalid_vectors&quot;],
+           &quot;doctrine_invariants&quot;: INVARIANTS,
+           &quot;expected_result_sha256&quot;: result_sha256,
+           &quot;result_schema&quot;: summary[&quot;schema&quot;]}
+OUT.write_text(json.dumps(profile, indent=2, sort_keys=True) + &quot;\n&quot;, encoding=&quot;utf-8&quot;)
+print(json.dumps({&quot;profile&quot;: str(OUT), &quot;expected_result_sha256&quot;: result_sha256,
+                  &quot;valid&quot;: manifest[&quot;valid_vectors&quot;], &quot;invalid&quot;: manifest[&quot;invalid_vectors&quot;]}, indent=2))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

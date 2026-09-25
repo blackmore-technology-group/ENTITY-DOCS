@@ -1,0 +1,47 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityDirectClient Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityDirectClient</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/node_runtime/canonical_node_runtime.py#L130">ENTITY/src/22_Sovereign_Domain/node_runtime/canonical_node_runtime.py#L130</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Verifies Entity-authorized node identity before accepting encrypted service data.</p><h2>Source excerpt</h2><pre><code>class EntityDirectClient:
+    &quot;&quot;&quot;Verifies Entity-authorized node identity before accepting encrypted service data.&quot;&quot;&quot;
+    @staticmethod
+    def request(resolution_proof:dict,service_id:str,request:dict,*,timeout:float=5.0)-&gt;dict:
+        matches=[x for x in resolution_proof.get(&#x27;services&#x27;) or [] if (x.get(&#x27;service&#x27;) or {}).get(&#x27;service_id&#x27;)==service_id]
+        if len(matches)!=1: raise KeyError(&#x27;service not present in verified resolution proof&#x27;)
+        service=matches[0][&#x27;service&#x27;]; node=matches[0][&#x27;node&#x27;]; endpoint=dict(service.get(&#x27;endpoint&#x27;) or {})
+        host=str(endpoint.get(&#x27;host&#x27;) or &#x27;&#x27;); port=int(endpoint.get(&#x27;port&#x27;) or 0); ipaddress.ip_address(host)
+        if node.get(&#x27;effective_status&#x27;,node.get(&#x27;status&#x27;))!=&#x27;ACTIVE&#x27;: raise PermissionError(&#x27;resolved node is not active&#x27;)
+        client=X25519PrivateKey.generate(); client_pub=_b64(client.public_key().public_bytes(serialization.Encoding.Raw,serialization.PublicFormat.Raw))
+        hello={&#x27;schema&#x27;:&#x27;entity-direct-hello-v1&#x27;,&#x27;node_id&#x27;:node[&#x27;node_id&#x27;],&#x27;service_id&#x27;:service_id,
+               &#x27;client_x25519_b64&#x27;:client_pub,&#x27;nonce&#x27;:secrets.token_urlsafe(24)}
+        last_exc=None
+        sock=None
+        for attempt in range(6):
+            try:
+                sock=socket.create_connection((host,port),timeout=timeout)
+                break
+            except (ConnectionRefusedError, TimeoutError, OSError) as exc:
+                last_exc=exc
+                if attempt&gt;=5: raise
+                time.sleep(min(0.005*(2**attempt),0.08))
+        if sock is None:
+            raise ConnectionError(&#x27;direct connection unavailable&#x27;) from last_exc
+        with sock:
+            _send(sock,hello); server=_recv(sock)
+            if server.get(&#x27;schema&#x27;)!=&#x27;entity-direct-server-hello-v1&#x27;: raise PermissionError(&#x27;invalid server handshake&#x27;)
+            body={k:server[k] for k in (&#x27;schema&#x27;,&#x27;node_id&#x27;,&#x27;service_id&#x27;,&#x27;client_x25519_b64&#x27;,&#x27;server_x25519_b64&#x27;,&#x27;nonce&#x27;,&#x27;created_at_ms&#x27;)}
+            if body[&#x27;node_id&#x27;]!=node[&#x27;node_id&#x27;] or body[&#x27;service_id&#x27;]!=service_id or body[&#x27;client_x25519_b64&#x27;]!=client_pub or body[&#x27;nonce&#x27;]!=hello[&#x27;nonce&#x27;]:
+                raise PermissionError(&#x27;server handshake binding mismatch&#x27;)
+            sig=server.get(&#x27;node_signature&#x27;) or {}
+            if sig.get(&#x27;payload_sha256&#x27;)!=_sha(body): raise PermissionError(&#x27;node handshake payload hash mismatch&#x27;)
+            try:
+                Ed25519PublicKey.from_public_bytes(_unb64(node[&#x27;public_key_b64&#x27;])).verify(_unb64(sig[&#x27;signature_b64&#x27;]),_canon(body))
+            except Exception as exc: raise PermissionError(&#x27;node handshake signature invalid&#x27;) from exc
+            aad=_canon(body); key=EntityDirectClient._derive(client,body[&#x27;server_x25519_b64&#x27;],aad)
+            iv=os.urandom(12); cipher=AESGCM(key).encrypt(iv,_canon(request),aad)
+            _send(sock,{&#x27;schema&#x27;:&#x27;entity-direct-data-v1&#x27;,&#x27;nonce_b64&#x27;:_b64(iv),&#x27;ciphertext_b64&#x27;:_b64(cipher)})
+            packet=_recv(sock)
+            if packet.get(&#x27;schema&#x27;)!=&#x27;entity-direct-data-v1&#x27;: raise RuntimeError(&#x27;node service request failed&#x27;)
+            plain=AESGCM(key).decrypt(_unb64(packet[&#x27;nonce_b64&#x27;]),_unb64(packet[&#x27;ciphertext_b64&#x27;]),aad)
+            out=json.loads(plain.decode()); out[&#x27;entity_root_verified&#x27;]=resolution_proof.get(&#x27;entity_root&#x27;); out[&#x27;node_verified&#x27;]=node[&#x27;node_id&#x27;]
+            out[&#x27;dns_used&#x27;]=False; out[&#x27;direct_encrypted_session&#x27;]=True; return out
+    @staticmethod
+    def _derive(private,peer_public_b64,aad):
+        shared=private.exchange(X25519PublicKey.from_public_bytes(_unb64(peer_public_b64)))
+        return HKDF(algorithm=hashes.SHA256(),length=32,salt=hashlib.sha256(aad).digest(),info=b&#x27;ENTITY-DIRECT-SESSION-v1&#x27;).derive(shared)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

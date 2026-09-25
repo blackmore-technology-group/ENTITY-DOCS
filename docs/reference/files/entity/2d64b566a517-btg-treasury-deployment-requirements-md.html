@@ -1,0 +1,39 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / protocol/v3/BTG_TREASURY_DEPLOYMENT_REQUIREMENTS.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / protocol/v3/BTG_TREASURY_DEPLOYMENT_REQUIREMENTS.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>protocol/v3/BTG_TREASURY_DEPLOYMENT_REQUIREMENTS.md</code></p><p><b>SHA-256:</b> <code>5d4157c537124b432027ef77d6bb891093074d5965a91b9ad3865b617f142cee</code></p><p><b>Bytes:</b> 2,943</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/protocol/v3/BTG_TREASURY_DEPLOYMENT_REQUIREMENTS.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># Blackmore Technology Group ENTITY Treasury — Deployment Requirements
+
+Status: RELEASED / BTG INTERNAL QUALIFIED / ACTIVATION GATE
+
+The BTG treasury is a deployment of the issuer-neutral ENTITY Originator Participation Profile. It is not a special protocol account and receives no compulsory fee from unrelated ENTITY activity.
+
+## Required identities before activation
+1. A verified ENTITY identity representing Blackmore Technology Group as the legal/operating originator.
+2. A distinct verified ENTITY identity representing the BTG ENTITY Treasury.
+3. Authority evidence permitting the BTG legal ENTITY to establish treasury and issuance policies.
+4. A treasury governance-policy document whose SHA-256 is stored in the treasury record.
+5. The BTG legal ENTITY and BTG Treasury ENTITY MUST be distinct identifiers.
+6. Any independent settlement verifier must be explicitly authorized by the BTG treasury owner before it may mark obligations settled.
+
+The implementation deliberately contains no preselected BTG ENTITY identifier. An uncertain personal, test or legacy ENTITY identifier MUST NOT be silently substituted.
+
+## Value channels supported
+- EEP rights-unit treasury reserves;
+- allocations from BTG primary rights issuance;
+- contractual royalties on permitted secondary transfers;
+- contractual participation in derivative commercial revenue;
+- BTG-operated venue/listing/execution/clearing/settlement services;
+- market-data products;
+- certification/conformance services;
+- managed infrastructure;
+- premium APIs;
+- index and benchmark licensing.
+
+## Issuance policy
+Each BTG-created instrument should separately disclose total units, public/strategic/contributor allocations, treasury reserve, transferability, rights, duration, jurisdiction, currency, royalties and derivative participation. Reserve units are moved into the treasury ENTITY rather than left indistinguishable from unsold issuer inventory. Initial reserve allocation is single-use per instrument; policy versioning cannot silently duplicate the reserve or change its size after allocation.
+
+## No token requirement
+The BTG treasury does not require an ENTITY coin, founder premine or compulsory protocol levy. Economic value is represented by actual rights positions, contractual receivables, realized service revenue and externally observable market transactions.
+
+## Accounting boundary
+ENTITY records are evidence inputs. Indicative reserve marks are not automatically fair-value accounting conclusions, and accrued obligations are not automatically realized revenue. Accounting and tax treatment remain outside protocol inference.
+
+## Reconciliation gate
+Before treasury close or release reporting, BTG should run EOPP trade-capture reconciliation and investigate every missing or mismatched in-scope settled EEP trade. A clean reconciliation is evidence of capture completeness, not an accounting audit opinion.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

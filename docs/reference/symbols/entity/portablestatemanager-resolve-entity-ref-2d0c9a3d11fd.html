@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PortableStateManager.resolve_entity_ref Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>PortableStateManager.resolve_entity_ref</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/15_Operations/backups/canonical_portable_state.py#L98">ENTITY/src/15_Operations/backups/canonical_portable_state.py#L98</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>PortableStateManager.resolve_entity_ref(self, entity_ref: str)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def resolve_entity_ref(self,entity_ref:str)-&gt;str:
+        ref=str(entity_ref or &quot;&quot;).strip()
+        if not ref: raise ValueError(&quot;Entity ID or alias is required&quot;)
+        try:
+            manifest=self.identity.load_manifest(ref)
+            return str(manifest[&quot;entity_id&quot;])
+        except (ValueError,FileNotFoundError,RuntimeError,KeyError):
+            pass
+        needle=ref.casefold(); matches=[]
+        for manifest in self.identity.list_local():
+            candidates=[str(manifest.get(&quot;display_name&quot;) or &quot;&quot;)]
+            candidates.extend(str(x) for x in (manifest.get(&quot;aliases&quot;) or []))
+            if any(needle==candidate.strip().casefold() for candidate in candidates if candidate.strip()):
+                matches.append(str(manifest[&quot;entity_id&quot;]))
+        matches=sorted(set(matches))
+        if not matches: raise KeyError(f&quot;unknown Entity ID or alias: {ref}&quot;)
+        if len(matches)&gt;1: raise ValueError(f&quot;ambiguous Entity alias/display name: {ref}&quot;)
+        return matches[0]</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

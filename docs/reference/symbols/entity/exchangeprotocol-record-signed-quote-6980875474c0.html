@@ -1,0 +1,20 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ExchangeProtocol._record_signed_quote Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ExchangeProtocol._record_signed_quote</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/32_V3_Hardening/exchange_protocol.py#L529">ENTITY/src/32_V3_Hardening/exchange_protocol.py#L529</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>ExchangeProtocol._record_signed_quote(self, body, signature)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def _record_signed_quote(self,body,signature):
+        required={&#x27;schema&#x27;,&#x27;quote_id&#x27;,&#x27;rfq_id&#x27;,&#x27;provider&#x27;,&#x27;price&#x27;,&#x27;expires_at_ms&#x27;,&#x27;nonce&#x27;,&#x27;created_at_ms&#x27;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&#x27;schema&#x27;)!=&#x27;entity-eep-rfq-quote-v1&#x27;: raise ValueError(&#x27;invalid signed quote shape&#x27;)
+        provider=str(body[&#x27;provider&#x27;]); price=int(body[&#x27;price&#x27;]); expiry=int(body[&#x27;expires_at_ms&#x27;]); created=int(body[&#x27;created_at_ms&#x27;])
+        if price&lt;0 or expiry&lt;=now_ms() or created&lt;0 or not str(body[&#x27;nonce&#x27;]): raise ValueError(&#x27;invalid quote&#x27;)
+        manifest=self.identity.load_manifest(provider)
+        if not self.identity.verify_signature(manifest,body,signature): raise PermissionError(&#x27;quote signature invalid&#x27;)
+        with self._db() as db: rfq=db.execute(&quot;SELECT * FROM rfqs WHERE rfq_id=? AND status=&#x27;OPEN&#x27;&quot;,(body[&#x27;rfq_id&#x27;],)).fetchone()
+        if not rfq or now_ms()&gt;int(rfq[&#x27;expires_at_ms&#x27;]): raise KeyError(&#x27;active RFQ required&#x27;)
+        if rfq[&#x27;side&#x27;]==&#x27;BUY&#x27;:
+            available=self.balance(rfq[&#x27;instrument_id&#x27;],provider)-self._reserved_sell(rfq[&#x27;instrument_id&#x27;],provider)
+            if available&lt;int(rfq[&#x27;quantity&#x27;]): raise PermissionError(&#x27;quote provider lacks unreserved sell entitlement&#x27;)
+        received=now_ms()
+        try:
+            with self._db() as db:
+                db.execute(&#x27;INSERT INTO quotes(quote_id,rfq_id,provider,price,expires_at_ms,status,created_at_ms,nonce,received_at_ms,signature_json) VALUES(?,?,?,?,?,?,?,?,?,?)&#x27;,(
+                    body[&#x27;quote_id&#x27;],body[&#x27;rfq_id&#x27;],provider,price,expiry,&#x27;OPEN&#x27;,created,str(body[&#x27;nonce&#x27;]),received,json.dumps(signature,sort_keys=True)))
+        except sqlite3.IntegrityError as exc: raise ValueError(&#x27;duplicate/replayed quote&#x27;) from exc
+        return dict(body,price=price,status=&#x27;OPEN&#x27;,received_at_ms=received,signature=signature)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

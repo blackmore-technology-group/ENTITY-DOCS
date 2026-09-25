@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/04_Entity_Registry/data_universe_adapter/canonical_data_universe.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/04_Entity_Registry/data_universe_adapter/canonical_data_universe.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/04_Entity_Registry/data_universe_adapter/canonical_data_universe.py</code></p><p><b>SHA-256:</b> <code>7e4450cedb7ab044ddc2993dd65ade265c2072980fba7a87347a2e7fda10689b</code></p><p><b>Bytes:</b> 2,043</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/04_Entity_Registry/data_universe_adapter/canonical_data_universe.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-2c882d5bd7e1.html">_load</a></li><li><a href="../../../reference/symbols/entity/datauniverseprojection-0b1ec9e0f1e9.html">DataUniverseProjection</a></li><li><a href="../../../reference/symbols/entity/niki-project-data-summary-v1-8bca02bcfd0e.html">niki_project_data_summary_v1</a></li><li><a href="../../../reference/symbols/entity/datauniverseprojection-init-3185787ab0b9.html">DataUniverseProjection.__init__</a></li><li><a href="../../../reference/symbols/entity/datauniverseprojection-project-8d1f8b511815.html">DataUniverseProjection.project</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+import importlib.util, os
+
+ROOT=Path(__file__).resolve().parents[2]
+def _load(name,path):
+    spec=importlib.util.spec_from_file_location(name,path); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+
+class DataUniverseProjection:
+    &quot;&quot;&quot;Read-only, minimum-necessary projection composed from canonical registries.&quot;&quot;&quot;
+    def __init__(self,state_dir:str|Path,identity):
+        self.state=Path(state_dir); self.identity=identity
+        am=_load(&quot;du_assets&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;asset_registry&quot;/&quot;canonical_asset_registry.py&quot;)
+        rm=_load(&quot;du_rights&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;ownership_graphs&quot;/&quot;canonical_rights_claims.py&quot;)
+        pm=_load(&quot;du_prov&quot;,ROOT/&quot;04_Entity_Registry&quot;/&quot;provenance&quot;/&quot;canonical_provenance.py&quot;)
+        self.assets=am.CanonicalAssetRegistry(self.state,identity); self.rights=rm.RightsClaimsGraph(self.state,identity); self.prov=pm.AssetProvenanceGraph(self.state,identity)
+    def project(self,entity_id:str)-&gt;dict:
+        rows=[]
+        for a in self.assets.list_for_controller(entity_id):
+            claims=self.rights.claims_for_asset(a[&quot;asset_id&quot;])
+            lineage=self.prov.lineage(a[&quot;asset_id&quot;])
+            rows.append({&quot;asset_id&quot;:a[&quot;asset_id&quot;],&quot;content_sha256&quot;:a[&quot;content_sha256&quot;],&quot;status&quot;:a.get(&quot;status&quot;),&quot;classification&quot;:a.get(&quot;classification&quot;),&quot;rights_claim_count&quot;:len(claims),&quot;provenance_recorded&quot;:bool(lineage.get(&quot;binding&quot;)),&quot;ownership_not_inferred&quot;:True})
+        return {&quot;schema&quot;:&quot;entity-data-universe-projection-v1&quot;,&quot;entity_id&quot;:entity_id,&quot;assets&quot;:rows,&quot;raw_vault_content_exposed&quot;:False,&quot;owner_field_synthesized&quot;:False,&quot;minimum_necessary&quot;:True}
+
+def niki_project_data_summary_v1(*,entity_id:str)-&gt;dict:
+    im=_load(&quot;du_identity&quot;,ROOT/&quot;01_Core_Runtime&quot;/&quot;identity&quot;/&quot;canonical_identity.py&quot;)
+    state=Path(os.environ.get(&quot;ENTITY_CANONICAL_CORE_STATE&quot;,str(ROOT/&quot;01_Core_Runtime&quot;/&quot;runtime_state&quot;)))
+    return DataUniverseProjection(state,im.EntityIdentityVault(state)).project(str(entity_id))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

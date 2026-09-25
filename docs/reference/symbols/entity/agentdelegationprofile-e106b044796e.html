@@ -1,0 +1,77 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AgentDelegationProfile Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>AgentDelegationProfile</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/resilience_interop.py#L75">ENTITY/src/31_Profiles/resilience_interop.py#L75</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Sub-agent authority with depth/capability/budget/time attenuation and kill semantics.</p><h2>Source excerpt</h2><pre><code>class AgentDelegationProfile:
+    &quot;&quot;&quot;Sub-agent authority with depth/capability/budget/time attenuation and kill semantics.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_agent_delegation.sqlite&quot;; self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS grants(
+                grant_id TEXT PRIMARY KEY, principal TEXT NOT NULL, grantor TEXT NOT NULL,
+                grantee TEXT NOT NULL, parent_grant_id TEXT, depth INTEGER NOT NULL,
+                max_depth INTEGER NOT NULL, capabilities_json TEXT NOT NULL,
+                budget_units INTEGER NOT NULL, spent_units INTEGER NOT NULL,
+                expires_at_ms INTEGER NOT NULL, policy_sha256 TEXT NOT NULL,
+                status TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+
+    def grant(self, principal: str, grantor: str, grantee: str, capabilities: list[str], *,
+              max_depth=0, budget_units=0, expires_at_ms: int, policy_sha256: str,
+              parent_grant_id: str | None = None) -&gt; dict:
+        caps = sorted({str(c).upper() for c in capabilities})
+        depth = 0
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            if parent_grant_id:
+                parent = db.execute(&quot;SELECT * FROM grants WHERE grant_id=? AND status=&#x27;ACTIVE&#x27;&quot;,
+                                    (parent_grant_id,)).fetchone()
+                if not parent: raise KeyError(&quot;active parent grant missing&quot;)
+                if parent[&quot;grantee&quot;] != grantor or parent[&quot;principal&quot;] != principal:
+                    raise PermissionError(&quot;delegation chain mismatch&quot;)
+                depth = int(parent[&quot;depth&quot;]) + 1
+                if depth &gt; int(parent[&quot;max_depth&quot;]): raise PermissionError(&quot;delegation depth exceeded&quot;)
+                if not set(caps).issubset(set(json.loads(parent[&quot;capabilities_json&quot;]))):
+                    raise PermissionError(&quot;capability escalation prohibited&quot;)
+                remaining = int(parent[&quot;budget_units&quot;]) - int(parent[&quot;spent_units&quot;])
+                if int(budget_units) &gt; remaining: raise PermissionError(&quot;budget escalation prohibited&quot;)
+                if int(expires_at_ms) &gt; int(parent[&quot;expires_at_ms&quot;]):
+                    raise PermissionError(&quot;time escalation prohibited&quot;)
+        body = {&quot;schema&quot;: &quot;entity-v3-agent-delegation-v1&quot;, &quot;grant_id&quot;: rid(&quot;agentgrant3&quot;),
+                &quot;principal&quot;: principal, &quot;grantor&quot;: grantor, &quot;grantee&quot;: grantee,
+                &quot;parent_grant_id&quot;: parent_grant_id, &quot;depth&quot;: depth, &quot;max_depth&quot;: int(max_depth),
+                &quot;capabilities&quot;: caps, &quot;budget_units&quot;: max(0, int(budget_units)),
+                &quot;expires_at_ms&quot;: int(expires_at_ms), &quot;policy_sha256&quot;: policy_sha256,
+                &quot;status&quot;: &quot;ACTIVE&quot;, &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(grantor, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO grants VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;grant_id&quot;], principal, grantor, grantee, parent_grant_id, depth,
+                int(max_depth), json.dumps(caps), body[&quot;budget_units&quot;], 0,
+                body[&quot;expires_at_ms&quot;], policy_sha256, &quot;ACTIVE&quot;, body[&quot;created_at_ms&quot;],
+                json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)
+
+    def consume(self, grant_id: str, capability: str, units=1, *, at_ms=None) -&gt; dict:
+        at, units, capability = int(at_ms or now_ms()), max(0, int(units)), capability.upper()
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            row = db.execute(&quot;SELECT * FROM grants WHERE grant_id=?&quot;, (grant_id,)).fetchone()
+            if not row or row[&quot;status&quot;] != &quot;ACTIVE&quot;: raise PermissionError(&quot;inactive grant&quot;)
+            if at &gt; int(row[&quot;expires_at_ms&quot;]): raise PermissionError(&quot;grant expired&quot;)
+            if capability not in set(json.loads(row[&quot;capabilities_json&quot;])):
+                raise PermissionError(&quot;capability not delegated&quot;)
+            if int(row[&quot;spent_units&quot;]) + units &gt; int(row[&quot;budget_units&quot;]):
+                raise PermissionError(&quot;delegated budget exhausted&quot;)
+            spent = int(row[&quot;spent_units&quot;]) + units
+            db.execute(&quot;UPDATE grants SET spent_units=? WHERE grant_id=?&quot;, (spent, grant_id))
+        return {&quot;grant_id&quot;: grant_id, &quot;authorized&quot;: True, &quot;capability&quot;: capability,
+                &quot;consumed_units&quot;: units, &quot;spent_units&quot;: spent,
+                &quot;remaining_units&quot;: int(row[&quot;budget_units&quot;]) - spent}
+
+    def kill(self, grant_id: str) -&gt; dict:
+        with sqlite3.connect(self.path) as db:
+            queue, revoked = [grant_id], []
+            while queue:
+                current = queue.pop(0)
+                db.execute(&quot;UPDATE grants SET status=&#x27;REVOKED&#x27; WHERE grant_id=?&quot;, (current,))
+                revoked.append(current)
+                queue.extend(r[0] for r in db.execute(
+                    &quot;SELECT grant_id FROM grants WHERE parent_grant_id=? AND status=&#x27;ACTIVE&#x27;&quot;,
+                    (current,)).fetchall())
+        return {&quot;root_grant_id&quot;: grant_id, &quot;revoked_grants&quot;: revoked, &quot;kill_propagated&quot;: True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

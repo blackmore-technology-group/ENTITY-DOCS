@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/36_Adoption_Layer/adoption_profile.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/36_Adoption_Layer/adoption_profile.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/36_Adoption_Layer/adoption_profile.py</code></p><p><b>SHA-256:</b> <code>92164184074fb5c9edde80e9a6f4971a3e67234da32bf8497e289fc9fc3535e2</code></p><p><b>Bytes:</b> 6,114</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/36_Adoption_Layer/adoption_profile.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/entityadoptionsdk-9ef92ebc51e1.html">EntityAdoptionSDK</a></li><li><a href="../../../reference/symbols/entity/legal-classification-assertion-50f6a43f8e98.html">legal_classification_assertion</a></li><li><a href="../../../reference/symbols/entity/adoption-status-3057c56ead1b.html">adoption_status</a></li><li><a href="../../../reference/symbols/entity/entityadoptionsdk-init-2d6832e91ab7.html">EntityAdoptionSDK.__init__</a></li><li><a href="../../../reference/symbols/entity/entityadoptionsdk-issue-rights-passport-94ef6db2f302.html">EntityAdoptionSDK.issue_rights_passport</a></li><li><a href="../../../reference/symbols/entity/entityadoptionsdk-authorize-e460ddae8d6f.html">EntityAdoptionSDK.authorize</a></li><li><a href="../../../reference/symbols/entity/entityadoptionsdk-resolver-quorum-a52c33279b22.html">EntityAdoptionSDK.resolver_quorum</a></li><li><a href="../../../reference/symbols/entity/entityadoptionsdk-market-status-cc7ca6023dd0.html">EntityAdoptionSDK.market_status</a></li><li><a href="../../../reference/symbols/entity/entityadoptionsdk-exchange-routes-9e663bf9d8eb.html">EntityAdoptionSDK.exchange_routes</a></li><li><a href="../../../reference/symbols/entity/entityadoptionsdk-resolver-deployment-95eeee750cb2.html">EntityAdoptionSDK.resolver_deployment</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+
+ADOPTION_VERSION = &quot;3.2.0&quot;
+CORE_PRIMITIVES = (&quot;ENTITY&quot;, &quot;AUTHORITY&quot;, &quot;RIGHT&quot;, &quot;EVENT&quot;, &quot;VALUE&quot;)
+MARKET_LIFECYCLE = (
+    &quot;DCO&quot;, &quot;INSTRUMENT&quot;, &quot;LISTING&quot;, &quot;DISCLOSURE&quot;, &quot;ORDER_RFQ_AUCTION&quot;,
+    &quot;PRICE_DISCOVERY&quot;, &quot;TRADE&quot;, &quot;CLEARING&quot;, &quot;SETTLEMENT&quot;, &quot;ENTITLEMENT&quot;,
+    &quot;USAGE&quot;, &quot;DERIVED_OUTPUT&quot;, &quot;ECONOMIC_CONSEQUENCE&quot;,
+)
+CONFORMANCE_LANGUAGES = (&quot;RUST&quot;, &quot;TYPESCRIPT&quot;, &quot;CSHARP&quot;, &quot;GO&quot;, &quot;SWIFT&quot;, &quot;JAVA&quot;)
+EXCHANGE_API = {
+    &quot;POST /instruments&quot;: &quot;define/submit rights instrument&quot;,
+    &quot;POST /listings&quot;: &quot;publish instrument listing&quot;,
+    &quot;POST /orders&quot;: &quot;submit signed order&quot;,
+    &quot;POST /rfq&quot;: &quot;create request for quote&quot;,
+    &quot;POST /auctions&quot;: &quot;execute call-auction profile&quot;,
+    &quot;POST /settlements&quot;: &quot;settle executed trade&quot;,
+    &quot;GET /positions&quot;: &quot;query rights-unit balances/entitlements&quot;,
+    &quot;GET /market-data&quot;: &quot;query venue market observations&quot;,
+}
+
+class EntityAdoptionSDK:
+    &quot;&quot;&quot;Thin adoption facade. It composes existing v3 components without taking their authority.&quot;&quot;&quot;
+    def __init__(self, *, fabric=None, exchange=None, passport_registry=None,
+                 rights_ontology=None, jurisdiction_registry=None,
+                 federated_resolution=None, semantic_registry=None):
+        self.fabric = fabric
+        self.exchange = exchange
+        self.passports = passport_registry
+        self.rights_ontology = rights_ontology
+        self.jurisdictions = jurisdiction_registry
+        self.resolution = federated_resolution
+        self.semantics = semantic_registry
+
+    def issue_rights_passport(self, *args, **kwargs) -&gt; dict:
+        if self.passports is None:
+            raise RuntimeError(&quot;rights passport registry not configured&quot;)
+        return self.passports.issue(*args, **kwargs)
+
+    def authorize(self, passport: dict, action: str, *, context: dict | None = None,
+                  jurisdictions: list[str] | None = None, domain: str = &quot;DATA&quot;) -&gt; dict:
+        context = dict(context or {})
+        action = str(action).upper()
+        if self.rights_ontology is None:
+            raise RuntimeError(&quot;rights ontology not configured&quot;)
+        rights = self.rights_ontology.evaluate(list(passport.get(&quot;rights&quot;) or []), action, context)
+        jurisdiction = None
+        if jurisdictions:
+            if self.jurisdictions is None:
+                raise RuntimeError(&quot;jurisdiction registry not configured&quot;)
+            jurisdiction = self.jurisdictions.evaluate(jurisdictions, domain, action, context)
+        final = rights[&quot;decision&quot;]
+        if jurisdiction and jurisdiction[&quot;decision&quot;] == &quot;DENY&quot;:
+            final = &quot;DENY&quot;
+        elif jurisdiction and jurisdiction[&quot;decision&quot;] == &quot;CONDITIONAL&quot; and final == &quot;ALLOW&quot;:
+            final = &quot;CONDITIONAL&quot;
+        return {
+            &quot;action&quot;: action, &quot;decision&quot;: final, &quot;rights_decision&quot;: rights,
+            &quot;jurisdiction_decision&quot;: jurisdiction, &quot;deny_by_default&quot;: True,
+            &quot;sdk_does_not_create_authority&quot;: True,
+        }
+
+    def resolver_quorum(self, object_id: str, *, minimum_resolvers: int = 2) -&gt; dict:
+        if self.resolution is None:
+            raise RuntimeError(&quot;federated resolution not configured&quot;)
+        return self.resolution.resolve_quorum(object_id, minimum_resolvers=minimum_resolvers)
+
+    def market_status(self) -&gt; dict:
+        if self.exchange is None:
+            raise RuntimeError(&quot;exchange not configured&quot;)
+        status = self.exchange.status()
+        return {
+            &quot;market_engine_status&quot;: status,
+            &quot;market_lifecycle&quot;: list(MARKET_LIFECYCLE),
+            &quot;market_engine_preserved&quot;: True,
+            &quot;rights_are_traded_not_bytes&quot;: bool(status.get(&quot;rights_are_traded_not_bytes&quot;)),
+        }
+
+    @staticmethod
+    def exchange_routes() -&gt; dict[str, str]:
+        return dict(EXCHANGE_API)
+
+    @staticmethod
+    def resolver_deployment(*, mode: str = &quot;FEDERATED&quot;, minimum_resolvers: int = 2,
+                            offline_verify: bool = True) -&gt; dict:
+        mode = str(mode).upper()
+        if mode != &quot;FEDERATED&quot;:
+            raise ValueError(&quot;v3.2 adoption resolver deployment is federated&quot;)
+        if int(minimum_resolvers) &lt; 2:
+            raise ValueError(&quot;independent resolver quorum must be at least two&quot;)
+        return {
+            &quot;schema&quot;: &quot;entity-v3-resolver-deployment-v1&quot;,
+            &quot;mode&quot;: &quot;FEDERATED&quot;,
+            &quot;minimum_resolvers&quot;: int(minimum_resolvers),
+            &quot;offline_verify&quot;: bool(offline_verify),
+            &quot;resolver_is_not_authority&quot;: True,
+            &quot;single_provider_dependency_prohibited&quot;: True,
+            &quot;fail_closed&quot;: True,
+        }
+
+def legal_classification_assertion(jurisdiction: str, profile_ref: str, asserted_by: str,
+                                   classification: str, *, evidence_refs: list[str] | None = None) -&gt; dict:
+    if not asserted_by or not classification:
+        raise ValueError(&quot;classification assertion requires actor and classification&quot;)
+    return {
+        &quot;schema&quot;: &quot;entity-v3-legal-classification-assertion-v1&quot;,
+        &quot;jurisdiction&quot;: str(jurisdiction).upper(),
+        &quot;profile_ref&quot;: str(profile_ref),
+        &quot;asserted_by&quot;: str(asserted_by),
+        &quot;classification&quot;: str(classification).upper(),
+        &quot;evidence_refs&quot;: sorted(set(evidence_refs or [])),
+        &quot;classification_is_assertion_not_protocol_legal_truth&quot;: True,
+    }
+
+def adoption_status() -&gt; dict:
+    return {
+        &quot;schema&quot;: &quot;entity-v3-adoption-profile-status-v1&quot;,
+        &quot;version&quot;: ADOPTION_VERSION,
+        &quot;core_primitives&quot;: list(CORE_PRIMITIVES),
+        &quot;core_semantics_changed&quot;: False,</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

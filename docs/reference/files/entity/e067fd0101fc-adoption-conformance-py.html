@@ -1,0 +1,70 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/36_Adoption_Layer/adoption_conformance.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/36_Adoption_Layer/adoption_conformance.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/36_Adoption_Layer/adoption_conformance.py</code></p><p><b>SHA-256:</b> <code>6a796f8588f282cbbb996b1f9490479d3812ada2ab6d0cc2244210b1debc7b99</code></p><p><b>Bytes:</b> 3,630</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/36_Adoption_Layer/adoption_conformance.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/sha-716ebdc6ef8f.html">_sha</a></li><li><a href="../../../reference/symbols/entity/rules-506a07324652.html">_rules</a></li><li><a href="../../../reference/symbols/entity/validate-adoption-record-68e2ba5fe537.html">validate_adoption_record</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from typing import Any
+import re
+
+HEX64 = re.compile(r&quot;^[0-9a-f]{64}$&quot;)
+PRIMITIVES = [&quot;ENTITY&quot;, &quot;AUTHORITY&quot;, &quot;RIGHT&quot;, &quot;EVENT&quot;, &quot;VALUE&quot;]
+PROVIDERS = {
+    &quot;AWS_S3&quot;, &quot;AZURE_BLOB&quot;, &quot;GOOGLE_CLOUD_STORAGE&quot;, &quot;SNOWFLAKE&quot;, &quot;DATABRICKS&quot;,
+    &quot;POSTGRESQL&quot;, &quot;SQL_SERVER&quot;, &quot;LOCAL_FILESYSTEM&quot;, &quot;HTTP_API&quot;,
+}
+STANDARDS = {&quot;ODRL&quot;, &quot;W3C_VC&quot;, &quot;DID&quot;, &quot;GAIA_X&quot;, &quot;IDS&quot;}
+LIFECYCLE = [
+    &quot;DCO&quot;, &quot;INSTRUMENT&quot;, &quot;LISTING&quot;, &quot;DISCLOSURE&quot;, &quot;ORDER_RFQ_AUCTION&quot;,
+    &quot;PRICE_DISCOVERY&quot;, &quot;TRADE&quot;, &quot;CLEARING&quot;, &quot;SETTLEMENT&quot;, &quot;ENTITLEMENT&quot;,
+    &quot;USAGE&quot;, &quot;DERIVED_OUTPUT&quot;, &quot;ECONOMIC_CONSEQUENCE&quot;,
+]
+
+def _sha(value: Any) -&gt; bool:
+    return isinstance(value, str) and bool(HEX64.fullmatch(value))
+
+def _rules(value: Any) -&gt; bool:
+    if not isinstance(value, list) or not value:
+        return False
+    for rule in value:
+        if not isinstance(rule, dict) or rule.get(&quot;effect&quot;) not in {&quot;ALLOW&quot;, &quot;REQUIRE&quot;, &quot;PROHIBIT&quot;}:
+            return False
+        actions = rule.get(&quot;actions&quot;)
+        if not isinstance(actions, list) or not actions or actions != sorted(set(actions)):
+            return False
+        if any(not isinstance(x, str) or not x or x != x.upper() for x in actions):
+            return False
+    return True
+
+def validate_adoption_record(r: dict) -&gt; bool:
+    if not isinstance(r, dict):
+        return False
+    schema = r.get(&quot;schema&quot;)
+    if schema == &quot;entity-v3-rights-passport-v1&quot;:
+        return (r.get(&quot;core_primitives&quot;) == PRIMITIVES and _rules(r.get(&quot;rights&quot;))
+                and r.get(&quot;provider_custody_is_not_authority&quot;) is True
+                and r.get(&quot;underlying_data_not_silently_transferred&quot;) is True
+                and r.get(&quot;legal_effect_is_deployment_specific&quot;) is True)
+    if schema == &quot;entity-v3-custody-locator-v1&quot;:
+        return (r.get(&quot;provider&quot;) in PROVIDERS and _sha(r.get(&quot;content_sha256&quot;))
+                and r.get(&quot;provider_is_authority&quot;) is False
+                and r.get(&quot;credentials_included&quot;) is False
+                and r.get(&quot;entity_identity_changes_with_provider&quot;) is False)
+    if schema == &quot;entity-v3-standards-mapping-v1&quot;:
+        return (r.get(&quot;source_standard&quot;) in STANDARDS
+                and _sha(r.get(&quot;source_sha256&quot;))
+                and r.get(&quot;silent_semantic_equivalence&quot;) is False
+                and r.get(&quot;external_standard_is_not_entity_authority&quot;) is True)
+    if schema == &quot;entity-v3-external-credential-evidence-v1&quot;:
+        return (r.get(&quot;source_standard&quot;) == &quot;W3C_VC&quot; and _sha(r.get(&quot;credential_sha256&quot;))
+                and r.get(&quot;credential_is_evidence_not_entity_authority&quot;) is True)
+    if schema == &quot;entity-v3-resolver-deployment-v1&quot;:
+        return (r.get(&quot;mode&quot;) == &quot;FEDERATED&quot; and type(r.get(&quot;minimum_resolvers&quot;)) is int
+                and r[&quot;minimum_resolvers&quot;] &gt;= 2 and r.get(&quot;resolver_is_not_authority&quot;) is True
+                and r.get(&quot;single_provider_dependency_prohibited&quot;) is True
+                and r.get(&quot;fail_closed&quot;) is True)
+    if schema == &quot;entity-v3-exchange-adoption-profile-v1&quot;:
+        return (r.get(&quot;market_engine_preserved&quot;) is True and r.get(&quot;rights_are_traded_not_bytes&quot;) is True
+                and r.get(&quot;market_lifecycle&quot;) == LIFECYCLE)
+    if schema == &quot;entity-v3-adoption-profile-status-v1&quot;:
+        return (r.get(&quot;core_primitives&quot;) == PRIMITIVES and r.get(&quot;core_semantics_changed&quot;) is False
+                and r.get(&quot;market_engine_preserved&quot;) is True)
+    if schema == &quot;entity-v3-legal-classification-assertion-v1&quot;:
+        return (bool(r.get(&quot;asserted_by&quot;)) and bool(r.get(&quot;classification&quot;))
+                and r.get(&quot;classification_is_assertion_not_protocol_legal_truth&quot;) is True)
+    return False</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

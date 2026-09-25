@@ -1,0 +1,73 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/22_Sovereign_Domain/reference/verify_entity_domain.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/22_Sovereign_Domain/reference/verify_entity_domain.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/22_Sovereign_Domain/reference/verify_entity_domain.py</code></p><p><b>SHA-256:</b> <code>9de1cd6acaee502af3e90a57f4833c7595df2197f91d187db5694ba6e29e81d3</code></p><p><b>Bytes:</b> 6,616</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/reference/verify_entity_domain.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/canon-8a10ceef13ec.html">canon</a></li><li><a href="../../../reference/symbols/entity/sha-a8c0320c0009.html">sha</a></li><li><a href="../../../reference/symbols/entity/unb64-84c191459e3f.html">unb64</a></li><li><a href="../../../reference/symbols/entity/method-acfcc6428c07.html">method</a></li><li><a href="../../../reference/symbols/entity/verify-manifest-681378b97eca.html">verify_manifest</a></li><li><a href="../../../reference/symbols/entity/verify-sig-a2f034a367f0.html">verify_sig</a></li><li><a href="../../../reference/symbols/entity/verify-package-8a318e3afc85.html">verify_package</a></li><li><a href="../../../reference/symbols/entity/main-770cd4c8f7cd.html">main</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import base64,hashlib,json,sys
+from pathlib import Path
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
+def canon(v): return json.dumps(v,sort_keys=True,separators=(&#x27;,&#x27;,&#x27;:&#x27;),ensure_ascii=False,default=str).encode()
+def sha(v): return hashlib.sha256(v if isinstance(v,(bytes,bytearray)) else canon(v)).hexdigest()
+def unb64(v): return base64.urlsafe_b64decode(str(v)+&#x27;=&#x27;*(-len(str(v))%4))
+def method(manifest,key_id):
+    return next((x for x in manifest.get(&#x27;verification_methods&#x27;) or [] if x.get(&#x27;key_id&#x27;)==key_id),None)
+
+def verify_manifest(manifest):
+    try:
+        if manifest.get(&#x27;schema&#x27;)!=&#x27;sovereign-entity-manifest-v2&#x27;: return False
+        data=dict(manifest); sig=dict(data.pop(&#x27;signature&#x27;)); m=method(data,sig.get(&#x27;key_id&#x27;))
+        if not m or m.get(&#x27;status&#x27;)!=&#x27;active&#x27;: return False
+        Ed25519PublicKey.from_public_bytes(unb64(m[&#x27;public_key&#x27;])).verify(unb64(sig[&#x27;signature&#x27;]),canon(data)); return True
+    except Exception: return False
+
+def verify_sig(manifest,payload,record):
+    try:
+        if record.get(&#x27;signature_schema&#x27;)!=&#x27;entity-signature-record-v2&#x27; or record.get(&#x27;entity_id&#x27;)!=manifest.get(&#x27;entity_id&#x27;): return False
+        if record.get(&#x27;payload_sha256&#x27;)!=sha(payload): return False
+        m=method(manifest,record.get(&#x27;key_id&#x27;))
+        if not m or m.get(&#x27;suite&#x27;)!=record.get(&#x27;suite&#x27;): return False
+        signed={k:record.get(k) for k in (&#x27;signature_schema&#x27;,&#x27;entity_id&#x27;,&#x27;key_id&#x27;,&#x27;suite&#x27;,&#x27;signed_at_ms&#x27;,&#x27;payload_sha256&#x27;)}
+        Ed25519PublicKey.from_public_bytes(unb64(m[&#x27;public_key&#x27;])).verify(unb64(record[&#x27;signature&#x27;]),canon(signed)); return True
+    except Exception: return False
+def verify_package(package):
+    failures=[]; pkg=dict(package or {})
+    if pkg.get(&#x27;schema&#x27;)!=&#x27;entity-domain-export-package-v1&#x27;: failures.append(&#x27;package_schema&#x27;)
+    expected=pkg.get(&#x27;package_sha256&#x27;); material={k:v for k,v in pkg.items() if k!=&#x27;package_sha256&#x27;}
+    if expected!=sha(material): failures.append(&#x27;package_hash&#x27;)
+    identity=dict(pkg.get(&#x27;identity_manifest&#x27;) or {}); snap=dict(pkg.get(&#x27;domain_snapshot&#x27;) or {}); export=dict(pkg.get(&#x27;export_manifest&#x27;) or {})
+    export_sig=export.pop(&#x27;signature&#x27;,None); domain=dict(snap.get(&#x27;domain&#x27;) or {}); root=domain.get(&#x27;entity_root&#x27;); did=domain.get(&#x27;domain_id&#x27;)
+    if not verify_manifest(identity): failures.append(&#x27;identity_manifest&#x27;)
+    if root!=identity.get(&#x27;entity_id&#x27;) or export.get(&#x27;entity_root&#x27;)!=root or export.get(&#x27;domain_id&#x27;)!=did: failures.append(&#x27;root_domain_binding&#x27;)
+    if export.get(&#x27;domain_snapshot_sha256&#x27;)!=sha(snap) or export.get(&#x27;identity_manifest_sha256&#x27;)!=sha(identity): failures.append(&#x27;export_commitment&#x27;)
+    if identity and export_sig and not verify_sig(identity,export,export_sig): failures.append(&#x27;export_signature&#x27;)
+    claim=snap.get(&#x27;name_claim&#x27;)
+    if claim:
+        body={k:claim[k] for k in (&#x27;schema&#x27;,&#x27;claim_id&#x27;,&#x27;domain_id&#x27;,&#x27;entity_root&#x27;,&#x27;normalized_name&#x27;,&#x27;namespace&#x27;,&#x27;status&#x27;,&#x27;conflict_state&#x27;,&#x27;evidence&#x27;,&#x27;created_at_ms&#x27;,&#x27;first_seen_is_not_ownership&#x27;,&#x27;dns_possession_is_not_authority&#x27;)}
+        if claim.get(&#x27;domain_id&#x27;)!=did or claim.get(&#x27;entity_root&#x27;)!=root or not verify_sig(identity,body,claim.get(&#x27;signature&#x27;) or {}): failures.append(&#x27;name_claim&#x27;)
+    nodes={}
+    for node in snap.get(&#x27;nodes&#x27;) or []:
+        nid=node.get(&#x27;node_id&#x27;); body={k:node[k] for k in (&#x27;schema&#x27;,&#x27;domain_id&#x27;,&#x27;entity_root&#x27;,&#x27;node_id&#x27;,&#x27;public_key_b64&#x27;,&#x27;permitted_services&#x27;,&#x27;network_scopes&#x27;,&#x27;publication_scopes&#x27;,&#x27;data_scopes&#x27;,&#x27;not_before_ms&#x27;,&#x27;expires_at_ms&#x27;,&#x27;delegation&#x27;,&#x27;status&#x27;,&#x27;auth_version&#x27;,&#x27;created_at_ms&#x27;)}
+        if node.get(&#x27;domain_id&#x27;)!=did or node.get(&#x27;entity_root&#x27;)!=root or not verify_sig(identity,body,node.get(&#x27;signature&#x27;) or {}): failures.append(&#x27;node:&#x27;+str(nid))
+        rev=node.get(&#x27;revocation&#x27;)
+        if rev:
+            rb={k:rev[k] for k in (&#x27;schema&#x27;,&#x27;revocation_id&#x27;,&#x27;domain_id&#x27;,&#x27;node_id&#x27;,&#x27;entity_root&#x27;,&#x27;reason&#x27;,&#x27;effective_at_ms&#x27;,&#x27;created_at_ms&#x27;)}
+            if rev.get(&#x27;domain_id&#x27;)!=did or rev.get(&#x27;node_id&#x27;)!=nid or not verify_sig(identity,rb,rev.get(&#x27;signature&#x27;) or {}): failures.append(&#x27;revocation:&#x27;+str(nid))
+        nodes[nid]=node
+    for svc in snap.get(&#x27;services&#x27;) or []:
+        sid=svc.get(&#x27;service_id&#x27;); body={k:svc[k] for k in (&#x27;schema&#x27;,&#x27;entity_root&#x27;,&#x27;domain_id&#x27;,&#x27;domain_name&#x27;,&#x27;service_id&#x27;,&#x27;service_type&#x27;,&#x27;node_id&#x27;,&#x27;endpoint&#x27;,&#x27;protocol_version&#x27;,&#x27;capabilities&#x27;,&#x27;access_class&#x27;,&#x27;required_credentials&#x27;,&#x27;policy_refs&#x27;,&#x27;data_classifications&#x27;,&#x27;economic_terms_ref&#x27;,&#x27;availability&#x27;,&#x27;manifest_version&#x27;,&#x27;expires_at_ms&#x27;,&#x27;status&#x27;,&#x27;created_at_ms&#x27;,&#x27;source_data_custody_transferred&#x27;,&#x27;provider_authority_inferred&#x27;)}
+        if svc.get(&#x27;domain_id&#x27;)!=did or svc.get(&#x27;entity_root&#x27;)!=root or svc.get(&#x27;node_id&#x27;) not in nodes or not verify_sig(identity,body,svc.get(&#x27;signature&#x27;) or {}): failures.append(&#x27;service:&#x27;+str(sid))
+        node=nodes.get(svc.get(&#x27;node_id&#x27;)) or {}
+        if svc.get(&#x27;status&#x27;)==&#x27;ACTIVE&#x27; and node.get(&#x27;effective_status&#x27;,node.get(&#x27;status&#x27;))!=&#x27;ACTIVE&#x27;: failures.append(&#x27;active_service_on_revoked_node:&#x27;+str(sid))
+        if svc.get(&#x27;service_type&#x27;) not in set(node.get(&#x27;permitted_services&#x27;) or []) and &#x27;*&#x27; not in set(node.get(&#x27;permitted_services&#x27;) or []): failures.append(&#x27;service_scope:&#x27;+str(sid))
+    for mig in snap.get(&#x27;migrations&#x27;) or []:
+        mb={k:mig[k] for k in (&#x27;schema&#x27;,&#x27;migration_id&#x27;,&#x27;domain_id&#x27;,&#x27;entity_root&#x27;,&#x27;from_node&#x27;,&#x27;to_node&#x27;,&#x27;from_provider&#x27;,&#x27;to_provider&#x27;,&#x27;semantic_hash_before&#x27;,&#x27;semantic_hash_after&#x27;,&#x27;created_at_ms&#x27;,&#x27;provider_replacement_is_not_entity_replacement&#x27;)}
+        if mig.get(&#x27;domain_id&#x27;)!=did or mig.get(&#x27;entity_root&#x27;)!=root or mig.get(&#x27;semantic_hash_before&#x27;)!=mig.get(&#x27;semantic_hash_after&#x27;) or not verify_sig(identity,mb,mig.get(&#x27;signature&#x27;) or {}): failures.append(&#x27;migration:&#x27;+str(mig.get(&#x27;migration_id&#x27;)))
+    if snap.get(&#x27;dns_authority_required&#x27;) is not False or snap.get(&#x27;btg_authority_required&#x27;) is not False or snap.get(&#x27;cloud_host_required&#x27;) is not False: failures.append(&#x27;mandatory_provider_dependency&#x27;)
+    result={&#x27;valid&#x27;:not failures,&#x27;failures&#x27;:sorted(failures),&#x27;entity_root&#x27;:root,&#x27;domain_id&#x27;:did,&#x27;package_sha256&#x27;:expected,
+            &#x27;dns_required&#x27;:False,&#x27;btg_required&#x27;:False,&#x27;proprietary_database_required&#x27;:False,&#x27;independent_interpretation&#x27;:True}
+    result[&#x27;result_sha256&#x27;]=sha(result); return result
+
+def main(argv=None):
+    args=list(argv or sys.argv[1:])
+    if len(args)!=1: print(json.dumps({&#x27;valid&#x27;:False,&#x27;failures&#x27;:[&#x27;usage&#x27;]})); return 2
+    pkg=json.loads(Path(args[0]).read_text(encoding=&#x27;utf-8&#x27;)); result=verify_package(pkg); print(json.dumps(result,sort_keys=True))
+    return 0 if result[&#x27;valid&#x27;] else 2
+
+if __name__==&#x27;__main__&#x27;: raise SystemExit(main())</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

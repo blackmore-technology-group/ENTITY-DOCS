@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY-GITHUB-APP / tests/test_canonical.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY-GITHUB-APP / tests/test_canonical.py</h1><div class="meta"><b>Repository:</b> ENTITY-GITHUB-APP<br><b>Commit:</b> <code>7ef6b33b5d586cabd1f912491152fcff10e0ad47</code></div><p><b>Path:</b> <code>tests/test_canonical.py</code></p><p><b>SHA-256:</b> <code>029aa9d142eea536777f8516a9c2029d25b6a35fe0ed5b90d83e239b7e8276df</code></p><p><b>Bytes:</b> 1,182</p><p><a href="https://github.com/blackmore-technology-group/ENTITY-GITHUB-APP/blob/7ef6b33b5d586cabd1f912491152fcff10e0ad47/tests/test_canonical.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity-github-app/canonicaltests-364481992c99.html">CanonicalTests</a></li><li><a href="../../../reference/symbols/entity-github-app/canonicaltests-test-pull-request-candidate-preserves-claim-boundary-f6f4bb68a917.html">CanonicalTests.test_pull_request_candidate_preserves_claim_boundary</a></li></ul><h2>Preview</h2><pre><code>import json
+import unittest
+
+from entity_github_app.canonical import evidence_candidate
+
+
+class CanonicalTests(unittest.TestCase):
+    def test_pull_request_candidate_preserves_claim_boundary(self):
+        payload = {
+            &quot;action&quot;: &quot;opened&quot;,
+            &quot;repository&quot;: {&quot;id&quot;: 7, &quot;full_name&quot;: &quot;btg/example&quot;, &quot;owner&quot;: {&quot;login&quot;: &quot;btg&quot;}, &quot;default_branch&quot;: &quot;main&quot;},
+            &quot;pull_request&quot;: {&quot;number&quot;: 4, &quot;state&quot;: &quot;open&quot;, &quot;head&quot;: {&quot;sha&quot;: &quot;abc&quot;}, &quot;base&quot;: {&quot;sha&quot;: &quot;def&quot;}, &quot;html_url&quot;: &quot;https://example/pr/4&quot;},
+            &quot;installation&quot;: {&quot;id&quot;: 99},
+            &quot;sender&quot;: {&quot;login&quot;: &quot;developer&quot;},
+        }
+        raw = json.dumps(payload, sort_keys=True).encode()
+        result = evidence_candidate(&quot;pull_request&quot;, &quot;delivery-1&quot;, payload, raw)
+        self.assertEqual(result[&quot;schema&quot;], &quot;entity.github.evidence-candidate.v1&quot;)
+        self.assertEqual(result[&quot;subject&quot;][&quot;head_sha&quot;], &quot;abc&quot;)
+        self.assertTrue(result[&quot;claim_boundary&quot;][&quot;does_not_modify_entity_semantics&quot;])
+        self.assertTrue(result[&quot;claim_boundary&quot;][&quot;does_not_assert_independent_validation&quot;])
+        self.assertEqual(len(result[&quot;candidate_sha256&quot;]), 64)
+
+
+if __name__ == &quot;__main__&quot;:
+    unittest.main()</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

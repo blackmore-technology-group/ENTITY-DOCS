@@ -1,0 +1,84 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/37_Verifiable_Reality/reality_conformance.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/37_Verifiable_Reality/reality_conformance.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/37_Verifiable_Reality/reality_conformance.py</code></p><p><b>SHA-256:</b> <code>a41871fd484689299845a271009580a86a073ad64d801188eb4105cbfd715311</code></p><p><b>Bytes:</b> 4,807</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/37_Verifiable_Reality/reality_conformance.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/sha-d1271834faf3.html">_sha</a></li><li><a href="../../../reference/symbols/entity/refs-b7a3e6f531b7.html">_refs</a></li><li><a href="../../../reference/symbols/entity/validate-reality-record-2143c9aeadb1.html">validate_reality_record</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from typing import Any
+import re
+
+from reality_profile import (
+    CORE_PRIMITIVES, CLAIM_STATES, EVIDENCE_TYPES, ANCHOR_TYPES,
+    CAUSAL_NODE_TYPES, CAUSAL_EDGE_TYPES,
+)
+
+HEX64 = re.compile(r&quot;^[0-9a-f]{64}$&quot;)
+
+def _sha(value: Any) -&gt; bool:
+    return isinstance(value, str) and bool(HEX64.fullmatch(value))
+
+def _refs(value: Any, *, nonempty: bool = False) -&gt; bool:
+    return (isinstance(value, list) and (not nonempty or bool(value))
+            and all(isinstance(x, str) and x for x in value)
+            and value == sorted(set(value)))
+
+def validate_reality_record(record: dict) -&gt; bool:
+    if not isinstance(record, dict):
+        return False
+    schema = record.get(&quot;schema&quot;)
+    if schema == &quot;entity-v3-evidence-object-v1&quot;:
+        return (record.get(&quot;evidence_type&quot;) in EVIDENCE_TYPES
+                and _sha(record.get(&quot;content_sha256&quot;))
+                and record.get(&quot;signature_proves_attribution_not_objective_truth&quot;) is True
+                and record.get(&quot;immutable_evidence_record&quot;) is True)
+    if schema == &quot;entity-v3-evidence-bound-claim-v1&quot;:
+        return (record.get(&quot;state&quot;) in CLAIM_STATES
+                and _sha(record.get(&quot;value_sha256&quot;))
+                and _refs(record.get(&quot;evidence_refs&quot;, []))
+                and record.get(&quot;claim_is_not_objective_truth&quot;) is True
+                and record.get(&quot;state_is_typed_not_absolute&quot;) is True)
+    if schema == &quot;entity-v3-claim-status-transition-v1&quot;:
+        return (record.get(&quot;from_state&quot;) in CLAIM_STATES
+                and record.get(&quot;to_state&quot;) in CLAIM_STATES
+                and record.get(&quot;from_state&quot;) != record.get(&quot;to_state&quot;)
+                and _refs(record.get(&quot;evidence_refs&quot;, []))
+                and record.get(&quot;history_rewrite_prohibited&quot;) is True
+                and record.get(&quot;transition_does_not_establish_objective_truth&quot;) is True)
+    if schema == &quot;entity-v3-attestation-authority-grant-v1&quot;:
+        return (_refs(record.get(&quot;scopes&quot;), nonempty=True)
+                and _sha(record.get(&quot;authority_evidence_sha256&quot;))
+                and record.get(&quot;attestation_authority_is_scope_limited&quot;) is True
+                and record.get(&quot;attestation_does_not_create_legal_truth&quot;) is True)
+    if schema == &quot;entity-v3-attestation-v1&quot;:
+        return (bool(record.get(&quot;grant_id&quot;)) and bool(record.get(&quot;scope&quot;))
+                and _refs(record.get(&quot;evidence_refs&quot;), nonempty=True)
+                and record.get(&quot;attestation_is_evidence_not_objective_truth&quot;) is True)
+    if schema == &quot;entity-v3-external-reality-anchor-v1&quot;:
+        return (record.get(&quot;anchor_type&quot;) in ANCHOR_TYPES
+                and _sha(record.get(&quot;endpoint_descriptor_sha256&quot;))
+                and record.get(&quot;credentials_included&quot;) is False
+                and record.get(&quot;external_system_is_not_automatic_entity_authority&quot;) is True)
+    if schema == &quot;entity-v3-external-reality-snapshot-v1&quot;:
+        return (_sha(record.get(&quot;record_sha256&quot;))
+                and _refs(record.get(&quot;verifier_evidence_refs&quot;, []))
+                and record.get(&quot;external_record_is_evidence_not_protocol_truth&quot;) is True
+                and record.get(&quot;record_may_be_contested_or_superseded&quot;) is True)
+    if schema == &quot;entity-v3-causal-economic-node-v1&quot;:
+        observation = record.get(&quot;economic_observation&quot;) or {}
+        return (record.get(&quot;node_type&quot;) in CAUSAL_NODE_TYPES
+                and _refs(record.get(&quot;evidence_refs&quot;, []))
+                and _refs(record.get(&quot;event_refs&quot;, []))
+                and (not observation or (
+                    observation.get(&quot;market_observation_is_not_accounting_fair_value&quot;) is True
+                    and observation.get(&quot;protocol_does_not_determine_legal_entitlement&quot;) is True)))
+    if schema == &quot;entity-v3-causal-economic-edge-v1&quot;:
+        return (record.get(&quot;edge_type&quot;) in CAUSAL_EDGE_TYPES
+                and record.get(&quot;from_node_id&quot;) != record.get(&quot;to_node_id&quot;)
+                and _refs(record.get(&quot;evidence_refs&quot;), nonempty=True)
+                and _refs(record.get(&quot;authority_refs&quot;, []))
+                and _refs(record.get(&quot;participation_rule_refs&quot;, []))
+                and record.get(&quot;causality_is_evidence_bound_not_assumed&quot;) is True
+                and record.get(&quot;economic_attribution_is_not_accounting_fair_value&quot;) is True)
+    if schema == &quot;entity-v3-verifiable-reality-status-v1&quot;:
+        return (record.get(&quot;core_primitives&quot;) == CORE_PRIMITIVES
+                and record.get(&quot;core_semantics_changed&quot;) is False
+                and record.get(&quot;market_engine_preserved&quot;) is True
+                and record.get(&quot;reality_claims_are_evidence_bound&quot;) is True
+                and record.get(&quot;cryptographic_verification_is_not_objective_truth&quot;) is True
+                and record.get(&quot;protocol_verification_is_not_objective_truth&quot;) is True)
+    return False</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

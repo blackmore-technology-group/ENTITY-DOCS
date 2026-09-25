@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ExchangeProtocol._record_signed_payment_attestation Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ExchangeProtocol._record_signed_payment_attestation</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/exchange_protocol.py#L583">ENTITY/src/31_Profiles/exchange_protocol.py#L583</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>ExchangeProtocol._record_signed_payment_attestation(self, body: dict, signature: dict)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def _record_signed_payment_attestation(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;attestation_id&quot;,&quot;trade_id&quot;,&quot;verifier_entity_id&quot;,&quot;settlement_ref&quot;,&quot;evidence_sha256&quot;,&quot;nonce&quot;,&quot;created_at_ms&quot;,&quot;verification_is_attestation_not_absolute_truth&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-payment-attestation-v1&quot; or body.get(&quot;verification_is_attestation_not_absolute_truth&quot;) is not True:
+            raise ValueError(&quot;invalid payment attestation shape&quot;)
+        evidence=str(body[&quot;evidence_sha256&quot;]).lower()
+        if len(evidence)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in evidence): raise ValueError(&quot;SHA-256 hex required&quot;)
+        verifier=str(body[&quot;verifier_entity_id&quot;]); created=int(body[&quot;created_at_ms&quot;])
+        if not str(body[&quot;attestation_id&quot;]) or not str(body[&quot;settlement_ref&quot;]) or not str(body[&quot;nonce&quot;]) or created&lt;0:
+            raise ValueError(&quot;invalid payment attestation identity/time&quot;)
+        manifest=self.identity.load_manifest(verifier)
+        if not self.identity.verify_signature(manifest,body,signature): raise PermissionError(&quot;payment attestation signature invalid&quot;)
+        with self._db() as db:
+            trade=db.execute(&quot;SELECT * FROM trades WHERE trade_id=?&quot;,(body[&quot;trade_id&quot;],)).fetchone()
+            venue=db.execute(&quot;SELECT * FROM venues WHERE venue_id=?&quot;,(trade[&quot;venue_id&quot;],)).fetchone() if trade else None
+        if not trade or not venue: raise KeyError(&quot;trade/venue not found&quot;)
+        authority=self._payment_attestation_authority(trade,venue,verifier); received=now_ms()
+        try:
+            with self._db() as db:
+                db.execute(&quot;INSERT INTO payment_attestations VALUES(?,?,?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;attestation_id&quot;],body[&quot;trade_id&quot;],verifier,str(body[&quot;settlement_ref&quot;]),evidence,str(body[&quot;nonce&quot;]),created,received,authority,json.dumps(signature,sort_keys=True)))
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&quot;duplicate/replayed payment attestation&quot;) from exc
+        return dict(body,evidence_sha256=evidence,received_at_ms=received,verifier_authority_basis=authority,signature=signature)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

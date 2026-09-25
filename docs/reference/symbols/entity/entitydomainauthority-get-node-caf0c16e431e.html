@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityDomainAuthority.get_node Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityDomainAuthority.get_node</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/core/canonical_domain.py#L231">ENTITY/src/22_Sovereign_Domain/core/canonical_domain.py#L231</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EntityDomainAuthority.get_node(self, node_id: str)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def get_node(self,node_id:str)-&gt;dict:
+        with self._connect() as db:
+            row=db.execute(&quot;SELECT * FROM nodes WHERE node_id=?&quot;,(node_id,)).fetchone()
+            rev=db.execute(&quot;SELECT * FROM revocations WHERE node_id=? ORDER BY effective_at_ms DESC LIMIT 1&quot;,(node_id,)).fetchone()
+        if not row: raise KeyError(&quot;node not found&quot;)
+        out=dict(row)
+        result={&quot;schema&quot;:&quot;entity-node-authorization-v1&quot;,&quot;node_id&quot;:out[&quot;node_id&quot;],&quot;domain_id&quot;:out[&quot;domain_id&quot;],
+                &quot;entity_root&quot;:out[&quot;entity_id&quot;],&quot;public_key_b64&quot;:out[&quot;public_key_b64&quot;],
+                &quot;permitted_services&quot;:json.loads(out[&quot;permitted_services_json&quot;]),
+                &quot;network_scopes&quot;:json.loads(out[&quot;network_scopes_json&quot;]),
+                &quot;publication_scopes&quot;:json.loads(out[&quot;publication_scopes_json&quot;]),
+                &quot;data_scopes&quot;:json.loads(out[&quot;data_scopes_json&quot;]),&quot;not_before_ms&quot;:out[&quot;not_before_ms&quot;],
+                &quot;expires_at_ms&quot;:out[&quot;expires_at_ms&quot;],&quot;delegation&quot;:json.loads(out[&quot;delegation_json&quot;]),
+                &quot;status&quot;:out[&quot;status&quot;],&quot;auth_version&quot;:int(out[&quot;auth_version&quot;]),
+                &quot;created_at_ms&quot;:out[&quot;created_at_ms&quot;],&quot;signature&quot;:json.loads(out[&quot;signature_json&quot;])}
+        if rev:
+            rb={&quot;schema&quot;:&quot;entity-node-revocation-v1&quot;,&quot;revocation_id&quot;:rev[&quot;revocation_id&quot;],
+                &quot;domain_id&quot;:rev[&quot;domain_id&quot;],&quot;node_id&quot;:rev[&quot;node_id&quot;],&quot;entity_root&quot;:rev[&quot;entity_id&quot;],
+                &quot;reason&quot;:rev[&quot;reason&quot;],&quot;effective_at_ms&quot;:rev[&quot;effective_at_ms&quot;],&quot;created_at_ms&quot;:rev[&quot;created_at_ms&quot;]}
+            result[&quot;revocation&quot;]={**rb,&quot;signature&quot;:json.loads(rev[&quot;signature_json&quot;])}
+            result[&quot;effective_status&quot;]=&quot;REVOKED&quot;
+        else:
+            result[&quot;revocation&quot;]=None; result[&quot;effective_status&quot;]=out[&quot;status&quot;]
+        return result</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

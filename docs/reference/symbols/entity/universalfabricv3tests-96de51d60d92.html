@@ -1,0 +1,115 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UniversalFabricV3Tests Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>UniversalFabricV3Tests</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_universal_fabric.py#L16">ENTITY/tests/test_v3_universal_fabric.py#L16</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class UniversalFabricV3Tests(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory()
+        self.identity=identity_mod.EntityIdentityVault(self.tmp.name)
+        self.owner=self.identity.create(&quot;Data Owner&quot;,&quot;business&quot;)[&quot;entity_id&quot;]
+        self.buyer=self.identity.create(&quot;Licensed Principal&quot;,&quot;business&quot;)[&quot;entity_id&quot;]
+        self.agent=self.identity.create(&quot;Delegated AI Agent&quot;,&quot;system&quot;)[&quot;entity_id&quot;]
+        self.rogue=self.identity.create(&quot;Untrusted Actor&quot;,&quot;system&quot;)[&quot;entity_id&quot;]
+        self.fabric=fabric_mod.UniversalTransactionFabric(self.tmp.name,self.identity)
+
+    def tearDown(self): self.tmp.cleanup()
+
+    def test_five_primitive_status(self):
+        status=self.fabric.status()
+        self.assertEqual(status[&quot;primitives&quot;],[&quot;ENTITY&quot;,&quot;AUTHORITY&quot;,&quot;RIGHT&quot;,&quot;EVENT&quot;,&quot;VALUE&quot;])
+        self.assertTrue(status[&quot;infrastructure_possession_is_not_authority&quot;])
+        self.assertTrue(status[&quot;provider_independent_exports&quot;])
+    def test_ai_authority_right_and_metered_settlement_obligation(self):
+        digest=hashlib.sha256(b&quot;governed training corpus&quot;).hexdigest()
+        commodity=self.fabric.register_digital_commodity(self.owner,&quot;Training Corpus&quot;,digest,commodity_class=&quot;TRAINING_DATA&quot;,measurement_unit=&quot;INFERENCE&quot;)
+        agent_obj=self.fabric.register_ai_agent(self.owner,self.agent,&quot;Buyer Agent&quot;,model_ref=&quot;model:test&quot;,capabilities=[&quot;TRAIN&quot;,&quot;INFER&quot;])
+        self.assertEqual(agent_obj[&quot;object_type&quot;],&quot;AI_AGENT&quot;)
+        self.fabric.delegate_authority(self.buyer,self.buyer,self.agent,[&quot;ACCESS_DATA&quot;,&quot;EXECUTE&quot;],scope={&quot;purpose&quot;:&quot;research&quot;})
+        self.fabric.grant_right(commodity[&quot;object_id&quot;],self.owner,self.buyer,[&quot;TRAIN&quot;,&quot;INFER&quot;],constraints={&quot;purposes&quot;:[&quot;research&quot;],&quot;jurisdictions&quot;:[&quot;CA&quot;]},economic_terms={&quot;pricing&quot;:{&quot;mode&quot;:&quot;PER_UNIT&quot;,&quot;unit_price_units&quot;:5,&quot;currency&quot;:&quot;CAD&quot;}})
+        result=self.fabric.authorize_use(self.agent,self.buyer,commodity[&quot;object_id&quot;],&quot;TRAIN&quot;,quantity=3,purpose=&quot;research&quot;,jurisdiction=&quot;CA&quot;,nonce=&quot;use-001&quot;)
+        self.assertTrue(result[&quot;authorized&quot;])
+        self.assertEqual(result[&quot;settlement_obligation&quot;][&quot;amount_units&quot;],15)
+        self.assertEqual(result[&quot;settlement_obligation&quot;][&quot;currency&quot;],&quot;CAD&quot;)
+        self.assertFalse(result[&quot;settlement_obligation&quot;][&quot;external_money_movement_verified&quot;])
+        self.assertFalse(result[&quot;ownership_transferred&quot;])
+        with self.assertRaises(ValueError):
+            self.fabric.authorize_use(self.agent,self.buyer,commodity[&quot;object_id&quot;],&quot;TRAIN&quot;,quantity=1,purpose=&quot;research&quot;,jurisdiction=&quot;CA&quot;,nonce=&quot;use-001&quot;)
+        with self.assertRaises(PermissionError):
+            self.fabric.authorize_use(self.rogue,self.buyer,commodity[&quot;object_id&quot;],&quot;TRAIN&quot;,quantity=1,purpose=&quot;research&quot;,jurisdiction=&quot;CA&quot;,nonce=&quot;use-rogue&quot;)
+
+    def test_right_constraints_fail_closed(self):
+        obj=self.fabric.register_digital_commodity(self.owner,&quot;Restricted Data&quot;,hashlib.sha256(b&quot;restricted&quot;).hexdigest())
+        self.fabric.grant_right(obj[&quot;object_id&quot;],self.owner,self.buyer,[&quot;INFER&quot;],constraints={&quot;purposes&quot;:[&quot;safety&quot;],&quot;jurisdictions&quot;:[&quot;CA&quot;]})
+        with self.assertRaises(PermissionError):
+            self.fabric.authorize_use(self.buyer,self.buyer,obj[&quot;object_id&quot;],&quot;INFER&quot;,purpose=&quot;advertising&quot;,jurisdiction=&quot;CA&quot;,nonce=&quot;bad-purpose&quot;)
+    def test_causal_provenance_and_derived_value_distribution(self):
+        a=self.fabric.register_digital_commodity(self.owner,&quot;Source A&quot;,hashlib.sha256(b&quot;a&quot;).hexdigest())
+        b=self.fabric.register_digital_commodity(self.buyer,&quot;Source B&quot;,hashlib.sha256(b&quot;b&quot;).hexdigest())
+        child=self.fabric.register_object(self.owner,&quot;MODEL&quot;,&quot;Derived Model&quot;,descriptor={&quot;model_family&quot;:&quot;test&quot;})
+        self.fabric.add_provenance(self.owner,a[&quot;object_id&quot;],child[&quot;object_id&quot;],&quot;TRAINED_FROM&quot;,contribution_bps=6000,evidence={&quot;method&quot;:&quot;declared&quot;})
+        self.fabric.add_provenance(self.owner,b[&quot;object_id&quot;],child[&quot;object_id&quot;],&quot;TRAINED_FROM&quot;,contribution_bps=4000,evidence={&quot;method&quot;:&quot;declared&quot;})
+        distribution=self.fabric.contribution_distribution(child[&quot;object_id&quot;],101)
+        self.assertEqual(distribution[&quot;allocated_total&quot;],101)
+        self.assertEqual(distribution[&quot;root_contribution_bps&quot;][a[&quot;object_id&quot;]],6000)
+        self.assertEqual(distribution[&quot;root_contribution_bps&quot;][b[&quot;object_id&quot;]],4000)
+        self.assertEqual(distribution[&quot;distribution&quot;][a[&quot;object_id&quot;]],61)
+        self.assertEqual(distribution[&quot;distribution&quot;][b[&quot;object_id&quot;]],40)
+        with self.assertRaises(ValueError):
+            self.fabric.add_provenance(self.owner,child[&quot;object_id&quot;],a[&quot;object_id&quot;],&quot;DERIVED_FROM&quot;,contribution_bps=1000)
+
+    def test_trust_policy_threshold_is_evidence_not_truth(self):
+        obj=self.fabric.register_object(self.owner,&quot;PHYSICAL_ASSET&quot;,&quot;Inspected Machine&quot;)
+        policy=self.fabric.create_trust_policy(self.owner,&quot;INSPECTION&quot;,minimum_attestations=2,required_attestors=[self.buyer],allowed_attestors=[self.buyer,self.rogue])
+        self.fabric.attest(self.buyer,obj[&quot;object_id&quot;],&quot;INSPECTION&quot;,hashlib.sha256(b&quot;buyer inspection&quot;).hexdigest(),claim={&quot;result&quot;:&quot;PASS&quot;})
+        first=self.fabric.evaluate_trust(policy[&quot;policy_id&quot;],obj[&quot;object_id&quot;])
+        self.assertFalse(first[&quot;policy_satisfied&quot;])
+        self.assertFalse(first[&quot;truth_inferred&quot;])
+        self.fabric.attest(self.rogue,obj[&quot;object_id&quot;],&quot;INSPECTION&quot;,hashlib.sha256(b&quot;second inspection&quot;).hexdigest(),claim={&quot;result&quot;:&quot;PASS&quot;})
+        second=self.fabric.evaluate_trust(policy[&quot;policy_id&quot;],obj[&quot;object_id&quot;])
+        self.assertTrue(second[&quot;policy_satisfied&quot;])
+        self.assertEqual(second[&quot;valid_attestation_count&quot;],2)
+        self.assertFalse(second[&quot;truth_inferred&quot;])
+
+    def test_usage_obligation_opens_existing_double_entry_settlement(self):
+        obj=self.fabric.register_digital_commodity(self.owner,&quot;Metered Dataset&quot;,hashlib.sha256(b&quot;metered&quot;).hexdigest())
+        self.fabric.grant_right(obj[&quot;object_id&quot;],self.owner,self.buyer,[&quot;INFER&quot;],economic_terms={&quot;pricing&quot;:{&quot;mode&quot;:&quot;PER_UNIT&quot;,&quot;unit_price_units&quot;:7,&quot;currency&quot;:&quot;CAD&quot;}})
+        use=self.fabric.authorize_use(self.buyer,self.buyer,obj[&quot;object_id&quot;],&quot;INFER&quot;,quantity=4,nonce=&quot;settle-use-001&quot;)
+        engine=economics_mod.SettlementEngine(self.tmp.name,self.identity)
+        opened=self.fabric.open_settlement(engine,use[&quot;settlement_obligation&quot;],transaction_nonce=&quot;v3-settlement-001&quot;)
+        self.assertEqual(opened[&quot;amount_units&quot;],28)
+        self.assertEqual(opened[&quot;state&quot;],&quot;CREATED&quot;)
+        authorized=engine.authorize(self.buyer,opened[&quot;settlement_id&quot;])
+        self.assertEqual(authorized[&quot;state&quot;],&quot;AUTHORIZED&quot;)
+        confirmed=engine.confirm(self.buyer,opened[&quot;settlement_id&quot;])
+        self.assertTrue(confirmed[&quot;double_entry_balanced&quot;])
+        self.assertFalse(confirmed[&quot;external_money_movement_verified&quot;])
+    def test_resolution_attestation_and_portable_bundle(self):
+        obj=self.fabric.register_object(self.owner,&quot;PHYSICAL_ASSET&quot;,&quot;Machine 001&quot;,descriptor={&quot;serial&quot;:&quot;SYNTH-001&quot;})
+        self.fabric.publish_resolution(self.owner,obj[&quot;object_id&quot;],[{&quot;service&quot;:&quot;verify&quot;,&quot;uri&quot;:&quot;ent3://verify/example&quot;,&quot;protocol&quot;:&quot;ENTITY&quot;}],version=1)
+        resolved=self.fabric.resolve(obj[&quot;object_id&quot;])
+        self.assertTrue(resolved[&quot;verified&quot;])
+        self.assertTrue(resolved[&quot;resolver_is_not_authority&quot;])
+        self.fabric.attest(self.buyer,obj[&quot;object_id&quot;],&quot;INSPECTION&quot;,hashlib.sha256(b&quot;inspection evidence&quot;).hexdigest(),claim={&quot;result&quot;:&quot;PASS&quot;})
+        self.fabric.record_value(self.owner,obj[&quot;object_id&quot;],250000,&quot;CAD&quot;,basis_ref=&quot;owner_assertion&quot;)
+        bundle=self.fabric.export_bundle(obj[&quot;object_id&quot;])
+        proof=self.fabric.verify_bundle(bundle)
+        self.assertTrue(proof[&quot;valid&quot;],proof[&quot;failures&quot;])
+        self.assertTrue(proof[&quot;primitive_set_complete&quot;])
+        self.assertTrue(proof[&quot;provider_independent&quot;])
+        self.assertGreaterEqual(proof[&quot;verified_manifest_count&quot;],2)
+        with tempfile.TemporaryDirectory() as foreign_tmp:
+            foreign_identity=identity_mod.EntityIdentityVault(foreign_tmp)
+            foreign_fabric=fabric_mod.UniversalTransactionFabric(foreign_tmp,foreign_identity)
+            foreign_proof=foreign_fabric.verify_bundle(bundle)
+            self.assertTrue(foreign_proof[&quot;valid&quot;],foreign_proof[&quot;failures&quot;])
+            self.assertTrue(foreign_proof[&quot;portable_verification_uses_embedded_manifests&quot;])
+        tampered=dict(bundle); tampered[&quot;root_object_id&quot;]=&quot;obj3-tampered&quot;
+        self.assertFalse(self.fabric.verify_bundle(tampered)[&quot;valid&quot;])
+
+    def test_standalone_bundle_verifier_has_no_source_vault_dependency(self):
+        obj=self.fabric.register_object(self.owner,&quot;DOCUMENT&quot;,&quot;Portable Evidence&quot;)
+        bundle=self.fabric.export_bundle(obj[&quot;object_id&quot;])
+        bundle_path=pathlib.Path(self.tmp.name)/&quot;bundle.json&quot;
+        bundle_path.write_text(json.dumps(bundle,sort_keys=True),encoding=&quot;utf-8&quot;)
+        tool=REPO/&quot;tools&quot;/&quot;verify_v3_bundle.py&quot;
+        run=subprocess.run([sys.executable,str(tool),str(bundle_path)],capture_output=True,text=True,check=False)
+        self.assertEqual(run.returncode,0,run.stderr or run.stdout)
+        result=json.loads(run.stdout)
+        self.assertTrue(result[&quot;valid&quot;],result[&quot;failures&quot;])
+        self.assertTrue(result[&quot;portable_verification_uses_embedded_manifests&quot;])</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

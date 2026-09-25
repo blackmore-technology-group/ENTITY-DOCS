@@ -1,0 +1,45 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ContinuousProvenanceEngine Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ContinuousProvenanceEngine</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/38_Global_Passports/continuous_ingestion.py#L24">ENTITY/src/38_Global_Passports/continuous_ingestion.py#L24</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Registers artifacts at creation time and stores recoverable content-addressed custody without making custody authoritative.</p><h2>Source excerpt</h2><pre><code>class ContinuousProvenanceEngine:
+    &quot;&quot;&quot;Registers artifacts at creation time and stores recoverable content-addressed custody without making custody authoritative.&quot;&quot;&quot;
+    def __init__(self,state_root,identity,fabric,evidence_registry,rights_passports,global_passports):
+        self.root=Path(state_root); self.vault=self.root/&quot;content_vault&quot;/&quot;sha256&quot;; self.vault.mkdir(parents=True,exist_ok=True)
+        self.identity=identity; self.fabric=fabric; self.evidence=evidence_registry; self.rights=rights_passports; self.global_passports=global_passports
+    def ingest_file(self,path,controller_entity_id:str,profile_refs:list[str],*,logical_path:str|None=None,
+                    previous_object_id:str|None=None,rights_actions:list[str]|None=None,version:str=&quot;1.0&quot;)-&gt;dict:
+        src=Path(path).resolve()
+        if not src.is_file(): raise FileNotFoundError(src)
+        content_sha=sha256_file(src); vault_path=self.vault/content_sha[:2]/content_sha
+        vault_path.parent.mkdir(parents=True,exist_ok=True)
+        if not vault_path.exists(): shutil.copy2(src,vault_path)
+        if sha256_file(vault_path)!=content_sha: raise RuntimeError(&quot;content vault verification failed&quot;)
+        descriptor={&quot;logical_path&quot;:logical_path or src.name,&quot;source_filename&quot;:src.name,&quot;source_bytes&quot;:src.stat().st_size,
+                    &quot;content_addressed&quot;:True,&quot;custody_provider&quot;:&quot;BTG_LOCAL_CONTENT_VAULT&quot;,&quot;provider_is_authority&quot;:False}
+        obj=self.fabric.register_object(controller_entity_id,object_type_for(src),src.name,descriptor=descriptor,content_sha256=content_sha)
+        ev=self.evidence.issue_evidence(controller_entity_id,&quot;DOCUMENT&quot;,obj[&quot;object_id&quot;],content_sha,provenance_refs=[previous_object_id] if previous_object_id else [])
+        actions=rights_actions or [&quot;INSPECT&quot;,&quot;READ&quot;,&quot;COPY&quot;,&quot;DERIVE&quot;]
+        right=self.fabric.grant_right(obj[&quot;object_id&quot;],controller_entity_id,controller_entity_id,actions,constraints={&quot;purpose&quot;:&quot;BTG_ENGINEERING&quot;},economic_terms={&quot;monetary_value_asserted&quot;:False})
+        rp=self.rights.issue(controller_entity_id,obj[&quot;object_id&quot;],[{&quot;effect&quot;:&quot;ALLOW&quot;,&quot;actions&quot;:actions}],version=version,
+            custody=[{&quot;provider&quot;:&quot;BTG_LOCAL_CONTENT_VAULT&quot;,&quot;locator&quot;:f&quot;sha256:{content_sha}&quot;,&quot;content_sha256&quot;:content_sha,&quot;provider_is_authority&quot;:False,&quot;credentials_included&quot;:False}],
+            provenance_refs=[ev[&quot;evidence_id&quot;]],economic_terms={&quot;underlying_information_remains_nonrival&quot;:True})
+        prov=[]
+        if previous_object_id:
+            prov.append(self.fabric.add_provenance(controller_entity_id,previous_object_id,obj[&quot;object_id&quot;],&quot;VERSION_DERIVED_FROM&quot;,contribution_bps=0,evidence={&quot;evidence_id&quot;:ev[&quot;evidence_id&quot;]}))
+        gp=self.global_passports.issue(controller_entity_id,obj[&quot;object_id&quot;],rp[&quot;passport_id&quot;],profile_refs,version=version,
+            evidence_refs=[ev[&quot;evidence_id&quot;]],provenance_refs=[p[&quot;edge_id&quot;] for p in prov],
+            standards_mappings=[],economic_state={&quot;state&quot;:&quot;POTENTIAL&quot;,&quot;amount_units&quot;:0,&quot;currency&quot;:&quot;UNSPECIFIED&quot;},
+            industry_context={&quot;continuous_ingestion&quot;:True,&quot;logical_path&quot;:descriptor[&quot;logical_path&quot;]})
+        val=self.fabric.record_value(controller_entity_id,obj[&quot;object_id&quot;],0,&quot;UNSPECIFIED&quot;,state=&quot;POTENTIAL&quot;,
+            basis_ref=&quot;v3.4-zero-value-baseline-no-market-or-accounting-value-asserted&quot;)
+        return {&quot;object&quot;:obj,&quot;evidence&quot;:ev,&quot;right&quot;:right,&quot;rights_passport&quot;:rp,&quot;global_passport&quot;:gp,
+                &quot;provenance&quot;:prov,&quot;value&quot;:val,&quot;vault_sha256&quot;:content_sha,&quot;vault_path&quot;:str(vault_path),
+                &quot;continuous_provenance&quot;:True,&quot;custody_is_not_authority&quot;:True}
+
+    def ingest_directory(self,path,controller_entity_id:str,profile_refs:list[str],*,prefix:str=&quot;&quot;,rights_actions:list[str]|None=None)-&gt;dict:
+        root=Path(path).resolve(); records=[]
+        for src in sorted(root.rglob(&quot;*&quot;)):
+            if not src.is_file() or any(part in EXCLUDED_DIRS for part in src.parts): continue
+            rel=src.relative_to(root).as_posix(); logical=(prefix.rstrip(&quot;/&quot;)+&quot;/&quot;+rel).lstrip(&quot;/&quot;) if prefix else rel
+            records.append(self.ingest_file(src,controller_entity_id,profile_refs,logical_path=logical,rights_actions=rights_actions))
+        inventory=hashlib.sha256(&quot;\n&quot;.join(f&quot;{r[&#x27;object&#x27;][&#x27;content_sha256&#x27;]}  {r[&#x27;object&#x27;][&#x27;descriptor&#x27;][&#x27;logical_path&#x27;]}&quot; for r in records).encode()).hexdigest()
+        return {&quot;schema&quot;:&quot;entity-v3-continuous-ingest-result-v1&quot;,&quot;files&quot;:len(records),&quot;inventory_sha256&quot;:inventory,
+                &quot;object_ids&quot;:[r[&quot;object&quot;][&quot;object_id&quot;] for r in records],&quot;global_passport_ids&quot;:[r[&quot;global_passport&quot;][&quot;passport_id&quot;] for r in records],
+                &quot;content_addressed&quot;:True,&quot;custody_is_not_authority&quot;:True,&quot;economic_value_invented&quot;:False}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

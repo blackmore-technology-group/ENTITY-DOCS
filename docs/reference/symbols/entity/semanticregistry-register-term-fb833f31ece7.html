@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SemanticRegistry.register_term Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>SemanticRegistry.register_term</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/institutional_semantics.py#L247">ENTITY/src/35_Global_Infrastructure/institutional_semantics.py#L247</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>SemanticRegistry.register_term(self, owner: str, namespace_id: str, kind: str, term_id: str, version: str, definition: dict, *, supersedes_ref: str | None=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def register_term(self, owner: str, namespace_id: str, kind: str, term_id: str,
+                      version: str, definition: dict, *, supersedes_ref: str | None = None) -&gt; dict:
+        namespace_id, kind = namespace_id.lower(), kind.upper()
+        if kind not in REGISTRY_KINDS:
+            raise ValueError(&quot;unsupported semantic registry kind&quot;)
+        term_id, version = str(term_id).strip(), str(version).strip()
+        if not term_id or not version:
+            raise ValueError(&quot;term_id and version required&quot;)
+        with sqlite3.connect(self.path) as db:
+            ns = db.execute(&quot;SELECT owner_entity_id FROM namespaces WHERE namespace_id=?&quot;,
+                            (namespace_id,)).fetchone()
+            if not ns:
+                raise KeyError(&quot;semantic namespace missing&quot;)
+            if ns[0] != owner:
+                raise PermissionError(&quot;only namespace owner may register term&quot;)
+            old = db.execute(&quot;SELECT definition_sha256 FROM terms WHERE namespace_id=? AND kind=? AND term_id=? AND version=?&quot;,
+                             (namespace_id, kind, term_id, version)).fetchone()
+            definition_hash = digest(definition)
+            if old:
+                if old[0] != definition_hash:
+                    raise ValueError(&quot;immutable semantic term version changed&quot;)
+                return {&quot;namespace_id&quot;: namespace_id, &quot;kind&quot;: kind, &quot;term_id&quot;: term_id,
+                        &quot;version&quot;: version, &quot;definition_sha256&quot;: definition_hash, &quot;existing&quot;: True}
+        body = {&quot;schema&quot;: &quot;entity-v3-semantic-term-v1&quot;, &quot;namespace_id&quot;: namespace_id,
+                &quot;kind&quot;: kind, &quot;term_id&quot;: term_id, &quot;version&quot;: version,
+                &quot;definition_sha256&quot;: definition_hash, &quot;definition&quot;: dict(definition),
+                &quot;status&quot;: &quot;ACTIVE&quot;, &quot;supersedes_ref&quot;: supersedes_ref,
+                &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(owner, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO terms VALUES(?,?,?,?,?,?,?,?,?,?)&quot;, (
+                namespace_id, kind, term_id, version, definition_hash,
+                json.dumps(definition, sort_keys=True), &quot;ACTIVE&quot;, supersedes_ref,
+                body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig, existing=False)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

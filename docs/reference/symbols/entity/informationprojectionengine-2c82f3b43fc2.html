@@ -1,0 +1,96 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>InformationProjectionEngine Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>InformationProjectionEngine</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/information_projection/canonical_projection.py#L18">ENTITY/src/01_Core_Runtime/information_projection/canonical_projection.py#L18</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Minimum-disclosure control path for sensitive cross-subsystem information movement.</p><h2>Source excerpt</h2><pre><code>class InformationProjectionEngine:
+    &quot;&quot;&quot;Minimum-disclosure control path for sensitive cross-subsystem information movement.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path):
+        self.root=Path(state_dir)/&quot;information_projection&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;projection.sqlite&quot;; self._lock=RLock(); self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS disclosures(disclosure_id TEXT PRIMARY KEY,requesting_subsystem TEXT NOT NULL,actor TEXT,purpose TEXT NOT NULL,target TEXT NOT NULL,classification TEXT NOT NULL,outcome TEXT NOT NULL,disclosed_fields_json TEXT NOT NULL,authority_refs_json TEXT NOT NULL,request_sha256 TEXT NOT NULL,projection_sha256 TEXT,created_at_ms INTEGER NOT NULL)&quot;)
+
+    @staticmethod
+    def _sanitize_fields(fields) -&gt; list[str]:
+        out=[]
+        for field in fields or []:
+            key=str(field).strip()
+            if key and key.lower() not in SENSITIVE_KEYS: out.append(key)
+        return sorted(set(out))
+
+    @staticmethod
+    def _projection(data: dict, fields: list[str], redactions: set[str]) -&gt; dict:
+        out={}
+        for key in fields:
+            if key not in data: continue
+            if key.lower() in SENSITIVE_KEYS or key in redactions:
+                out[key]=&quot;REDACTED&quot;
+            else: out[key]=data[key]
+        return out
+
+    def decide(self,request: dict,data: dict) -&gt; dict:
+        subsystem=str(request.get(&quot;requesting_subsystem&quot;) or &quot;UNKNOWN&quot;).upper()
+        purpose=str(request.get(&quot;purpose&quot;) or &quot;&quot;).strip(); target=str(request.get(&quot;target&quot;) or &quot;&quot;).strip()
+        classification=str(request.get(&quot;classification&quot;) or &quot;PRIVATE&quot;).upper()
+        if classification not in CLASSIFICATIONS: return self._record(request,{},&quot;REVIEW_REQUIRED&quot;,[],&quot;unknown_classification&quot;)
+        if not purpose or not target: return self._record(request,{},&quot;DENY&quot;,[],&quot;purpose_and_target_required&quot;)
+        capability=dict(request.get(&quot;capability&quot;) or {}); policy=dict(request.get(&quot;policy&quot;) or {})
+        requested=self._sanitize_fields(request.get(&quot;requested_fields&quot;) or data.keys())
+        minimum=self._sanitize_fields(request.get(&quot;minimum_fields&quot;) or requested)
+        fields=sorted(set(requested).intersection(minimum))
+        external=bool(request.get(&quot;external_transmission&quot;,False))
+        content_requested=bool(request.get(&quot;content_requested&quot;,False))
+        metadata_allowed=bool(capability.get(&quot;metadata_read&quot;,False))
+        content_allowed=bool(capability.get(&quot;content_read&quot;,False))
+        external_allowed=bool(policy.get(&quot;external_disclosure_allowed&quot;,False))
+        rights_ok=policy.get(&quot;rights_authorized&quot;) is True and policy.get(&quot;consent_authorized&quot;) is not False
+        if not metadata_allowed and not content_allowed:
+            return self._record(request,{},&quot;DENY&quot;,[],&quot;no_read_capability&quot;)
+        if content_requested and not content_allowed:
+            return self._record(request,{},&quot;DENY&quot;,[],&quot;metadata_permission_does_not_grant_content&quot;)
+        if external and not external_allowed:
+            return self._record(request,{},&quot;DENY&quot;,[],&quot;external_disclosure_not_authorized&quot;)
+        if classification in {&quot;RESTRICTED&quot;,&quot;NON_TRANSFERABLE&quot;} and external:
+            return self._record(request,{},&quot;DENY&quot;,[],&quot;classification_blocks_external_disclosure&quot;)
+        if classification != &quot;PUBLIC&quot; and policy.get(&quot;rights_authorized&quot;) is None:
+            return self._record(request,{},&quot;REVIEW_REQUIRED&quot;,[],&quot;rights_state_unknown&quot;)
+        if not rights_ok and classification != &quot;PUBLIC&quot;:
+            return self._record(request,{},&quot;DENY&quot;,[],&quot;rights_or_consent_denied&quot;)
+        redactions={str(x) for x in request.get(&quot;redact_fields&quot;) or []}
+        projection=self._projection(dict(data),fields,redactions)
+        outcome=&quot;REDACT&quot; if any(v==&quot;REDACTED&quot; for v in projection.values()) else &quot;ALLOW&quot;
+        mode=str(request.get(&quot;projection_mode&quot;) or &quot;MINIMUM&quot;).upper()
+        if mode in {&quot;AGGREGATE&quot;,&quot;PSEUDONYMIZE&quot;,&quot;DERIVED_ANSWER&quot;}: outcome=mode
+        return self._record(request,projection,outcome,list(projection),&quot;authorized_minimum_projection&quot;)
+
+    def _record(self,request: dict,projection: dict,outcome: str,fields: list[str],reason: str) -&gt; dict:
+        if outcome not in OUTCOMES: raise ValueError(&quot;unsupported projection outcome&quot;)
+        disclosure_id=&quot;disc1-&quot;+uuid.uuid4().hex; now=_now()
+        authority_refs=[str(x) for x in request.get(&quot;authority_refs&quot;) or []]
+        evidence={
+            &quot;schema&quot;:&quot;entity-disclosure-evidence-v1&quot;,&quot;disclosure_id&quot;:disclosure_id,
+            &quot;requesting_subsystem&quot;:str(request.get(&quot;requesting_subsystem&quot;) or &quot;UNKNOWN&quot;).upper(),
+            &quot;actor&quot;:request.get(&quot;actor&quot;),&quot;purpose&quot;:str(request.get(&quot;purpose&quot;) or &quot;&quot;),
+            &quot;target&quot;:str(request.get(&quot;target&quot;) or &quot;&quot;),&quot;classification&quot;:str(request.get(&quot;classification&quot;) or &quot;PRIVATE&quot;).upper(),
+            &quot;outcome&quot;:outcome,&quot;reason&quot;:reason,&quot;disclosed_fields&quot;:sorted(set(fields)),
+            &quot;authority_refs&quot;:authority_refs,&quot;request_sha256&quot;:_hash(request),
+            &quot;projection_sha256&quot;:_hash(projection) if projection else None,&quot;created_at_ms&quot;:now,
+            &quot;raw_sensitive_content_logged&quot;:False,
+        }
+        with self._lock,self._connect() as db:
+            db.execute(&quot;INSERT INTO disclosures VALUES(?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(
+                disclosure_id,evidence[&quot;requesting_subsystem&quot;],evidence[&quot;actor&quot;],evidence[&quot;purpose&quot;],evidence[&quot;target&quot;],
+                evidence[&quot;classification&quot;],outcome,json.dumps(evidence[&quot;disclosed_fields&quot;]),json.dumps(authority_refs),
+                evidence[&quot;request_sha256&quot;],evidence[&quot;projection_sha256&quot;],now))
+        return {&quot;decision&quot;:evidence,&quot;projection&quot;:projection if outcome not in {&quot;DENY&quot;,&quot;REVIEW_REQUIRED&quot;} else {}}
+
+    def status(self) -&gt; dict:
+        with self._connect() as db: count=db.execute(&quot;SELECT COUNT(*) FROM disclosures&quot;).fetchone()[0]
+        return {&quot;ready&quot;:True,&quot;schema&quot;:&quot;entity-information-projection-v1&quot;,&quot;minimum_disclosure&quot;:True,
+                &quot;metadata_content_separation&quot;:True,&quot;external_disclosure_fail_closed&quot;:True,&quot;disclosure_events&quot;:int(count)}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

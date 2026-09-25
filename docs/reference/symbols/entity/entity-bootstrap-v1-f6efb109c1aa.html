@@ -1,0 +1,34 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>entity_bootstrap_v1 Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>entity_bootstrap_v1</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/api/canonical_service.py#L59">ENTITY/src/01_Core_Runtime/api/canonical_service.py#L59</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>entity_bootstrap_v1(*, request: dict)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>def entity_bootstrap_v1(*, request: dict) -&gt; dict:
+    request = dict(request or {})
+    _require_bootstrap_secret(request)
+    identity, policy, permissions = _runtime()
+    receipt_path = _bootstrap_receipt_path()
+    if receipt_path.exists() or identity.list_local():
+        raise RuntimeError(&quot;canonical sovereign root is already bootstrapped&quot;)
+    manifest = identity.create(
+        str(request.get(&quot;display_name&quot;) or &quot;Primary Entity&quot;),
+        str(request.get(&quot;entity_type&quot;) or &quot;person&quot;),
+        aliases=list(request.get(&quot;aliases&quot;) or []),
+        metadata=dict(request.get(&quot;metadata&quot;) or {}),
+    )
+    entity_id = str(manifest[&quot;entity_id&quot;])
+    default_policy = policy.create_policy(
+        entity_id, &quot;Sovereign Default Deny&quot;, rules={}, jurisdiction=request.get(&quot;jurisdiction&quot;)
+    )
+    owner_agent = str(request.get(&quot;owner_agent_id&quot;) or &quot;owner-console&quot;)
+    capability = permissions.grant(
+        entity_id, owner_agent,
+        operations=[&quot;ENTITY_ADMIN&quot;, &quot;POLICY_ADMIN&quot;, &quot;CAPABILITY_ADMIN&quot;],
+        approval_required=False, delegation_allowed=False,
+    )
+    receipt = {
+        &quot;schema&quot;:&quot;entity-canonical-bootstrap-v1&quot;, &quot;entity_id&quot;:entity_id,
+        &quot;manifest&quot;:manifest, &quot;default_policy&quot;:default_policy, &quot;owner_capability&quot;:capability,
+        &quot;created_at_ms&quot;:int(time.time()*1000), &quot;state_root&quot;:str(_state_root()),
+        &quot;authority_owner&quot;:&quot;01_Core_Runtime&quot;,
+    }
+    receipt[&quot;receipt_sha256&quot;] = hashlib.sha256(
+        json.dumps(receipt, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), default=str).encode()
+    ).hexdigest()
+    receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True), encoding=&quot;utf-8&quot;)
+    return receipt</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

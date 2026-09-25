@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / docs/qualification/RC2_STATUS.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / docs/qualification/RC2_STATUS.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>docs/qualification/RC2_STATUS.md</code></p><p><b>SHA-256:</b> <code>c54d221d5768d027b01c9ba39cfb0dbe1743e03ed0fc3f3fd8236ddd5028a354</code></p><p><b>Bytes:</b> 1,926</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/docs/qualification/RC2_STATUS.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY 1.0.0-rc2.2 Qualification Status
+
+Date: 2026-09-17
+
+## Current public claim
+
+The published reference implementation is 1.0.0-rc2.2. It preserves RC2 protocol semantics, supersedes RC2.1 for public checkout/use, and repairs repository-wide UTF-8 mojibake in public text/source literals.
+
+ENTITY Protocol 1.0 is **FROZEN_FOR_EXTERNAL_CONFORMANCE**.
+
+## Not yet claimed
+
+The project does **not** currently claim that an unrelated non-BTG implementation has passed full interoperability qualification.
+
+The sovereign-domain external qualification gate remains pending.
+
+## Why this distinction matters
+
+Internal reference tests can demonstrate consistency, fail-closed behavior, portability, recovery, and protocol enforcement in the reference implementation. They cannot by themselves prove that an independently authored implementation reaches the same result from the public specification.
+
+The external milestone requires independent implementation/conformance evidence.
+
+## Public reproducibility
+
+This repository publishes the requirements, protocol freeze, reference source, schemas, SDK contracts, public verification material, and tests needed to support external conformance work without requiring private BTG production state.
+
+## Clean-clone packaging validation
+
+RC2.1 was cloned into a separate directory from Git-tracked content only. Required portability, credential-authority, sovereign-domain recovery, and principal-binding schema files were present; compileall and the public contract/repository-safety suite passed 4/4.
+
+## UTF-8 repository validation
+
+RC2.2 scans every tracked public text/source file for invalid UTF-8, Unicode replacement characters, and reconstructable Windows-1252/UTF-8 mojibake. The release gate requires zero findings.
+
+Release evidence: 61 affected files / 219 mojibake sequences repaired; clean-clone public test suite 5/5 PASS; GitHub Actions Ubuntu run 35293106040 PASS.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

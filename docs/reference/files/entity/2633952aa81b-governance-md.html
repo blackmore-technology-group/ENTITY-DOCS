@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / GOVERNANCE.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / GOVERNANCE.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>GOVERNANCE.md</code></p><p><b>SHA-256:</b> <code>38540496d3a337339d29d5ac451d11cbabca0c9505f4e78c3d21a9e246a32b02</code></p><p><b>Bytes:</b> 9,413</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/GOVERNANCE.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY Open-Source Governance
+
+## Purpose
+
+This document defines how the public ENTITY project is stewarded, how protocol-impacting decisions are handled, and how Blackmore Technology Group Limited&#x27;s project stewardship is separated from protocol sovereignty.
+
+## Stewardship
+
+Blackmore Technology Group Limited (BTG) currently stewards the official ENTITY specifications, reference implementation, release process, project repositories and public engineering evidence.
+
+Stewardship does **not** make BTG the sovereign authority over conforming Entity identities, rights or data merely because BTG publishes software, specifications, resolvers, repositories or infrastructure.
+
+A conforming published protocol version is intended to remain usable without mandatory dependence on BTG-controlled hosting or services.
+
+## Governance principles
+
+ENTITY governance follows these principles:
+
+1. **Published meaning is stable.** A published protocol version is not silently reinterpreted after release.
+2. **Evidence is separated from claims.** BTG-controlled testing is not relabeled as unrelated external validation.
+3. **Infrastructure is not sovereignty.** Hosting, routing, custody, storage, discovery and software distribution do not automatically create authority.
+4. **Historical signed state is preserved.** New rules supersede or migrate old state explicitly rather than rewriting history.
+5. **Security-critical semantics require explicit review.** Identity, authority, signatures, recovery, portability, evidence, rights and compatibility changes cannot be treated as ordinary refactors when their meaning changes.
+6. **External criticism is useful evidence.** Reproducible failures, ambiguities and counterexamples are valid engineering outcomes.
+7. **Protocol conformance should be publicly reproducible.** Public specifications, schemas, vectors and verification material should be sufficient for an unrelated implementer to test the stated target.
+
+## Published protocol versions
+
+A published protocol version is immutable in meaning. Corrections are handled through one or more of:
+
+- implementation fixes that preserve semantics;
+- documented errata;
+- clarifying non-normative guidance;
+- an explicitly versioned protocol change.
+
+A conforming implementation of a published version must not require, as a hidden condition of core conformance:
+
+- BTG hosting;
+- BTG DNS;
+- a BTG resolver;
+- a mandatory BTG cloud service;
+- a paid BTG subscription or licence to use the published protocol.
+
+Optional BTG-operated services may exist, but service use must remain distinguishable from core protocol authority and conformance.
+
+## Protocol 1.0 freeze
+
+ENTITY Protocol 1.0 remains **FROZEN_FOR_EXTERNAL_CONFORMANCE** under its separately published freeze and conformance materials.
+
+That historical target is not rewritten to match later ENTITY releases. Later versions may extend the system while preserving Protocol 1.0 evidence as a distinct historical conformance target.
+
+Independent external interoperability qualification for that target remains separate from BTG-controlled testing.
+
+## Decision classes
+
+### Class A — implementation-preserving
+
+Examples:
+
+- bug fixes that preserve published semantics;
+- performance improvements;
+- diagnostics;
+- developer tooling;
+- documentation corrections that do not change normative meaning.
+
+These changes can normally proceed through standard pull-request review and release qualification.
+
+### Class B — architecture-sensitive
+
+Examples:
+
+- changes to internal boundaries that affect security or portability assumptions;
+- new provider/custody integration surfaces;
+- new evidence or rights-processing components;
+- changes that introduce a new durable architectural dependency.
+
+These changes should receive explicit architecture review and may require an ADR.
+
+### Class C — protocol/security semantic
+
+Changes affecting any of the following require explicit governance review and may require a new protocol/version boundary:
+
+- identity-root semantics;
+- authority, delegation or revocation;
+- signature or canonicalization meaning;
+- provider independence;
+- recovery, migration or portability;
+- evidence/attestation state semantics;
+- external reality anchors;
+- historical signed-state interpretation;
+- rights, entitlement, usage or settlement authorization;
+- wire compatibility or conformance behavior.
+
+See [ADR Process](docs/architecture/ADR_PROCESS.md).
+
+## Architecture Decision Records
+
+Durable architecture decisions are recorded under `docs/architecture/`.
+
+ADRs should be used when the project needs a stable public record of:
+
+- context;
+- decision;
+- alternatives;
+- security/sovereignty implications;
+- compatibility effects;
+- consequences;
+- supersession history.
+
+An ADR cannot silently override a frozen protocol target. Protocol semantics must change through the applicable version/governance mechanism.
+
+## Release governance
+
+ENTITY releases are **evidence-gated**, not calendar-promised.
+
+Release readiness should be supported by the qualification appropriate to that release, including regression, targeted tests, manifests/hashes, compatibility review, security-sensitive review and protected-branch checks.
+
+The project maintains a separate [Release Policy](docs/governance/RELEASE_POLICY.md) describing patch/minor/major expectations, evidence gates, historical-integrity rules and claim discipline.
+
+## Conformance governance</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

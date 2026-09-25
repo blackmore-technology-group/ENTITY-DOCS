@@ -1,0 +1,88 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tests/test_v3_adoption_layer.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tests/test_v3_adoption_layer.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tests/test_v3_adoption_layer.py</code></p><p><b>SHA-256:</b> <code>e63f87edfc9889900d5bfe164e9f3d8cef9d218480c0a29a75692222b0037e72</code></p><p><b>Bytes:</b> 9,573</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_adoption_layer.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-ca7b4401b7fe.html">load</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-2fd36ac088b9.html">V32AdoptionLayerTests</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-setup-22245c225fc8.html">V32AdoptionLayerTests.setUp</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-teardown-8d04dd07909d.html">V32AdoptionLayerTests.tearDown</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-test-core-primitives-and-market-are-not-replaced-d113e81749ec.html">V32AdoptionLayerTests.test_core_primitives_and_market_are_not_replaced</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-test-rights-passport-is-signed-and-provider-neutral-7c2db56bec9f.html">V32AdoptionLayerTests.test_rights_passport_is_signed_and_provider_neutral</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-test-passport-rejects-provider-as-authority-and-information-scarcity-427d9e034042.html">V32AdoptionLayerTests.test_passport_rejects_provider_as_authority_and_information_scarcity</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-test-provider-migration-preserves-entity-object-id-76bac819d0ce.html">V32AdoptionLayerTests.test_provider_migration_preserves_entity_object_id</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-test-odrl-round-trip-preserves-allow-and-prohibit-0311c0941fcd.html">V32AdoptionLayerTests.test_odrl_round_trip_preserves_allow_and_prohibit</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-test-vc-and-did-are-evidence-not-authority-bb8e13fd5cb4.html">V32AdoptionLayerTests.test_vc_and_did_are_evidence_not_authority</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-test-sdk-combines-rights-and-jurisdiction-fail-closed-404f4b711efc.html">V32AdoptionLayerTests.test_sdk_combines_rights_and_jurisdiction_fail_closed</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-test-resolver-deployment-requires-independence-66aa94afd9a5.html">V32AdoptionLayerTests.test_resolver_deployment_requires_independence</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-test-sdk-exposes-existing-federated-resolution-f39362482d49.html">V32AdoptionLayerTests.test_sdk_exposes_existing_federated_resolution</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-test-legal-classification-is-only-an-assertion-3616a5443c74.html">V32AdoptionLayerTests.test_legal_classification_is_only_an_assertion</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-test-existing-eep-full-lifecycle-survives-v32-435f3be3ca69.html">V32AdoptionLayerTests.test_existing_eep_full_lifecycle_survives_v32</a></li><li><a href="../../../reference/symbols/entity/v32adoptionlayertests-test-all-adoption-vector-schemas-have-truth-boundaries-6b5b409a21c3.html">V32AdoptionLayerTests.test_all_adoption_vector_schemas_have_truth_boundaries</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import gc, hashlib, importlib.util, pathlib, sys, tempfile, unittest
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+def load(name, rel):
+    spec=importlib.util.spec_from_file_location(name,ROOT/rel); mod=importlib.util.module_from_spec(spec)
+    sys.modules[name]=mod; spec.loader.exec_module(mod); return mod
+
+identity_mod=load(&quot;adoption_identity&quot;,&quot;src/01_Core_Runtime/identity/canonical_identity.py&quot;)
+fabric_mod=load(&quot;adoption_fabric&quot;,&quot;src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py&quot;)
+core_mod=load(&quot;adoption_core&quot;,&quot;src/31_Profiles/profile_core.py&quot;)
+eep_mod=load(&quot;adoption_eep&quot;,&quot;src/31_Profiles/exchange_protocol.py&quot;)
+res_mod=load(&quot;adoption_res&quot;,&quot;src/31_Profiles/resilience_interop.py&quot;)
+inst_mod=load(&quot;adoption_inst&quot;,&quot;src/35_Global_Infrastructure/institutional_semantics.py&quot;)
+passport_mod=load(&quot;adoption_passport&quot;,&quot;src/36_Adoption_Layer/rights_passport.py&quot;)
+connector_mod=load(&quot;adoption_connectors&quot;,&quot;src/36_Adoption_Layer/custody_connectors.py&quot;)
+standards_mod=load(&quot;adoption_standards&quot;,&quot;src/36_Adoption_Layer/standards_adapters.py&quot;)
+profile_mod=load(&quot;adoption_profile&quot;,&quot;src/36_Adoption_Layer/adoption_profile.py&quot;)
+conf_mod=load(&quot;adoption_conformance&quot;,&quot;src/36_Adoption_Layer/adoption_conformance.py&quot;)
+
+class V32AdoptionLayerTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory(); self.root=pathlib.Path(self.tmp.name)
+        self.identity=identity_mod.EntityIdentityVault(self.root); self.fabric=fabric_mod.UniversalTransactionFabric(self.root,self.identity)
+        self.owner=self.identity.create(&quot;Owner&quot;,&quot;business&quot;)[&quot;entity_id&quot;]; self.buyer=self.identity.create(&quot;Buyer&quot;,&quot;business&quot;)[&quot;entity_id&quot;]
+        self.gov=self.identity.create(&quot;Government&quot;,&quot;organization&quot;)[&quot;entity_id&quot;]; self.r1=self.identity.create(&quot;Resolver One&quot;,&quot;system&quot;)[&quot;entity_id&quot;]; self.r2=self.identity.create(&quot;Resolver Two&quot;,&quot;system&quot;)[&quot;entity_id&quot;]
+        self.dco=self.fabric.register_digital_commodity(self.owner,&quot;AI Training Corpus&quot;,hashlib.sha256(b&quot;corpus&quot;).hexdigest())
+        self.passports=passport_mod.RightsPassportRegistry(self.root,self.identity,self.fabric)
+    def tearDown(self):
+        self.passports=None; gc.collect(); self.tmp.cleanup()
+
+    def test_core_primitives_and_market_are_not_replaced(self):
+        s=profile_mod.adoption_status(); self.assertEqual(s[&quot;core_primitives&quot;],[&quot;ENTITY&quot;,&quot;AUTHORITY&quot;,&quot;RIGHT&quot;,&quot;EVENT&quot;,&quot;VALUE&quot;])
+        self.assertFalse(s[&quot;core_semantics_changed&quot;]); self.assertTrue(s[&quot;market_engine_preserved&quot;])
+        self.assertEqual(s[&quot;market_lifecycle&quot;][0:4],[&quot;DCO&quot;,&quot;INSTRUMENT&quot;,&quot;LISTING&quot;,&quot;DISCLOSURE&quot;]); self.assertEqual(s[&quot;market_lifecycle&quot;][-3:],[&quot;USAGE&quot;,&quot;DERIVED_OUTPUT&quot;,&quot;ECONOMIC_CONSEQUENCE&quot;])
+
+    def test_rights_passport_is_signed_and_provider_neutral(self):
+        locator=connector_mod.CustodyConnectorRegistry.locator(self.dco[&quot;object_id&quot;],&quot;SNOWFLAKE&quot;,&quot;DB.SCHEMA.CORPUS&quot;,hashlib.sha256(b&quot;corpus&quot;).hexdigest())
+        p=self.passports.issue(self.owner,self.dco[&quot;object_id&quot;],[{&quot;effect&quot;:&quot;ALLOW&quot;,&quot;actions&quot;:[&quot;TRAIN&quot;,&quot;DERIVE&quot;]},{&quot;effect&quot;:&quot;PROHIBIT&quot;,&quot;actions&quot;:[&quot;REDISTRIBUTE&quot;]}],custody=[locator],jurisdiction_profile_refs=[&quot;CA-BC:DATA@1.0&quot;],semantic_refs=[&quot;btg:RIGHT:TRAIN@1.0&quot;])
+        self.assertTrue(self.passports.verify(p)[&quot;valid&quot;]); self.assertFalse(p[&quot;custody&quot;][0][&quot;provider_is_authority&quot;]); self.assertTrue(p[&quot;economic_terms&quot;][&quot;underlying_information_remains_nonrival&quot;])
+
+    def test_passport_rejects_provider_as_authority_and_information_scarcity(self):
+        bad={&quot;provider&quot;:&quot;SNOWFLAKE&quot;,&quot;locator&quot;:&quot;X&quot;,&quot;content_sha256&quot;:&quot;0&quot;*64,&quot;provider_is_authority&quot;:True}
+        with self.assertRaises(ValueError): self.passports.issue(self.owner,self.dco[&quot;object_id&quot;],[{&quot;effect&quot;:&quot;ALLOW&quot;,&quot;actions&quot;:[&quot;TRAIN&quot;]}],custody=[bad])
+        with self.assertRaises(ValueError): self.passports.issue(self.owner,self.dco[&quot;object_id&quot;],[{&quot;effect&quot;:&quot;ALLOW&quot;,&quot;actions&quot;:[&quot;TRAIN&quot;]}],version=&quot;2.0&quot;,economic_terms={&quot;underlying_information_remains_nonrival&quot;:False})
+
+    def test_provider_migration_preserves_entity_object_id(self):
+        old=connector_mod.CustodyConnectorRegistry.locator(self.dco[&quot;object_id&quot;],&quot;AWS_S3&quot;,&quot;s3://bucket/corpus&quot;,&quot;1&quot;*64); new=connector_mod.CustodyConnectorRegistry.locator(self.dco[&quot;object_id&quot;],&quot;AZURE_BLOB&quot;,&quot;container/corpus&quot;,&quot;1&quot;*64)
+        m=connector_mod.CustodyConnectorRegistry.migration(old,new,evidence_sha256=&quot;2&quot;*64,actor_entity_id=self.owner); self.assertTrue(m[&quot;entity_identity_preserved&quot;]); self.assertFalse(m[&quot;authority_transfer_implied&quot;])
+
+    def test_odrl_round_trip_preserves_allow_and_prohibit(self):
+        odrl={&quot;permission&quot;:[{&quot;action&quot;:[&quot;train&quot;,&quot;derive&quot;]}],&quot;prohibition&quot;:[{&quot;action&quot;:&quot;redistribute&quot;}]}; mapped=standards_mod.StandardsAdapters.import_odrl(odrl)
+        effects={(r[&quot;effect&quot;],tuple(r[&quot;actions&quot;])) for r in mapped[&quot;mapped_rights&quot;]}; self.assertIn((&quot;ALLOW&quot;,(&quot;DERIVE&quot;,&quot;TRAIN&quot;)),effects); self.assertIn((&quot;PROHIBIT&quot;,(&quot;REDISTRIBUTE&quot;,)),effects)
+        exported=standards_mod.StandardsAdapters.export_odrl(mapped[&quot;mapped_rights&quot;],self.dco[&quot;object_id&quot;]); self.assertEqual(len(exported[&quot;permission&quot;]),1); self.assertEqual(len(exported[&quot;prohibition&quot;]),1); self.assertFalse(mapped[&quot;silent_semantic_equivalence&quot;])
+
+    def test_vc_and_did_are_evidence_not_authority(self):
+        vc={&quot;issuer&quot;:&quot;did:web:issuer.example&quot;,&quot;credentialSubject&quot;:{&quot;id&quot;:&quot;did:example:subject&quot;},&quot;proof&quot;:{&quot;type&quot;:&quot;DataIntegrityProof&quot;}}
+        self.assertTrue(standards_mod.StandardsAdapters.credential_evidence(vc)[&quot;credential_is_evidence_not_entity_authority&quot;]); self.assertTrue(standards_mod.StandardsAdapters.did_evidence({&quot;id&quot;:&quot;did:example:subject&quot;})[&quot;external_identifier_is_not_entity_authority&quot;])
+
+    def test_sdk_combines_rights_and_jurisdiction_fail_closed(self):
+        jreg=inst_mod.JurisdictionProfileRegistry(self.root,self.identity); jreg.register(self.gov,&quot;CA-BC&quot;,&quot;DATA&quot;,&quot;1.0&quot;,hashlib.sha256(b&quot;jurisdiction&quot;).hexdigest(),[{&quot;effect&quot;:&quot;PROHIBIT&quot;,&quot;actions&quot;:[&quot;TRAIN&quot;]}],effective_from_ms=1)
+        p=self.passports.issue(self.owner,self.dco[&quot;object_id&quot;],[{&quot;effect&quot;:&quot;ALLOW&quot;,&quot;actions&quot;:[&quot;TRAIN&quot;]}],version=&quot;sdk-1&quot;)
+        sdk=profile_mod.EntityAdoptionSDK(passport_registry=self.passports,rights_ontology=core_mod.RightsOntology,jurisdiction_registry=jreg); d=sdk.authorize(p,&quot;TRAIN&quot;,jurisdictions=[&quot;CA-BC&quot;],domain=&quot;DATA&quot;)
+        self.assertEqual(d[&quot;decision&quot;],&quot;DENY&quot;); self.assertTrue(d[&quot;sdk_does_not_create_authority&quot;])
+
+    def test_resolver_deployment_requires_independence(self):
+        with self.assertRaises(ValueError): profile_mod.EntityAdoptionSDK.resolver_deployment(minimum_resolvers=1)
+        cfg=profile_mod.EntityAdoptionSDK.resolver_deployment(minimum_resolvers=2); self.assertTrue(cfg[&quot;resolver_is_not_authority&quot;]); self.assertTrue(cfg[&quot;fail_closed&quot;])
+
+    def test_sdk_exposes_existing_federated_resolution(self):
+        fr=res_mod.FederatedResolutionProfile(self.root,self.identity); record={&quot;version&quot;:1,&quot;endpoint&quot;:&quot;ent3://asset&quot;}; fr.observe(self.r1,self.dco[&quot;object_id&quot;],record,epoch=1,ttl_ms=60000); fr.observe(self.r2,self.dco[&quot;object_id&quot;],record,epoch=1,ttl_ms=60000)
+        self.assertTrue(profile_mod.EntityAdoptionSDK(federated_resolution=fr).resolver_quorum(self.dco[&quot;object_id&quot;])[&quot;resolved&quot;])
+
+    def test_legal_classification_is_only_an_assertion(self):
+        x=profile_mod.legal_classification_assertion(&quot;CA&quot;,&quot;ca:data-right@1&quot;,self.gov,&quot;CONTRACTUAL_USAGE_RIGHT&quot;); self.assertTrue(x[&quot;classification_is_assertion_not_protocol_legal_truth&quot;])
+
+    def test_existing_eep_full_lifecycle_survives_v32(self):
+        eep=eep_mod.ExchangeProtocol(self.root,self.identity,self.fabric); venue=eep.create_venue(self.owner,&quot;AI Rights Venue&quot;,&quot;CA&quot;,[&quot;ORDER_BOOK&quot;,&quot;RFQ&quot;],hashlib.sha256(b&quot;venue&quot;).hexdigest())
+        inst=eep.define_instrument(self.owner,self.dco[&quot;object_id&quot;],&quot;SPOT_LICENSE&quot;,{&quot;actions&quot;:[&quot;DERIVE&quot;,&quot;TRAIN&quot;]},1000,&quot;CAD&quot;,transferable=True); disclosure=eep.publish_disclosure(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;LISTING&quot;,hashlib.sha256(b&quot;disclosure&quot;).hexdigest())
+        eep.list_instrument(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,min_lot=1,tick_size=1,disclosure_sha256=disclosure[&quot;content_sha256&quot;]); eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;SELL&quot;,10,250,nonce=&quot;v32-sell&quot;); eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.buyer,&quot;BUY&quot;,10,250,nonce=&quot;v32-buy&quot;)
+        trade=eep.match_order_book(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;])[0]; settled=eep.settle_trade(trade[&quot;trade_id&quot;],payment_ref=&quot;external:receipt&quot;,external_verified=False); eep.meter_usage(inst[&quot;instrument_id&quot;],self.buyer,&quot;TRAIN&quot;,1,nonce=&quot;v32-usage&quot;)
+        market=profile_mod.EntityAdoptionSDK(exchange=eep).market_status(); self.assertTrue(market[&quot;market_engine_preserved&quot;]); self.assertTrue(market[&quot;rights_are_traded_not_bytes&quot;]); self.assertFalse(settled[&quot;entitlement&quot;][&quot;ownership_of_underlying_transferred&quot;])
+
+    def test_all_adoption_vector_schemas_have_truth_boundaries(self):
+        records=[{&quot;schema&quot;:&quot;entity-v3-adoption-profile-status-v1&quot;,&quot;core_primitives&quot;:[&quot;ENTITY&quot;,&quot;AUTHORITY&quot;,&quot;RIGHT&quot;,&quot;EVENT&quot;,&quot;VALUE&quot;],&quot;core_semantics_changed&quot;:False,&quot;market_engine_preserved&quot;:True},{&quot;schema&quot;:&quot;entity-v3-resolver-deployment-v1&quot;,&quot;mode&quot;:&quot;FEDERATED&quot;,&quot;minimum_resolvers&quot;:2,&quot;resolver_is_not_authority&quot;:True,&quot;single_provider_dependency_prohibited&quot;:True,&quot;fail_closed&quot;:True},{&quot;schema&quot;:&quot;entity-v3-legal-classification-assertion-v1&quot;,&quot;asserted_by&quot;:self.gov,&quot;classification&quot;:&quot;CONTRACTUAL_USAGE_RIGHT&quot;,&quot;classification_is_assertion_not_protocol_legal_truth&quot;:True}]
+        self.assertTrue(all(conf_mod.validate_adoption_record(x) for x in records))
+
+if __name__==&quot;__main__&quot;: unittest.main()</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

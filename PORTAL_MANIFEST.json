@@ -1,0 +1,19 @@
+{
+  "file_reference_pages": 599,
+  "release": "v3.4.0",
+  "release_commit": "2db5bff64507b8d67642122a5ff2fc73dfef9152",
+  "repository_heads": {
+    "ENTITY": "e05d33beeee2a7885bd395553942fd907d870b46",
+    "ENTITY-AI": "4a90943102947c93e591d675ed1b2893788635cd",
+    "ENTITY-DEFENCE": "2f3246d6101ff49711a9d401ed53fcec8458d245",
+    "ENTITY-FINANCE": "2efe26dbd906499126342af99b91ef80b05862ef",
+    "ENTITY-GITHUB-APP": "7ef6b33b5d586cabd1f912491152fcff10e0ad47",
+    "ENTITY-HEALTHCARE": "2a47e6a1eaf9198a02bd2eef10bb4598fcdb4ba6",
+    "ENTITY-MANUFACTURING": "72fd3434f020e23ac02787015d48be408dfe8282",
+    "ENTITY-ROBOTICS": "5294e1d4368f522413d3d1de69d5a47ce8623965"
+  },
+  "schema": "entity-docs-portal-v1",
+  "search_entries": 2603,
+  "symbol_reference_pages": 1922,
+  "total_html_pages": 2603
+}

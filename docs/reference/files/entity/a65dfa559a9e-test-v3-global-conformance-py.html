@@ -1,0 +1,58 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tests/test_v3_global_conformance.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tests/test_v3_global_conformance.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tests/test_v3_global_conformance.py</code></p><p><b>SHA-256:</b> <code>96917f3e5240e8446ac3022a32619527305b98e74fbe6f351c865da2a3b9157a</code></p><p><b>Bytes:</b> 2,465</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_global_conformance.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/globalinfrastructureconformancetests-96eabf4198b3.html">GlobalInfrastructureConformanceTests</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructureconformancetests-setupclass-b75f518869ef.html">GlobalInfrastructureConformanceTests.setUpClass</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructureconformancetests-test-schema-is-valid-draft-2020-12-4a7ff6eb4b58.html">GlobalInfrastructureConformanceTests.test_schema_is_valid_draft_2020_12</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructureconformancetests-test-vector-manifest-counts-and-hashes-417c19b55518.html">GlobalInfrastructureConformanceTests.test_vector_manifest_counts_and_hashes</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructureconformancetests-test-checksum-seal-9262021bbc42.html">GlobalInfrastructureConformanceTests.test_checksum_seal</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructureconformancetests-test-valid-and-invalid-vectors-244e7ded8748.html">GlobalInfrastructureConformanceTests.test_valid_and_invalid_vectors</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json, pathlib, unittest
+from jsonschema import Draft202012Validator
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+PROTO = ROOT / &quot;protocol&quot; / &quot;v3&quot;
+VECTORS = PROTO / &quot;global_vectors&quot;
+SCHEMA_PATH = PROTO / &quot;ENTITY_GLOBAL_INFRASTRUCTURE.schema.json&quot;
+MANIFEST_PATH = VECTORS / &quot;VECTOR_MANIFEST.json&quot;
+
+class GlobalInfrastructureConformanceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.schema = json.loads(SCHEMA_PATH.read_text(encoding=&quot;utf-8-sig&quot;))
+        cls.validator = Draft202012Validator(cls.schema)
+        cls.manifest = json.loads(MANIFEST_PATH.read_text(encoding=&quot;utf-8-sig&quot;))
+
+    def test_schema_is_valid_draft_2020_12(self):
+        Draft202012Validator.check_schema(self.schema)
+        self.assertGreaterEqual(len(self.schema.get(&quot;$defs&quot;, {})), 10)
+
+    def test_vector_manifest_counts_and_hashes(self):
+        entries = self.manifest[&quot;vectors&quot;]
+        self.assertEqual(self.manifest[&quot;valid_vectors&quot;], 8)
+        self.assertEqual(self.manifest[&quot;invalid_vectors&quot;], 8)
+        self.assertEqual(len(entries), 16)
+        self.assertEqual(self.manifest[&quot;schema_sha256&quot;], hashlib.sha256(SCHEMA_PATH.read_bytes()).hexdigest())
+        for entry in entries:
+            path = VECTORS / entry[&quot;file&quot;]
+            self.assertEqual(entry[&quot;sha256&quot;], hashlib.sha256(path.read_bytes()).hexdigest())
+
+    def test_checksum_seal(self):
+        for raw in (VECTORS / &quot;SHA256SUMS.txt&quot;).read_text(encoding=&quot;utf-8-sig&quot;).splitlines():
+            if not raw.strip():
+                continue
+            expected, rel = raw.split(None, 1)
+            path = (VECTORS / rel.strip()).resolve()
+            self.assertTrue(path.is_file(), rel)
+            self.assertEqual(expected, hashlib.sha256(path.read_bytes()).hexdigest(), rel)
+
+    def test_valid_and_invalid_vectors(self):
+        valid = invalid = 0
+        for entry in self.manifest[&quot;vectors&quot;]:
+            payload = json.loads((VECTORS / entry[&quot;file&quot;]).read_text(encoding=&quot;utf-8-sig&quot;))
+            errors = list(self.validator.iter_errors(payload[&quot;record&quot;]))
+            if payload[&quot;expect&quot;] == &quot;VALID&quot;:
+                self.assertEqual(errors, [], entry[&quot;file&quot;])
+                valid += 1
+            else:
+                self.assertTrue(errors, entry[&quot;file&quot;])
+                invalid += 1
+        self.assertEqual(valid, 8)
+        self.assertEqual(invalid, 8)
+
+if __name__ == &quot;__main__&quot;:
+    unittest.main()
+
+</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TransactionEvidenceExporter.build_bundle Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>TransactionEvidenceExporter.build_bundle</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/15_Operations/transaction_evidence/canonical_transaction_evidence.py#L148">ENTITY/src/15_Operations/transaction_evidence/canonical_transaction_evidence.py#L148</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>TransactionEvidenceExporter.build_bundle(self, transaction_id: str)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def build_bundle(self,transaction_id:str)-&gt;dict:
+        record=self.get(transaction_id); refs=record[&quot;references&quot;]
+        manifests={entity_id:self._manifest(entity_id) for entity_id in record[&quot;participants&quot;]}
+        evidence={
+            &quot;transaction_record&quot;:{**self._transaction_record_body(record),&quot;signature&quot;:record[&quot;signature&quot;]},
+            &quot;manifests&quot;:manifests,
+            &quot;asset_provenance&quot;:self._asset_and_provenance(refs[&quot;asset_id&quot;]),
+            &quot;rights&quot;:self._rights_evidence(refs[&quot;claim_id&quot;]),
+            &quot;licence&quot;:self._licence_evidence(refs[&quot;licence_id&quot;]),
+            &quot;usage_receipt&quot;:self._usage_evidence(refs[&quot;usage_receipt_id&quot;]),
+            &quot;license_settlement&quot;:self._settlement_evidence(refs[&quot;license_settlement_id&quot;]),
+            &quot;value_record&quot;:self._one(&quot;settlement/settlement.sqlite&quot;,&quot;SELECT * FROM value_records WHERE value_id=?&quot;,(refs[&quot;value_id&quot;],)),
+            &quot;digital_commodity&quot;:self._commodity_evidence(refs[&quot;commodity_id&quot;],refs[&quot;commodity_event_id&quot;]),
+            &quot;corporate_authorization&quot;:self._threshold_evidence(refs[&quot;threshold_policy_id&quot;],refs[&quot;threshold_request_id&quot;]),
+            &quot;capital&quot;:self._capital_evidence(refs[&quot;share_class_id&quot;],refs[&quot;corporate_action_id&quot;],refs[&quot;capital_event_id&quot;],refs[&quot;capital_accounting_batch_id&quot;],refs[&quot;disclosure_snapshot_id&quot;]),
+            &quot;share_settlement&quot;:self._settlement_evidence(refs[&quot;share_settlement_id&quot;]),
+            &quot;event_ledger&quot;:self._ledger_evidence(refs[&quot;ledger_checkpoint_id&quot;]),
+            &quot;external_trust_anchors&quot;:self._trust_anchors(),
+        }
+        transaction_root=_sha_bytes(_canon(evidence))
+        header={&quot;schema&quot;:BUNDLE_SCHEMA,&quot;transaction_id&quot;:transaction_id,&quot;issuer_entity_id&quot;:record[&quot;issuer_entity_id&quot;],&quot;transaction_root_sha256&quot;:transaction_root}
+        signature=self.identity.sign(record[&quot;issuer_entity_id&quot;],header)
+        return {**header,&quot;generated_at_ms&quot;:_now(),&quot;evidence&quot;:evidence,&quot;signature&quot;:signature,
+            &quot;evidence_boundary&quot;:{&quot;cryptographic_validity_is_not_legal_truth&quot;:True,&quot;recorded_rights_are_not_legal_adjudication&quot;:True,&quot;external_trust_anchors_require_independent_real_world_trust_decisions&quot;:True}}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

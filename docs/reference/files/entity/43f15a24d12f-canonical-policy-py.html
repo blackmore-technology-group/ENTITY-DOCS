@@ -1,0 +1,109 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/01_Core_Runtime/policy_engine/canonical_policy.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/01_Core_Runtime/policy_engine/canonical_policy.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/01_Core_Runtime/policy_engine/canonical_policy.py</code></p><p><b>SHA-256:</b> <code>7508b554fa592f90467ed86462ad14da7985030b24409842a91c345e67dc8d6f</code></p><p><b>Bytes:</b> 9,899</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/policy_engine/canonical_policy.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-49de3654302b.html">_now</a></li><li><a href="../../../reference/symbols/entity/id-daac5d259f3d.html">_id</a></li><li><a href="../../../reference/symbols/entity/policyconsentengine-1b2432c4a96d.html">PolicyConsentEngine</a></li><li><a href="../../../reference/symbols/entity/policyconsentengine-init-1fd80fcb2fbd.html">PolicyConsentEngine.__init__</a></li><li><a href="../../../reference/symbols/entity/policyconsentengine-connect-dcd2a0a05da4.html">PolicyConsentEngine._connect</a></li><li><a href="../../../reference/symbols/entity/policyconsentengine-init-db-1b67a7a269bb.html">PolicyConsentEngine._init_db</a></li><li><a href="../../../reference/symbols/entity/policyconsentengine-normalize-rules-1895a55cbd8a.html">PolicyConsentEngine._normalize_rules</a></li><li><a href="../../../reference/symbols/entity/policyconsentengine-create-policy-e67a107c040d.html">PolicyConsentEngine.create_policy</a></li><li><a href="../../../reference/symbols/entity/policyconsentengine-revise-policy-0151ac3aded1.html">PolicyConsentEngine.revise_policy</a></li><li><a href="../../../reference/symbols/entity/policyconsentengine-evaluate-ee0aaec85472.html">PolicyConsentEngine.evaluate</a></li><li><a href="../../../reference/symbols/entity/policyconsentengine-grant-consent-fcb4fb94b5ad.html">PolicyConsentEngine.grant_consent</a></li><li><a href="../../../reference/symbols/entity/policyconsentengine-authorize-consent-018ca9c1dfd4.html">PolicyConsentEngine.authorize_consent</a></li><li><a href="../../../reference/symbols/entity/policyconsentengine-revoke-consent-aec420098521.html">PolicyConsentEngine.revoke_consent</a></li><li><a href="../../../reference/symbols/entity/policyconsentengine-status-6e662dcc3e8c.html">PolicyConsentEngine.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from threading import RLock
+from contextlib import contextmanager
+import json, secrets, sqlite3, time
+
+ACTIONS={&quot;VIEW&quot;,&quot;COPY&quot;,&quot;DOWNLOAD&quot;,&quot;PUBLIC_DISPLAY&quot;,&quot;COMMERCIAL_REUSE&quot;,&quot;DERIVATIVE_WORK&quot;,&quot;AI_TRAINING&quot;,&quot;AI_EVALUATION&quot;,&quot;AI_INFERENCE&quot;,&quot;MODEL_TUNING&quot;,&quot;EMBEDDING&quot;,&quot;INDEXING&quot;,&quot;SEARCH&quot;,&quot;AD_TARGETING&quot;,&quot;PROFILE_BUILDING&quot;,&quot;FACIAL_RECOGNITION&quot;,&quot;LOCATION_ANALYSIS&quot;,&quot;RESEARCH&quot;,&quot;SUBLICENSE&quot;,&quot;REDISTRIBUTE&quot;}
+DECISIONS={&quot;PERMIT&quot;,&quot;PROHIBIT&quot;,&quot;LICENSE_REQUIRED&quot;,&quot;OWNER_ONLY&quot;}
+
+
+def _now(): return int(time.time()*1000)
+def _id(prefix): return f&quot;{prefix}-&quot;+secrets.token_hex(20)
+
+
+class PolicyConsentEngine:
+    &quot;&quot;&quot;Versioned ODRL-inspired policy and purpose-bound consent; unknown actions fail closed.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path,identity):
+        self.root=Path(state_dir)/&quot;policy_consent&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;policy_consent.sqlite&quot;; self.identity=identity; self._lock=RLock(); self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS policies(policy_id TEXT NOT NULL,version INTEGER NOT NULL,controller_entity_id TEXT NOT NULL,name TEXT NOT NULL,rules_json TEXT NOT NULL,jurisdiction TEXT,status TEXT NOT NULL,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,PRIMARY KEY(policy_id,version))&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS consents(consent_id TEXT PRIMARY KEY,policy_id TEXT NOT NULL,policy_version INTEGER NOT NULL,authorizing_entity_id TEXT NOT NULL,counterparty_entity_id TEXT,purpose TEXT NOT NULL,asset_scope_json TEXT NOT NULL,status TEXT NOT NULL,expires_at_ms INTEGER,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,revoked_at_ms INTEGER)&quot;)
+    @staticmethod
+    def _normalize_rules(rules: dict|None) -&gt; dict:
+        out={}
+        for action,raw in dict(rules or {}).items():
+            key=str(action).upper()
+            if key not in ACTIONS: raise ValueError(f&quot;unknown policy action: {key}&quot;)
+            item=dict(raw) if isinstance(raw,dict) else {&quot;decision&quot;:str(raw)}
+            decision=str(item.get(&quot;decision&quot;) or &quot;PROHIBIT&quot;).upper()
+            if decision not in DECISIONS: raise ValueError(f&quot;invalid decision for {key}&quot;)
+            out[key]={&quot;decision&quot;:decision,&quot;constraints&quot;:dict(item.get(&quot;constraints&quot;) or {}),&quot;duties&quot;:list(item.get(&quot;duties&quot;) or [])}
+        return out
+
+    def create_policy(self,controller_entity_id: str,name: str,rules: dict|None=None,jurisdiction: str|None=None) -&gt; dict:
+        policy_id=_id(&quot;pol1&quot;); version=1; now=_now(); normalized=self._normalize_rules(rules)
+        body={&quot;schema&quot;:&quot;entity-policy-v1&quot;,&quot;policy_id&quot;:policy_id,&quot;version&quot;:version,&quot;controller_entity_id&quot;:controller_entity_id,&quot;name&quot;:str(name)[:256],&quot;rules&quot;:normalized,&quot;jurisdiction&quot;:jurisdiction,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now}
+        sig=self.identity.sign(controller_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO policies VALUES(?,?,?,?,?,?,?,?,?)&quot;,(policy_id,version,controller_entity_id,body[&quot;name&quot;],json.dumps(normalized,sort_keys=True),jurisdiction,&quot;ACTIVE&quot;,json.dumps(sig,sort_keys=True),now))
+        return dict(body,signature=sig)
+
+    def revise_policy(self,controller_entity_id: str,policy_id: str,rules: dict|None=None,name: str|None=None,jurisdiction: str|None=None) -&gt; dict:
+        with self._connect() as db: prior=db.execute(&quot;SELECT * FROM policies WHERE policy_id=? ORDER BY version DESC LIMIT 1&quot;,(policy_id,)).fetchone()
+        if not prior: raise KeyError(&quot;policy not found&quot;)
+        if prior[&quot;controller_entity_id&quot;]!=controller_entity_id: raise PermissionError(&quot;policy controller mismatch&quot;)
+        version=int(prior[&quot;version&quot;])+1; normalized=self._normalize_rules(rules if rules is not None else json.loads(prior[&quot;rules_json&quot;])); now=_now()
+        body={&quot;schema&quot;:&quot;entity-policy-v1&quot;,&quot;policy_id&quot;:policy_id,&quot;version&quot;:version,&quot;controller_entity_id&quot;:controller_entity_id,&quot;name&quot;:str(name or prior[&quot;name&quot;])[:256],&quot;rules&quot;:normalized,&quot;jurisdiction&quot;:jurisdiction if jurisdiction is not None else prior[&quot;jurisdiction&quot;],&quot;status&quot;:&quot;ACTIVE&quot;,&quot;supersedes_version&quot;:int(prior[&quot;version&quot;]),&quot;created_at_ms&quot;:now}
+        sig=self.identity.sign(controller_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO policies VALUES(?,?,?,?,?,?,?,?,?)&quot;,(policy_id,version,controller_entity_id,body[&quot;name&quot;],json.dumps(normalized,sort_keys=True),body[&quot;jurisdiction&quot;],&quot;ACTIVE&quot;,json.dumps(sig,sort_keys=True),now))
+        return dict(body,signature=sig)
+    def evaluate(self,policy_id: str,action: str,*,version: int|None=None) -&gt; dict:
+        key=str(action or &quot;&quot;).upper()
+        if key not in ACTIONS: return {&quot;allowed&quot;:False,&quot;decision&quot;:&quot;PROHIBIT&quot;,&quot;reason&quot;:&quot;unknown_action_fail_closed&quot;}
+        with self._connect() as db:
+            if version is None: row=db.execute(&quot;SELECT * FROM policies WHERE policy_id=? ORDER BY version DESC LIMIT 1&quot;,(policy_id,)).fetchone()
+            else: row=db.execute(&quot;SELECT * FROM policies WHERE policy_id=? AND version=?&quot;,(policy_id,int(version))).fetchone()
+        if not row: return {&quot;allowed&quot;:False,&quot;decision&quot;:&quot;PROHIBIT&quot;,&quot;reason&quot;:&quot;policy_not_found&quot;}
+        rule=json.loads(row[&quot;rules_json&quot;]).get(key,{&quot;decision&quot;:&quot;PROHIBIT&quot;,&quot;constraints&quot;:{},&quot;duties&quot;:[]})
+        return {&quot;allowed&quot;:rule[&quot;decision&quot;]==&quot;PERMIT&quot;,&quot;decision&quot;:rule[&quot;decision&quot;],&quot;constraints&quot;:rule.get(&quot;constraints&quot;,{}),&quot;duties&quot;:rule.get(&quot;duties&quot;,[]),&quot;policy_id&quot;:policy_id,&quot;policy_version&quot;:int(row[&quot;version&quot;])}
+
+    def grant_consent(self,authorizing_entity_id: str,policy_id: str,*,purpose: str,asset_scope: list[str]|None=None,counterparty_entity_id: str|None=None,expires_at_ms: int|None=None) -&gt; dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM policies WHERE policy_id=? ORDER BY version DESC LIMIT 1&quot;,(policy_id,)).fetchone()
+        if not row: raise KeyError(&quot;policy not found&quot;)
+        if row[&quot;controller_entity_id&quot;]!=authorizing_entity_id: raise PermissionError(&quot;consent authorizer must control policy&quot;)
+        purpose=str(purpose or &quot;&quot;).strip()
+        if not purpose: raise ValueError(&quot;purpose is required&quot;)
+        consent_id=_id(&quot;con1&quot;); now=_now(); scope=sorted({str(x) for x in (asset_scope or []) if str(x)})
+        body={&quot;schema&quot;:&quot;entity-consent-v1&quot;,&quot;consent_id&quot;:consent_id,&quot;policy_id&quot;:policy_id,&quot;policy_version&quot;:int(row[&quot;version&quot;]),&quot;authorizing_entity_id&quot;:authorizing_entity_id,&quot;counterparty_entity_id&quot;:counterparty_entity_id,&quot;purpose&quot;:purpose,&quot;asset_scope&quot;:scope,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;expires_at_ms&quot;:expires_at_ms,&quot;created_at_ms&quot;:now}
+        sig=self.identity.sign(authorizing_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO consents VALUES(?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(consent_id,policy_id,int(row[&quot;version&quot;]),authorizing_entity_id,counterparty_entity_id,purpose,json.dumps(scope),&quot;ACTIVE&quot;,expires_at_ms,json.dumps(sig,sort_keys=True),now,None))
+        return dict(body,signature=sig)
+
+    def authorize_consent(self,consent_id: str,*,counterparty_entity_id: str,purpose: str,asset_scope: list[str],action: str) -&gt; dict:
+        now=_now(); key=str(action or &quot;&quot;).upper(); requested=sorted({str(x) for x in asset_scope if str(x)})
+        if key not in ACTIONS: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;unknown_action_fail_closed&quot;}
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM consents WHERE consent_id=?&quot;,(str(consent_id),)).fetchone()
+        if not row: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;consent_not_found&quot;}
+        if row[&quot;status&quot;]!=&quot;ACTIVE&quot;: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;consent_not_active&quot;}
+        if row[&quot;expires_at_ms&quot;] is not None and int(row[&quot;expires_at_ms&quot;])&lt;=now: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;consent_expired&quot;}
+        if row[&quot;counterparty_entity_id&quot;] and row[&quot;counterparty_entity_id&quot;]!=counterparty_entity_id: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;consent_counterparty_mismatch&quot;}
+        if str(row[&quot;purpose&quot;])!=str(purpose): return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;consent_purpose_mismatch&quot;}
+        scope=set(json.loads(row[&quot;asset_scope_json&quot;]));
+        if scope and not set(requested).issubset(scope): return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;consent_asset_scope_mismatch&quot;}
+        policy=self.evaluate(row[&quot;policy_id&quot;],key,version=int(row[&quot;policy_version&quot;]))
+        allowed=policy.get(&quot;decision&quot;) in {&quot;PERMIT&quot;,&quot;LICENSE_REQUIRED&quot;}
+        return {&quot;allowed&quot;:bool(allowed),&quot;reason&quot;:&quot;authorized&quot; if allowed else &quot;policy_prohibits_action&quot;,&quot;consent_id&quot;:consent_id,&quot;policy&quot;:policy}
+
+    def revoke_consent(self,authorizing_entity_id: str,consent_id: str) -&gt; dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM consents WHERE consent_id=?&quot;,(consent_id,)).fetchone()
+        if not row: raise KeyError(&quot;consent not found&quot;)
+        if row[&quot;authorizing_entity_id&quot;]!=authorizing_entity_id: raise PermissionError(&quot;consent authorizer mismatch&quot;)
+        if row[&quot;status&quot;]!=&quot;ACTIVE&quot;: raise ValueError(&quot;consent is not active&quot;)
+        now=_now()
+        with self._connect() as db: db.execute(&quot;UPDATE consents SET status=&#x27;REVOKED&#x27;,revoked_at_ms=? WHERE consent_id=?&quot;,(now,consent_id))
+        return {&quot;consent_id&quot;:consent_id,&quot;status&quot;:&quot;REVOKED&quot;,&quot;revoked_at_ms&quot;:now,&quot;historical_policy_version&quot;:int(row[&quot;policy_version&quot;])}
+
+    def status(self) -&gt; dict:
+        with self._connect() as db: pc=db.execute(&quot;SELECT COUNT(*) FROM policies&quot;).fetchone()[0]; cc=db.execute(&quot;SELECT COUNT(*) FROM consents&quot;).fetchone()[0]
+        return {&quot;ready&quot;:True,&quot;policy_model&quot;:&quot;ODRL_INSPIRED_ENTITY_PROFILE_V1&quot;,&quot;unknown_actions_fail_closed&quot;:True,&quot;versioned_consent&quot;:True,&quot;policies&quot;:int(pc),&quot;consents&quot;:int(cc),&quot;database&quot;:str(self.path)}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

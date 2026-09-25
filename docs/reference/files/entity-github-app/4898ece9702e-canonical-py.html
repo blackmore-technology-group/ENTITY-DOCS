@@ -1,0 +1,84 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY-GITHUB-APP / src/entity_github_app/canonical.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY-GITHUB-APP / src/entity_github_app/canonical.py</h1><div class="meta"><b>Repository:</b> ENTITY-GITHUB-APP<br><b>Commit:</b> <code>7ef6b33b5d586cabd1f912491152fcff10e0ad47</code></div><p><b>Path:</b> <code>src/entity_github_app/canonical.py</code></p><p><b>SHA-256:</b> <code>35692961e86e70d8f3eec6a633ec9a8241bf0441fada240582a995a46711d90b</code></p><p><b>Bytes:</b> 3,714</p><p><a href="https://github.com/blackmore-technology-group/ENTITY-GITHUB-APP/blob/7ef6b33b5d586cabd1f912491152fcff10e0ad47/src/entity_github_app/canonical.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity-github-app/utc-now-27a24dace354.html">utc_now</a></li><li><a href="../../../reference/symbols/entity-github-app/canonical-json-67be5f68fe6a.html">canonical_json</a></li><li><a href="../../../reference/symbols/entity-github-app/sha256-bytes-99d69b10caf0.html">sha256_bytes</a></li><li><a href="../../../reference/symbols/entity-github-app/repo-746898a3b497.html">_repo</a></li><li><a href="../../../reference/symbols/entity-github-app/subject-60af6a592ded.html">_subject</a></li><li><a href="../../../reference/symbols/entity-github-app/evidence-candidate-74cddafb9871.html">evidence_candidate</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+
+import datetime as dt
+import hashlib
+import json
+from typing import Any, Dict
+
+from . import SCHEMA_ID
+
+
+def utc_now() -&gt; str:
+    return dt.datetime.now(dt.timezone.utc).isoformat().replace(&quot;+00:00&quot;, &quot;Z&quot;)
+
+
+def canonical_json(value: Any) -&gt; str:
+    return json.dumps(value, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False)
+
+
+def sha256_bytes(data: bytes) -&gt; str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def _repo(payload: Dict[str, Any]) -&gt; Dict[str, Any]:
+    repo = payload.get(&quot;repository&quot;) or {}
+    owner = repo.get(&quot;owner&quot;) or {}
+    return {
+        &quot;full_name&quot;: repo.get(&quot;full_name&quot;),
+        &quot;id&quot;: repo.get(&quot;id&quot;),
+        &quot;owner&quot;: owner.get(&quot;login&quot;),
+        &quot;html_url&quot;: repo.get(&quot;html_url&quot;),
+        &quot;default_branch&quot;: repo.get(&quot;default_branch&quot;),
+    }
+
+def _subject(event: str, payload: Dict[str, Any]) -&gt; Dict[str, Any]:
+    if event == &quot;push&quot;:
+        head = payload.get(&quot;head_commit&quot;) or {}
+        return {&quot;kind&quot;: &quot;git_ref&quot;, &quot;ref&quot;: payload.get(&quot;ref&quot;), &quot;after&quot;: payload.get(&quot;after&quot;), &quot;head_url&quot;: head.get(&quot;url&quot;)}
+    if event == &quot;pull_request&quot;:
+        pr = payload.get(&quot;pull_request&quot;) or {}
+        return {&quot;kind&quot;: &quot;pull_request&quot;, &quot;number&quot;: pr.get(&quot;number&quot;), &quot;state&quot;: pr.get(&quot;state&quot;), &quot;head_sha&quot;: ((pr.get(&quot;head&quot;) or {}).get(&quot;sha&quot;)), &quot;base_sha&quot;: ((pr.get(&quot;base&quot;) or {}).get(&quot;sha&quot;)), &quot;html_url&quot;: pr.get(&quot;html_url&quot;)}
+    if event in {&quot;check_run&quot;, &quot;check_suite&quot;}:
+        obj = payload.get(event) or {}
+        return {&quot;kind&quot;: event, &quot;id&quot;: obj.get(&quot;id&quot;), &quot;status&quot;: obj.get(&quot;status&quot;), &quot;conclusion&quot;: obj.get(&quot;conclusion&quot;), &quot;head_sha&quot;: obj.get(&quot;head_sha&quot;)}
+    if event == &quot;workflow_run&quot;:
+        run = payload.get(&quot;workflow_run&quot;) or {}
+        return {&quot;kind&quot;: &quot;workflow_run&quot;, &quot;id&quot;: run.get(&quot;id&quot;), &quot;name&quot;: run.get(&quot;name&quot;), &quot;status&quot;: run.get(&quot;status&quot;), &quot;conclusion&quot;: run.get(&quot;conclusion&quot;), &quot;head_sha&quot;: run.get(&quot;head_sha&quot;), &quot;html_url&quot;: run.get(&quot;html_url&quot;)}
+    if event == &quot;release&quot;:
+        rel = payload.get(&quot;release&quot;) or {}
+        return {&quot;kind&quot;: &quot;release&quot;, &quot;id&quot;: rel.get(&quot;id&quot;), &quot;tag_name&quot;: rel.get(&quot;tag_name&quot;), &quot;target_commitish&quot;: rel.get(&quot;target_commitish&quot;), &quot;draft&quot;: rel.get(&quot;draft&quot;), &quot;prerelease&quot;: rel.get(&quot;prerelease&quot;), &quot;html_url&quot;: rel.get(&quot;html_url&quot;)}
+    if event == &quot;repository&quot;:
+        repo = payload.get(&quot;repository&quot;) or {}
+        return {&quot;kind&quot;: &quot;repository&quot;, &quot;id&quot;: repo.get(&quot;id&quot;), &quot;full_name&quot;: repo.get(&quot;full_name&quot;), &quot;visibility&quot;: repo.get(&quot;visibility&quot;)}
+    return {&quot;kind&quot;: event}
+
+def evidence_candidate(event: str, delivery_id: str, payload: Dict[str, Any], raw_body: bytes) -&gt; Dict[str, Any]:
+    installation = payload.get(&quot;installation&quot;) or {}
+    sender = payload.get(&quot;sender&quot;) or {}
+    action = payload.get(&quot;action&quot;)
+    observed_at = utc_now()
+    candidate = {
+        &quot;schema&quot;: SCHEMA_ID,
+        &quot;candidate_id&quot;: f&quot;github:{delivery_id}&quot;,
+        &quot;observed_at&quot;: observed_at,
+        &quot;source&quot;: {
+            &quot;system&quot;: &quot;github&quot;,
+            &quot;delivery_id&quot;: delivery_id,
+            &quot;event&quot;: event,
+            &quot;action&quot;: action,
+            &quot;repository&quot;: _repo(payload),
+            &quot;installation_id&quot;: installation.get(&quot;id&quot;),
+            &quot;sender&quot;: sender.get(&quot;login&quot;),
+        },
+        &quot;subject&quot;: _subject(event, payload),
+        &quot;integrity&quot;: {&quot;webhook_payload_sha256&quot;: sha256_bytes(raw_body)},
+        &quot;claim_boundary&quot;: {
+            &quot;asserts_github_observation_only&quot;: True,
+            &quot;does_not_assert_legal_ownership&quot;: True,
+            &quot;does_not_assert_objective_truth&quot;: True,
+            &quot;does_not_assert_independent_validation&quot;: True,
+            &quot;does_not_modify_entity_semantics&quot;: True,
+        },
+    }
+    candidate[&quot;candidate_sha256&quot;] = sha256_bytes(canonical_json(candidate).encode(&quot;utf-8&quot;))
+    return candidate</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

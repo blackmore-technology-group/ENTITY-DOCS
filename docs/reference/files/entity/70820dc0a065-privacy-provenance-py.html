@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/35_Global_Infrastructure/privacy_provenance.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/35_Global_Infrastructure/privacy_provenance.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/35_Global_Infrastructure/privacy_provenance.py</code></p><p><b>SHA-256:</b> <code>04596fd872a9776ca84c1e28c1b1b9ddf88adfd14c5196f4b0f33dd071069a12</code></p><p><b>Bytes:</b> 20,606</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/privacy_provenance.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-ms-6fbbb2fb31b5.html">now_ms</a></li><li><a href="../../../reference/symbols/entity/canon-b9aa1829cf1e.html">canon</a></li><li><a href="../../../reference/symbols/entity/digest-f68a24d2e4b8.html">digest</a></li><li><a href="../../../reference/symbols/entity/rid-b63bf2957ba4.html">rid</a></li><li><a href="../../../reference/symbols/entity/sha256-hex-f94768ceea29.html">sha256_hex</a></li><li><a href="../../../reference/symbols/entity/b64-fa6ddab9a2e1.html">b64</a></li><li><a href="../../../reference/symbols/entity/unb64-e91102505db6.html">unb64</a></li><li><a href="../../../reference/symbols/entity/purposeboundaccessregistry-72b1d796f668.html">PurposeBoundAccessRegistry</a></li><li><a href="../../../reference/symbols/entity/selectiveretentionledger-f5572cd94371.html">SelectiveRetentionLedger</a></li><li><a href="../../../reference/symbols/entity/confidentialprovenanceledger-2c4b1e5311a0.html">ConfidentialProvenanceLedger</a></li><li><a href="../../../reference/symbols/entity/proofverifierregistry-0e61ea958b30.html">ProofVerifierRegistry</a></li><li><a href="../../../reference/symbols/entity/purposeboundaccessregistry-init-83e8785aa49f.html">PurposeBoundAccessRegistry.__init__</a></li><li><a href="../../../reference/symbols/entity/purposeboundaccessregistry-grant-a78d92e093e5.html">PurposeBoundAccessRegistry.grant</a></li><li><a href="../../../reference/symbols/entity/purposeboundaccessregistry-revoke-1bb5b80a5e3b.html">PurposeBoundAccessRegistry.revoke</a></li><li><a href="../../../reference/symbols/entity/purposeboundaccessregistry-authorize-use-8e94665ed6d7.html">PurposeBoundAccessRegistry.authorize_use</a></li><li><a href="../../../reference/symbols/entity/selectiveretentionledger-init-6e826182ef16.html">SelectiveRetentionLedger.__init__</a></li><li><a href="../../../reference/symbols/entity/selectiveretentionledger-register-3340437cb815.html">SelectiveRetentionLedger.register</a></li><li><a href="../../../reference/symbols/entity/selectiveretentionledger-destroy-957e82a3c0ee.html">SelectiveRetentionLedger.destroy</a></li><li><a href="../../../reference/symbols/entity/selectiveretentionledger-status-199bc7a8e07a.html">SelectiveRetentionLedger.status</a></li><li><a href="../../../reference/symbols/entity/confidentialprovenanceledger-init-cb19f641f23d.html">ConfidentialProvenanceLedger.__init__</a></li><li><a href="../../../reference/symbols/entity/confidentialprovenanceledger-add-edge-5b14ae9648e7.html">ConfidentialProvenanceLedger.add_edge</a></li><li><a href="../../../reference/symbols/entity/confidentialprovenanceledger-reveal-metadata-5adee492d3a5.html">ConfidentialProvenanceLedger.reveal_metadata</a></li><li><a href="../../../reference/symbols/entity/proofverifierregistry-init-a856620c7571.html">ProofVerifierRegistry.__init__</a></li><li><a href="../../../reference/symbols/entity/proofverifierregistry-register-suite-e2f77691bd7d.html">ProofVerifierRegistry.register_suite</a></li><li><a href="../../../reference/symbols/entity/proofverifierregistry-bind-runtime-verifier-ac8a83c3e7e5.html">ProofVerifierRegistry.bind_runtime_verifier</a></li><li><a href="../../../reference/symbols/entity/proofverifierregistry-verify-850360e03b61.html">ProofVerifierRegistry.verify</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from typing import Any, Callable
+import base64, hashlib, json, os, secrets, sqlite3, time
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+def now_ms() -&gt; int:
+    return int(time.time() * 1000)
+
+def canon(value: Any) -&gt; bytes:
+    return json.dumps(value, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False, default=str).encode()
+
+def digest(value: Any) -&gt; str:
+    raw = value if isinstance(value, (bytes, bytearray)) else canon(value)
+    return hashlib.sha256(raw).hexdigest()
+
+def rid(prefix: str) -&gt; str:
+    return prefix + &quot;-&quot; + secrets.token_hex(12)
+
+def sha256_hex(value: str) -&gt; str:
+    value = str(value).lower()
+    if len(value) != 64 or any(c not in &quot;0123456789abcdef&quot; for c in value):
+        raise ValueError(&quot;expected lowercase SHA-256&quot;)
+    return value
+
+def b64(value: bytes) -&gt; str:
+    return base64.urlsafe_b64encode(value).decode().rstrip(&quot;=&quot;)
+
+def unb64(value: str) -&gt; bytes:
+    return base64.urlsafe_b64decode(value + &quot;=&quot; * (-len(value) % 4))
+
+class PurposeBoundAccessRegistry:
+    &quot;&quot;&quot;Controller-signed purpose/action grants with expiry, use caps and revocation.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_purpose_access.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS grants(
+                grant_id TEXT PRIMARY KEY, controller TEXT NOT NULL, grantee TEXT NOT NULL,
+                resource_ref TEXT NOT NULL, purposes_json TEXT NOT NULL, actions_json TEXT NOT NULL,
+                max_uses INTEGER NOT NULL, used_count INTEGER NOT NULL,
+                expires_at_ms INTEGER NOT NULL, status TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS uses(
+                use_id TEXT PRIMARY KEY, grant_id TEXT NOT NULL, grantee TEXT NOT NULL,
+                purpose TEXT NOT NULL, action TEXT NOT NULL, evidence_sha256 TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+
+    def grant(self, controller: str, grantee: str, resource_ref: str,
+              purposes: list[str], actions: list[str], *, expires_at_ms: int,
+              max_uses: int = 0) -&gt; dict:
+        purposes = sorted({str(x).upper() for x in purposes})
+        actions = sorted({str(x).upper() for x in actions})
+        if not purposes or not actions:
+            raise ValueError(&quot;purpose and action sets required&quot;)
+        if int(expires_at_ms) &lt;= now_ms():
+            raise ValueError(&quot;grant expiry must be in the future&quot;)
+        body = {&quot;schema&quot;: &quot;entity-v3-purpose-bound-access-v1&quot;, &quot;grant_id&quot;: rid(&quot;pgrant3&quot;),
+                &quot;controller&quot;: controller, &quot;grantee&quot;: grantee, &quot;resource_ref&quot;: str(resource_ref),
+                &quot;purposes&quot;: purposes, &quot;actions&quot;: actions, &quot;max_uses&quot;: max(0, int(max_uses)),
+                &quot;expires_at_ms&quot;: int(expires_at_ms), &quot;status&quot;: &quot;ACTIVE&quot;, &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(controller, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO grants VALUES(?,?,?,?,?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;grant_id&quot;], controller, grantee, str(resource_ref),
+                json.dumps(purposes), json.dumps(actions), body[&quot;max_uses&quot;], 0,
+                body[&quot;expires_at_ms&quot;], &quot;ACTIVE&quot;, body[&quot;created_at_ms&quot;],
+                json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)
+
+    def revoke(self, controller: str, grant_id: str) -&gt; dict:
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            row = db.execute(&quot;SELECT * FROM grants WHERE grant_id=?&quot;, (grant_id,)).fetchone()
+            if not row:
+                raise KeyError(&quot;purpose grant missing&quot;)
+            if row[&quot;controller&quot;] != controller:
+                raise PermissionError(&quot;only controller may revoke purpose grant&quot;)
+            if row[&quot;status&quot;] == &quot;REVOKED&quot;:
+                return {&quot;grant_id&quot;: grant_id, &quot;status&quot;: &quot;REVOKED&quot;, &quot;already_revoked&quot;: True}
+        body = {&quot;schema&quot;: &quot;entity-v3-purpose-bound-revocation-v1&quot;, &quot;grant_id&quot;: grant_id,
+                &quot;controller&quot;: controller, &quot;status&quot;: &quot;REVOKED&quot;, &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(controller, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;UPDATE grants SET status=&#x27;REVOKED&#x27; WHERE grant_id=?&quot;, (grant_id,))
+        return dict(body, signature=sig, already_revoked=False)
+
+    def authorize_use(self, grant_id: str, grantee: str, purpose: str, action: str,
+                      evidence_sha256: str, *, at_ms: int | None = None) -&gt; dict:
+        at = int(at_ms or now_ms())
+        purpose, action = purpose.upper(), action.upper()
+        evidence_sha256 = sha256_hex(evidence_sha256)
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            db.execute(&quot;BEGIN IMMEDIATE&quot;)
+            row = db.execute(&quot;SELECT * FROM grants WHERE grant_id=?&quot;, (grant_id,)).fetchone()
+            if not row or row[&quot;status&quot;] != &quot;ACTIVE&quot;:
+                raise PermissionError(&quot;inactive purpose grant&quot;)
+            if row[&quot;grantee&quot;] != grantee:
+                raise PermissionError(&quot;purpose grant grantee mismatch&quot;)
+            if at &gt; int(row[&quot;expires_at_ms&quot;]):
+                raise PermissionError(&quot;purpose grant expired&quot;)
+            if purpose not in set(json.loads(row[&quot;purposes_json&quot;])):
+                raise PermissionError(&quot;purpose not authorized&quot;)
+            if action not in set(json.loads(row[&quot;actions_json&quot;])):
+                raise PermissionError(&quot;action not authorized&quot;)
+            max_uses, used = int(row[&quot;max_uses&quot;]), int(row[&quot;used_count&quot;])
+            if max_uses and used &gt;= max_uses:
+                raise PermissionError(&quot;purpose grant use cap exhausted&quot;)
+            use_id = rid(&quot;puse3&quot;)
+            body = {&quot;schema&quot;: &quot;entity-v3-purpose-use-v1&quot;, &quot;use_id&quot;: use_id,
+                    &quot;grant_id&quot;: grant_id, &quot;grantee&quot;: grantee, &quot;purpose&quot;: purpose,
+                    &quot;action&quot;: action, &quot;evidence_sha256&quot;: evidence_sha256,
+                    &quot;created_at_ms&quot;: at}
+            sig = self.identity.sign(grantee, body)
+            db.execute(&quot;INSERT INTO uses VALUES(?,?,?,?,?,?,?,?)&quot;, (
+                use_id, grant_id, grantee, purpose, action, evidence_sha256,
+                at, json.dumps(sig, sort_keys=True)))
+            db.execute(&quot;UPDATE grants SET used_count=used_count+1 WHERE grant_id=?&quot;, (grant_id,))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

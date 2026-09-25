@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/01_Core_Runtime/permissions/canonical_permissions.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/01_Core_Runtime/permissions/canonical_permissions.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/01_Core_Runtime/permissions/canonical_permissions.py</code></p><p><b>SHA-256:</b> <code>6e98e8432c161870291c0c4e868857a9ddbfecd8ecbbd72eb54947a797d7e012</code></p><p><b>Bytes:</b> 12,172</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/permissions/canonical_permissions.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-1f92e5cae24b.html">_now</a></li><li><a href="../../../reference/symbols/entity/id-c4fa6c319a71.html">_id</a></li><li><a href="../../../reference/symbols/entity/authoritycapabilitystore-0ad8829f4352.html">AuthorityCapabilityStore</a></li><li><a href="../../../reference/symbols/entity/thresholdauthoritystore-27adfeb61992.html">ThresholdAuthorityStore</a></li><li><a href="../../../reference/symbols/entity/authoritycapabilitystore-init-4cd9312c1e33.html">AuthorityCapabilityStore.__init__</a></li><li><a href="../../../reference/symbols/entity/authoritycapabilitystore-connect-421c5cb1b12b.html">AuthorityCapabilityStore._connect</a></li><li><a href="../../../reference/symbols/entity/authoritycapabilitystore-init-db-c95f3455759a.html">AuthorityCapabilityStore._init_db</a></li><li><a href="../../../reference/symbols/entity/authoritycapabilitystore-grant-2602152b3ee8.html">AuthorityCapabilityStore.grant</a></li><li><a href="../../../reference/symbols/entity/authoritycapabilitystore-revoke-a157a754e3d3.html">AuthorityCapabilityStore.revoke</a></li><li><a href="../../../reference/symbols/entity/authoritycapabilitystore-approve-ccbfad979d54.html">AuthorityCapabilityStore.approve</a></li><li><a href="../../../reference/symbols/entity/authoritycapabilitystore-authorize-036f5cdacbe4.html">AuthorityCapabilityStore.authorize</a></li><li><a href="../../../reference/symbols/entity/authoritycapabilitystore-status-ddbcb691917a.html">AuthorityCapabilityStore.status</a></li><li><a href="../../../reference/symbols/entity/thresholdauthoritystore-init-00b8b3d83f8e.html">ThresholdAuthorityStore.__init__</a></li><li><a href="../../../reference/symbols/entity/thresholdauthoritystore-connect-c6d5d6e92536.html">ThresholdAuthorityStore._connect</a></li><li><a href="../../../reference/symbols/entity/thresholdauthoritystore-init-db-2f462e6a03eb.html">ThresholdAuthorityStore._init_db</a></li><li><a href="../../../reference/symbols/entity/thresholdauthoritystore-create-policy-7abdd9624a40.html">ThresholdAuthorityStore.create_policy</a></li><li><a href="../../../reference/symbols/entity/thresholdauthoritystore-revoke-policy-d205f5eb8a62.html">ThresholdAuthorityStore.revoke_policy</a></li><li><a href="../../../reference/symbols/entity/thresholdauthoritystore-approve-1a0e64677879.html">ThresholdAuthorityStore.approve</a></li><li><a href="../../../reference/symbols/entity/thresholdauthoritystore-authorize-dca8f1fc7f21.html">ThresholdAuthorityStore.authorize</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from contextlib import contextmanager
+import json, secrets, sqlite3, time
+
+
+def _now(): return int(time.time()*1000)
+def _id(prefix): return f&quot;{prefix}-&quot;+secrets.token_hex(20)
+
+
+class AuthorityCapabilityStore:
+    &quot;&quot;&quot;Least-privilege agent delegation and approval evidence; fail closed on expiry/revocation/scope mismatch.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path,identity):
+        self.root=Path(state_dir)/&quot;authority&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;capabilities.sqlite&quot;; self.identity=identity; self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS capabilities(capability_id TEXT PRIMARY KEY,grantor_entity_id TEXT NOT NULL,agent_id TEXT NOT NULL,operations_json TEXT NOT NULL,asset_scope_json TEXT NOT NULL,counterparty_scope_json TEXT NOT NULL,financial_limit REAL,expires_at_ms INTEGER,approval_required INTEGER NOT NULL,delegation_allowed INTEGER NOT NULL,status TEXT NOT NULL,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,revoked_at_ms INTEGER)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS approvals(approval_id TEXT PRIMARY KEY,capability_id TEXT NOT NULL,approver_entity_id TEXT NOT NULL,operation TEXT NOT NULL,object_ref TEXT,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+    def grant(self,grantor_entity_id: str,agent_id: str,*,operations: list[str],asset_scope: list[str]|None=None,counterparty_scope: list[str]|None=None,financial_limit: float|None=None,expires_at_ms: int|None=None,approval_required: bool=False,delegation_allowed: bool=False) -&gt; dict:
+        ops=sorted({str(x).strip().upper() for x in operations if str(x).strip()})
+        if not ops: raise ValueError(&quot;at least one operation required&quot;)
+        capability_id=_id(&quot;cap1&quot;); now=_now(); assets=sorted({str(x) for x in (asset_scope or [])}); parties=sorted({str(x) for x in (counterparty_scope or [])})
+        body={&quot;schema&quot;:&quot;entity-agent-capability-v1&quot;,&quot;capability_id&quot;:capability_id,&quot;grantor_entity_id&quot;:grantor_entity_id,&quot;agent_id&quot;:str(agent_id),&quot;operations&quot;:ops,&quot;asset_scope&quot;:assets,&quot;counterparty_scope&quot;:parties,&quot;financial_limit&quot;:financial_limit,&quot;expires_at_ms&quot;:expires_at_ms,&quot;approval_required&quot;:bool(approval_required),&quot;delegation_allowed&quot;:bool(delegation_allowed),&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now}
+        sig=self.identity.sign(grantor_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO capabilities VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(capability_id,grantor_entity_id,str(agent_id),json.dumps(ops),json.dumps(assets),json.dumps(parties),financial_limit,expires_at_ms,int(approval_required),int(delegation_allowed),&quot;ACTIVE&quot;,json.dumps(sig,sort_keys=True),now,None))
+        return dict(body,signature=sig)
+
+    def revoke(self,grantor_entity_id: str,capability_id: str) -&gt; dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM capabilities WHERE capability_id=?&quot;,(capability_id,)).fetchone()
+        if not row: raise KeyError(&quot;capability not found&quot;)
+        if row[&quot;grantor_entity_id&quot;]!=grantor_entity_id: raise PermissionError(&quot;capability grantor mismatch&quot;)
+        now=_now()
+        with self._connect() as db: db.execute(&quot;UPDATE capabilities SET status=&#x27;REVOKED&#x27;,revoked_at_ms=? WHERE capability_id=?&quot;,(now,capability_id))
+        return {&quot;capability_id&quot;:capability_id,&quot;status&quot;:&quot;REVOKED&quot;,&quot;revoked_at_ms&quot;:now}
+
+    def approve(self,approver_entity_id: str,capability_id: str,operation: str,object_ref: str|None=None) -&gt; dict:
+        approval_id=_id(&quot;apr1&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-approval-v1&quot;,&quot;approval_id&quot;:approval_id,&quot;capability_id&quot;:capability_id,&quot;approver_entity_id&quot;:approver_entity_id,&quot;operation&quot;:str(operation).upper(),&quot;object_ref&quot;:object_ref,&quot;created_at_ms&quot;:now}
+        sig=self.identity.sign(approver_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO approvals VALUES(?,?,?,?,?,?,?)&quot;,(approval_id,capability_id,approver_entity_id,body[&quot;operation&quot;],object_ref,json.dumps(sig,sort_keys=True),now))
+        return dict(body,signature=sig)
+
+    def authorize(self,capability_id: str,agent_id: str,operation: str,*,asset_id: str|None=None,counterparty_id: str|None=None,amount: float|None=None,object_ref: str|None=None) -&gt; dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM capabilities WHERE capability_id=?&quot;,(capability_id,)).fetchone()
+        if not row: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;capability_not_found&quot;}
+        if row[&quot;status&quot;]!=&quot;ACTIVE&quot;: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;capability_not_active&quot;}
+        if row[&quot;agent_id&quot;]!=str(agent_id): return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;agent_mismatch&quot;}
+        if row[&quot;expires_at_ms&quot;] is not None and int(row[&quot;expires_at_ms&quot;])&lt;_now(): return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;capability_expired&quot;}
+        op=str(operation).upper(); ops=set(json.loads(row[&quot;operations_json&quot;]))
+        if op not in ops: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;operation_not_granted&quot;}
+        assets=set(json.loads(row[&quot;asset_scope_json&quot;])); parties=set(json.loads(row[&quot;counterparty_scope_json&quot;]))
+        if assets and asset_id not in assets: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;asset_out_of_scope&quot;}
+        if parties and counterparty_id not in parties: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;counterparty_out_of_scope&quot;}
+        if amount is not None and row[&quot;financial_limit&quot;] is not None and float(amount)&gt;float(row[&quot;financial_limit&quot;]): return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;financial_limit_exceeded&quot;}
+        if bool(row[&quot;approval_required&quot;]):
+            with self._connect() as db: approval=db.execute(&quot;SELECT 1 FROM approvals WHERE capability_id=? AND operation=? AND (? IS NULL OR object_ref=?) ORDER BY created_at_ms DESC LIMIT 1&quot;,(capability_id,op,object_ref,object_ref)).fetchone()
+            if not approval: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;approval_required&quot;}
+        return {&quot;allowed&quot;:True,&quot;capability_id&quot;:capability_id,&quot;grantor_entity_id&quot;:row[&quot;grantor_entity_id&quot;],&quot;agent_id&quot;:row[&quot;agent_id&quot;],&quot;operation&quot;:op}
+
+    def status(self) -&gt; dict:
+        with self._connect() as db:
+            active=db.execute(&quot;SELECT COUNT(*) FROM capabilities WHERE status=&#x27;ACTIVE&#x27;&quot;).fetchone()[0]
+            approvals=db.execute(&quot;SELECT COUNT(*) FROM approvals&quot;).fetchone()[0]
+        return {&quot;ready&quot;:True,&quot;least_privilege&quot;:True,&quot;fail_closed&quot;:True,&quot;active_capabilities&quot;:int(active),&quot;approvals&quot;:int(approvals),&quot;database&quot;:str(self.path)}
+
+class ThresholdAuthorityStore:
+    &quot;&quot;&quot;Machine-enforced M-of-N approval for high-impact organization authority changes.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path,identity):
+        self.root=Path(state_dir)/&quot;authority&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;threshold_authority.sqlite&quot;; self.identity=identity; self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS threshold_policies(policy_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,operation TEXT NOT NULL,approvers_json TEXT NOT NULL,threshold_n INTEGER NOT NULL,status TEXT NOT NULL,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,revoked_at_ms INTEGER)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS threshold_votes(vote_id TEXT PRIMARY KEY,policy_id TEXT NOT NULL,request_id TEXT NOT NULL,approver_entity_id TEXT NOT NULL,object_ref TEXT,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,UNIQUE(policy_id,request_id,approver_entity_id))&quot;)
+    def create_policy(self,controller_entity_id: str,operation: str,approvers: list[str],threshold: int) -&gt; dict:
+        members=sorted({str(x).strip() for x in approvers if str(x).strip()})
+        if not members: raise ValueError(&quot;at least one approver required&quot;)
+        threshold=int(threshold)
+        if threshold&lt;1 or threshold&gt;len(members): raise ValueError(&quot;threshold must be between 1 and approver count&quot;)
+        policy_id=_id(&quot;thr1&quot;); now=_now(); op=str(operation or &quot;&quot;).upper().strip()
+        if not op: raise ValueError(&quot;operation required&quot;)
+        body={&quot;schema&quot;:&quot;entity-threshold-authority-v1&quot;,&quot;policy_id&quot;:policy_id,&quot;controller_entity_id&quot;:controller_entity_id,&quot;operation&quot;:op,&quot;approvers&quot;:members,&quot;threshold&quot;:threshold,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now}
+        sig=self.identity.sign(controller_entity_id,body)
+        with self._connect() as db:
+            db.execute(&quot;INSERT INTO threshold_policies VALUES(?,?,?,?,?,?,?,?,?)&quot;,(policy_id,controller_entity_id,op,json.dumps(members),threshold,&quot;ACTIVE&quot;,json.dumps(sig,sort_keys=True),now,None))
+        return dict(body,signature=sig)
+
+    def revoke_policy(self,controller_entity_id: str,policy_id: str) -&gt; dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM threshold_policies WHERE policy_id=?&quot;,(policy_id,)).fetchone()
+        if not row: raise KeyError(&quot;threshold policy not found&quot;)
+        if row[&quot;controller_entity_id&quot;]!=controller_entity_id: raise PermissionError(&quot;threshold policy controller mismatch&quot;)
+        now=_now()
+        with self._connect() as db: db.execute(&quot;UPDATE threshold_policies SET status=&#x27;REVOKED&#x27;,revoked_at_ms=? WHERE policy_id=?&quot;,(now,policy_id))
+        return {&quot;policy_id&quot;:policy_id,&quot;status&quot;:&quot;REVOKED&quot;,&quot;revoked_at_ms&quot;:now}
+    def approve(self,policy_id: str,request_id: str,approver_entity_id: str,object_ref: str|None=None) -&gt; dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM threshold_policies WHERE policy_id=?&quot;,(policy_id,)).fetchone()
+        if not row: raise KeyError(&quot;threshold policy not found&quot;)
+        if row[&quot;status&quot;]!=&quot;ACTIVE&quot;: raise PermissionError(&quot;threshold policy not active&quot;)
+        members=set(json.loads(row[&quot;approvers_json&quot;]))
+        if approver_entity_id not in members: raise PermissionError(&quot;approver is outside threshold authority&quot;)
+        vote_id=_id(&quot;vote1&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-threshold-vote-v1&quot;,&quot;vote_id&quot;:vote_id,&quot;policy_id&quot;:policy_id,&quot;request_id&quot;:str(request_id),&quot;approver_entity_id&quot;:approver_entity_id,&quot;operation&quot;:row[&quot;operation&quot;],&quot;object_ref&quot;:object_ref,&quot;created_at_ms&quot;:now}
+        sig=self.identity.sign(approver_entity_id,body)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

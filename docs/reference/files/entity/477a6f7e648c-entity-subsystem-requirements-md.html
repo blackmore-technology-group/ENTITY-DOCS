@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/15_Operations/migration/ENTITY_SUBSYSTEM_REQUIREMENTS.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/15_Operations/migration/ENTITY_SUBSYSTEM_REQUIREMENTS.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/15_Operations/migration/ENTITY_SUBSYSTEM_REQUIREMENTS.md</code></p><p><b>SHA-256:</b> <code>f41e82c812bc06b84f7fa81c9c25b771e032bad01edb7753d0f7a81858d16b25</code></p><p><b>Bytes:</b> 1,935</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/15_Operations/migration/ENTITY_SUBSYSTEM_REQUIREMENTS.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY Subsystem Requirements — Migration
+Source: SERS-ENTITY-001 — Target Architecture v1.0
+Repository scope: `15_Operations/migration`
+Status: Active engineering requirement
+Cross-stream contract: `docs/requirements/CROSS_IMPLEMENTATION_COMPATIBILITY.md`
+
+## Subsystem Purpose
+Migrations must preserve signed historical meaning, record source/target versions and roots, and be independently verifiable.
+
+## Mandatory Shared Invariants
+- Private by default; default deny; explicit enrollment; least privilege.
+- Cryptographic evidence SHALL remain distinct from legal ownership, factual truth, consent and market value.
+- UNKNOWN and DERIVED_INFERENCE SHALL NOT be silently promoted to VERIFIED or DIRECT_OBSERVATION.
+- Authoritative mutation SHALL pass current policy/capability authorization and fail closed on denial.
+- Durable evidence SHALL preserve identifiers, schema/version, provenance, signer/authority and applicable timestamps.
+- Historical meaning SHALL change only through superseding/corrective state, never silent rewriting.
+- External/AI/tool content SHALL be untrusted data unless explicitly authorized as instruction.
+- No subsystem may make sovereignty depend on an optional provider, public blockchain or continued BTG availability.
+
+## Integration / Acceptance
+- Interfaces SHALL preserve NIKI=intelligence, ADAM=governed execution, BSIE=world/relationship state, BECP=observable external boundary, ENTITY=sovereign rights/authority.
+- Implementations SHALL remain compatible with the root cross-chat contract, including C2PA trust separation, revocation-aware federation, signed downgrade protection, source enrollment and historical evidence assurance.
+- Qualification SHALL include positive and negative authorization/state-transition tests appropriate to this subsystem.
+- Release evidence SHALL demonstrate implemented behavior; unqualified capability SHALL NOT be represented as production complete.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

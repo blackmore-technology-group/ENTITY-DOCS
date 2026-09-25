@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RecoveryQuorum.approve Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>RecoveryQuorum.approve</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/governance_privacy.py#L185">ENTITY/src/31_Profiles/governance_privacy.py#L185</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>RecoveryQuorum.approve(self, request_id: str, approver: str)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def approve(self, request_id: str, approver: str) -&gt; dict:
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            req = db.execute(&quot;SELECT * FROM requests WHERE request_id=? AND status=&#x27;OPEN&#x27;&quot;,
+                             (request_id,)).fetchone()
+            if not req: raise KeyError(&quot;open recovery request missing&quot;)
+            policy = db.execute(&quot;SELECT * FROM policies WHERE entity_id=?&quot;, (req[&quot;entity_id&quot;],)).fetchone()
+        if approver not in set(json.loads(policy[&quot;approvers_json&quot;])):
+            raise PermissionError(&quot;not a recovery approver&quot;)
+        body = {&quot;schema&quot;: &quot;entity-v3-recovery-approval-v1&quot;, &quot;request_id&quot;: request_id,
+                &quot;entity_id&quot;: req[&quot;entity_id&quot;], &quot;approver&quot;: approver, &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(approver, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT OR REPLACE INTO approvals VALUES(?,?,?,?)&quot;,
+                       (request_id, approver, body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+            count = db.execute(&quot;SELECT COUNT(*) FROM approvals WHERE request_id=?&quot;, (request_id,)).fetchone()[0]
+        return dict(body, signature=sig, approval_count=count, threshold=int(policy[&quot;threshold&quot;]))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

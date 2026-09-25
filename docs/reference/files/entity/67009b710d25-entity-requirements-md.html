@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/04_Entity_Registry/ENTITY_REQUIREMENTS.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/04_Entity_Registry/ENTITY_REQUIREMENTS.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/04_Entity_Registry/ENTITY_REQUIREMENTS.md</code></p><p><b>SHA-256:</b> <code>22db1c521f79359bc5f9a697b8d79f9b5a8748ec73b3594534b9d9f540ee2ece</code></p><p><b>Bytes:</b> 1,864</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/04_Entity_Registry/ENTITY_REQUIREMENTS.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY Registry Requirements
+Source: SERS-ENTITY-003 Complete Master Engineering Design v2.2
+Status: Authoritative repository requirement mapping
+
+## Domain Model
+- Registry SHALL support Entity, RelationshipIdentity, KeyAuthority, Credential, Source, Asset, AssetVersion, ProvenanceEvent, RightsClaim, Policy, Consent, Licence, UsageEvent, UsageReceipt, ExportEvent, TermsSnapshot, Settlement, AccountingEntry, DataPool, PoolContribution, Dispute, Attestation, WitnessCheckpoint, AgentCapability, Approval and RecoveryPolicy.
+- Every durable high-value object SHALL have a collision-resistant unique identifier.
+
+## Identity and Relationships
+- Root identity SHALL remain stable across operational key rotation.
+- Pairwise/purpose-specific relationship identifiers SHALL be supported so external relationships need not expose one universal identifier.
+- Verification status SHALL remain separate from identity existence.
+- Delegations SHALL be explicit, scoped, revocable and auditable.
+
+## Rights Graph
+- Single-owner semantics SHALL be superseded by a many-to-many Rights &amp; Claims Graph.
+- Claims SHALL support claimant, right type, share, scope, territory, jurisdiction, legal basis, dates, evidence, signature, verification and dispute state.
+- Competing or complementary claims SHALL coexist without fabrication or silent resolution.
+## SERS-ENTITY-003 v2.2 Sovereign Authority Objects
+- Registry SHALL support AuthorityRelationship, CustodyRelationship, StorageBinding, ProcessingGrant, SovereignDelegation, EconomicParticipationRight, ProviderMigrationRecord and SovereignExportManifest domain semantics.
+- Provider/custodian records SHALL NOT silently become ownership, consent, licensing or governance authority.
+- Sovereign authority SHALL remain stable across storage-provider substitution unless an explicit governed authority transition occurs.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

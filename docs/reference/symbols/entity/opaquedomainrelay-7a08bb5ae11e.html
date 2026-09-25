@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OpaqueDomainRelay Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>OpaqueDomainRelay</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/protocols/canonical_domain_relay.py#L4">ENTITY/src/22_Sovereign_Domain/protocols/canonical_domain_relay.py#L4</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Optional transport carrier. It can forward opaque bytes but owns no Entity authority.</p><h2>Source excerpt</h2><pre><code>class OpaqueDomainRelay:
+    &quot;&quot;&quot;Optional transport carrier. It can forward opaque bytes but owns no Entity authority.&quot;&quot;&quot;
+    def __init__(self,relay_id=&#x27;relay-local&#x27;):
+        self.relay_id=str(relay_id); self.frames=0; self.bytes=0
+    def forward(self,frame:bytes)-&gt;bytes:
+        raw=bytes(frame); self.frames+=1; self.bytes+=len(raw); return raw
+    def transport_receipt(self,frame:bytes)-&gt;dict:
+        return {&#x27;schema&#x27;:&#x27;entity-domain-relay-receipt-v1&#x27;,&#x27;relay_id&#x27;:self.relay_id,
+                &#x27;frame_sha256&#x27;:hashlib.sha256(bytes(frame)).hexdigest(),&#x27;bytes&#x27;:len(frame),
+                &#x27;relay_is_authority&#x27;:False,&#x27;relay_is_licensor&#x27;:False,&#x27;relay_is_owner&#x27;:False}
+    def authority_claim(self,*_args,**_kwargs)-&gt;dict:
+        return {&#x27;accepted&#x27;:False,&#x27;reason&#x27;:&#x27;relay_transport_possession_is_not_sovereign_authority&#x27;,
+                &#x27;relay_is_authority&#x27;:False}
+    def status(self):
+        return {&#x27;ready&#x27;:True,&#x27;frames&#x27;:self.frames,&#x27;bytes&#x27;:self.bytes,&#x27;payload_interpretation_required&#x27;:False,
+                &#x27;relay_is_authority&#x27;:False,&#x27;mandatory_relay&#x27;:False}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

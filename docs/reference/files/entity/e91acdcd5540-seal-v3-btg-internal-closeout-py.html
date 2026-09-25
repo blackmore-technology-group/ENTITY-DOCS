@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/seal_v3_btg_internal_closeout.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/seal_v3_btg_internal_closeout.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/seal_v3_btg_internal_closeout.py</code></p><p><b>SHA-256:</b> <code>f8a5c5574246a0e20d2f41066a00d3a8b7c73647ad3e372c04cc6a83760582cf</code></p><p><b>Bytes:</b> 9,877</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/seal_v3_btg_internal_closeout.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-69fb02f2e27d.html">load</a></li><li><a href="../../../reference/symbols/entity/sha-37753ad899e1.html">sha</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json, pathlib, sys
+
+REPO = pathlib.Path(__file__).resolve().parents[1]
+DATE = &quot;2026-09-23&quot;
+BASE_FILES = [
+    &quot;docs/qualification/ENTITY_V3_0_0_RELEASE_QUALIFICATION_2026-09-23.json&quot;,
+    &quot;docs/qualification/ENTITY_V3_BTG_POLYGLOT_QUALIFICATION_2026-09-23.json&quot;,
+    &quot;docs/qualification/ENTITY_V3_INTERNAL_SCALE_QUALIFICATION_2026-09-23.json&quot;,
+    &quot;docs/qualification/ENTITY_V3_INTERNAL_MARKET_SCALE_QUALIFICATION_2026-09-23.json&quot;,
+    &quot;docs/qualification/ENTITY_V3_INTERNAL_OPERATIONAL_SOAK_2026-09-23.json&quot;,
+    &quot;docs/qualification/ENTITY_V3_INTERNAL_CRYPTO_ASSURANCE_2026-09-23.json&quot;,
+    &quot;docs/qualification/ENTITY_V3_INTERNAL_PRIVACY_CRYPTO_ASSURANCE_2026-09-23.json&quot;,
+    &quot;docs/compliance/ENTITY_V3_REGULATORY_ENGINEERING_MATRIX_2026-09-23.md&quot;,
+    &quot;docs/compliance/ENTITY_V3_REGULATORY_ENGINEERING_MATRIX_2026-09-23.json&quot;,
+    &quot;qualification/v3-btg-internal/README.md&quot;,
+    &quot;tools/qualify_v3_internal_scale.py&quot;,
+    &quot;tools/qualify_v3_internal_market_scale.py&quot;,
+    &quot;tools/qualify_v3_internal_soak.py&quot;,
+    &quot;tools/qualify_v3_internal_crypto.py&quot;,
+    &quot;tools/qualify_v3_internal_privacy_crypto.py&quot;,
+    &quot;tools/verify_v3_btg_polyglot.py&quot;,
+    &quot;tools/seal_v3_btg_internal_closeout.py&quot;,
+    &quot;tools/verify_v3_btg_closeout_manifest.py&quot;,
+]
+KIT = sorted((REPO / &quot;qualification/v3-btg-internal/CONFORMANCE_KIT&quot;).glob(&quot;*&quot;))
+RESULTS = sorted((REPO / &quot;qualification/v3-btg-internal/results&quot;).rglob(&quot;*&quot;))
+FILES = BASE_FILES + [p.relative_to(REPO).as_posix() for p in KIT if p.is_file()] + [p.relative_to(REPO).as_posix() for p in RESULTS if p.is_file()]
+
+def load(rel: str):
+    return json.loads((REPO / rel).read_text(encoding=&quot;utf-8-sig&quot;))
+
+def sha(rel: str) -&gt; str:
+    return hashlib.sha256((REPO / rel).read_bytes()).hexdigest()
+
+missing = [p for p in FILES if not (REPO / p).is_file()]
+if missing:
+    raise SystemExit(&quot;missing evidence: &quot; + &quot;, &quot;.join(missing))
+release, poly, scale, market, soak, crypto, privacy, reg = (
+    load(BASE_FILES[0]), load(BASE_FILES[1]), load(BASE_FILES[2]), load(BASE_FILES[3]),
+    load(BASE_FILES[4]), load(BASE_FILES[5]), load(BASE_FILES[6]), load(BASE_FILES[8])
+)
+checks = {
+    &quot;release_gate&quot;: release.get(&quot;status&quot;) == &quot;BTG_INTERNAL_QUALIFIED_FOR_OPEN_SOURCE_RELEASE&quot; and release.get(&quot;evidence&quot;, {}).get(&quot;complete_regression&quot;) == {&quot;passed&quot;: 90, &quot;total&quot;: 90},
+    &quot;polyglot&quot;: poly.get(&quot;status&quot;) == &quot;PASS&quot; and len(poly.get(&quot;implementations&quot;, {})) == 5 and poly.get(&quot;cross_language_state_agreement&quot;) and poly.get(&quot;cross_language_recovery_agreement&quot;) and poly.get(&quot;cross_language_result_agreement&quot;),
+    &quot;persistence_scale&quot;: scale.get(&quot;pass&quot;) is True and scale.get(&quot;assets&quot;) == 1_000_000 and scale.get(&quot;events&quot;) == 3_000_000 and scale.get(&quot;sqlite_quick_check&quot;) == &quot;ok&quot;,
+    &quot;market_scale&quot;: market.get(&quot;pass&quot;) is True and market.get(&quot;total_fully_settled_trades&quot;, 0) &gt;= 4_000,
+    &quot;operational_soak&quot;: soak.get(&quot;pass&quot;) is True and soak.get(&quot;target_total_wall_seconds&quot;, 0) &gt;= 900,
+    &quot;crypto_assurance&quot;: crypto.get(&quot;pass&quot;) is True and crypto.get(&quot;total_adversarial_cases&quot;, 0) &gt;= 5_400,
+    &quot;privacy_crypto_assurance&quot;: privacy.get(&quot;pass&quot;) is True and privacy.get(&quot;total_assertions&quot;, 0) &gt;= 3_000,
+    &quot;regulatory_engineering&quot;: reg.get(&quot;status&quot;) == &quot;INTERNAL_ENGINEERING_MAPPING_COMPLETE&quot;,
+}
+status = &quot;PASS&quot; if all(checks.values()) else &quot;FAIL&quot;
+record = {
+    &quot;schema&quot;: &quot;entity-v3-btg-internal-closeout-v1&quot;,
+    &quot;date&quot;: DATE,
+    &quot;status&quot;: status,
+    &quot;classification&quot;: &quot;BTG_INTERNAL_POST_RELEASE_QUALIFICATION_CLOSEOUT&quot;,
+    &quot;release&quot;: {&quot;tag&quot;: &quot;v3.0.0&quot;, &quot;commit&quot;: &quot;63acd0962965eda1f80bc8afc6259029daaec7aa&quot;, &quot;snapshot_sha256&quot;: &quot;b08d691922928a4e2c1fecb2d18bb3c22f5856480f140337a946ebb047ab114a&quot;},
+    &quot;checks&quot;: checks,
+    &quot;metrics&quot;: {
+        &quot;languages&quot;: len(poly.get(&quot;implementations&quot;, {})),
+        &quot;invalid_vectors_rejected_each&quot;: poly.get(&quot;sealed_kit&quot;, {}).get(&quot;invalid_vectors&quot;),
+        &quot;assets&quot;: scale.get(&quot;assets&quot;), &quot;events&quot;: scale.get(&quot;events&quot;),
+        &quot;market_scale_trades&quot;: market.get(&quot;total_fully_settled_trades&quot;),
+        &quot;soak_seconds&quot;: soak.get(&quot;target_total_wall_seconds&quot;), &quot;soak_trades&quot;: soak.get(&quot;total_settled_trades&quot;),
+        &quot;signature_replay_crypto_cases&quot;: crypto.get(&quot;total_adversarial_cases&quot;),
+        &quot;privacy_crypto_assertions&quot;: privacy.get(&quot;total_assertions&quot;),
+    },
+    &quot;release_boundary_status&quot;: {
+        &quot;cross_language_live_v3_interoperability_pending&quot;: &quot;CLOSED_FOR_BTG_CONTROLLED_TRANSACTION_RECOVERY_INTEROP; EXTERNAL_UNRELATED_INTEROP_REMAINS&quot;,
+        &quot;production_exchange_capacity_not_certified&quot;: &quot;CLOSED_FOR_BTG_INTERNAL_TECHNICAL_SCALE_AND_CONTINUITY; EXTERNAL_SLA_OR_INDEPENDENT_CERTIFICATION_NOT_CLAIMED&quot;,
+        &quot;external_unrelated_party_v3_reimplementation_pending&quot;: &quot;EXTERNAL_PENDING&quot;,
+        &quot;independent_external_crypto_review&quot;: &quot;EXTERNAL_PENDING; BTG_INTERNAL_ASSURANCE_CLOSED&quot;,
+        &quot;regulatory_classification_not_determined_by_protocol&quot;: &quot;ENGINEERING_MAPPING_CLOSED; DEPLOYMENT_SPECIFIC_EXTERNAL_CLASSIFICATION_REMAINS&quot;,
+        &quot;legal_title_not_determined_by_protocol&quot;: &quot;PERMANENT_PROTOCOL_TRUTH_BOUNDARY&quot;,
+        &quot;market_value_not_declared_by_protocol&quot;: &quot;PERMANENT_PROTOCOL_TRUTH_BOUNDARY&quot;,
+        &quot;external_payment_evidence_is_attestation_not_absolute_truth&quot;: &quot;PERMANENT_PROTOCOL_TRUTH_BOUNDARY&quot;,
+    },
+    &quot;internally_closed&quot;: [
+        &quot;five-language BTG-controlled v3 transaction/recovery conformance and deterministic cross-language agreement&quot;,
+        &quot;million-asset / multi-million-event persistent-state qualification&quot;,
+        &quot;sustained real EEP execution scale qualification&quot;,
+        &quot;bounded operational continuity soak with periodic implementation reopen&quot;,
+        &quot;signature/replay/canonical-wire/payment-attestation misuse assurance&quot;,
+        &quot;selective-disclosure and AES-GCM privacy-primitive assurance&quot;,
+        &quot;regulatory engineering/control mapping&quot;,
+        &quot;v3.0.0 destructive recovery, concurrency, atomic rollback and execution-time economic binding&quot;,
+    ],
+    &quot;external_remaining&quot;: [
+        &quot;unrelated third-party v3 implementation and external live interoperability&quot;,
+        &quot;independent external security/cryptographic review&quot;,
+        &quot;deployment-specific external legal/regulatory classification or validation where required&quot;,
+    ],
+}
+json_path = REPO / &quot;docs/qualification/ENTITY_V3_BTG_INTERNAL_CLOSEOUT_2026-09-23.json&quot;
+json_path.write_text(json.dumps(record, indent=2, sort_keys=True) + &quot;\n&quot;, encoding=&quot;utf-8&quot;)
+md_path = REPO / &quot;docs/qualification/ENTITY_V3_BTG_INTERNAL_CLOSEOUT_2026-09-23.md&quot;
+md_path.write_text(f&quot;&quot;&quot;# ENTITY v3 — BTG Internal Post-Release Qualification Closeout
+
+Date: {DATE}  
+Release: `v3.0.0`  
+Release commit: `63acd0962965eda1f80bc8afc6259029daaec7aa`  
+Status: **{status}**
+
+This addendum does not modify the immutable v3.0.0 release tag. It records qualification work completed by Blackmore Technology Group after release.
+
+## BTG-controlled tracks closed
+
+- Five native implementations — Rust, TypeScript, C#, Go and Swift — independently accepted the same valid v3 transaction/recovery inputs, rejected all eight invalid vectors, and converged on identical state, recovery and result hashes.
+- Persistent-state scale: **{scale.get(&#x27;assets&#x27;):,} assets and {scale.get(&#x27;events&#x27;):,} events**, close/reopen verified, SQLite quick-check `ok`.
+- Sustained market execution: **{market.get(&#x27;total_fully_settled_trades&#x27;):,} fully settled EEP trades** across reference and qualification-mirror implementations.
+- Operational continuity soak: **{soak.get(&#x27;target_total_wall_seconds&#x27;)} seconds**, periodic implementation reopen, **{soak.get(&#x27;total_settled_trades&#x27;):,} settled trades**.
+- Cryptographic misuse assurance: **{crypto.get(&#x27;total_adversarial_cases&#x27;):,}** signature/replay/canonicalization/payment-attestation attack cases passed.
+- Privacy assurance: **{privacy.get(&#x27;total_assertions&#x27;):,}** selective-disclosure and AES-GCM assertions passed.
+- Regulatory engineering/control mapping completed for the documented Canadian, British Columbia, European Union and United States baselines.
+- The v3.0.0 release&#x27;s destructive recovery, concurrency, rollback and execution-time economic-binding evidence remains part of the qualification chain.
+
+## What remains external
+</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

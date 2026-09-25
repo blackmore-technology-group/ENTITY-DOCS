@@ -1,0 +1,66 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DataEconomicSovereigntyTests Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>DataEconomicSovereigntyTests</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_data_economic_sovereignty.py#L16">ENTITY/tests/test_v3_data_economic_sovereignty.py#L16</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class DataEconomicSovereigntyTests(unittest.TestCase):
+    def test_doctrine_status_preserves_truth_boundaries(self):
+        s = des.DataEconomicSovereignty.doctrine_status()
+        self.assertTrue(s[&quot;data_may_be_productive_capital&quot;])
+        self.assertFalse(s[&quot;artificial_information_scarcity_required&quot;])
+        self.assertTrue(s[&quot;scarcity_may_exist_in_bounded_economic_interests&quot;])
+        self.assertFalse(s[&quot;protocol_determines_legal_title&quot;])
+        self.assertFalse(s[&quot;protocol_determines_fair_value&quot;])
+        self.assertFalse(s[&quot;protocol_determines_regulatory_classification&quot;])
+
+    def _capital(self):
+        return des.DataEconomicSovereignty.declare_digital_capital(
+            &quot;obj3-dataset&quot;, &quot;ent-originator&quot;, Z, Z, asset_class=&quot;DATASET&quot;)
+
+    def test_bounded_interest_creates_rights_based_scarcity_not_byte_scarcity(self):
+        capital = self._capital()
+        interest = des.DataEconomicSovereignty.define_bounded_interest(
+            capital, &quot;ent-holder&quot;, actions=[&quot;TRAIN&quot;, &quot;READ&quot;], quantity=100,
+            duration_ms=86_400_000, jurisdiction=&quot;CA-BC&quot;, transferable=True,
+            derivation_allowed=True, participation_bps=125)
+        result = des.DataEconomicSovereignty.validate_interest(interest)
+        self.assertTrue(result[&quot;valid&quot;])
+        self.assertFalse(result[&quot;information_scarcity_required&quot;])
+        self.assertTrue(result[&quot;economic_scarcity_is_rights_based&quot;])
+        self.assertTrue(interest[&quot;underlying_information_remains_nonrival&quot;])
+        self.assertIn(&quot;USAGE_QUANTITY&quot;, interest[&quot;scarcity_sources&quot;])
+        self.assertIn(&quot;JURISDICTION&quot;, interest[&quot;scarcity_sources&quot;])
+
+    def test_market_instrument_cannot_silently_transfer_underlying_data(self):
+        interest = des.DataEconomicSovereignty.define_bounded_interest(
+            self._capital(), &quot;ent-holder&quot;, actions=[&quot;TRAIN&quot;], quantity=10)
+        instrument = {&quot;rights&quot;: {&quot;actions&quot;: [&quot;TRAIN&quot;]}, &quot;total_units&quot;: 10,
+                      &quot;underlying_data_ownership_transferred&quot;: True}
+        result = des.DataEconomicSovereignty.validate_market_instrument(instrument, interest)
+        self.assertFalse(result[&quot;valid&quot;])
+        self.assertIn(&quot;instrument_silently_transfers_data_ownership&quot;, result[&quot;failures&quot;])
+
+    def test_market_instrument_rejects_protocol_fair_value_or_classification_claims(self):
+        interest = des.DataEconomicSovereignty.define_bounded_interest(
+            self._capital(), &quot;ent-holder&quot;, actions=[&quot;QUERY&quot;], quantity=5)
+        instrument = {&quot;rights&quot;: {&quot;actions&quot;: [&quot;QUERY&quot;]}, &quot;total_units&quot;: 5,
+                      &quot;protocol_declares_fair_value&quot;: True,
+                      &quot;protocol_declares_regulatory_classification&quot;: True}
+        result = des.DataEconomicSovereignty.validate_market_instrument(instrument, interest)
+        self.assertFalse(result[&quot;valid&quot;])
+        self.assertIn(&quot;protocol_fair_value_claim_prohibited&quot;, result[&quot;failures&quot;])
+        self.assertIn(&quot;protocol_classification_claim_prohibited&quot;, result[&quot;failures&quot;])
+
+    def test_economic_consequence_preserves_full_provenance_chain_and_truth_boundaries(self):
+        chain = des.DataEconomicSovereignty.bind_economic_consequence(
+            dco_ref=&quot;obj3-dataset&quot;, interest_id=&quot;interest3-a&quot;, use_event_ref=&quot;event3-use&quot;,
+            derivative_ref=&quot;obj3-model&quot;, value_ref=&quot;value3-revenue&quot;, evidence_sha256=Z,
+            methodology_ref=&quot;attrib3-contractual&quot;)
+        self.assertTrue(chain[&quot;provenance_chain_complete&quot;])
+        self.assertTrue(chain[&quot;economic_consequence_is_evidence_not_objective_truth&quot;])
+        self.assertTrue(chain[&quot;legal_title_not_determined&quot;])
+        self.assertTrue(chain[&quot;fair_value_not_determined&quot;])
+        self.assertTrue(chain[&quot;regulatory_classification_not_determined&quot;])
+
+    def test_invalid_interest_cannot_claim_information_itself_is_scarce(self):
+        interest = des.DataEconomicSovereignty.define_bounded_interest(
+            self._capital(), &quot;ent-holder&quot;, actions=[&quot;READ&quot;])
+        interest[&quot;underlying_information_remains_nonrival&quot;] = False
+        result = des.DataEconomicSovereignty.validate_interest(interest)
+        self.assertFalse(result[&quot;valid&quot;])
+        self.assertIn(&quot;information_scarcity_asserted&quot;, result[&quot;failures&quot;])</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

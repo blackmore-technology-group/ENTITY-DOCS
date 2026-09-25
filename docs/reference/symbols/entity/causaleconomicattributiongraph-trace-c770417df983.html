@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CausalEconomicAttributionGraph.trace Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>CausalEconomicAttributionGraph.trace</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/37_Verifiable_Reality/causal_economic_graph.py#L124">ENTITY/src/37_Verifiable_Reality/causal_economic_graph.py#L124</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>CausalEconomicAttributionGraph.trace(self, source_node_id: str, target_node_id: str)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def trace(self, source_node_id: str, target_node_id: str) -&gt; dict:
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            rows = db.execute(&quot;SELECT * FROM edges ORDER BY created_at_ms,edge_id&quot;).fetchall()
+        edges = [json.loads(row[&quot;body_json&quot;]) for row in rows]
+        adj: dict[str, list[dict]] = {}
+        for edge in edges:
+            adj.setdefault(edge[&quot;from_node_id&quot;], []).append(edge)
+        queue = [(source_node_id, [])]
+        seen = set()
+        while queue:
+            node, path = queue.pop(0)
+            if node == target_node_id:
+                return {
+                    &quot;connected&quot;: True,
+                    &quot;path&quot;: path,
+                    &quot;path_sha256&quot;: digest(path),
+                    &quot;causal_chain_is_evidence_bound&quot;: all(bool(edge[&quot;evidence_refs&quot;]) for edge in path),
+                    &quot;economic_attribution_is_not_accounting_fair_value&quot;: True,
+                }
+            if node in seen:
+                continue
+            seen.add(node)
+            for edge in adj.get(node, []):
+                queue.append((edge[&quot;to_node_id&quot;], path + [edge]))
+        return {
+            &quot;connected&quot;: False,
+            &quot;path&quot;: [],
+            &quot;path_sha256&quot;: digest([]),
+            &quot;causal_chain_is_evidence_bound&quot;: False,
+            &quot;economic_attribution_is_not_accounting_fair_value&quot;: True,
+        }</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

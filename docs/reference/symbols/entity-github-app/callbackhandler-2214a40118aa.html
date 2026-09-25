@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CallbackHandler Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>CallbackHandler</h1><div class="meta"><b>Repository:</b> ENTITY-GITHUB-APP<br><b>Commit:</b> <code>7ef6b33b5d586cabd1f912491152fcff10e0ad47</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY-GITHUB-APP/blob/7ef6b33b5d586cabd1f912491152fcff10e0ad47/src/entity_github_app/callback_server.py#L9">ENTITY-GITHUB-APP/src/entity_github_app/callback_server.py#L9</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class CallbackHandler(BaseHTTPRequestHandler):
+    server_version = &quot;ENTITYGitHubCallback/0.1&quot;
+
+    def do_GET(self) -&gt; None:
+        parsed = urlparse(self.path)
+        if parsed.path != &quot;/github/callback&quot;:
+            self.send_error(404)
+            return
+        params = parse_qs(parsed.query)
+        state = escape(params.get(&quot;state&quot;, [&quot;&quot;])[0])
+        body = (
+            &quot;&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&#x27;utf-8&#x27;&gt;&quot;
+            &quot;&lt;title&gt;ENTITY Evidence Bridge&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&quot;
+            &quot;&lt;h1&gt;ENTITY Evidence Bridge&lt;/h1&gt;&quot;
+            &quot;&lt;p&gt;GitHub returned successfully to the local callback endpoint.&lt;/p&gt;&quot;
+            &quot;&lt;p&gt;No user OAuth token is requested or stored by this endpoint.&lt;/p&gt;&quot;
+            + (f&quot;&lt;p&gt;State received: &lt;code&gt;{state}&lt;/code&gt;&lt;/p&gt;&quot; if state else &quot;&quot;)
+            + &quot;&lt;p&gt;You can close this tab and return to GitHub.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&quot;
+        ).encode(&quot;utf-8&quot;)
+        self.send_response(200)
+        self.send_header(&quot;Content-Type&quot;, &quot;text/html; charset=utf-8&quot;)
+        self.send_header(&quot;Cache-Control&quot;, &quot;no-store&quot;)
+        self.send_header(&quot;Content-Length&quot;, str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, fmt: str, *args: Any) -&gt; None:
+        print(f&quot;{self.address_string()} - {fmt % args}&quot;)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

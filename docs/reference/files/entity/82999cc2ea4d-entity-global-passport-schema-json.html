@@ -1,0 +1,84 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / protocol/v3/ENTITY_GLOBAL_PASSPORT.schema.json Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / protocol/v3/ENTITY_GLOBAL_PASSPORT.schema.json</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>protocol/v3/ENTITY_GLOBAL_PASSPORT.schema.json</code></p><p><b>SHA-256:</b> <code>4fbfed9be1b1484bc5d28b8101d1c908b2ccced13e4e99ec896c5b054892ebdd</code></p><p><b>Bytes:</b> 3,876</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/protocol/v3/ENTITY_GLOBAL_PASSPORT.schema.json">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>{
+  &quot;$schema&quot;: &quot;https://json-schema.org/draft/2020-12/schema&quot;,
+  &quot;$id&quot;: &quot;https://entity.btg.example/protocol/v3/ENTITY_GLOBAL_PASSPORT.schema.json&quot;,
+  &quot;title&quot;: &quot;ENTITY v3.4 Global Passport&quot;,
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;required&quot;: [
+    &quot;schema&quot;, &quot;passport_id&quot;, &quot;object_id&quot;, &quot;controller_entity_id&quot;, &quot;version&quot;,
+    &quot;core_primitives&quot;, &quot;rights_passport_id&quot;, &quot;rights_passport_sha256&quot;, &quot;profile_stack&quot;,
+    &quot;evidence_refs&quot;, &quot;provenance_refs&quot;, &quot;standards_mappings&quot;, &quot;economic_state&quot;,
+    &quot;one_passport_many_profiles&quot;, &quot;profile_composition_does_not_create_authority&quot;,
+    &quot;standards_mapping_is_not_normative_equivalence&quot;, &quot;evidence_does_not_establish_objective_truth&quot;,
+    &quot;legal_effect_is_deployment_specific&quot;, &quot;underlying_information_remains_nonrival&quot;
+  ],
+  &quot;properties&quot;: {
+    &quot;schema&quot;: {&quot;const&quot;: &quot;entity-v3-global-passport-v1&quot;},
+    &quot;passport_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;minLength&quot;: 8},
+    &quot;object_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;minLength&quot;: 8},
+    &quot;controller_entity_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;minLength&quot;: 8},
+    &quot;version&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;minLength&quot;: 1},
+    &quot;core_primitives&quot;: {&quot;const&quot;: [&quot;ENTITY&quot;, &quot;AUTHORITY&quot;, &quot;RIGHT&quot;, &quot;EVENT&quot;, &quot;VALUE&quot;]},
+    &quot;rights_passport_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;minLength&quot;: 8},
+    &quot;rights_passport_sha256&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;pattern&quot;: &quot;^[0-9a-f]{64}$&quot;},
+    &quot;profile_stack&quot;: {&quot;$ref&quot;: &quot;#/$defs/profileStack&quot;},
+    &quot;evidence_refs&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;items&quot;: {&quot;type&quot;: &quot;string&quot;}, &quot;uniqueItems&quot;: true},
+    &quot;provenance_refs&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;items&quot;: {&quot;type&quot;: &quot;string&quot;}, &quot;uniqueItems&quot;: true},
+    &quot;jurisdiction_profile_refs&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;items&quot;: {&quot;type&quot;: &quot;string&quot;}, &quot;uniqueItems&quot;: true},
+    &quot;standards_mappings&quot;: {
+      &quot;type&quot;: &quot;array&quot;,
+      &quot;items&quot;: {
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;required&quot;: [&quot;standard&quot;, &quot;normative_equivalence_claimed&quot;],
+        &quot;properties&quot;: {
+          &quot;standard&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;minLength&quot;: 1},
+          &quot;normative_equivalence_claimed&quot;: {&quot;const&quot;: false}
+        },
+        &quot;additionalProperties&quot;: true
+      }
+    },
+    &quot;economic_state&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;state&quot;, &quot;amount_units&quot;, &quot;currency&quot;, &quot;market_observation_is_not_accounting_fair_value&quot;],
+      &quot;properties&quot;: {
+        &quot;state&quot;: {&quot;enum&quot;: [&quot;POTENTIAL&quot;, &quot;OFFER&quot;, &quot;CONTRACTED&quot;, &quot;ACCRUED&quot;, &quot;SETTLED&quot;, &quot;REALIZED&quot;]},
+        &quot;amount_units&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0},
+        &quot;currency&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;minLength&quot;: 1},
+        &quot;market_observation_is_not_accounting_fair_value&quot;: {&quot;const&quot;: true}
+      },
+      &quot;additionalProperties&quot;: true
+    },
+    &quot;industry_context&quot;: {&quot;type&quot;: &quot;object&quot;},
+    &quot;one_passport_many_profiles&quot;: {&quot;const&quot;: true},
+    &quot;profile_composition_does_not_create_authority&quot;: {&quot;const&quot;: true},
+    &quot;standards_mapping_is_not_normative_equivalence&quot;: {&quot;const&quot;: true},
+    &quot;evidence_does_not_establish_objective_truth&quot;: {&quot;const&quot;: true},
+    &quot;legal_effect_is_deployment_specific&quot;: {&quot;const&quot;: true},
+    &quot;underlying_information_remains_nonrival&quot;: {&quot;const&quot;: true},
+    &quot;created_at_ms&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0}
+  },
+  &quot;$defs&quot;: {
+    &quot;profileStack&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;schema&quot;, &quot;profile_refs&quot;, &quot;profile_hashes&quot;, &quot;fail_closed&quot;, &quot;profile_composition_does_not_create_authority&quot;],
+      &quot;properties&quot;: {
+        &quot;schema&quot;: {&quot;const&quot;: &quot;entity-v3-profile-stack-resolution-v1&quot;},
+        &quot;profile_refs&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;contains&quot;: {&quot;const&quot;: &quot;entity-profile:global@1.0&quot;},
+          &quot;minItems&quot;: 1,
+          &quot;uniqueItems&quot;: true
+        },
+        &quot;profile_hashes&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;pattern&quot;: &quot;^[0-9a-f]{64}$&quot;},
+          &quot;minItems&quot;: 1
+        },
+        &quot;fail_closed&quot;: {&quot;const&quot;: true},
+        &quot;profile_composition_does_not_create_authority&quot;: {&quot;const&quot;: true},
+        &quot;standards_mapping_is_not_normative_equivalence&quot;: {&quot;const&quot;: true}
+      },
+      &quot;additionalProperties&quot;: true
+    }
+  },
+  &quot;additionalProperties&quot;: true
+}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

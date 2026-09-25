@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/10_NIKI/causal_intelligence.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/10_NIKI/causal_intelligence.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/10_NIKI/causal_intelligence.py</code></p><p><b>SHA-256:</b> <code>1968e394d09accdf6e377b857286e475df3a25c84fe8699f9e4df0ad2b0443f1</code></p><p><b>Bytes:</b> 15,681</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/10_NIKI/causal_intelligence.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/digest-764a3a60a1d7.html">_digest</a></li><li><a href="../../../reference/symbols/entity/num-5a643c95c367.html">_num</a></li><li><a href="../../../reference/symbols/entity/clamp-a079ce8acb93.html">_clamp</a></li><li><a href="../../../reference/symbols/entity/causalmodelerror-f4eb9794fe63.html">CausalModelError</a></li><li><a href="../../../reference/symbols/entity/causalmodelregistry-df354c85adf2.html">CausalModelRegistry</a></li><li><a href="../../../reference/symbols/entity/validate-model-spec-66b8f19aaf06.html">validate_model_spec</a></li><li><a href="../../../reference/symbols/entity/topological-order-fd1e923b781f.html">_topological_order</a></li><li><a href="../../../reference/symbols/entity/evaluate-equation-eec41fce8ad0.html">_evaluate_equation</a></li><li><a href="../../../reference/symbols/entity/causalintelligenceengine-7c3673807b41.html">CausalIntelligenceEngine</a></li><li><a href="../../../reference/symbols/entity/causalmodelregistry-init-89182850b8ce.html">CausalModelRegistry.__init__</a></li><li><a href="../../../reference/symbols/entity/causalmodelregistry-load-71231e9e61d7.html">CausalModelRegistry._load</a></li><li><a href="../../../reference/symbols/entity/causalmodelregistry-save-f3166a6bb969.html">CausalModelRegistry._save</a></li><li><a href="../../../reference/symbols/entity/causalmodelregistry-register-a7139334ed76.html">CausalModelRegistry.register</a></li><li><a href="../../../reference/symbols/entity/causalmodelregistry-get-a4f1eea33a13.html">CausalModelRegistry.get</a></li><li><a href="../../../reference/symbols/entity/causalmodelregistry-status-2b4101d73d08.html">CausalModelRegistry.status</a></li><li><a href="../../../reference/symbols/entity/visit-7490d911ab55.html">visit</a></li><li><a href="../../../reference/symbols/entity/causalintelligenceengine-init-8112524712fb.html">CausalIntelligenceEngine.__init__</a></li><li><a href="../../../reference/symbols/entity/causalintelligenceengine-evaluate-d2e6704b4a35.html">CausalIntelligenceEngine.evaluate</a></li><li><a href="../../../reference/symbols/entity/causalintelligenceengine-compare-4e4de3731725.html">CausalIntelligenceEngine.compare</a></li><li><a href="../../../reference/symbols/entity/causalintelligenceengine-objective-effect-61ff0a82c7cd.html">CausalIntelligenceEngine._objective_effect</a></li><li><a href="../../../reference/symbols/entity/causalintelligenceengine-analyze-f14f824d3ab6.html">CausalIntelligenceEngine.analyze</a></li><li><a href="../../../reference/symbols/entity/causalintelligenceengine-stability-ba5fc5742bf7.html">CausalIntelligenceEngine.stability</a></li><li><a href="../../../reference/symbols/entity/causalintelligenceengine-status-ef8bd01574e5.html">CausalIntelligenceEngine.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+
+import hashlib
+import json
+import math
+import statistics
+from copy import deepcopy
+from pathlib import Path
+from threading import RLock
+from typing import Any
+
+
+MODEL_SCHEMA = &quot;niki-causal-model-v1&quot;
+ANALYSIS_SCHEMA = &quot;niki-causal-analysis-v1&quot;
+_ALLOWED_EQUATIONS = {&quot;input&quot;, &quot;constant&quot;, &quot;linear&quot;, &quot;logistic&quot;, &quot;threshold&quot;, &quot;lookup&quot;, &quot;min&quot;, &quot;max&quot;, &quot;sum&quot;, &quot;mean&quot;}
+
+
+def _digest(value: Any) -&gt; str:
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), default=str).encode(&quot;utf-8&quot;)).hexdigest()
+
+
+def _num(value: Any, default: float = 0.0) -&gt; float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return float(default)
+
+
+def _clamp(value: float, bounds: list | tuple | None) -&gt; float:
+    if not bounds or len(bounds) != 2:
+        return value
+    return max(float(bounds[0]), min(float(bounds[1]), value))
+
+
+class CausalModelError(ValueError):
+    pass
+
+
+class CausalModelRegistry:
+    &quot;&quot;&quot;Stores only explicitly ENTITY-approved causal model specifications.
+
+    The registry never learns or activates models by itself.  A model may also be
+    supplied ephemerally by an application for one reasoning call, but that does
+    not make the model authoritative or persistent.
+    &quot;&quot;&quot;
+
+    def __init__(self, state_dir: str | Path):
+        self.root = Path(state_dir) / &quot;niki_intelligence&quot;
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.path = self.root / &quot;causal_models.json&quot;
+        self._lock = RLock()
+        self.models: dict[str, dict[str, Any]] = {}
+        self._load()
+
+    def _load(self) -&gt; None:
+        if not self.path.is_file():
+            return
+        try:
+            data = json.loads(self.path.read_text(encoding=&quot;utf-8&quot;))
+            if isinstance(data, dict):
+                self.models = {str(k): v for k, v in data.items() if isinstance(v, dict)}
+        except Exception:
+            self.models = {}
+
+    def _save(self) -&gt; None:
+        tmp = self.path.with_suffix(&quot;.tmp&quot;)
+        tmp.write_text(json.dumps(self.models, indent=2, sort_keys=True) + &quot;\n&quot;, encoding=&quot;utf-8&quot;)
+        tmp.replace(self.path)
+
+    def register(self, spec: dict[str, Any], approval: dict[str, Any]) -&gt; dict[str, Any]:
+        validate_model_spec(spec)
+        if not isinstance(approval, dict) or approval.get(&quot;approved&quot;) is not True:
+            raise PermissionError(&quot;causal model activation requires explicit approval&quot;)
+        if str(approval.get(&quot;authority&quot;) or &quot;&quot;).upper() != &quot;ENTITY&quot;:
+            raise PermissionError(&quot;causal model activation authority must be ENTITY&quot;)
+        if not str(approval.get(&quot;approval_id&quot;) or &quot;&quot;).strip():
+            raise PermissionError(&quot;causal model activation requires approval_id&quot;)
+        record = deepcopy(spec)
+        record[&quot;activation&quot;] = {
+            &quot;authority&quot;: &quot;ENTITY&quot;,
+            &quot;approval_id&quot;: str(approval[&quot;approval_id&quot;]),
+            &quot;approved&quot;: True,
+        }
+        with self._lock:
+            self.models[str(spec[&quot;model_id&quot;])] = record
+            self._save()
+        return {&quot;registered&quot;: True, &quot;model_id&quot;: spec[&quot;model_id&quot;], &quot;model_sha256&quot;: _digest(spec)}
+
+    def get(self, model_id: str) -&gt; dict[str, Any] | None:
+        item = self.models.get(str(model_id))
+        return deepcopy(item) if item else None
+
+    def status(self) -&gt; dict[str, Any]:
+        return {
+            &quot;schema&quot;: &quot;niki-causal-model-registry-status-v1&quot;,
+            &quot;model_count&quot;: len(self.models),
+            &quot;activation_authority&quot;: &quot;ENTITY&quot;,
+            &quot;autonomous_activation&quot;: False,
+        }
+
+
+def validate_model_spec(spec: dict[str, Any]) -&gt; dict[str, Any]:
+    if not isinstance(spec, dict) or spec.get(&quot;schema&quot;) != MODEL_SCHEMA:
+        raise CausalModelError(f&quot;causal model must use schema {MODEL_SCHEMA}&quot;)
+    if not str(spec.get(&quot;model_id&quot;) or &quot;&quot;).strip():
+        raise CausalModelError(&quot;causal model requires model_id&quot;)
+    variables = spec.get(&quot;variables&quot;)
+    if not isinstance(variables, dict) or not variables:
+        raise CausalModelError(&quot;causal model requires variables&quot;)
+    provenance = spec.get(&quot;provenance&quot;)
+    if not isinstance(provenance, dict) or not str(provenance.get(&quot;source&quot;) or &quot;&quot;).strip():
+        raise CausalModelError(&quot;causal model requires provenance.source&quot;)
+    for name, node in variables.items():
+        if not isinstance(node, dict):
+            raise CausalModelError(f&quot;causal variable {name} must be an object&quot;)
+        parents = node.get(&quot;parents&quot;) or []
+        if not isinstance(parents, list):
+            raise CausalModelError(f&quot;causal variable {name} parents must be a list&quot;)
+        unknown = [p for p in parents if p not in variables]
+        if unknown:</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,102 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tests/test_public_contract.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tests/test_public_contract.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tests/test_public_contract.py</code></p><p><b>SHA-256:</b> <code>aa14c68a059bacba1871af6b95dbb6eac6e13ab4f62f1a916de9a2ef0522e00f</code></p><p><b>Bytes:</b> 3,893</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_public_contract.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-module-c40fd8a4362f.html">load_module</a></li><li><a href="../../../reference/symbols/entity/publiccontracttests-8905e13d4bc0.html">PublicContractTests</a></li><li><a href="../../../reference/symbols/entity/publiccontracttests-test-principal-bound-hash-only-flow-8e776f5cb87d.html">PublicContractTests.test_principal_bound_hash_only_flow</a></li><li><a href="../../../reference/symbols/entity/publiccontracttests-test-status-declares-non-ownership-boundary-e049266e9834.html">PublicContractTests.test_status_declares_non_ownership_boundary</a></li></ul><h2>Preview</h2><pre><code>import hashlib
+import importlib.util
+import pathlib
+import tempfile
+import unittest
+
+
+REPO = pathlib.Path(__file__).resolve().parents[1]
+SIMPLE = REPO / &quot;sdk&quot; / &quot;simple_sdk&quot; / &quot;canonical_simple_entity_sdk.py&quot;
+
+
+def load_module(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+simple_mod = load_module(&quot;entity_public_simple_sdk&quot;, SIMPLE)
+
+
+class PublicContractTests(unittest.TestCase):
+    def test_principal_bound_hash_only_flow(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            sdk = simple_mod.SimpleEntitySDK(tmp)
+
+            principal = sdk.create_entity(
+                &quot;Example Principal&quot;,
+                entity_type=&quot;person&quot;,
+                alias=&quot;example.principal.entity&quot;,
+            )
+            device = sdk.create_entity(
+                &quot;Example Device&quot;,
+                entity_type=&quot;system&quot;,
+                alias=&quot;example.device.entity&quot;,
+            )
+            app = sdk.create_application(
+                &quot;Example Application&quot;,
+                &quot;example.application.entity&quot;,
+                controller_entity_id=principal[&quot;entity_id&quot;],
+            )
+
+            binding = sdk.pair_device(
+                principal_entity_id=principal[&quot;entity_id&quot;],
+                application_entity_id=app[&quot;application_entity_id&quot;],
+                device_entity_id=device[&quot;entity_id&quot;],
+                display_name=&quot;Example Application Installation&quot;,
+                alias=&quot;example.application.installation.entity&quot;,
+            )
+
+            verified = sdk.verify_pairing(binding)
+            self.assertTrue(verified[&quot;valid&quot;])
+            self.assertEqual(verified[&quot;principal_entity_id&quot;], principal[&quot;entity_id&quot;])
+
+            digest = hashlib.sha256(b&quot;synthetic public example&quot;).hexdigest()
+            asset = sdk.register_asset(
+                binding,
+                content_sha256=digest,
+                size_bytes=24,
+                media_type=&quot;application/octet-stream&quot;,
+                title=&quot;Synthetic public example&quot;,
+                asset_kind=&quot;DATA&quot;,
+                source_subject_ref=principal[&quot;entity_id&quot;],
+                metadata={&quot;test&quot;: True},
+            )
+            self.assertFalse(asset[&quot;ownership_not_inferred&quot;] is False)
+            self.assertFalse(asset[&quot;economic_value_not_inferred&quot;] is False)
+            self.assertFalse(asset[&quot;raw_content_stored&quot;])
+
+            event = sdk.record_event(
+                binding,
+                event_type=&quot;data.example.mutation&quot;,
+                payload_sha256=hashlib.sha256(b&quot;synthetic event&quot;).hexdigest(),
+                subject_ids=[principal[&quot;entity_id&quot;]],
+            )
+            self.assertTrue(event[&quot;non_authoritative_application_event&quot;])
+            self.assertFalse(event[&quot;rights_state_mutated&quot;])
+            self.assertFalse(event[&quot;economic_state_mutated&quot;])
+
+            with self.assertRaises(PermissionError):
+                sdk.record_event(
+                    binding,
+                    event_type=&quot;payment.recorded&quot;,
+                    payload_sha256=hashlib.sha256(b&quot;forbidden&quot;).hexdigest(),
+                )
+
+            export_dir = pathlib.Path(tmp) / &quot;portable_export&quot;
+            sdk.export_entity(principal[&quot;entity_id&quot;], export_dir)
+            export_check = sdk.verify_export(export_dir)
+            self.assertTrue(export_check[&quot;valid&quot;])
+            self.assertTrue(export_check[&quot;provider_independent&quot;])
+
+    def test_status_declares_non_ownership_boundary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            status = simple_mod.SimpleEntitySDK(tmp).status()
+            self.assertTrue(status[&quot;provider_neutral&quot;])
+            self.assertTrue(status[&quot;registration_not_ownership&quot;])
+            self.assertTrue(status[&quot;economic_mutation_not_exposed&quot;])
+
+
+if __name__ == &quot;__main__&quot;:
+    unittest.main()</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

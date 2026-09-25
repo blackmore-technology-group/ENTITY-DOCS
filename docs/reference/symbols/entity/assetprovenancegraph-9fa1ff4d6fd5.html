@@ -1,0 +1,97 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AssetProvenanceGraph Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>AssetProvenanceGraph</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/04_Entity_Registry/provenance/canonical_provenance.py#L19">ENTITY/src/04_Entity_Registry/provenance/canonical_provenance.py#L19</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Signed provenance/lineage graph; provenance validity never implies truth or legal rights.</p><h2>Source excerpt</h2><pre><code>class AssetProvenanceGraph:
+    &quot;&quot;&quot;Signed provenance/lineage graph; provenance validity never implies truth or legal rights.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path,identity):
+        self.root=Path(state_dir)/&quot;asset_provenance&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;asset_provenance.sqlite&quot;; self.identity=identity; self._lock=RLock(); self._init_db()
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS bindings(asset_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,content_sha256 TEXT NOT NULL,soft_binding_type TEXT,soft_binding_value TEXT,c2pa_manifest_sha256 TEXT,c2pa_reference TEXT,provenance_status TEXT NOT NULL,truth_status TEXT NOT NULL,evidence_origin TEXT NOT NULL,recorded_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS derivations(derivation_id TEXT PRIMARY KEY,parent_asset_id TEXT NOT NULL,child_asset_id TEXT NOT NULL,relation TEXT NOT NULL,metadata_json TEXT NOT NULL,evidence_origin TEXT NOT NULL,created_at_ms INTEGER NOT NULL,actor_entity_id TEXT NOT NULL,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_deriv_parent ON derivations(parent_asset_id)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_deriv_child ON derivations(child_asset_id)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS c2pa_verifications(verification_id TEXT PRIMARY KEY,asset_id TEXT NOT NULL,controller_entity_id TEXT NOT NULL,file_sha256 TEXT NOT NULL,active_manifest TEXT,report_sha256 TEXT,validation_state TEXT NOT NULL,provenance_verified INTEGER NOT NULL,signer_trust TEXT NOT NULL,truth_status TEXT NOT NULL,evidence_origin TEXT NOT NULL,result_json TEXT NOT NULL,recorded_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+    def register_binding(self,controller_entity_id: str,asset_id: str,content_sha256: str,*,soft_binding_type: str|None=None,soft_binding_value: str|None=None,c2pa_manifest_sha256: str|None=None,c2pa_reference: str|None=None,evidence_origin: str=&quot;DIRECT_OBSERVATION&quot;) -&gt; dict:
+        digest=_sha256_hex(content_sha256); origin=str(evidence_origin or &quot;UNKNOWN&quot;).upper()
+        if origin not in EVIDENCE_ORIGINS: raise ValueError(&quot;unsupported evidence_origin&quot;)
+        c2pa_digest=_sha256_hex(c2pa_manifest_sha256) if c2pa_manifest_sha256 else None
+        now=_now(); body={&quot;schema&quot;:&quot;entity-provenance-binding-v2&quot;,&quot;asset_id&quot;:str(asset_id),&quot;controller_entity_id&quot;:controller_entity_id,&quot;content_sha256&quot;:digest,&quot;soft_binding_type&quot;:soft_binding_type,&quot;soft_binding_value&quot;:soft_binding_value,&quot;c2pa_manifest_sha256&quot;:c2pa_digest,&quot;c2pa_reference&quot;:c2pa_reference,&quot;provenance_status&quot;:&quot;RECORDED&quot;,&quot;truth_status&quot;:&quot;NOT_ASSESSED&quot;,&quot;evidence_origin&quot;:origin,&quot;recorded_at_ms&quot;:now}
+        sig=self.identity.sign(controller_entity_id,body)
+        with self._lock,self._connect() as db:
+            db.execute(&quot;INSERT OR REPLACE INTO bindings VALUES(?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(body[&quot;asset_id&quot;],controller_entity_id,digest,soft_binding_type,soft_binding_value,c2pa_digest,c2pa_reference,&quot;RECORDED&quot;,&quot;NOT_ASSESSED&quot;,origin,now,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def register_bindings_batch(self,controller_entity_id:str,bindings:list[dict])-&gt;list[dict]:
+        &quot;&quot;&quot;Register many individually signed provenance bindings in one transaction.&quot;&quot;&quot;
+        items=list(bindings or [])
+        if not items: return []
+        sign=self.identity.open_signing_session(controller_entity_id)
+        rows=[]; out=[]
+        for item in items:
+            digest=_sha256_hex(item.get(&quot;content_sha256&quot;)); origin=str(item.get(&quot;evidence_origin&quot;) or &quot;DIRECT_OBSERVATION&quot;).upper()
+            if origin not in EVIDENCE_ORIGINS: raise ValueError(&quot;unsupported evidence_origin&quot;)
+            c2pa=_sha256_hex(item.get(&quot;c2pa_manifest_sha256&quot;)) if item.get(&quot;c2pa_manifest_sha256&quot;) else None
+            now=_now(); body={&quot;schema&quot;:&quot;entity-provenance-binding-v2&quot;,&quot;asset_id&quot;:str(item[&quot;asset_id&quot;]),&quot;controller_entity_id&quot;:controller_entity_id,&quot;content_sha256&quot;:digest,&quot;soft_binding_type&quot;:item.get(&quot;soft_binding_type&quot;),&quot;soft_binding_value&quot;:item.get(&quot;soft_binding_value&quot;),&quot;c2pa_manifest_sha256&quot;:c2pa,&quot;c2pa_reference&quot;:item.get(&quot;c2pa_reference&quot;),&quot;provenance_status&quot;:&quot;RECORDED&quot;,&quot;truth_status&quot;:&quot;NOT_ASSESSED&quot;,&quot;evidence_origin&quot;:origin,&quot;recorded_at_ms&quot;:now}
+            sig=sign(body); rows.append((body[&quot;asset_id&quot;],controller_entity_id,digest,body[&quot;soft_binding_type&quot;],body[&quot;soft_binding_value&quot;],c2pa,body[&quot;c2pa_reference&quot;],&quot;RECORDED&quot;,&quot;NOT_ASSESSED&quot;,origin,now,json.dumps(sig,sort_keys=True))); out.append(dict(body,signature=sig))
+        with self._lock,self._connect() as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;); db.executemany(&quot;INSERT OR REPLACE INTO bindings VALUES(?,?,?,?,?,?,?,?,?,?,?,?)&quot;,rows)
+        return out
+
+    def verify_hard_binding(self,asset_id: str,observed_sha256: str) -&gt; dict:
+        observed=_sha256_hex(observed_sha256)
+        with self._connect() as db:
+            row=db.execute(&quot;SELECT * FROM bindings WHERE asset_id=?&quot;,(str(asset_id),)).fetchone()
+            if not row: raise KeyError(&quot;provenance binding not found&quot;)
+            matched=observed==row[&quot;content_sha256&quot;]
+            if matched: db.execute(&quot;UPDATE bindings SET provenance_status=&#x27;HARD_BINDING_VERIFIED&#x27; WHERE asset_id=?&quot;,(str(asset_id),))
+        return {&quot;asset_id&quot;:str(asset_id),&quot;hard_binding_match&quot;:matched,&quot;provenance_status&quot;:&quot;HARD_BINDING_VERIFIED&quot; if matched else row[&quot;provenance_status&quot;],&quot;truth_status&quot;:row[&quot;truth_status&quot;],&quot;rights_verified&quot;:False}
+    def apply_c2pa_verification(self,asset_id: str,result: dict) -&gt; dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM bindings WHERE asset_id=?&quot;,(str(asset_id),)).fetchone()
+        if not row: raise KeyError(&quot;provenance binding not found&quot;)
+        file_sha=_sha256_hex(result.get(&quot;file_sha256&quot;))
+        if file_sha!=str(row[&quot;content_sha256&quot;]).lower(): raise ValueError(&quot;C2PA verification file hash does not match asset hard binding&quot;)
+        verified=bool(result.get(&quot;provenance_verified&quot;)); now=_now(); verification_id=&quot;c2pav1-&quot;+uuid.uuid4().hex
+        truth=str(result.get(&quot;truth_status&quot;) or &quot;NOT_ASSESSED&quot;).upper()
+        if truth not in TRUTH_STATES: raise ValueError(&quot;invalid truth_status&quot;)
+        body={&quot;schema&quot;:&quot;entity-c2pa-verification-v2&quot;,&quot;verification_id&quot;:verification_id,&quot;asset_id&quot;:str(asset_id),&quot;controller_entity_id&quot;:row[&quot;controller_entity_id&quot;],&quot;file_sha256&quot;:file_sha,&quot;active_manifest&quot;:result.get(&quot;active_manifest&quot;),&quot;report_sha256&quot;:result.get(&quot;report_sha256&quot;),&quot;validation_state&quot;:str(result.get(&quot;validation_state&quot;) or &quot;UNKNOWN&quot;),&quot;provenance_verified&quot;:verified,&quot;signer_trust&quot;:str(result.get(&quot;signer_trust&quot;) or &quot;NOT_ASSESSED&quot;),&quot;truth_status&quot;:truth,&quot;truth_verified&quot;:False,&quot;rights_verified&quot;:False,&quot;evidence_origin&quot;:&quot;DIRECT_OBSERVATION&quot;,&quot;recorded_at_ms&quot;:now}
+        sig=self.identity.sign(row[&quot;controller_entity_id&quot;],body)
+        with self._lock,self._connect() as db:
+            db.execute(&quot;INSERT INTO c2pa_verifications VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(verification_id,str(asset_id),row[&quot;controller_entity_id&quot;],file_sha,body[&quot;active_manifest&quot;],body[&quot;report_sha256&quot;],body[&quot;validation_state&quot;],1 if verified else 0,body[&quot;signer_trust&quot;],truth,&quot;DIRECT_OBSERVATION&quot;,json.dumps(result,sort_keys=True),now,json.dumps(sig,sort_keys=True)))
+            if verified: db.execute(&quot;UPDATE bindings SET provenance_status=&#x27;C2PA_VERIFIED&#x27;,c2pa_manifest_sha256=?,c2pa_reference=? WHERE asset_id=?&quot;,(body[&quot;report_sha256&quot;],body[&quot;active_manifest&quot;],str(asset_id)))
+        return dict(body,signature=sig,provenance_status=&quot;C2PA_VERIFIED&quot; if verified else row[&quot;provenance_status&quot;])
+    def add_derivation(self,actor_entity_id: str,parent_asset_id: str,child_asset_id: str,relation: str,metadata: dict|None=None,evidence_origin: str=&quot;ENTITY_ASSERTION&quot;) -&gt; dict:
+        rel=str(relation or &quot;other&quot;).lower(); origin=str(evidence_origin or &quot;UNKNOWN&quot;).upper()
+        if rel not in DERIVATIONS: raise ValueError(&quot;unsupported derivation relation&quot;)
+        if origin not in EVIDENCE_ORIGINS: raise ValueError(&quot;unsupported evidence_origin&quot;)
+        now=_now(); derivation_id=&quot;drv1-&quot;+uuid.uuid4().hex
+        body={&quot;schema&quot;:&quot;entity-provenance-derivation-v2&quot;,&quot;derivation_id&quot;:derivation_id,&quot;parent_asset_id&quot;:str(parent_asset_id),&quot;child_asset_id&quot;:str(child_asset_id),&quot;relation&quot;:rel,&quot;metadata&quot;:dict(metadata or {}),&quot;evidence_origin&quot;:origin,&quot;created_at_ms&quot;:now,&quot;actor_entity_id&quot;:actor_entity_id}
+        sig=self.identity.sign(actor_entity_id,body)
+        with self._lock,self._connect() as db:
+            db.execute(&quot;INSERT INTO derivations VALUES(?,?,?,?,?,?,?,?,?)&quot;,(derivation_id,str(parent_asset_id),str(child_asset_id),rel,json.dumps(body[&quot;metadata&quot;],sort_keys=True),origin,now,actor_entity_id,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def lineage(self,asset_id: str) -&gt; dict:
+        with self._connect() as db:
+            binding=db.execute(&quot;SELECT * FROM bindings WHERE asset_id=?&quot;,(str(asset_id),)).fetchone()
+            parents=db.execute(&quot;SELECT * FROM derivations WHERE child_asset_id=? ORDER BY created_at_ms&quot;,(str(asset_id),)).fetchall()
+            children=db.execute(&quot;SELECT * FROM derivations WHERE parent_asset_id=? ORDER BY created_at_ms&quot;,(str(asset_id),)).fetchall()
+        return {&quot;asset_id&quot;:str(asset_id),&quot;binding&quot;:dict(binding) if binding else None,&quot;parents&quot;:[dict(x) for x in parents],&quot;children&quot;:[dict(x) for x in children],&quot;provenance_is_not_truth&quot;:True,&quot;provenance_is_not_rights&quot;:True}
+    def verify_binding_signature(self,asset_id: str) -&gt; bool:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM bindings WHERE asset_id=?&quot;,(str(asset_id),)).fetchone()
+        if not row: return False
+        body={&quot;schema&quot;:&quot;entity-provenance-binding-v2&quot;,&quot;asset_id&quot;:row[&quot;asset_id&quot;],&quot;controller_entity_id&quot;:row[&quot;controller_entity_id&quot;],&quot;content_sha256&quot;:row[&quot;content_sha256&quot;],&quot;soft_binding_type&quot;:row[&quot;soft_binding_type&quot;],&quot;soft_binding_value&quot;:row[&quot;soft_binding_value&quot;],&quot;c2pa_manifest_sha256&quot;:row[&quot;c2pa_manifest_sha256&quot;],&quot;c2pa_reference&quot;:row[&quot;c2pa_reference&quot;],&quot;provenance_status&quot;:&quot;RECORDED&quot;,&quot;truth_status&quot;:&quot;NOT_ASSESSED&quot;,&quot;evidence_origin&quot;:row[&quot;evidence_origin&quot;],&quot;recorded_at_ms&quot;:row[&quot;recorded_at_ms&quot;]}
+        sig=json.loads(row[&quot;signature_json&quot;]); manifest=self.identity.load_manifest(row[&quot;controller_entity_id&quot;])
+        return bool(self.identity.verify_signature(manifest,body,sig))
+
+    def status(self) -&gt; dict:
+        with self._connect() as db:
+            bindings=db.execute(&quot;SELECT COUNT(*) FROM bindings&quot;).fetchone()[0]
+            derivations=db.execute(&quot;SELECT COUNT(*) FROM derivations&quot;).fetchone()[0]
+            c2pa=db.execute(&quot;SELECT COUNT(*) FROM c2pa_verifications&quot;).fetchone()[0]
+        return {&quot;ready&quot;:True,&quot;schema&quot;:&quot;entity-asset-provenance-v2&quot;,&quot;bindings&quot;:int(bindings),&quot;derivations&quot;:int(derivations),&quot;c2pa_verifications&quot;:int(c2pa),&quot;provenance_truth_separation&quot;:True,&quot;provenance_rights_separation&quot;:True,&quot;evidence_origin_preserved&quot;:True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

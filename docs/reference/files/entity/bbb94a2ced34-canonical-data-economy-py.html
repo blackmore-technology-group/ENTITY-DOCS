@@ -1,0 +1,95 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/01_Core_Runtime/service_runtime/canonical_data_economy.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/01_Core_Runtime/service_runtime/canonical_data_economy.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/01_Core_Runtime/service_runtime/canonical_data_economy.py</code></p><p><b>SHA-256:</b> <code>2dc5675de89b886608ef72445dcdee4297d8d0c05e7ae5a40452d658a1e24b5f</code></p><p><b>Bytes:</b> 8,609</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/service_runtime/canonical_data_economy.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-7dde7aa42096.html">_now</a></li><li><a href="../../../reference/symbols/entity/id-9b9401df1454.html">_id</a></li><li><a href="../../../reference/symbols/entity/datapoolmanager-d446e934b449.html">DataPoolManager</a></li><li><a href="../../../reference/symbols/entity/dataspacegateway-0a1c3e256a3c.html">DataSpaceGateway</a></li><li><a href="../../../reference/symbols/entity/datapoolmanager-init-f7813e410fee.html">DataPoolManager.__init__</a></li><li><a href="../../../reference/symbols/entity/datapoolmanager-connect-76940d2e61a6.html">DataPoolManager._connect</a></li><li><a href="../../../reference/symbols/entity/datapoolmanager-init-db-efc61f5acede.html">DataPoolManager._init_db</a></li><li><a href="../../../reference/symbols/entity/datapoolmanager-create-pool-4838777e4139.html">DataPoolManager.create_pool</a></li><li><a href="../../../reference/symbols/entity/datapoolmanager-contribute-bb47af762897.html">DataPoolManager.contribute</a></li><li><a href="../../../reference/symbols/entity/datapoolmanager-allocation-92ccccd1a81f.html">DataPoolManager.allocation</a></li><li><a href="../../../reference/symbols/entity/datapoolmanager-status-f48a9f621754.html">DataPoolManager.status</a></li><li><a href="../../../reference/symbols/entity/dataspacegateway-init-b6c2be87888f.html">DataSpaceGateway.__init__</a></li><li><a href="../../../reference/symbols/entity/dataspacegateway-connect-a7b48fa33bc4.html">DataSpaceGateway._connect</a></li><li><a href="../../../reference/symbols/entity/dataspacegateway-init-db-455d17111196.html">DataSpaceGateway._init_db</a></li><li><a href="../../../reference/symbols/entity/dataspacegateway-create-space-19eb96e60b40.html">DataSpaceGateway.create_space</a></li><li><a href="../../../reference/symbols/entity/dataspacegateway-issue-session-fceeea413e44.html">DataSpaceGateway.issue_session</a></li><li><a href="../../../reference/symbols/entity/dataspacegateway-consume-6062e919bc2c.html">DataSpaceGateway.consume</a></li><li><a href="../../../reference/symbols/entity/dataspacegateway-status-ba6868f208b4.html">DataSpaceGateway.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from contextlib import contextmanager
+import json,secrets,sqlite3,time
+
+def _now(): return int(time.time()*1000)
+def _id(p): return f&quot;{p}-&quot;+secrets.token_hex(20)
+
+class DataPoolManager:
+    &quot;&quot;&quot;Governed contributor pool with versioned deterministic revenue allocation.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path,identity):
+        self.root=Path(state_dir)/&quot;data_economy&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;data_pools.sqlite&quot;; self.identity=identity; self._init_db()
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS pools(pool_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,name TEXT NOT NULL,version INTEGER NOT NULL,status TEXT NOT NULL,rules_json TEXT NOT NULL,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS contributions(contribution_id TEXT PRIMARY KEY,pool_id TEXT NOT NULL,contributor_entity_id TEXT NOT NULL,asset_id TEXT NOT NULL,weight_bps INTEGER NOT NULL,evidence_json TEXT NOT NULL,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,UNIQUE(pool_id,asset_id))&quot;)
+    def create_pool(self,controller_entity_id:str,name:str,*,rules:dict|None=None)-&gt;dict:
+        pid=_id(&quot;pool1&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-data-pool-v1&quot;,&quot;pool_id&quot;:pid,&quot;controller_entity_id&quot;:controller_entity_id,&quot;name&quot;:str(name)[:256],&quot;version&quot;:1,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;rules&quot;:dict(rules or {}),&quot;created_at_ms&quot;:now}
+        sig=self.identity.sign(controller_entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO pools VALUES(?,?,?,?,?,?,?,?)&quot;,(pid,controller_entity_id,body[&quot;name&quot;],1,&quot;ACTIVE&quot;,json.dumps(body[&quot;rules&quot;],sort_keys=True),json.dumps(sig,sort_keys=True),now))
+        return {**body,&quot;signature&quot;:sig}
+    def contribute(self,pool_id:str,contributor_entity_id:str,asset_id:str,*,weight_bps:int,evidence:dict)-&gt;dict:
+        weight=int(weight_bps)
+        if weight&lt;1 or weight&gt;10000: raise ValueError(&quot;weight_bps must be 1..10000&quot;)
+        self.identity.load_manifest(contributor_entity_id); cid=_id(&quot;contrib1&quot;); now=_now()
+        body={&quot;schema&quot;:&quot;entity-pool-contribution-v1&quot;,&quot;contribution_id&quot;:cid,&quot;pool_id&quot;:pool_id,&quot;contributor_entity_id&quot;:contributor_entity_id,&quot;asset_id&quot;:str(asset_id),&quot;weight_bps&quot;:weight,&quot;evidence&quot;:dict(evidence or {}),&quot;created_at_ms&quot;:now}
+        sig=self.identity.sign(contributor_entity_id,body)
+        with self._connect() as db:
+            if not db.execute(&quot;SELECT 1 FROM pools WHERE pool_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(pool_id,)).fetchone(): raise KeyError(&quot;active pool not found&quot;)
+            db.execute(&quot;INSERT INTO contributions VALUES(?,?,?,?,?,?,?,?)&quot;,(cid,pool_id,contributor_entity_id,str(asset_id),weight,json.dumps(body[&quot;evidence&quot;],sort_keys=True),json.dumps(sig,sort_keys=True),now))
+        return {**body,&quot;signature&quot;:sig}
+    def allocation(self,pool_id:str,amount_units:int,currency:str)-&gt;dict:
+        with self._connect() as db: rows=db.execute(&quot;SELECT contributor_entity_id,weight_bps FROM contributions WHERE pool_id=? ORDER BY contribution_id&quot;,(pool_id,)).fetchall()
+        if not rows: raise ValueError(&quot;pool has no contributions&quot;)
+        weights={}
+        for r in rows: weights[r[&quot;contributor_entity_id&quot;]]=weights.get(r[&quot;contributor_entity_id&quot;],0)+int(r[&quot;weight_bps&quot;])
+        total=sum(weights.values()); amount=max(0,int(amount_units)); ordered=sorted(weights)
+        dist={k:(amount*weights[k])//total for k in ordered}; remainder=amount-sum(dist.values())
+        for k in ordered[:remainder]: dist[k]+=1
+        return {&quot;schema&quot;:&quot;entity-data-pool-allocation-v1&quot;,&quot;pool_id&quot;:pool_id,&quot;amount_units&quot;:amount,&quot;currency&quot;:str(currency).upper(),&quot;distribution&quot;:dist,&quot;allocated_total&quot;:sum(dist.values()),&quot;deterministic&quot;:True,&quot;weight_total&quot;:total}
+    def status(self)-&gt;dict:
+        with self._connect() as db: pools=int(db.execute(&quot;SELECT COUNT(*) FROM pools&quot;).fetchone()[0]); contributions=int(db.execute(&quot;SELECT COUNT(*) FROM contributions&quot;).fetchone()[0])
+        return {&quot;ready&quot;:True,&quot;pools&quot;:pools,&quot;contributions&quot;:contributions,&quot;deterministic_allocation&quot;:True,&quot;contributor_rights_preserved&quot;:True}
+
+class DataSpaceGateway:
+    &quot;&quot;&quot;Metered compute-to-data authority; raw-file transfer is not implied by access.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path,identity):
+        self.root=Path(state_dir)/&quot;data_economy&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;data_spaces.sqlite&quot;; self.identity=identity; self._init_db()
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS spaces(space_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,assets_json TEXT NOT NULL,operations_json TEXT NOT NULL,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS sessions(session_id TEXT PRIMARY KEY,space_id TEXT NOT NULL,counterparty_entity_id TEXT NOT NULL,operation TEXT NOT NULL,nonce TEXT UNIQUE NOT NULL,status TEXT NOT NULL,quantity INTEGER NOT NULL,created_at_ms INTEGER NOT NULL,consumed_at_ms INTEGER)&quot;)
+    def create_space(self,controller_entity_id:str,assets:list[str],operations:list[str])-&gt;dict:
+        aid=sorted({str(x) for x in assets if str(x)}); ops=sorted({str(x).upper() for x in operations if str(x)})
+        if not aid or not ops: raise ValueError(&quot;assets and operations required&quot;)
+        sid=_id(&quot;space1&quot;); now=_now()
+        with self._connect() as db: db.execute(&quot;INSERT INTO spaces VALUES(?,?,?,?,?,?)&quot;,(sid,controller_entity_id,json.dumps(aid),json.dumps(ops),&quot;ACTIVE&quot;,now))
+        return {&quot;space_id&quot;:sid,&quot;controller_entity_id&quot;:controller_entity_id,&quot;assets&quot;:aid,&quot;operations&quot;:ops,&quot;raw_file_transfer_authorized&quot;:False}
+    def issue_session(self,controller_entity_id:str,space_id:str,counterparty_entity_id:str,operation:str,*,quantity:int=1,nonce:str)-&gt;dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM spaces WHERE space_id=?&quot;,(space_id,)).fetchone()
+        if not row or row[&quot;status&quot;]!=&quot;ACTIVE&quot;: raise KeyError(&quot;active data space not found&quot;)
+        if row[&quot;controller_entity_id&quot;]!=controller_entity_id: raise PermissionError(&quot;data space controller mismatch&quot;)
+        op=str(operation).upper()
+        if op not in set(json.loads(row[&quot;operations_json&quot;])): raise PermissionError(&quot;operation outside data-space scope&quot;)
+        session=_id(&quot;dss1&quot;); now=_now()
+        with self._connect() as db:
+            try: db.execute(&quot;INSERT INTO sessions VALUES(?,?,?,?,?,?,?,?,?)&quot;,(session,space_id,counterparty_entity_id,op,str(nonce),&quot;ISSUED&quot;,max(1,int(quantity)),now,None))
+            except sqlite3.IntegrityError as exc: raise ValueError(&quot;duplicate/replayed data-space nonce&quot;) from exc
+        return {&quot;session_id&quot;:session,&quot;space_id&quot;:space_id,&quot;counterparty_entity_id&quot;:counterparty_entity_id,&quot;operation&quot;:op,&quot;status&quot;:&quot;ISSUED&quot;,&quot;raw_file_transfer_authorized&quot;:False}
+    def consume(self,counterparty_entity_id:str,session_id:str)-&gt;dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM sessions WHERE session_id=?&quot;,(session_id,)).fetchone()
+        if not row: raise KeyError(&quot;data-space session not found&quot;)
+        if row[&quot;counterparty_entity_id&quot;]!=counterparty_entity_id: raise PermissionError(&quot;data-space counterparty mismatch&quot;)
+        if row[&quot;status&quot;]!=&quot;ISSUED&quot;: raise PermissionError(&quot;data-space session already consumed&quot;)
+        now=_now()
+        with self._connect() as db: db.execute(&quot;UPDATE sessions SET status=&#x27;CONSUMED&#x27;,consumed_at_ms=? WHERE session_id=?&quot;,(now,session_id))
+        return {&quot;session_id&quot;:session_id,&quot;status&quot;:&quot;CONSUMED&quot;,&quot;metered_quantity&quot;:int(row[&quot;quantity&quot;]),&quot;raw_file_transfer_observed&quot;:False,&quot;consumed_at_ms&quot;:now}
+    def status(self)-&gt;dict:
+        with self._connect() as db: spaces=int(db.execute(&quot;SELECT COUNT(*) FROM spaces&quot;).fetchone()[0]); sessions=int(db.execute(&quot;SELECT COUNT(*) FROM sessions&quot;).fetchone()[0])
+        return {&quot;ready&quot;:True,&quot;spaces&quot;:spaces,&quot;sessions&quot;:sessions,&quot;compute_to_data&quot;:True,&quot;raw_transfer_not_implied&quot;:True,&quot;replay_protected&quot;:True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

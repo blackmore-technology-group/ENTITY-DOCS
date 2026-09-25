@@ -1,0 +1,38 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>_evaluate_equation Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>_evaluate_equation</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/10_NIKI/causal_intelligence.py#L152">ENTITY/src/10_NIKI/causal_intelligence.py#L152</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>_evaluate_equation(name: str, node: dict[str, Any], state: dict[str, Any])</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>def _evaluate_equation(name: str, node: dict[str, Any], state: dict[str, Any]) -&gt; Any:
+    eq = node.get(&quot;equation&quot;) or {&quot;kind&quot;: &quot;input&quot;}
+    kind = str(eq.get(&quot;kind&quot;) or &quot;input&quot;)
+    parents = list(node.get(&quot;parents&quot;) or [])
+    values = {p: state.get(p) for p in parents}
+    if kind == &quot;input&quot;:
+        return state.get(name, eq.get(&quot;default&quot;))
+    if kind == &quot;constant&quot;:
+        return eq.get(&quot;value&quot;)
+    if kind in {&quot;linear&quot;, &quot;logistic&quot;}:
+        value = _num(eq.get(&quot;intercept&quot;, 0.0))
+        weights = eq.get(&quot;weights&quot;) or {}
+        for parent in parents:
+            value += _num(weights.get(parent, 0.0)) * _num(values.get(parent), 0.0)
+        if kind == &quot;logistic&quot;:
+            value = 1.0 / (1.0 + math.exp(-max(-60.0, min(60.0, value))))
+        return _clamp(value, eq.get(&quot;clamp&quot;))
+    if kind == &quot;threshold&quot;:
+        source = str(eq.get(&quot;source&quot;) or (parents[0] if parents else &quot;&quot;))
+        value = values.get(source, state.get(source))
+        threshold = eq.get(&quot;threshold&quot;, 0)
+        comparator = str(eq.get(&quot;comparator&quot;) or &quot;gte&quot;)
+        if comparator == &quot;gt&quot;: passed = _num(value) &gt; _num(threshold)
+        elif comparator == &quot;lt&quot;: passed = _num(value) &lt; _num(threshold)
+        elif comparator == &quot;lte&quot;: passed = _num(value) &lt;= _num(threshold)
+        elif comparator == &quot;eq&quot;: passed = value == threshold
+        else: passed = _num(value) &gt;= _num(threshold)
+        return eq.get(&quot;true_value&quot;, True) if passed else eq.get(&quot;false_value&quot;, False)
+    if kind == &quot;lookup&quot;:
+        source = str(eq.get(&quot;source&quot;) or (parents[0] if parents else &quot;&quot;))
+        key = str(values.get(source, state.get(source)))
+        return (eq.get(&quot;map&quot;) or {}).get(key, eq.get(&quot;default&quot;))
+    nums = [_num(values.get(p), 0.0) for p in parents]
+    if kind == &quot;min&quot;: return min(nums) if nums else eq.get(&quot;default&quot;)
+    if kind == &quot;max&quot;: return max(nums) if nums else eq.get(&quot;default&quot;)
+    if kind == &quot;sum&quot;: return sum(nums)
+    if kind == &quot;mean&quot;: return sum(nums) / len(nums) if nums else eq.get(&quot;default&quot;)
+    raise CausalModelError(f&quot;unhandled causal equation kind: {kind}&quot;)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

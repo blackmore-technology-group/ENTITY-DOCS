@@ -1,0 +1,68 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/build_v3_2_0_release.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/build_v3_2_0_release.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/build_v3_2_0_release.py</code></p><p><b>SHA-256:</b> <code>22edcc5932c8fbfdbad13e7db54c8b15d2081f33c6ade3825baba3f161a9cdd5</code></p><p><b>Bytes:</b> 3,305</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/build_v3_2_0_release.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/sha-e36282f8bcd0.html">sha</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json, pathlib
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+BASE_MANIFEST_PATH = ROOT / &quot;ENTITY_V3_1_0_RELEASE_MANIFEST.json&quot;
+QUAL_PATH = ROOT / &quot;docs&quot; / &quot;qualification&quot; / &quot;ENTITY_V3_2_0_RELEASE_QUALIFICATION_2026-09-24.json&quot;
+base = json.loads(BASE_MANIFEST_PATH.read_text(encoding=&quot;utf-8-sig&quot;))
+qualification = json.loads(QUAL_PATH.read_text(encoding=&quot;utf-8&quot;))
+overlay = {
+    &quot;RELEASE_NOTES_v3.2.0.md&quot;,
+    &quot;docs/qualification/ENTITY_V3_2_0_RELEASE_QUALIFICATION_2026-09-24.json&quot;,
+    &quot;docs/qualification/ENTITY_V3_2_0_RELEASE_QUALIFICATION_2026-09-24.md&quot;,
+    &quot;protocol/v3/ENTITY_V3_2_ADOPTION_CLEANROOM_KIT.min.json&quot;,
+    &quot;src/36_Adoption_Layer/rights_passport.py&quot;,
+    &quot;src/36_Adoption_Layer/custody_connectors.py&quot;,
+    &quot;src/36_Adoption_Layer/standards_adapters.py&quot;,
+    &quot;src/36_Adoption_Layer/adoption_profile.py&quot;,
+    &quot;src/36_Adoption_Layer/adoption_conformance.py&quot;,
+    &quot;tests/test_v3_adoption_layer.py&quot;,
+    &quot;tools/build_v3_2_adoption_conformance.py&quot;,
+    &quot;tools/build_v3_2_adoption_cleanroom_profile.py&quot;,
+    &quot;tools/build_v3_2_adoption_cleanroom_kit.py&quot;,
+    &quot;tools/verify_v3_2_adoption_release.py&quot;,
+    &quot;tools/build_v3_2_0_release.py&quot;,
+    &quot;tools/verify_v3_2_0_release_manifest.py&quot;,
+    &quot;tools/run_v3_2_0_release_gate.ps1&quot;
+}
+missing = [rel for rel in sorted(overlay) if not (ROOT / rel).is_file()]
+if missing:
+    raise SystemExit(&quot;missing v3.2 release-critical files: &quot; + &quot;, &quot;.join(missing))
+
+def sha(path: pathlib.Path) -&gt; str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+entries = [{&quot;path&quot;: rel, &quot;sha256&quot;: sha(ROOT / rel)} for rel in sorted(overlay)]
+material = &quot;\n&quot;.join(f&quot;{x[&#x27;path&#x27;]}|{x[&#x27;sha256&#x27;]}&quot; for x in entries).encode()
+manifest = {
+    &quot;schema&quot;: &quot;entity-v3-2-0-release-manifest-v1&quot;,
+    &quot;version&quot;: &quot;3.2.0&quot;,
+    &quot;status&quot;: &quot;BTG_INTERNAL_QUALIFIED_ADOPTION_RELEASE_CANDIDATE&quot;,
+    &quot;release_date&quot;: &quot;2026-09-24&quot;,
+    &quot;repository&quot;: &quot;blackmore-technology-group/ENTITY&quot;,
+    &quot;supersedes&quot;: &quot;v3.1.0&quot;,
+    &quot;base_commit&quot;: &quot;b985b7cf875bdeeadb228d4d1885395cbcaf19f1&quot;,
+    &quot;base_release_manifest_sha256&quot;: sha(BASE_MANIFEST_PATH),
+    &quot;base_release_snapshot_sha256&quot;: base[&quot;release_snapshot_sha256&quot;],
+    &quot;qualified_source_commit&quot;: qualification[&quot;qualified_source_commit&quot;],
+    &quot;qualification&quot;: qualification,
+    &quot;external_remaining&quot;: qualification[&quot;external_remaining&quot;],
+    &quot;permanent_truth_boundaries&quot;: qualification[&quot;permanent_truth_boundaries&quot;],
+    &quot;overlay_files&quot;: entries,
+    &quot;overlay_snapshot_sha256&quot;: hashlib.sha256(material).hexdigest(),
+    &quot;release_chain&quot;: {
+        &quot;v3.0.1_protected_base&quot;: &quot;a977b013cb29504f04953c4fce33d2372e91097b&quot;,
+        &quot;v3.1.0_protected_base&quot;: &quot;b985b7cf875bdeeadb228d4d1885395cbcaf19f1&quot;,
+        &quot;v3.2.0_qualified_source&quot;: qualification[&quot;qualified_source_commit&quot;]
+    }
+}
+out = ROOT / &quot;ENTITY_V3_2_0_RELEASE_MANIFEST.json&quot;
+out.write_text(json.dumps(manifest, indent=2, sort_keys=True) + &quot;\n&quot;, encoding=&quot;utf-8&quot;)
+print(json.dumps({
+    &quot;version&quot;: manifest[&quot;version&quot;],
+    &quot;status&quot;: manifest[&quot;status&quot;],
+    &quot;base_release_snapshot_sha256&quot;: manifest[&quot;base_release_snapshot_sha256&quot;],
+    &quot;base_release_manifest_sha256&quot;: manifest[&quot;base_release_manifest_sha256&quot;],
+    &quot;overlay_files&quot;: len(entries),
+    &quot;overlay_snapshot_sha256&quot;: manifest[&quot;overlay_snapshot_sha256&quot;]
+}, indent=2, sort_keys=True))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

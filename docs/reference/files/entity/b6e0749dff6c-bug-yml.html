@@ -1,0 +1,73 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / .github/ISSUE_TEMPLATE/bug.yml Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / .github/ISSUE_TEMPLATE/bug.yml</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>.github/ISSUE_TEMPLATE/bug.yml</code></p><p><b>SHA-256:</b> <code>d5be5b6dbe26004583451bc236ee9c2fbca9701935d1bd449970fe6deb5e62a5</code></p><p><b>Bytes:</b> 2,103</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/.github/ISSUE_TEMPLATE/bug.yml">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>name: Reproducible bug
+description: Report a behavior you can reproduce in ENTITY.
+title: &quot;[BUG] &quot;
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to reproduce a problem. A precise failure report is useful engineering evidence.
+  - type: input
+    id: version
+    attributes:
+      label: ENTITY version / commit
+      description: Release tag or exact commit SHA where you observed the problem.
+      placeholder: v3.3.0 or 9c79f987...
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, runtime/compiler and any relevant tool versions.
+      placeholder: Windows 11, Python 3.11, or Ubuntu 24.04 / Rust 1.xx
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest sequence that reproduces the issue.
+      placeholder: |
+        1. Clone ...
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include relevant output, hashes or failing test/vector IDs. Remove credentials and private data.
+    validations:
+      required: true
+  - type: dropdown
+    id: boundary
+    attributes:
+      label: Area
+      options:
+        - Build / installation / portability
+        - Identity / authority
+        - Rights / entitlement
+        - Evidence / verifiable reality
+        - Market / settlement / economic state
+        - Conformance / vectors / hashes
+        - SDK / developer interface
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed credentials, private keys, recovery material and private user/business data from this report.
+          required: true</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

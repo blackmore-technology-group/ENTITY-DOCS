@@ -1,0 +1,183 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V34GlobalPassportTests Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>V34GlobalPassportTests</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_global_passports.py#L24">ENTITY/tests/test_v3_global_passports.py#L24</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class V34GlobalPassportTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory(); self.base=pathlib.Path(self.tmp.name); self.state=self.base/&quot;state&quot;; self.source=self.base/&quot;source&quot;; self.source.mkdir()
+        self.identity=identity_mod.EntityIdentityVault(self.state); self.fabric=fabric_mod.UniversalTransactionFabric(self.state,self.identity)
+        self.owner=self.identity.create(&quot;BTG Owner&quot;,&quot;business&quot;)[&quot;entity_id&quot;]; self.buyer=self.identity.create(&quot;Buyer&quot;,&quot;business&quot;)[&quot;entity_id&quot;]
+        self.evidence=evidence_mod.EvidenceRegistry(self.state,self.identity); self.rights=rights_mod.RightsPassportRegistry(self.state,self.identity,self.fabric)
+        self.profiles=profile_mod.GlobalProfileRegistry(self.state,self.identity); self.installed=industry_mod.install_builtin_profiles(self.profiles,self.owner)
+        self.globals=global_mod.GlobalPassportRegistry(self.state,self.identity,self.fabric,self.rights,self.profiles)
+        self.ingest=ingest_mod.ContinuousProvenanceEngine(self.state,self.identity,self.fabric,self.evidence,self.rights,self.globals)
+        self.dco=self.fabric.register_digital_commodity(self.owner,&quot;AI Corpus&quot;,hashlib.sha256(b&quot;corpus&quot;).hexdigest())
+    def tearDown(self):
+        self.ingest=self.globals=self.profiles=self.rights=self.evidence=None; gc.collect(); self.tmp.cleanup()
+
+    def _rights_passport(self,version=&quot;1.0&quot;):
+        return self.rights.issue(self.owner,self.dco[&quot;object_id&quot;],[{&quot;effect&quot;:&quot;ALLOW&quot;,&quot;actions&quot;:[&quot;READ&quot;,&quot;TRAIN&quot;,&quot;DERIVE&quot;]}],version=version)
+
+    def test_01_core_market_and_truth_boundaries_preserved(self):
+        s=status_mod.passport_status(); self.assertEqual(s[&quot;core_primitives&quot;],[&quot;ENTITY&quot;,&quot;AUTHORITY&quot;,&quot;RIGHT&quot;,&quot;EVENT&quot;,&quot;VALUE&quot;])
+        self.assertFalse(s[&quot;core_semantics_changed&quot;]); self.assertTrue(s[&quot;market_engine_preserved&quot;]); self.assertTrue(s[&quot;evidence_truth_boundary_preserved&quot;])
+
+    def test_02_builtin_global_and_six_industry_profiles_install(self):
+        self.assertEqual(len(self.installed),7); self.assertIn(&quot;entity-profile:global@1.0&quot;,self.installed)
+        self.assertTrue(all(self.profiles.verify(p)[&quot;valid&quot;] for p in self.installed.values()))
+
+    def test_03_profile_stack_requires_global_profile(self):
+        with self.assertRaises(ValueError): self.profiles.resolve_stack([&quot;entity-profile:ai@1.0&quot;])
+
+    def test_04_profile_stack_requires_declared_parents(self):
+        p=self.installed[&quot;entity-profile:healthcare@1.0&quot;]
+        self.assertIn(&quot;entity-profile:global@1.0&quot;,p[&quot;parent_refs&quot;])
+        with self.assertRaises(ValueError): self.profiles.resolve_stack([p[&quot;profile_ref&quot;]])
+    def test_05_global_passport_binds_existing_rights_and_profile_stack(self):
+        rp=self._rights_passport(); gp=self.globals.issue(self.owner,self.dco[&quot;object_id&quot;],rp[&quot;passport_id&quot;],[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],evidence_refs=[&quot;evidence:origin&quot;])
+        checked=self.globals.verify(gp); self.assertTrue(checked[&quot;valid&quot;]); self.assertFalse(checked[&quot;objective_truth_claimed&quot;]); self.assertFalse(checked[&quot;legal_compliance_claimed&quot;])
+
+    def test_06_standards_mapping_cannot_claim_equivalence(self):
+        rp=self._rights_passport()
+        with self.assertRaises(ValueError): self.globals.issue(self.owner,self.dco[&quot;object_id&quot;],rp[&quot;passport_id&quot;],[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],standards_mappings=[{&quot;standard&quot;:&quot;SPDX-3&quot;,&quot;normative_equivalence_claimed&quot;:True}])
+
+    def test_07_healthcare_and_ai_profiles_compose(self):
+        stack=self.profiles.resolve_stack([&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:healthcare@1.0&quot;,&quot;entity-profile:ai@1.0&quot;])
+        self.assertEqual(len(stack[&quot;profile_refs&quot;]),3); self.assertTrue(stack[&quot;fail_closed&quot;]); self.assertTrue(stack[&quot;profile_composition_does_not_create_authority&quot;])
+
+    def test_08_defence_robotics_ai_profiles_compose_and_remain_public(self):
+        stack=self.profiles.resolve_stack([&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:defence-public@1.0&quot;,&quot;entity-profile:robotics@1.0&quot;,&quot;entity-profile:ai@1.0&quot;])
+        defence=self.profiles.get(&quot;entity-profile:defence-public@1.0&quot;); self.assertTrue(defence[&quot;public_unclassified&quot;]); self.assertEqual(len(stack[&quot;profile_refs&quot;]),4)
+
+    def test_09_healthcare_profile_maps_not_redefines_standards(self):
+        p=self.profiles.get(&quot;entity-profile:healthcare@1.0&quot;); names={x[&quot;standard&quot;] for x in p[&quot;standards&quot;]}
+        self.assertEqual(names,{&quot;HL7-FHIR&quot;,&quot;DICOM&quot;}); self.assertTrue(p[&quot;policy&quot;][&quot;technical_interoperability_not_regulatory_compliance&quot;])
+
+    def test_10_finance_profile_contains_iso20022_fix_lei(self):
+        names={x[&quot;standard&quot;] for x in self.profiles.get(&quot;entity-profile:finance@1.0&quot;)[&quot;standards&quot;]}; self.assertEqual(names,{&quot;ISO-20022&quot;,&quot;FIX&quot;,&quot;LEI&quot;})
+    def test_11_manufacturing_profile_contains_opcua_aas(self):
+        names={x[&quot;standard&quot;] for x in self.profiles.get(&quot;entity-profile:manufacturing@1.0&quot;)[&quot;standards&quot;]}; self.assertEqual(names,{&quot;OPC-UA&quot;,&quot;ASSET-ADMINISTRATION-SHELL&quot;})
+
+    def test_12_ai_profile_contains_risk_and_supply_chain_mappings(self):
+        names={x[&quot;standard&quot;] for x in self.profiles.get(&quot;entity-profile:ai@1.0&quot;)[&quot;standards&quot;]}; self.assertEqual(names,{&quot;NIST-AI-RMF&quot;,&quot;SPDX-3&quot;,&quot;CYCLONEDX&quot;})
+
+    def test_13_robotics_profile_contains_ros_and_openrmf(self):
+        names={x[&quot;standard&quot;] for x in self.profiles.get(&quot;entity-profile:robotics@1.0&quot;)[&quot;standards&quot;]}; self.assertEqual(names,{&quot;ROS-2&quot;,&quot;OPEN-RMF&quot;})
+
+    def test_14_continuous_ingest_registers_bytes_evidence_rights_and_global_passport(self):
+        f=self.source/&quot;model.py&quot;; f.write_text(&quot;print(&#x27;entity&#x27;)\n&quot;,encoding=&quot;utf-8&quot;)
+        r=self.ingest.ingest_file(f,self.owner,[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],logical_path=&quot;models/model.py&quot;)
+        self.assertEqual(r[&quot;object&quot;][&quot;object_type&quot;],&quot;SOFTWARE&quot;); self.assertTrue(pathlib.Path(r[&quot;vault_path&quot;]).is_file())
+        self.assertTrue(self.evidence.verify_evidence(r[&quot;evidence&quot;])[&quot;valid&quot;]); self.assertTrue(self.rights.verify(r[&quot;rights_passport&quot;])[&quot;valid&quot;]); self.assertTrue(self.globals.verify(r[&quot;global_passport&quot;])[&quot;valid&quot;])
+        self.assertEqual(r[&quot;value&quot;][&quot;amount_units&quot;],0); self.assertTrue(r[&quot;custody_is_not_authority&quot;])
+
+    def test_15_version_ingest_creates_zero_weight_provenance_not_fake_economics(self):
+        f1=self.source/&quot;v1.py&quot;; f2=self.source/&quot;v2.py&quot;; f1.write_text(&quot;a=1\n&quot;); f2.write_text(&quot;a=2\n&quot;)
+        a=self.ingest.ingest_file(f1,self.owner,[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],version=&quot;1&quot;)
+        b=self.ingest.ingest_file(f2,self.owner,[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],version=&quot;2&quot;,previous_object_id=a[&quot;object&quot;][&quot;object_id&quot;])
+        self.assertEqual(len(b[&quot;provenance&quot;]),1); self.assertEqual(b[&quot;provenance&quot;][0][&quot;contribution_bps&quot;],0); self.assertTrue(b[&quot;provenance&quot;][0][&quot;provenance_is_not_ownership&quot;])
+    def test_16_directory_ingest_excludes_machine_noise(self):
+        (self.source/&quot;a.py&quot;).write_text(&quot;x=1\n&quot;); cache=self.source/&quot;__pycache__&quot;; cache.mkdir(); (cache/&quot;a.pyc&quot;).write_bytes(b&quot;noise&quot;)
+        r=self.ingest.ingest_directory(self.source,self.owner,[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],prefix=&quot;repo&quot;)
+        self.assertEqual(r[&quot;files&quot;],1); self.assertTrue(r[&quot;content_addressed&quot;]); self.assertFalse(r[&quot;economic_value_invented&quot;]); self.assertTrue(conf_mod.validate_global_passport_record(r))
+
+    def test_17_tampered_global_passport_fails(self):
+        rp=self._rights_passport(); gp=self.globals.issue(self.owner,self.dco[&quot;object_id&quot;],rp[&quot;passport_id&quot;],[&quot;entity-profile:global@1.0&quot;])
+        gp[&quot;industry_context&quot;]={&quot;tampered&quot;:True}; self.assertFalse(self.globals.verify(gp)[&quot;valid&quot;])
+
+    def test_18_v33_evidence_truth_boundary_composes(self):
+        ev=self.evidence.issue_evidence(self.owner,&quot;DOCUMENT&quot;,self.dco[&quot;object_id&quot;],hashlib.sha256(b&quot;source&quot;).hexdigest())
+        rp=self._rights_passport(); gp=self.globals.issue(self.owner,self.dco[&quot;object_id&quot;],rp[&quot;passport_id&quot;],[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],evidence_refs=[ev[&quot;evidence_id&quot;]])
+        self.assertTrue(ev[&quot;signature_proves_attribution_not_objective_truth&quot;]); self.assertTrue(gp[&quot;evidence_does_not_establish_objective_truth&quot;])
+
+    def test_19_existing_exchange_lifecycle_survives_v34(self):
+        eep=eep_mod.ExchangeProtocol(self.state,self.identity,self.fabric); venue=eep.create_venue(self.owner,&quot;Global Rights Venue&quot;,&quot;CA&quot;,[&quot;ORDER_BOOK&quot;],hashlib.sha256(b&quot;venue&quot;).hexdigest())
+        inst=eep.define_instrument(self.owner,self.dco[&quot;object_id&quot;],&quot;SPOT_LICENSE&quot;,{&quot;actions&quot;:[&quot;TRAIN&quot;]},100,&quot;CAD&quot;,transferable=True)
+        disc=eep.publish_disclosure(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;LISTING&quot;,hashlib.sha256(b&quot;disc&quot;).hexdigest())
+        eep.list_instrument(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,min_lot=1,tick_size=1,disclosure_sha256=disc[&quot;content_sha256&quot;])
+        eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;SELL&quot;,1,10,nonce=&quot;v34-sell&quot;); eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.buyer,&quot;BUY&quot;,1,10,nonce=&quot;v34-buy&quot;)
+        settled=eep.settle_trade(eep.match_order_book(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;])[0][&quot;trade_id&quot;],payment_ref=&quot;external:receipt&quot;,external_verified=False)
+        self.assertFalse(settled[&quot;entitlement&quot;][&quot;ownership_of_underlying_transferred&quot;])
+    def test_20_conformance_validator_accepts_release_semantics(self):
+        status=status_mod.passport_status(); profile=self.installed[&quot;entity-profile:global@1.0&quot;]
+        stack=self.profiles.resolve_stack([&quot;entity-profile:global@1.0&quot;])
+        rp=self._rights_passport(); gp=self.globals.issue(self.owner,self.dco[&quot;object_id&quot;],rp[&quot;passport_id&quot;],[&quot;entity-profile:global@1.0&quot;])
+        records=[status,{k:v for k,v in profile.items() if k not in {&quot;body_sha256&quot;,&quot;issuer_entity_id&quot;,&quot;signature&quot;}},stack,{k:v for k,v in gp.items() if k not in {&quot;body_sha256&quot;,&quot;signature&quot;}}]
+        self.assertTrue(all(conf_mod.validate_global_passport_record(x) for x in records))
+
+    def test_21_defence_profile_cannot_be_registered_as_nonpublic(self):
+        with self.assertRaises(ValueError):
+            self.profiles.register(self.owner,&quot;entity-profile:restricted-defence&quot;,&quot;1.0&quot;,&quot;INDUSTRY&quot;,schema_sha256=&quot;0&quot;*64,public_unclassified=False)
+
+    def test_22_sdk_composes_industry_profiles_and_registers_file(self):
+        sdk=sdk_mod.EntityGlobalPassportSDK(self.profiles,self.globals,self.ingest)
+        stack=sdk.compose_profiles(&quot;healthcare&quot;,&quot;ai&quot;); self.assertEqual(stack[&quot;profile_refs&quot;][0],&quot;entity-profile:global@1.0&quot;)
+        f=self.source/&quot;clinical_model.onnx&quot;; f.write_bytes(b&quot;model&quot;)
+        out=sdk.register_file(f,self.owner,&quot;healthcare&quot;,&quot;ai&quot;,logical_path=&quot;models/clinical_model.onnx&quot;)
+        self.assertIn(&quot;entity-profile:healthcare@1.0&quot;,out[&quot;profile_refs&quot;]); self.assertFalse(out[&quot;economic_value_invented&quot;])
+
+    def test_23_sdk_status_preserves_authority_and_compliance_boundaries(self):
+        status=sdk_mod.EntityGlobalPassportSDK.capability_status(); self.assertTrue(status[&quot;sdk_does_not_create_authority&quot;])
+        self.assertTrue(status[&quot;profile_is_not_regulatory_compliance&quot;]); self.assertTrue(status[&quot;external_standards_are_mapped_not_redefined&quot;])
+
+    def test_24_industry_package_registry_contains_six_deployable_families(self):
+        r=package_mod.IndustryImplementationPackageRegistry()
+        self.assertEqual(r.list_packages(),[&quot;ai&quot;,&quot;defence-public&quot;,&quot;finance&quot;,&quot;healthcare&quot;,&quot;manufacturing&quot;,&quot;robotics&quot;])
+        self.assertTrue(all(r.get(x)[&quot;developer_configures_not_redesigns&quot;] if &quot;developer_configures_not_redesigns&quot; in r.get(x) else True for x in r.list_packages()))
+
+    def test_25_healthcare_fhir_mapping_is_versioned_and_non_normative(self):
+        r=package_mod.IndustryImplementationPackageRegistry()
+        out=r.map_external(&quot;healthcare&quot;,&quot;HL7-FHIR&quot;,{&quot;resourceType&quot;:&quot;Observation&quot;,&quot;id&quot;:&quot;obs-1&quot;,&quot;meta&quot;:{&quot;versionId&quot;:&quot;7&quot;}})
+        self.assertEqual(out[&quot;descriptor&quot;][&quot;fhir_resource_type&quot;],&quot;Observation&quot;)
+        self.assertEqual(out[&quot;descriptor&quot;][&quot;external_version&quot;],&quot;7&quot;)
+        self.assertFalse(out[&quot;normative_equivalence_claimed&quot;])
+
+    def test_26_manufacturing_opcua_mapping_is_executable(self):
+        r=package_mod.IndustryImplementationPackageRegistry()
+        out=r.map_external(&quot;manufacturing&quot;,&quot;OPC-UA&quot;,{&quot;NodeId&quot;:&quot;ns=2;s=Machine1&quot;,&quot;BrowseName&quot;:&quot;Machine1&quot;,&quot;DataType&quot;:&quot;Double&quot;})
+        self.assertEqual(out[&quot;descriptor&quot;][&quot;opcua_node_id&quot;],&quot;ns=2;s=Machine1&quot;)
+        self.assertTrue(out[&quot;external_standard_not_redefined&quot;])
+
+    def test_27_package_configuration_requires_organization_facts(self):
+        r=package_mod.IndustryImplementationPackageRegistry()
+        with self.assertRaises(ValueError): r.validate_configuration(&quot;finance&quot;,{})
+        cfg={&quot;organization&quot;:&quot;Bank X&quot;,&quot;jurisdiction&quot;:&quot;CA&quot;,&quot;authority_source&quot;:&quot;board:1&quot;,&quot;settlement_policy&quot;:&quot;policy:1&quot;}
+        self.assertTrue(r.validate_configuration(&quot;finance&quot;,cfg)[&quot;valid&quot;])
+
+    def test_28_public_defence_package_rejects_classified_material(self):
+        r=package_mod.IndustryImplementationPackageRegistry()
+        cfg={&quot;organization&quot;:&quot;Agency X&quot;,&quot;jurisdiction&quot;:&quot;CA&quot;,&quot;authority_source&quot;:&quot;directive:1&quot;,&quot;release_policy&quot;:&quot;public&quot;,&quot;classification&quot;:&quot;SECRET&quot;}
+        with self.assertRaises(ValueError): r.validate_configuration(&quot;defence-public&quot;,cfg)
+
+    def test_29_ai_package_template_pre_engineers_model_semantics(self):
+        r=package_mod.IndustryImplementationPackageRegistry(); t=r.template(&quot;ai&quot;,&quot;model&quot;)
+        self.assertEqual(t[&quot;object_type&quot;],&quot;MODEL&quot;); self.assertIn(&quot;TRAIN&quot;,t[&quot;default_right_actions&quot;])
+        self.assertIn(&quot;entity-profile:ai@1.0&quot;,t[&quot;profile_refs&quot;]); self.assertFalse(t[&quot;economic_value_invented&quot;])
+
+    def test_30_package_deployment_plan_does_not_modify_core(self):
+        r=package_mod.IndustryImplementationPackageRegistry()
+        cfg={&quot;organization&quot;:&quot;Factory X&quot;,&quot;jurisdiction&quot;:&quot;CA&quot;,&quot;authority_source&quot;:&quot;policy:1&quot;,&quot;asset_namespace&quot;:&quot;plant-a&quot;}
+        plan=r.deployment_plan(&quot;manufacturing&quot;,cfg,&quot;digital_twin&quot;)
+        self.assertFalse(plan[&quot;core_semantics_changed&quot;]); self.assertTrue(plan[&quot;developer_configures_not_redesigns&quot;])
+        self.assertEqual(plan[&quot;object_type&quot;],&quot;DIGITAL_TWIN&quot;)
+
+    def test_31_sdk_package_plan_and_external_mapping(self):
+        packages=package_mod.IndustryImplementationPackageRegistry()
+        sdk=sdk_mod.EntityGlobalPassportSDK(self.profiles,self.globals,self.ingest,packages)
+        cfg={&quot;organization&quot;:&quot;Hospital X&quot;,&quot;jurisdiction&quot;:&quot;CA-BC&quot;,&quot;authority_source&quot;:&quot;policy:1&quot;,&quot;privacy_policy&quot;:&quot;privacy:1&quot;}
+        plan=sdk.package_plan(&quot;healthcare&quot;,cfg,&quot;clinical_dataset&quot;)
+        self.assertEqual(plan[&quot;object_type&quot;],&quot;DATASET&quot;)
+        mapped=sdk.map_external(&quot;healthcare&quot;,&quot;DICOM&quot;,{&quot;SOPInstanceUID&quot;:&quot;1.2.3&quot;,&quot;StudyInstanceUID&quot;:&quot;4.5.6&quot;,&quot;Modality&quot;:&quot;CT&quot;})
+        self.assertEqual(mapped[&quot;descriptor&quot;][&quot;modality&quot;],&quot;CT&quot;)
+
+    def test_32_sdk_ingests_preengineered_industry_package(self):
+        packages=package_mod.IndustryImplementationPackageRegistry()
+        sdk=sdk_mod.EntityGlobalPassportSDK(self.profiles,self.globals,self.ingest,packages)
+        cfg={&quot;organization&quot;:&quot;Lab X&quot;,&quot;jurisdiction&quot;:&quot;CA&quot;,&quot;authority_source&quot;:&quot;policy:2&quot;,&quot;model_governance_policy&quot;:&quot;ai:1&quot;}
+        f=self.source/&quot;weights.gguf&quot;; f.write_bytes(b&quot;weights&quot;)
+        out=sdk.ingest_package_file(f,self.owner,&quot;ai&quot;,cfg,&quot;model&quot;,logical_path=&quot;models/weights.gguf&quot;)
+        self.assertTrue(out[&quot;deployment_plan&quot;][&quot;developer_configures_not_redesigns&quot;])
+        self.assertFalse(out[&quot;economic_value_invented&quot;])
+        self.assertTrue(self.globals.verify(self.globals.get(out[&quot;global_passport_id&quot;]))[&quot;valid&quot;])
+
+    def test_33_generated_profile_package_registry_exists(self):
+        registry_path=ROOT/&quot;profiles/registry.json&quot;
+        self.assertTrue(registry_path.is_file())
+        data=__import__(&quot;json&quot;).loads(registry_path.read_text(encoding=&quot;utf-8&quot;))
+        self.assertEqual(len(data[&quot;packages&quot;]),6); self.assertTrue(data[&quot;one_global_passport&quot;])</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

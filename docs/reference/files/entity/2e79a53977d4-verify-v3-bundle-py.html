@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/verify_v3_bundle.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/verify_v3_bundle.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/verify_v3_bundle.py</code></p><p><b>SHA-256:</b> <code>5f5dc297d69bffb2f75b024c843663998ba61295ee9b0e02c7e03be595163838</code></p><p><b>Bytes:</b> 1,154</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/verify_v3_bundle.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-27791347553d.html">load</a></li><li><a href="../../../reference/symbols/entity/main-1bbea2c28c62.html">main</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import importlib.util, json, pathlib, sys, tempfile
+
+REPO=pathlib.Path(__file__).resolve().parents[1]
+IDENTITY=REPO/&quot;src&quot;/&quot;01_Core_Runtime&quot;/&quot;identity&quot;/&quot;canonical_identity.py&quot;
+FABRIC=REPO/&quot;src&quot;/&quot;30_Universal_Transaction_Fabric&quot;/&quot;canonical_universal_fabric.py&quot;
+
+def load(name,path):
+    spec=importlib.util.spec_from_file_location(name,path)
+    module=importlib.util.module_from_spec(spec); spec.loader.exec_module(module); return module
+
+def main(argv):
+    if len(argv)!=2:
+        print(&quot;usage: verify_v3_bundle.py &lt;bundle.json&gt;&quot;,file=sys.stderr); return 2
+    bundle=json.loads(pathlib.Path(argv[1]).read_text(encoding=&quot;utf-8&quot;))
+    identity_mod=load(&quot;entity_v3_portable_identity&quot;,IDENTITY)
+    fabric_mod=load(&quot;entity_v3_portable_fabric&quot;,FABRIC)
+    with tempfile.TemporaryDirectory() as tmp:
+        identity=identity_mod.EntityIdentityVault(tmp)
+        fabric=fabric_mod.UniversalTransactionFabric(tmp,identity)
+        result=fabric.verify_bundle(bundle)
+    print(json.dumps(result,indent=2,sort_keys=True))
+    return 0 if result.get(&quot;valid&quot;) else 1
+
+if __name__==&quot;__main__&quot;: raise SystemExit(main(sys.argv))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

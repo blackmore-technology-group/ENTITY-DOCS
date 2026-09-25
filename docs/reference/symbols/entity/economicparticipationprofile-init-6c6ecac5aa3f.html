@@ -1,0 +1,52 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EconomicParticipationProfile._init Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EconomicParticipationProfile._init</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/33_Economic_Participation/economic_participation.py#L46">ENTITY/src/33_Economic_Participation/economic_participation.py#L46</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EconomicParticipationProfile._init(self)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def _init(self):
+        with self._db() as db:
+            db.executescript(&#x27;&#x27;&#x27;
+            CREATE TABLE IF NOT EXISTS treasuries(
+              treasury_id TEXT PRIMARY KEY, owner_entity_id TEXT NOT NULL,
+              treasury_entity_id TEXT NOT NULL UNIQUE, name TEXT NOT NULL,
+              jurisdiction TEXT NOT NULL, policy_sha256 TEXT NOT NULL,
+              status TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+              signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS participation_policies(
+              policy_id TEXT PRIMARY KEY, instrument_id TEXT NOT NULL, version INTEGER NOT NULL,
+              originator_entity_id TEXT NOT NULL, treasury_id TEXT NOT NULL,
+              total_units INTEGER NOT NULL, reserve_units INTEGER NOT NULL,
+              primary_treasury_bps INTEGER NOT NULL, secondary_royalty_bps INTEGER NOT NULL,
+              derivative_participation_bps INTEGER NOT NULL, currency TEXT NOT NULL,
+              terms_sha256 TEXT NOT NULL, effective_at_ms INTEGER NOT NULL,
+              status TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL,
+              UNIQUE(instrument_id,version));
+            CREATE TABLE IF NOT EXISTS reserve_allocations(
+              allocation_id TEXT PRIMARY KEY, policy_id TEXT NOT NULL, instrument_id TEXT NOT NULL,
+              originator_entity_id TEXT NOT NULL, treasury_entity_id TEXT NOT NULL,
+              units INTEGER NOT NULL, created_at_ms INTEGER NOT NULL,
+              originator_signature_json TEXT NOT NULL, treasury_signature_json TEXT NOT NULL,
+              UNIQUE(policy_id));
+            CREATE TABLE IF NOT EXISTS economic_events(
+              event_id TEXT PRIMARY KEY, dedupe_key TEXT NOT NULL UNIQUE, event_type TEXT NOT NULL, policy_id TEXT,
+              treasury_id TEXT NOT NULL, instrument_id TEXT, actor_entity_id TEXT NOT NULL,
+              subject_ref TEXT NOT NULL, gross_amount_units INTEGER NOT NULL,
+              currency TEXT NOT NULL, evidence_sha256 TEXT,
+              details_json TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+              signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS obligations(
+              obligation_id TEXT PRIMARY KEY, event_id TEXT NOT NULL,
+              payer_entity_id TEXT NOT NULL, recipient_entity_id TEXT NOT NULL,
+              amount_units INTEGER NOT NULL, currency TEXT NOT NULL,
+              basis TEXT NOT NULL, bps INTEGER NOT NULL, status TEXT NOT NULL,
+              settlement_ref TEXT, verifier_entity_id TEXT, verification_evidence_sha256 TEXT,
+              external_verified INTEGER NOT NULL DEFAULT 0,
+              created_at_ms INTEGER NOT NULL, settled_at_ms INTEGER);
+            CREATE TABLE IF NOT EXISTS position_snapshots(
+              snapshot_id TEXT PRIMARY KEY, treasury_id TEXT NOT NULL,
+              snapshot_sha256 TEXT NOT NULL, snapshot_json TEXT NOT NULL,
+              created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS settlement_verifiers(
+              treasury_id TEXT NOT NULL, verifier_entity_id TEXT NOT NULL,
+              status TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+              signature_json TEXT NOT NULL, PRIMARY KEY(treasury_id,verifier_entity_id));
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_opr_reserve_once ON reserve_allocations(instrument_id);
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_opr_obligation_event ON obligations(event_id);
+            CREATE INDEX IF NOT EXISTS idx_opr_policy_instrument ON participation_policies(instrument_id,status);
+            CREATE INDEX IF NOT EXISTS idx_opr_obligation_recipient ON obligations(recipient_entity_id,status,currency);
+            &#x27;&#x27;&#x27;)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

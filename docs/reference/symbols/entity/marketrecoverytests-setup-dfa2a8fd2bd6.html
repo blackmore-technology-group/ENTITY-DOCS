@@ -1,0 +1,89 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MarketRecoveryTests.setUp Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>MarketRecoveryTests.setUp</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_market_recovery.py#L29">ENTITY/tests/test_v3_market_recovery.py#L29</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>MarketRecoveryTests.setUp(self)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = pathlib.Path(self.tmp.name)
+        self.identity = identity_mod.EntityIdentityVault(self.root)
+        self.originator = self.identity.create(&quot;Originator&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        self.treasury_entity = self.identity.create(&quot;Treasury&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        self.buyer = self.identity.create(&quot;Buyer&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        self.verifier = self.identity.create(&quot;Verifier&quot;, &quot;system&quot;)[&quot;entity_id&quot;]
+        self.fabric = fabric_mod.UniversalTransactionFabric(self.root, self.identity)
+        self.exchange = eep_mod.ExchangeProtocol(self.root, self.identity, self.fabric)
+        self.econ = econ_mod.EconomicParticipationProfile(self.root, self.identity)
+        self.asset = self.fabric.register_digital_commodity(
+            self.originator, &quot;Recovery Corpus&quot;, hashlib.sha256(b&quot;recovery-corpus&quot;).hexdigest()
+        )
+        self.instrument = self.exchange.define_instrument(
+            self.originator, self.asset[&quot;object_id&quot;], &quot;SPOT_LICENSE&quot;,
+            {&quot;actions&quot;: [&quot;DERIVE&quot;, &quot;TRAIN&quot;], &quot;raw_redistribution&quot;: False},
+            1000, &quot;CAD&quot;, transferable=True, duration_ms=86_400_000,
+        )
+        self.treasury = self.econ.create_treasury(
+            self.originator, self.treasury_entity, &quot;Treasury&quot;, &quot;CA&quot;,
+            hashlib.sha256(b&quot;treasury-policy&quot;).hexdigest(),
+        )
+        self.econ.authorize_settlement_verifier(
+            self.treasury[&quot;treasury_id&quot;], self.originator, self.verifier
+        )
+        self.policy = self.econ.define_participation(
+            self.originator, self.treasury[&quot;treasury_id&quot;], self.instrument[&quot;instrument_id&quot;],
+            1000, 200, &quot;CAD&quot;, primary_treasury_bps=2500,
+            secondary_royalty_bps=150, derivative_participation_bps=100,
+            terms={&quot;raw_redistribution&quot;: &quot;PROHIBITED&quot;},
+        )
+        self.econ.allocate_eep_reserve(self.exchange, self.policy[&quot;policy_id&quot;])
+        self.venue = self.exchange.create_venue(
+            self.originator, &quot;Recovery Venue&quot;, &quot;CA&quot;, [&quot;ORDER_BOOK&quot;, &quot;RFQ&quot;],
+            hashlib.sha256(b&quot;venue-policy&quot;).hexdigest(),
+        )
+        disclosure = hashlib.sha256(b&quot;market-disclosure&quot;).hexdigest()
+        self.exchange.publish_disclosure(
+            self.venue[&quot;venue_id&quot;], self.instrument[&quot;instrument_id&quot;],
+            self.originator, &quot;OFFERING&quot;, disclosure,
+        )
+        self.exchange.list_instrument(
+            self.venue[&quot;venue_id&quot;], self.instrument[&quot;instrument_id&quot;], self.originator,
+            1, 1, disclosure,
+        )
+        self.exchange.set_revenue_rules(
+            self.instrument[&quot;instrument_id&quot;], self.originator,
+            {self.originator: 150, self.treasury_entity: 50}, nonce=&quot;recovery-rules&quot;,
+        )
+        sell = self.exchange.submit_order(
+            self.venue[&quot;venue_id&quot;], self.instrument[&quot;instrument_id&quot;], self.originator,
+            &quot;SELL&quot;, 10, 100, &quot;recovery-sell&quot;,
+        )
+        buy = self.exchange.submit_order(
+            self.venue[&quot;venue_id&quot;], self.instrument[&quot;instrument_id&quot;], self.buyer,
+            &quot;BUY&quot;, 10, 100, &quot;recovery-buy&quot;,
+        )
+        self.assertEqual(sell[&quot;status&quot;], &quot;OPEN&quot;)
+        self.assertEqual(buy[&quot;status&quot;], &quot;OPEN&quot;)
+        trade = self.exchange.match_order_book(
+            self.venue[&quot;venue_id&quot;], self.instrument[&quot;instrument_id&quot;]
+        )[0]
+        payment_ref = &quot;bank:recovery-1&quot;
+        attestation = self.exchange.attest_payment(
+            trade[&quot;trade_id&quot;], self.buyer, payment_ref,
+            hashlib.sha256(b&quot;bank-evidence&quot;).hexdigest(), nonce=&quot;recovery-payment-attestation&quot;,
+        )
+        self.exchange.settle_trade(
+            trade[&quot;trade_id&quot;], payment_ref,
+            external_verified=True, payment_attestation_id=attestation[&quot;attestation_id&quot;],
+        )
+        self.trade_id = trade[&quot;trade_id&quot;]
+        captured = self.econ.capture_settled_eep_trade(self.exchange, self.trade_id)
+        self.obligation_id = captured[&quot;obligation&quot;][&quot;obligation_id&quot;]
+        self.econ.settle_obligation(
+            self.obligation_id, self.verifier, &quot;treasury-bank:1&quot;, external_verified=True,
+            evidence_sha256=hashlib.sha256(b&quot;treasury-bank-evidence&quot;).hexdigest(),
+        )
+        self.econ.record_service_revenue(
+            self.treasury[&quot;treasury_id&quot;], self.buyer, &quot;MARKET_DATA&quot;, 300, &quot;CAD&quot;,
+            &quot;invoice:market-data-recovery&quot;,
+        )
+        self.exchange.meter_usage(
+            self.instrument[&quot;instrument_id&quot;], self.buyer, &quot;TRAIN&quot;, 2, &quot;recovery-usage&quot;
+        )
+        self.econ.seal_snapshot(
+            self.treasury[&quot;treasury_id&quot;], self.originator, self.exchange
+        )</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

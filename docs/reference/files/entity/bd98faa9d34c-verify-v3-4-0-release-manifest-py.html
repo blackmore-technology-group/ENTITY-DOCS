@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/verify_v3_4_0_release_manifest.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/verify_v3_4_0_release_manifest.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/verify_v3_4_0_release_manifest.py</code></p><p><b>SHA-256:</b> <code>ed1398bd1629d56eb4bc4ec9ebb53ea6a2da60c8f0722f6f27942e92521f93ea</code></p><p><b>Bytes:</b> 2,803</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/verify_v3_4_0_release_manifest.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/sha-8ba8c7fe0f49.html">sha</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json, pathlib, sys
+
+ROOT=pathlib.Path(__file__).resolve().parents[1]; PATH=ROOT/&quot;ENTITY_V3_4_0_RELEASE_MANIFEST.json&quot;; BASE=ROOT/&quot;ENTITY_V3_3_0_RELEASE_MANIFEST.json&quot;
+manifest=json.loads(PATH.read_text(encoding=&quot;utf-8&quot;)); base=json.loads(BASE.read_text(encoding=&quot;utf-8&quot;)); errors=[]
+def sha(path:pathlib.Path)-&gt;str: return hashlib.sha256(path.read_bytes()).hexdigest()
+if sha(BASE)!=manifest.get(&quot;base_release_manifest_sha256&quot;): errors.append(&quot;base_manifest&quot;)
+if base.get(&quot;release_snapshot_sha256&quot;)!=manifest.get(&quot;base_release_snapshot_sha256&quot;): errors.append(&quot;base_snapshot&quot;)
+for entry in manifest.get(&quot;overlay_files&quot;,[]):
+    path=ROOT/entry[&quot;path&quot;]
+    if not path.is_file(): errors.append(&quot;missing:&quot;+entry[&quot;path&quot;]); continue
+    actual=sha(path)
+    if actual!=entry[&quot;sha256&quot;]: errors.append(&quot;hash:&quot;+entry[&quot;path&quot;])
+material=&quot;\n&quot;.join(f&quot;{x[&#x27;path&#x27;]}|{x[&#x27;sha256&#x27;]}&quot; for x in sorted(manifest.get(&quot;overlay_files&quot;,[]),key=lambda x:x[&quot;path&quot;])).encode()
+overlay_root=hashlib.sha256(material).hexdigest()
+if overlay_root!=manifest.get(&quot;overlay_snapshot_sha256&quot;): errors.append(&quot;overlay_snapshot&quot;)
+release_root=hashlib.sha256(f&quot;{manifest.get(&#x27;base_release_snapshot_sha256&#x27;)}|{overlay_root}&quot;.encode()).hexdigest()
+if release_root!=manifest.get(&quot;release_snapshot_sha256&quot;): errors.append(&quot;release_snapshot&quot;)
+q=manifest.get(&quot;qualification&quot;) or {}; ingest=manifest.get(&quot;continuous_provenance_ingest&quot;) or {}
+if q.get(&quot;version&quot;)!=&quot;3.4.0&quot; or q.get(&quot;regression&quot;,{}).get(&quot;passed&quot;)!=177 or q.get(&quot;targeted_global_passport_tests&quot;,{}).get(&quot;passed&quot;)!=33: errors.append(&quot;qualification_summary&quot;)
+if q.get(&quot;qualified_source_commit&quot;)!=&quot;854529e6cb88e77f29cce581beb74b530768224c&quot;: errors.append(&quot;qualified_source&quot;)
+if q.get(&quot;global_passport_conformance&quot;,{}).get(&quot;expected_result_sha256&quot;)!=&quot;ac7504cce70576008cff069607619660a4b9bf0cad43b3f3de81078f1e80d9ba&quot;: errors.append(&quot;conformance_result&quot;)
+if ingest.get(&quot;files&quot;)!=20 or ingest.get(&quot;historical_provenance_before_v3_4_claimed&quot;) is not False: errors.append(&quot;ingest_summary&quot;)
+langs=q.get(&quot;six_language_controlled_interoperability&quot;,{}).get(&quot;implementations&quot;,{})
+if set(langs)!={&quot;rust&quot;,&quot;typescript&quot;,&quot;go&quot;,&quot;csharp&quot;,&quot;java&quot;,&quot;swift&quot;}: errors.append(&quot;six_language_set&quot;)
+if q.get(&quot;six_language_controlled_interoperability&quot;,{}).get(&quot;independent_third_party_interoperability&quot;) is not False: errors.append(&quot;independence_boundary&quot;)
+result={&quot;valid&quot;:not errors,&quot;version&quot;:manifest.get(&quot;version&quot;),&quot;status&quot;:manifest.get(&quot;status&quot;),
+        &quot;overlay_files&quot;:len(manifest.get(&quot;overlay_files&quot;,[])),&quot;overlay_snapshot_sha256&quot;:overlay_root,
+        &quot;release_snapshot_sha256&quot;:release_root,&quot;qualified_source_commit&quot;:manifest.get(&quot;qualified_source_commit&quot;),&quot;errors&quot;:errors}
+print(json.dumps(result,indent=2,sort_keys=True)); sys.exit(0 if not errors else 2)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

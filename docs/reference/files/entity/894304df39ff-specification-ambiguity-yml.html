@@ -1,0 +1,58 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / .github/ISSUE_TEMPLATE/specification-ambiguity.yml Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / .github/ISSUE_TEMPLATE/specification-ambiguity.yml</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>.github/ISSUE_TEMPLATE/specification-ambiguity.yml</code></p><p><b>SHA-256:</b> <code>86930fd3b0142cd3c4b41b7e8d512e8ab4a6b1fa96954d52f51ec2a94543d2d7</code></p><p><b>Bytes:</b> 1,916</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/.github/ISSUE_TEMPLATE/specification-ambiguity.yml">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>name: Specification ambiguity or counterexample
+description: Challenge a rule, schema, vector, truth boundary or protocol interpretation.
+title: &quot;[SPEC] &quot;
+labels:
+  - specification
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A concrete ambiguity or counterexample is a valuable contribution. You do not need to propose the final fix.
+  - type: input
+    id: version
+    attributes:
+      label: Version / exact material
+      description: Identify the release, commit, file, schema, section or vector.
+      placeholder: v3.3.0 - protocol/v3/ENTITY_VERIFIABLE_REALITY.schema.json
+    validations:
+      required: true
+  - type: textarea
+    id: reading
+    attributes:
+      label: Current interpretation
+      description: What does the published material appear to require or permit?
+    validations:
+      required: true
+  - type: textarea
+    id: ambiguity
+    attributes:
+      label: Ambiguity or counterexample
+      description: Show the concrete case where two interpretations are possible or a stated boundary may not hold.
+    validations:
+      required: true
+  - type: textarea
+    id: consequence
+    attributes:
+      label: Why it matters
+      description: What implementation, authority, evidence, interoperability or compatibility consequence follows?
+    validations:
+      required: true
+  - type: dropdown
+    id: verification
+    attributes:
+      label: Verification layer most affected
+      options:
+        - Cryptographic verification
+        - Protocol verification
+        - Reality / evidence verification
+        - Authority / rights semantics
+        - Economic / market semantics
+        - Cross-layer ambiguity
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Possible clarification (optional)
+      description: A proposed wording/test is welcome, but finding the ambiguity is enough.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

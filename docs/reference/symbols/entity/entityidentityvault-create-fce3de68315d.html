@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityIdentityVault.create Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityIdentityVault.create</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/identity/canonical_identity.py#L93">ENTITY/src/01_Core_Runtime/identity/canonical_identity.py#L93</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EntityIdentityVault.create(self, display_name: str, entity_type: str, aliases: list[str] | None=None, metadata: dict | None=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def create(self, display_name: str, entity_type: str, aliases: list[str] | None = None, metadata: dict | None = None) -&gt; dict:
+        name = str(display_name or &quot;&quot;).strip()
+        kind = str(entity_type or &quot;&quot;).strip().lower()
+        if not name or len(name) &gt; 256:
+            raise ValueError(&quot;display_name must be 1..256 characters&quot;)
+        if kind not in ENTITY_TYPES:
+            raise ValueError(f&quot;unsupported entity_type: {kind}&quot;)
+        entity_id = _new_entity_id()
+        signing = Ed25519PrivateKey.generate()
+        recovery = Ed25519PrivateKey.generate()
+        signing_id = &quot;sig-&quot; + secrets.token_hex(8)
+        recovery_id = &quot;rec-&quot; + secrets.token_hex(8)
+        now = int(time.time() * 1000)
+        methods = [
+            {&quot;key_id&quot;: signing_id, &quot;algorithm&quot;: &quot;Ed25519&quot;, &quot;suite&quot;: SIG_SUITE, &quot;purpose&quot;: [&quot;assertion&quot;, &quot;authentication&quot;, &quot;contract&quot;], &quot;public_key&quot;: _b64(_public_raw(signing)), &quot;status&quot;: &quot;active&quot;, &quot;created_at_ms&quot;: now},
+            {&quot;key_id&quot;: recovery_id, &quot;algorithm&quot;: &quot;Ed25519&quot;, &quot;suite&quot;: SIG_SUITE, &quot;purpose&quot;: [&quot;recovery&quot;], &quot;public_key&quot;: _b64(_public_raw(recovery)), &quot;status&quot;: &quot;active&quot;, &quot;created_at_ms&quot;: now},
+        ]
+        manifest = {
+            &quot;schema&quot;: &quot;sovereign-entity-manifest-v2&quot;,
+            &quot;entity_id&quot;: entity_id,
+            &quot;entity_type&quot;: kind,
+            &quot;display_name&quot;: name,
+            &quot;aliases&quot;: sorted({str(x).strip() for x in (aliases or []) if str(x).strip()}),
+            &quot;metadata&quot;: dict(metadata or {}),
+            &quot;verification_methods&quot;: methods,
+            &quot;active_signing_key_id&quot;: signing_id,
+            &quot;recovery_policy&quot;: {&quot;threshold&quot;: 1, &quot;authorities&quot;: [recovery_id], &quot;delayed_recovery_supported&quot;: True},
+            &quot;crypto_agility&quot;: {&quot;manifest_suite&quot;: SIG_SUITE, &quot;supported_suites&quot;: [SIG_SUITE], &quot;future_hybrid_allowed&quot;: True},
+            &quot;created_at_ms&quot;: now,
+            &quot;manifest_revision&quot;: 1,
+        }
+        signature = {&quot;key_id&quot;: signing_id, &quot;suite&quot;: SIG_SUITE, &quot;signature&quot;: _b64(signing.sign(canonical_json(manifest)))}
+        signed = dict(manifest, signature=signature)
+        with self._lock:
+            kd = self._entity_key_dir(entity_id)
+            self._write_private(kd / f&quot;{signing_id}.key&quot;, _private_raw(signing))
+            self._write_private(kd / f&quot;{recovery_id}.key&quot;, _private_raw(recovery))
+            self._write_private(self.pairwise / f&quot;{entity_id}.secret&quot;, secrets.token_bytes(32))
+            self._manifest_path(entity_id).write_text(json.dumps(signed, indent=2, sort_keys=True), encoding=&quot;utf-8&quot;)
+        return signed</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

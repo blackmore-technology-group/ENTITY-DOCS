@@ -1,0 +1,36 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ExchangeProtocol._record_signed_order Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ExchangeProtocol._record_signed_order</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/exchange_protocol.py#L347">ENTITY/src/31_Profiles/exchange_protocol.py#L347</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>ExchangeProtocol._record_signed_order(self, body: dict, signature: dict)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def _record_signed_order(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;order_id&quot;,&quot;venue_id&quot;,&quot;instrument_id&quot;,&quot;participant&quot;,&quot;side&quot;,&quot;quantity&quot;,&quot;limit_price&quot;,&quot;tif&quot;,&quot;nonce&quot;,&quot;created_at_ms&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-order-v1&quot;: raise ValueError(&quot;invalid signed order shape&quot;)
+        participant=str(body[&quot;participant&quot;]); side=str(body[&quot;side&quot;]).upper(); tif=str(body[&quot;tif&quot;]).upper()
+        qty,price,created=int(body[&quot;quantity&quot;]),int(body[&quot;limit_price&quot;]),int(body[&quot;created_at_ms&quot;])
+        if side not in self.SIDES or tif not in {&quot;GTC&quot;,&quot;IOC&quot;,&quot;DAY&quot;}: raise ValueError(&quot;invalid order&quot;)
+        if not str(body[&quot;order_id&quot;]) or not str(body[&quot;nonce&quot;]) or created&lt;0: raise ValueError(&quot;invalid order identity/time&quot;)
+        listing=self._listing(body[&quot;venue_id&quot;],body[&quot;instrument_id&quot;])
+        if not listing: raise KeyError(&quot;instrument not listed on venue&quot;)
+        if qty&lt;1 or qty%int(listing[&quot;min_lot&quot;]): raise ValueError(&quot;invalid lot size&quot;)
+        if price&lt;0 or price%int(listing[&quot;tick_size&quot;]): raise ValueError(&quot;invalid tick&quot;)
+        manifest=self.identity.load_manifest(participant)
+        if not self.identity.verify_signature(manifest,body,signature): raise PermissionError(&quot;order signature invalid&quot;)
+        with self._db() as db:
+            inst=db.execute(&quot;SELECT * FROM instruments WHERE instrument_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(body[&quot;instrument_id&quot;],)).fetchone()
+        if not inst: raise KeyError(&quot;active instrument required&quot;)
+        if side==&quot;SELL&quot;:
+            if participant!=inst[&quot;issuer&quot;] and not bool(inst[&quot;transferable&quot;]): raise PermissionError(&quot;secondary transfer prohibited&quot;)
+            available=self.balance(body[&quot;instrument_id&quot;],participant)-self._reserved_sell(body[&quot;instrument_id&quot;],participant)
+            if available&lt;qty: raise PermissionError(&quot;insufficient unreserved entitlement&quot;)
+        received=now_ms()
+        try:
+            with self._db() as db:
+                if side==&quot;SELL&quot;:
+                    db.execute(&quot;BEGIN IMMEDIATE&quot;)
+                    bal=db.execute(&quot;SELECT units FROM balances WHERE instrument_id=? AND holder=?&quot;,
+                                   (body[&quot;instrument_id&quot;],participant)).fetchone()
+                    available=(int(bal[&quot;units&quot;]) if bal else 0)-self._reserved_sell_db(db,body[&quot;instrument_id&quot;],participant)
+                    if available&lt;qty: raise PermissionError(&quot;insufficient unreserved entitlement&quot;)
+                db.execute(&quot;INSERT INTO orders VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;order_id&quot;],body[&quot;venue_id&quot;],body[&quot;instrument_id&quot;],participant,side,qty,qty,
+                    price,tif,&quot;OPEN&quot;,str(body[&quot;nonce&quot;]),created,received,json.dumps(signature,sort_keys=True)))
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&quot;duplicate/replayed order id or nonce&quot;) from exc
+        return dict(body,side=side,tif=tif,quantity=qty,limit_price=price,remaining=qty,status=&quot;OPEN&quot;,received_at_ms=received,signature=signature)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

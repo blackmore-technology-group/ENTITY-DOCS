@@ -1,0 +1,136 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RightsPassportRegistry Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>RightsPassportRegistry</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/36_Adoption_Layer/rights_passport.py#L62">ENTITY/src/36_Adoption_Layer/rights_passport.py#L62</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Signed, immutable versions describing rights around an existing ENTITY object.</p><h2>Source excerpt</h2><pre><code>class RightsPassportRegistry:
+    &quot;&quot;&quot;Signed, immutable versions describing rights around an existing ENTITY object.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity, fabric=None):
+        self.path = Path(root) / &quot;entity_v3_2_rights_passports.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        self.fabric = fabric
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS passports(
+                passport_id TEXT PRIMARY KEY, object_id TEXT NOT NULL, controller_entity_id TEXT NOT NULL,
+                version TEXT NOT NULL, passport_sha256 TEXT NOT NULL, body_json TEXT NOT NULL,
+                status TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL,
+                UNIQUE(object_id,version))&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS supersessions(
+                old_passport_id TEXT PRIMARY KEY, new_passport_id TEXT NOT NULL,
+                actor_entity_id TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+                signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+
+    def issue(self, controller: str, object_id: str, rights: list[dict], *,
+              version: str = &quot;1.0&quot;, authority_refs: list[str] | None = None,
+              jurisdiction_profile_refs: list[str] | None = None,
+              semantic_refs: list[str] | None = None, custody: list[dict] | None = None,
+              provenance_refs: list[str] | None = None, disclosure_refs: list[str] | None = None,
+              privacy_profile: str = &quot;SELECTIVE_DISCLOSURE&quot;,
+              economic_terms: dict | None = None, legal_classification: dict | None = None) -&gt; dict:
+        self.identity.load_manifest(controller)
+        if self.fabric is not None:
+            obj = self.fabric.get_object(object_id)
+            if obj[&quot;controller_entity_id&quot;] != controller:
+                raise PermissionError(&quot;object controller must issue rights passport&quot;)
+        privacy_profile = str(privacy_profile).upper()
+        if privacy_profile not in PRIVACY_PROFILES:
+            raise ValueError(&quot;unsupported privacy profile&quot;)
+        normalized_rights = normalize_rules(list(rights or []))
+        if not normalized_rights:
+            raise ValueError(&quot;rights passport requires at least one right rule&quot;)
+        normalized_custody = [normalize_locator(x) for x in (custody or [])]
+        legal = dict(legal_classification or {})
+        if legal and legal.get(&quot;protocol_determines_legal_status&quot;) is not False:
+            raise ValueError(&quot;legal classification must remain an external assertion&quot;)
+        if legal:
+            legal[&quot;protocol_determines_legal_status&quot;] = False
+        terms = dict(economic_terms or {})
+        if terms.get(&quot;underlying_information_remains_nonrival&quot;) is False:
+            raise ValueError(&quot;passport cannot declare information bytes economically scarce&quot;)
+        terms[&quot;underlying_information_remains_nonrival&quot;] = True
+        terms[&quot;market_observation_is_not_accounting_fair_value&quot;] = True
+        body = {
+            &quot;schema&quot;: &quot;entity-v3-rights-passport-v1&quot;,
+            &quot;passport_id&quot;: rid(&quot;passport3&quot;),
+            &quot;object_id&quot;: str(object_id),
+            &quot;controller_entity_id&quot;: controller,
+            &quot;version&quot;: str(version),
+            &quot;core_primitives&quot;: list(CORE_PRIMITIVES),
+            &quot;authority_refs&quot;: sorted({str(x) for x in (authority_refs or [])}),
+            &quot;rights&quot;: normalized_rights,
+            &quot;jurisdiction_profile_refs&quot;: sorted({str(x) for x in (jurisdiction_profile_refs or [])}),
+            &quot;semantic_refs&quot;: sorted({str(x) for x in (semantic_refs or [])}),
+            &quot;custody&quot;: normalized_custody,
+            &quot;provenance_refs&quot;: sorted({str(x) for x in (provenance_refs or [])}),
+            &quot;disclosure_refs&quot;: sorted({str(x) for x in (disclosure_refs or [])}),
+            &quot;privacy_profile&quot;: privacy_profile,
+            &quot;economic_terms&quot;: terms,
+            &quot;legal_classification&quot;: legal,
+            &quot;status&quot;: &quot;ACTIVE&quot;,
+            &quot;created_at_ms&quot;: now_ms(),
+            &quot;provider_custody_is_not_authority&quot;: True,
+            &quot;underlying_data_not_silently_transferred&quot;: True,
+            &quot;legal_effect_is_deployment_specific&quot;: True,
+        }
+        passport_hash = digest(body)
+        sig = self.identity.sign(controller, body)
+        try:
+            with sqlite3.connect(self.path) as db:
+                db.execute(&quot;INSERT INTO passports VALUES(?,?,?,?,?,?,?,?,?)&quot;, (
+                    body[&quot;passport_id&quot;], body[&quot;object_id&quot;], controller, body[&quot;version&quot;], passport_hash,
+                    json.dumps(body, sort_keys=True), &quot;ACTIVE&quot;, body[&quot;created_at_ms&quot;],
+                    json.dumps(sig, sort_keys=True)))
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&quot;immutable rights passport version already exists&quot;) from exc
+        return dict(body, passport_sha256=passport_hash, signature=sig)
+
+    def get(self, passport_id: str) -&gt; dict:
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            row = db.execute(&quot;SELECT * FROM passports WHERE passport_id=?&quot;, (passport_id,)).fetchone()
+        if not row:
+            raise KeyError(&quot;rights passport missing&quot;)
+        body = json.loads(row[&quot;body_json&quot;])
+        return dict(body, passport_sha256=row[&quot;passport_sha256&quot;],
+                    signature=json.loads(row[&quot;signature_json&quot;]))
+
+    def verify(self, passport: dict) -&gt; dict:
+        try:
+            body = {k: v for k, v in passport.items() if k not in {&quot;passport_sha256&quot;, &quot;signature&quot;}}
+            if body.get(&quot;schema&quot;) != &quot;entity-v3-rights-passport-v1&quot;:
+                raise ValueError(&quot;schema&quot;)
+            if body.get(&quot;core_primitives&quot;) != list(CORE_PRIMITIVES):
+                raise ValueError(&quot;core primitives&quot;)
+            if body.get(&quot;provider_custody_is_not_authority&quot;) is not True:
+                raise ValueError(&quot;custody boundary&quot;)
+            if body.get(&quot;underlying_data_not_silently_transferred&quot;) is not True:
+                raise ValueError(&quot;transfer boundary&quot;)
+            if body.get(&quot;legal_effect_is_deployment_specific&quot;) is not True:
+                raise ValueError(&quot;legal boundary&quot;)
+            normalize_rules(list(body.get(&quot;rights&quot;) or []))
+            for locator in body.get(&quot;custody&quot;) or []:
+                normalize_locator(locator)
+            expected = digest(body)
+            if passport.get(&quot;passport_sha256&quot;) != expected:
+                raise ValueError(&quot;hash&quot;)
+            manifest = self.identity.load_manifest(body[&quot;controller_entity_id&quot;])
+            if not self.identity.verify_signature(manifest, body, dict(passport.get(&quot;signature&quot;) or {})):
+                raise ValueError(&quot;signature&quot;)
+            return {&quot;valid&quot;: True, &quot;passport_id&quot;: body[&quot;passport_id&quot;],
+                    &quot;passport_sha256&quot;: expected, &quot;truth_boundary_preserved&quot;: True}
+        except Exception as exc:
+            return {&quot;valid&quot;: False, &quot;reason&quot;: type(exc).__name__,
+                    &quot;truth_boundary_preserved&quot;: True}
+
+    def supersede(self, actor: str, old_passport_id: str, new_passport_id: str) -&gt; dict:
+        old, new = self.get(old_passport_id), self.get(new_passport_id)
+        if old[&quot;object_id&quot;] != new[&quot;object_id&quot;] or old[&quot;controller_entity_id&quot;] != actor:
+            raise PermissionError(&quot;same object/controller required for passport supersession&quot;)
+        body = {&quot;schema&quot;: &quot;entity-v3-rights-passport-supersession-v1&quot;,
+                &quot;old_passport_id&quot;: old_passport_id, &quot;new_passport_id&quot;: new_passport_id,
+                &quot;actor_entity_id&quot;: actor, &quot;created_at_ms&quot;: now_ms(),
+                &quot;history_rewrite_prohibited&quot;: True}
+        sig = self.identity.sign(actor, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO supersessions VALUES(?,?,?,?,?)&quot;, (
+                old_passport_id, new_passport_id, actor, body[&quot;created_at_ms&quot;],
+                json.dumps(sig, sort_keys=True)))
+            db.execute(&quot;UPDATE passports SET status=&#x27;SUPERSEDED&#x27; WHERE passport_id=?&quot;,
+                       (old_passport_id,))
+        return dict(body, signature=sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

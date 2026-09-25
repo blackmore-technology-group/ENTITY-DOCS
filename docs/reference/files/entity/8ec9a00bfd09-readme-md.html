@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / README.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / README.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>README.md</code></p><p><b>SHA-256:</b> <code>94fd38409ca498a392d670bf9a8f945469b2c3162a0100e6c7710efd44ddfc84</code></p><p><b>Bytes:</b> 12,847</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/README.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY
+
+[![Release](https://img.shields.io/github/v/release/blackmore-technology-group/ENTITY?sort=semver)](https://github.com/blackmore-technology-group/ENTITY/releases/latest)
+[![CI](https://github.com/blackmore-technology-group/ENTITY/actions/workflows/ci.yml/badge.svg)](https://github.com/blackmore-technology-group/ENTITY/actions/workflows/ci.yml)
+[![Dependency review](https://github.com/blackmore-technology-group/ENTITY/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/blackmore-technology-group/ENTITY/actions/workflows/dependency-review.yml)
+[![License](https://img.shields.io/github/license/blackmore-technology-group/ENTITY)](LICENSE)
+
+**Open infrastructure for sovereign digital authority, verifiable claims, data rights, and economic state that survives providers.**
+
+ENTITY is Blackmore Technology Group&#x27;s open-source protocol and reference implementation for persistent identity, delegated authority, provenance, evidence, rights, trusted state transitions, portable recovery, and data-economic infrastructure.
+
+&gt; **Infrastructure possession does not become sovereign authority.**
+
+[Start here](START_HERE.md) · [v3.4.0 Global Passport](docs/v3.4/README.md) · [Domain packages](docs/v3.4/DOMAIN_PACKAGES.md) · [Engineering evidence](docs/ENGINEERING_EVIDENCE.md) · [Roadmap](ROADMAP.md) · [Interoperability challenge](docs/INTEROPERABILITY_CHALLENGE.md) · [Governance](GOVERNANCE.md) · [Contributing](CONTRIBUTING.md) · [Support](SUPPORT.md) · [Security](SECURITY.md) · [Releases](https://github.com/blackmore-technology-group/ENTITY/releases)
+
+---
+
+## ENTITY v3.4.0 — Global Passport &amp; Continuous Provenance
+
+ENTITY v3.4.0 turns the existing sovereign identity, authority, rights, evidence and economic architecture into a directly deployable **Global Passport** surface.
+
+&gt; **One ENTITY Passport. Many jurisdictions, industries, standards and contexts. No new sovereignty silos.**
+
+The release adds:
+
+- **Global Passport Envelope** — one portable envelope binding existing ENTITY identity, rights, evidence and provenance;
+- **Composable Profile Stack** — jurisdiction, industry, privacy, trust and technical profiles compose fail-closed;
+- **Versioned Global Profile Registry** — signed/profile-controlled registration without silently creating authority;
+- **Standards Mapping Framework** — mappings describe correspondence and never redefine external standards;
+- **Continuous Provenance** — governed ingestion and passport derivation over evolving artifacts;
+- **Executable Domain Packages** — Healthcare, Finance, Manufacturing, AI, Robotics and Defence/Public-Unclassified;
+- **Developer SDK/CLI** — select a package, configure organization facts, ingest, verify and deploy.
+
+[v3.4.0 documentation portal](docs/v3.4/README.md) · [Global Passport](docs/v3.4/GLOBAL_PASSPORT.md) · [Six domain packages](docs/v3.4/DOMAIN_PACKAGES.md)
+
+### Inherited v3.3 evidence layer
+
+v3.4.0 retains v3.3&#x27;s Verifiable Reality, Evidence and Economic Causality model. ENTITY still keeps cryptographic verification, protocol verification and reality/evidence verification distinct. A valid Global Passport therefore does not make an external assertion objectively true.
+
+## The market architecture is preserved
+
+v3.4.0 preserves ENTITY&#x27;s market model:
+
+```text
+DCO
+ ↓
+Instrument
+ ↓
+Listing
+ ↓
+Disclosure
+ ↓
+Order / RFQ / Auction
+ ↓
+Price Discovery
+ ↓
+Trade
+ ↓
+Clearing
+ ↓
+Settlement
+ ↓
+Entitlement
+ ↓
+Usage
+ ↓
+Derived Output
+ ↓
+Economic Consequence
+```
+
+The evidence layer sits before and around that lifecycle so a participant can ask not only **who authorized the transition**, but also **what supports the underlying claim** and **which evidence survives into downstream economic attribution**.
+
+---
+
+## Core primitives and invariants
+
+ENTITY v3 preserves five core primitives:
+
+**ENTITY · AUTHORITY · RIGHT · EVENT · VALUE**
+
+The implementation is built around several non-negotiable boundaries:
+
+- Identity is not an account.
+- Registration is not ownership.
+- Provenance is not truth.
+- A valid signature is not proof that an external-world assertion is correct.
+- Possession, hosting, routing, custody and storage do not create sovereign authority.
+- External registries and resolvers provide evidence or resolution; participation does not make them sovereign authority.
+- Applications and agents act only through explicit, scoped, revocable authority.
+- Data bytes do not need artificial scarcity; scarcity can exist in rights, entitlements, capacity, duration, jurisdiction, usage quantity, derivation and participation.
+- Usage does not become realized economic value without the required evidence.
+- Historical signed semantics are superseded, not silently rewritten.
+- An Entity identity survives replacement of a device, host, provider or BTG infrastructure.
+
+---
+
+## Engineering evidence
+
+ENTITY publishes evidence separately from claims about the project.
+
+| Evidence boundary | Current public position |
+| --- | --- |
+| Current protected release | **v3.4.0 — Global Passport &amp; Continuous Provenance** |
+| Protected release commit | `2db5bff64507b8d67642122a5ff2fc73dfef9152` |
+| Full regression | **177/177 PASS** |
+| v3.4 targeted Global Passport/package suite | **33/33 PASS** |
+| v3.4 sealed Global Passport vectors | **24/24 PASS** — 12 valid / 12 invalid |
+| v3.4 sealed kit SHA-256 | `5869a3fd0ed6cb9f65bf4b20c3bd64933cad82f4aef05c5809e2e05af921f230` |
+| Global Passport schema SHA-256 | `4fbfed9be1b1484bc5d28b8101d1c908b2ccced13e4e99ec896c5b054892ebdd` |
+| Six-language BTG-controlled result SHA-256 | `ac7504cce70576008cff069607619660a4b9bf0cad43b3f3de81078f1e80d9ba` |
+| Executable domain packages | **6/6 published and verified** |
+| Post-release recursive closure | **PASS** — 1,040 frozen constituents / 1,041 ENTITY records |
+| Unrelated third-party implementation | **OPEN / PENDING** |
+| Independent external security review | **PENDING** |
+| Deployment-specific legal/regulatory determination | **Outside ENTITY protocol claims** |
+| Demonstrated external market liquidity | **PENDING** |
+
+BTG-controlled language implementations are valuable reproducibility evidence, but they are **not described as independent third-party validation**.
+</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

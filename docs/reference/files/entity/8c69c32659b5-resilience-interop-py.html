@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/31_Profiles/resilience_interop.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/31_Profiles/resilience_interop.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/31_Profiles/resilience_interop.py</code></p><p><b>SHA-256:</b> <code>a8e5b9a4704f87710fa7b36159ae68daf82ea45ad35dc53c04c6f0f6745fb848</code></p><p><b>Bytes:</b> 18,279</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/resilience_interop.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-ms-d9e0d19519ee.html">now_ms</a></li><li><a href="../../../reference/symbols/entity/canon-1c230ba83835.html">canon</a></li><li><a href="../../../reference/symbols/entity/digest-bb07b2cb55f1.html">digest</a></li><li><a href="../../../reference/symbols/entity/rid-5a4e09ea4aea.html">rid</a></li><li><a href="../../../reference/symbols/entity/federatedresolutionprofile-5e3b0c0c2958.html">FederatedResolutionProfile</a></li><li><a href="../../../reference/symbols/entity/agentdelegationprofile-e106b044796e.html">AgentDelegationProfile</a></li><li><a href="../../../reference/symbols/entity/physicalbindingprofile-a91beb681ccb.html">PhysicalBindingProfile</a></li><li><a href="../../../reference/symbols/entity/attributionmethodology-450a2204c7e0.html">AttributionMethodology</a></li><li><a href="../../../reference/symbols/entity/settlementadapterregistry-f0aa2a0aa663.html">SettlementAdapterRegistry</a></li><li><a href="../../../reference/symbols/entity/admissioncontroller-3b75af48dbdb.html">AdmissionController</a></li><li><a href="../../../reference/symbols/entity/degradationstatemachine-8d28446d17e6.html">DegradationStateMachine</a></li><li><a href="../../../reference/symbols/entity/merklebatcher-4b4e89808cae.html">MerkleBatcher</a></li><li><a href="../../../reference/symbols/entity/legacybridgeregistry-60ce8ed6613a.html">LegacyBridgeRegistry</a></li><li><a href="../../../reference/symbols/entity/federatedresolutionprofile-init-cb1147832531.html">FederatedResolutionProfile.__init__</a></li><li><a href="../../../reference/symbols/entity/federatedresolutionprofile-observe-62b65b588866.html">FederatedResolutionProfile.observe</a></li><li><a href="../../../reference/symbols/entity/federatedresolutionprofile-resolve-quorum-393a3cd15e4d.html">FederatedResolutionProfile.resolve_quorum</a></li><li><a href="../../../reference/symbols/entity/agentdelegationprofile-init-dd5724a65775.html">AgentDelegationProfile.__init__</a></li><li><a href="../../../reference/symbols/entity/agentdelegationprofile-grant-48bcafdeaf34.html">AgentDelegationProfile.grant</a></li><li><a href="../../../reference/symbols/entity/agentdelegationprofile-consume-bf8a20f54633.html">AgentDelegationProfile.consume</a></li><li><a href="../../../reference/symbols/entity/agentdelegationprofile-kill-6b1e36c3fc73.html">AgentDelegationProfile.kill</a></li><li><a href="../../../reference/symbols/entity/physicalbindingprofile-init-4dad6db3f19f.html">PhysicalBindingProfile.__init__</a></li><li><a href="../../../reference/symbols/entity/physicalbindingprofile-bind-4aed81e559f4.html">PhysicalBindingProfile.bind</a></li><li><a href="../../../reference/symbols/entity/physicalbindingprofile-custody-transfer-20ba614e6a95.html">PhysicalBindingProfile.custody_transfer</a></li><li><a href="../../../reference/symbols/entity/attributionmethodology-receipt-b66934f660ef.html">AttributionMethodology.receipt</a></li><li><a href="../../../reference/symbols/entity/settlementadapterregistry-init-b0b468c9db38.html">SettlementAdapterRegistry.__init__</a></li><li><a href="../../../reference/symbols/entity/settlementadapterregistry-register-33cc3273ee54.html">SettlementAdapterRegistry.register</a></li><li><a href="../../../reference/symbols/entity/settlementadapterregistry-route-95ffe3a13794.html">SettlementAdapterRegistry.route</a></li><li><a href="../../../reference/symbols/entity/admissioncontroller-init-40ea7cdc95f4.html">AdmissionController.__init__</a></li><li><a href="../../../reference/symbols/entity/admissioncontroller-admit-455a4d7dae0d.html">AdmissionController.admit</a></li><li><a href="../../../reference/symbols/entity/degradationstatemachine-init-b5dbe275a67b.html">DegradationStateMachine.__init__</a></li><li><a href="../../../reference/symbols/entity/degradationstatemachine-transition-51650dc74a68.html">DegradationStateMachine.transition</a></li><li><a href="../../../reference/symbols/entity/degradationstatemachine-permits-11d7d987f49c.html">DegradationStateMachine.permits</a></li><li><a href="../../../reference/symbols/entity/merklebatcher-leaf-fcc31308d72d.html">MerkleBatcher.leaf</a></li><li><a href="../../../reference/symbols/entity/merklebatcher-root-d6233b8714c0.html">MerkleBatcher.root</a></li><li><a href="../../../reference/symbols/entity/merklebatcher-proof-583a1b12fc70.html">MerkleBatcher.proof</a></li><li><a href="../../../reference/symbols/entity/merklebatcher-verify-10546cf83bbe.html">MerkleBatcher.verify</a></li><li><a href="../../../reference/symbols/entity/legacybridgeregistry-map-89de1fc6be1a.html">LegacyBridgeRegistry.map</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from typing import Any
+import hashlib, json, secrets, sqlite3, time
+
+def now_ms(): return int(time.time() * 1000)
+def canon(v): return json.dumps(v, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False, default=str).encode()
+def digest(v): return hashlib.sha256(v if isinstance(v, (bytes, bytearray)) else canon(v)).hexdigest()
+def rid(prefix): return prefix + &quot;-&quot; + secrets.token_hex(12)
+
+class FederatedResolutionProfile:
+    &quot;&quot;&quot;Multiple signed resolver observations, quorum selection and split-view detection.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_federated_resolution.sqlite&quot;; self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS views(
+                view_id TEXT PRIMARY KEY, object_id TEXT NOT NULL, resolver TEXT NOT NULL,
+                version INTEGER NOT NULL, epoch INTEGER NOT NULL, resolution_sha256 TEXT NOT NULL,
+                expires_at_ms INTEGER NOT NULL, created_at_ms INTEGER NOT NULL,
+                signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;CREATE UNIQUE INDEX IF NOT EXISTS idx_resolution_equivocation &quot;
+                       &quot;ON views(object_id,resolver,version,epoch,resolution_sha256)&quot;)
+
+    def observe(self, resolver: str, object_id: str, resolution_record: dict,
+                *, epoch: int, ttl_ms: int) -&gt; dict:
+        self.identity.load_manifest(resolver)
+        version = int(resolution_record.get(&quot;version&quot;) or 0)
+        if version &lt; 1: raise ValueError(&quot;resolution version required&quot;)
+        body = {&quot;schema&quot;: &quot;entity-v3-resolver-view-v1&quot;, &quot;view_id&quot;: rid(&quot;view3&quot;),
+                &quot;object_id&quot;: object_id, &quot;resolver&quot;: resolver, &quot;version&quot;: version,
+                &quot;epoch&quot;: int(epoch), &quot;resolution_sha256&quot;: digest(resolution_record),
+                &quot;expires_at_ms&quot;: now_ms() + max(1, int(ttl_ms)), &quot;created_at_ms&quot;: now_ms()}
+        with sqlite3.connect(self.path) as db:
+            rows = db.execute(&quot;SELECT DISTINCT resolution_sha256 FROM views &quot;
+                              &quot;WHERE object_id=? AND resolver=? AND version=? AND epoch=?&quot;,
+                              (object_id, resolver, version, int(epoch))).fetchall()
+            if rows and any(r[0] != body[&quot;resolution_sha256&quot;] for r in rows):
+                raise ValueError(&quot;resolver equivocation detected&quot;)
+        sig = self.identity.sign(resolver, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO views VALUES(?,?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;view_id&quot;], object_id, resolver, version, int(epoch),
+                body[&quot;resolution_sha256&quot;], body[&quot;expires_at_ms&quot;], body[&quot;created_at_ms&quot;],
+                json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)
+
+    def resolve_quorum(self, object_id: str, *, minimum_resolvers=2, at_ms=None) -&gt; dict:
+        at = int(at_ms or now_ms())
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            rows = db.execute(&quot;SELECT * FROM views WHERE object_id=? AND expires_at_ms&gt;=? &quot;
+                              &quot;ORDER BY version DESC,epoch DESC,created_at_ms DESC&quot;,
+                              (object_id, at)).fetchall()
+        grouped = {}
+        seen_resolver_version = {}
+        equivocation = False
+        for row in rows:
+            key_re = (row[&quot;resolver&quot;], row[&quot;version&quot;], row[&quot;epoch&quot;])
+            prev = seen_resolver_version.get(key_re)
+            if prev and prev != row[&quot;resolution_sha256&quot;]: equivocation = True
+            seen_resolver_version[key_re] = row[&quot;resolution_sha256&quot;]
+            key = (row[&quot;version&quot;], row[&quot;epoch&quot;], row[&quot;resolution_sha256&quot;])
+            grouped.setdefault(key, set()).add(row[&quot;resolver&quot;])
+        candidates = [(len(v), k, v) for k, v in grouped.items()]
+        candidates.sort(key=lambda x: (-x[0], -x[1][0], -x[1][1], x[1][2]))
+        if equivocation:
+            return {&quot;object_id&quot;: object_id, &quot;resolved&quot;: False, &quot;reason&quot;: &quot;EQUIVOCATION&quot;}
+        if not candidates or candidates[0][0] &lt; int(minimum_resolvers):
+            return {&quot;object_id&quot;: object_id, &quot;resolved&quot;: False, &quot;reason&quot;: &quot;QUORUM_NOT_MET&quot;}
+        count, (version, epoch, sha), resolvers = candidates[0]
+        return {&quot;object_id&quot;: object_id, &quot;resolved&quot;: True, &quot;version&quot;: version, &quot;epoch&quot;: epoch,
+                &quot;resolution_sha256&quot;: sha, &quot;resolver_count&quot;: count,
+                &quot;resolvers&quot;: sorted(resolvers), &quot;resolver_is_not_authority&quot;: True}
+
+class AgentDelegationProfile:
+    &quot;&quot;&quot;Sub-agent authority with depth/capability/budget/time attenuation and kill semantics.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_agent_delegation.sqlite&quot;; self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS grants(
+                grant_id TEXT PRIMARY KEY, principal TEXT NOT NULL, grantor TEXT NOT NULL,
+                grantee TEXT NOT NULL, parent_grant_id TEXT, depth INTEGER NOT NULL,
+                max_depth INTEGER NOT NULL, capabilities_json TEXT NOT NULL,
+                budget_units INTEGER NOT NULL, spent_units INTEGER NOT NULL,
+                expires_at_ms INTEGER NOT NULL, policy_sha256 TEXT NOT NULL,
+                status TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+
+    def grant(self, principal: str, grantor: str, grantee: str, capabilities: list[str], *,
+              max_depth=0, budget_units=0, expires_at_ms: int, policy_sha256: str,
+              parent_grant_id: str | None = None) -&gt; dict:
+        caps = sorted({str(c).upper() for c in capabilities})
+        depth = 0
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            if parent_grant_id:
+                parent = db.execute(&quot;SELECT * FROM grants WHERE grant_id=? AND status=&#x27;ACTIVE&#x27;&quot;,
+                                    (parent_grant_id,)).fetchone()
+                if not parent: raise KeyError(&quot;active parent grant missing&quot;)
+                if parent[&quot;grantee&quot;] != grantor or parent[&quot;principal&quot;] != principal:
+                    raise PermissionError(&quot;delegation chain mismatch&quot;)
+                depth = int(parent[&quot;depth&quot;]) + 1
+                if depth &gt; int(parent[&quot;max_depth&quot;]): raise PermissionError(&quot;delegation depth exceeded&quot;)
+                if not set(caps).issubset(set(json.loads(parent[&quot;capabilities_json&quot;]))):
+                    raise PermissionError(&quot;capability escalation prohibited&quot;)
+                remaining = int(parent[&quot;budget_units&quot;]) - int(parent[&quot;spent_units&quot;])
+                if int(budget_units) &gt; remaining: raise PermissionError(&quot;budget escalation prohibited&quot;)
+                if int(expires_at_ms) &gt; int(parent[&quot;expires_at_ms&quot;]):
+                    raise PermissionError(&quot;time escalation prohibited&quot;)
+        body = {&quot;schema&quot;: &quot;entity-v3-agent-delegation-v1&quot;, &quot;grant_id&quot;: rid(&quot;agentgrant3&quot;),
+                &quot;principal&quot;: principal, &quot;grantor&quot;: grantor, &quot;grantee&quot;: grantee,
+                &quot;parent_grant_id&quot;: parent_grant_id, &quot;depth&quot;: depth, &quot;max_depth&quot;: int(max_depth),
+                &quot;capabilities&quot;: caps, &quot;budget_units&quot;: max(0, int(budget_units)),
+                &quot;expires_at_ms&quot;: int(expires_at_ms), &quot;policy_sha256&quot;: policy_sha256,
+                &quot;status&quot;: &quot;ACTIVE&quot;, &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(grantor, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO grants VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;grant_id&quot;], principal, grantor, grantee, parent_grant_id, depth,
+                int(max_depth), json.dumps(caps), body[&quot;budget_units&quot;], 0,
+                body[&quot;expires_at_ms&quot;], policy_sha256, &quot;ACTIVE&quot;, body[&quot;created_at_ms&quot;],</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

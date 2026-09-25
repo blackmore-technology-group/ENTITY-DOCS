@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tests/test_v3_global_infrastructure.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tests/test_v3_global_infrastructure.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tests/test_v3_global_infrastructure.py</code></p><p><b>SHA-256:</b> <code>89936ff77d5fb534c502ec835bb1e8b3fa384799db7842d99032acfcf11ca7df</code></p><p><b>Bytes:</b> 16,279</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_global_infrastructure.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-04a372b62a7c.html">load</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-7f0e2e15a03f.html">GlobalInfrastructureTests</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-setup-ce4b77c8b699.html">GlobalInfrastructureTests.setUp</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-teardown-0bbe3839e6bc.html">GlobalInfrastructureTests.tearDown</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-test-jurisdiction-profiles-are-immutable-and-fail-closed-on-conflict-af127738bdd0.html">GlobalInfrastructureTests.test_jurisdiction_profiles_are_immutable_and_fail_closed_on_conflict</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-test-semantic-registry-never-silently-equates-terms-f981a420e546.html">GlobalInfrastructureTests.test_semantic_registry_never_silently_equates_terms</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-test-multistakeholder-governance-requires-class-diversity-ec54e7fd075d.html">GlobalInfrastructureTests.test_multistakeholder_governance_requires_class_diversity</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-test-governance-recusal-blocks-vote-413b1a3fa488.html">GlobalInfrastructureTests.test_governance_recusal_blocks_vote</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-test-purpose-bound-access-revocation-and-use-caps-ce13a4c0f38c.html">GlobalInfrastructureTests.test_purpose_bound_access_revocation_and_use_caps</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-test-selective-retention-preserves-commitment-after-destruction-f0d7613d04ea.html">GlobalInfrastructureTests.test_selective_retention_preserves_commitment_after_destruction</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-test-confidential-provenance-encrypts-metadata-and-detects-wrong-key-1fcf44ccd53e.html">GlobalInfrastructureTests.test_confidential_provenance_encrypts_metadata_and_detects_wrong_key</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-test-proof-verifier-registry-fails-closed-without-bound-verifier-c332cac3785e.html">GlobalInfrastructureTests.test_proof_verifier_registry_fails_closed_without_bound_verifier</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-test-partition-merge-converges-or-fails-closed-c2dbaa538186.html">GlobalInfrastructureTests.test_partition_merge_converges_or_fails_closed</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-test-offline-envelope-is-signed-expiry-bounded-and-tamper-evident-d049ee5c6822.html">GlobalInfrastructureTests.test_offline_envelope_is_signed_expiry_bounded_and_tamper_evident</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-test-topology-nodes-do-not-gain-authority-by-membership-ab0943bceefd.html">GlobalInfrastructureTests.test_topology_nodes_do_not_gain_authority_by_membership</a></li><li><a href="../../../reference/symbols/entity/globalinfrastructuretests-test-crypto-migration-requires-dual-signatures-and-rejects-downgrade-1cccd0fe127f.html">GlobalInfrastructureTests.test_crypto_migration_requires_dual_signatures_and_rejects_downgrade</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, importlib.util, pathlib, tempfile, time, unittest
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+
+def load(name: str, rel: str):
+    spec = importlib.util.spec_from_file_location(name, ROOT / rel)
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+    return mod
+
+identity_mod = load(&quot;global_identity&quot;, &quot;src/01_Core_Runtime/identity/canonical_identity.py&quot;)
+inst = load(&quot;global_institutional&quot;, &quot;src/35_Global_Infrastructure/institutional_semantics.py&quot;)
+privacy = load(&quot;global_privacy&quot;, &quot;src/35_Global_Infrastructure/privacy_provenance.py&quot;)
+topology = load(&quot;global_topology&quot;, &quot;src/35_Global_Infrastructure/topology_crypto.py&quot;)
+
+class GlobalInfrastructureTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = pathlib.Path(self.tmp.name)
+        self.vault = identity_mod.EntityIdentityVault(self.root / &quot;vault&quot;)
+        self.steward = self.vault.create(&quot;Steward&quot;, &quot;organization&quot;)[&quot;entity_id&quot;]
+        self.gov = self.vault.create(&quot;Government&quot;, &quot;organization&quot;)[&quot;entity_id&quot;]
+        self.academia = self.vault.create(&quot;University&quot;, &quot;organization&quot;)[&quot;entity_id&quot;]
+        self.vendor = self.vault.create(&quot;Vendor&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        self.user = self.vault.create(&quot;User&quot;, &quot;person&quot;)[&quot;entity_id&quot;]
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_jurisdiction_profiles_are_immutable_and_fail_closed_on_conflict(self):
+        reg = inst.JurisdictionProfileRegistry(self.root, self.vault)
+        schema = hashlib.sha256(b&quot;jurisdiction-schema&quot;).hexdigest()
+        ca = reg.register(self.gov, &quot;CA-BC&quot;, &quot;DATA&quot;, &quot;1.0&quot;, schema,
+                          [{&quot;effect&quot;: &quot;ALLOW&quot;, &quot;actions&quot;: [&quot;TRAIN&quot;],
+                            &quot;conditions&quot;: {&quot;classification&quot;: &quot;NON_PERSONAL&quot;},
+                            &quot;obligations&quot;: [&quot;DISCLOSURE&quot;]}], effective_from_ms=1)
+        eu = reg.register(self.gov, &quot;EU&quot;, &quot;DATA&quot;, &quot;1.0&quot;, schema,
+                          [{&quot;effect&quot;: &quot;PROHIBIT&quot;, &quot;actions&quot;: [&quot;TRAIN&quot;],
+                            &quot;conditions&quot;: {&quot;classification&quot;: &quot;NON_PERSONAL&quot;}}],
+                          effective_from_ms=1)
+        decision = reg.evaluate([&quot;CA-BC&quot;, &quot;EU&quot;], &quot;DATA&quot;, &quot;TRAIN&quot;,
+                                {&quot;classification&quot;: &quot;NON_PERSONAL&quot;})
+        self.assertEqual(decision[&quot;decision&quot;], &quot;DENY&quot;)
+        self.assertTrue(decision[&quot;conflict_detected&quot;])
+        self.assertTrue(decision[&quot;legal_determination_not_made&quot;])
+        with self.assertRaises(ValueError):
+            reg.register(self.gov, &quot;CA-BC&quot;, &quot;DATA&quot;, &quot;1.0&quot;, schema,
+                         [{&quot;effect&quot;: &quot;ALLOW&quot;, &quot;actions&quot;: [&quot;COPY&quot;]}], effective_from_ms=1)
+        ca2 = reg.register(self.gov, &quot;CA-BC&quot;, &quot;DATA&quot;, &quot;2.0&quot;, schema,
+                           [{&quot;effect&quot;: &quot;REQUIRE&quot;, &quot;actions&quot;: [&quot;TRAIN&quot;],
+                             &quot;obligations&quot;: [&quot;NEW_DISCLOSURE&quot;]}], effective_from_ms=2)
+        sup = reg.supersede(self.gov, ca[&quot;profile_id&quot;], ca2[&quot;profile_id&quot;])
+        self.assertTrue(sup[&quot;history_rewrite_prohibited&quot;])
+        self.assertNotEqual(ca[&quot;profile_id&quot;], eu[&quot;profile_id&quot;])
+
+    def test_semantic_registry_never_silently_equates_terms(self):
+        reg = inst.SemanticRegistry(self.root, self.vault)
+        reg.register_namespace(self.steward, &quot;btg&quot;, &quot;BTG canonical semantics&quot;)
+        reg.register_namespace(self.gov, &quot;gov&quot;, &quot;Government semantics&quot;)
+        a = reg.register_term(self.steward, &quot;btg&quot;, &quot;RIGHT&quot;, &quot;TRAIN&quot;, &quot;1.0&quot;,
+                              {&quot;meaning&quot;: &quot;model training use&quot;})
+        b = reg.register_term(self.gov, &quot;gov&quot;, &quot;RIGHT&quot;, &quot;MODEL_TRAINING&quot;, &quot;1.0&quot;,
+                              {&quot;meaning&quot;: &quot;regulated model-training use&quot;})
+        aref = reg.term_ref(&quot;btg&quot;, &quot;RIGHT&quot;, &quot;TRAIN&quot;, &quot;1.0&quot;)
+        bref = reg.term_ref(&quot;gov&quot;, &quot;RIGHT&quot;, &quot;MODEL_TRAINING&quot;, &quot;1.0&quot;)
+        reg.map_terms(self.steward, aref, bref, &quot;EXACT&quot;, hashlib.sha256(b&quot;evidence&quot;).hexdigest(),
+                      jurisdiction_scope=[&quot;CA&quot;], confidence_bps=10000)
+        result = reg.mappings(aref, target_namespace=&quot;gov&quot;)
+        self.assertEqual(result[&quot;unambiguous_exact_candidate&quot;], bref)
+        self.assertFalse(result[&quot;automatic_translation_permitted&quot;])
+        self.assertTrue(result[&quot;profile_or_human_semantic_decision_required&quot;])
+        with self.assertRaises(ValueError):
+            reg.register_term(self.steward, &quot;btg&quot;, &quot;RIGHT&quot;, &quot;TRAIN&quot;, &quot;1.0&quot;,
+                              {&quot;meaning&quot;: &quot;different meaning&quot;})
+        self.assertEqual(a[&quot;status&quot;], &quot;ACTIVE&quot;)
+        self.assertEqual(b[&quot;status&quot;], &quot;ACTIVE&quot;)
+
+    def test_multistakeholder_governance_requires_class_diversity(self):
+        gov = inst.MultiStakeholderGovernance(self.root, self.vault)
+        body = gov.create_body(self.steward, &quot;ENTITY Standards Council&quot;,
+                               hashlib.sha256(b&quot;charter&quot;).hexdigest(),
+                               [&quot;INDUSTRY&quot;, &quot;GOVERNMENT&quot;, &quot;ACADEMIA&quot;],
+                               approval_threshold=3, min_approval_classes=3)
+        industry2 = self.vault.create(&quot;Industry Two&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        gov.add_member(body[&quot;body_id&quot;], self.steward, self.steward, &quot;INDUSTRY&quot;)
+        gov.add_member(body[&quot;body_id&quot;], self.steward, industry2, &quot;INDUSTRY&quot;)
+        gov.add_member(body[&quot;body_id&quot;], self.steward, self.gov, &quot;GOVERNMENT&quot;)
+        gov.add_member(body[&quot;body_id&quot;], self.steward, self.academia, &quot;ACADEMIA&quot;)
+        proposal = gov.propose(body[&quot;body_id&quot;], self.steward, &quot;PROFILE&quot;, &quot;profile:jurisdiction&quot;,
+                               {&quot;version&quot;: &quot;1.0&quot;, &quot;change&quot;: &quot;add jurisdiction layer&quot;})
+        gov.vote(proposal[&quot;proposal_id&quot;], self.steward, &quot;APPROVE&quot;)
+        gov.vote(proposal[&quot;proposal_id&quot;], industry2, &quot;APPROVE&quot;)
+        interim = gov.vote(proposal[&quot;proposal_id&quot;], self.gov, &quot;APPROVE&quot;)
+        self.assertEqual(interim[&quot;proposal_status&quot;], &quot;OPEN&quot;)
+        final = gov.vote(proposal[&quot;proposal_id&quot;], self.academia, &quot;APPROVE&quot;)
+        self.assertEqual(final[&quot;proposal_status&quot;], &quot;ACCEPTED&quot;)
+        tally = gov.tally(proposal[&quot;proposal_id&quot;])
+        self.assertTrue(tally[&quot;diversity_requirement_met&quot;])
+        self.assertEqual(tally[&quot;approval_classes&quot;], [&quot;ACADEMIA&quot;, &quot;GOVERNMENT&quot;, &quot;INDUSTRY&quot;])
+
+    def test_governance_recusal_blocks_vote(self):
+        gov = inst.MultiStakeholderGovernance(self.root, self.vault)
+        body = gov.create_body(self.steward, &quot;Council&quot;, hashlib.sha256(b&quot;c&quot;).hexdigest(),
+                               [&quot;INDUSTRY&quot;, &quot;PUBLIC&quot;], approval_threshold=2, min_approval_classes=2)
+        gov.add_member(body[&quot;body_id&quot;], self.steward, self.steward, &quot;INDUSTRY&quot;)
+        gov.add_member(body[&quot;body_id&quot;], self.steward, self.gov, &quot;PUBLIC&quot;)
+        proposal = gov.propose(body[&quot;body_id&quot;], self.steward, &quot;GOVERNANCE&quot;, &quot;charter&quot;, {&quot;x&quot;: 1})
+        gov.declare_conflict(proposal[&quot;proposal_id&quot;], self.gov, {&quot;reason&quot;: &quot;direct interest&quot;}, recuse=True)
+        with self.assertRaises(PermissionError):
+            gov.vote(proposal[&quot;proposal_id&quot;], self.gov, &quot;APPROVE&quot;)
+
+    def test_purpose_bound_access_revocation_and_use_caps(self):
+        access = privacy.PurposeBoundAccessRegistry(self.root, self.vault)
+        grant = access.grant(self.steward, self.user, &quot;dataset:alpha&quot;, [&quot;RESEARCH&quot;], [&quot;TRAIN&quot;],
+                             expires_at_ms=int(time.time() * 1000) + 60000, max_uses=1)
+        use = access.authorize_use(grant[&quot;grant_id&quot;], self.user, &quot;RESEARCH&quot;, &quot;TRAIN&quot;,
+                                   hashlib.sha256(b&quot;use&quot;).hexdigest())
+        self.assertTrue(use[&quot;authorized&quot;])</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

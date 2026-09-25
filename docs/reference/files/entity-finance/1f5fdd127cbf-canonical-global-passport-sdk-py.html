@@ -1,0 +1,66 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY-FINANCE / sdk/canonical_global_passport_sdk.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY-FINANCE / sdk/canonical_global_passport_sdk.py</h1><div class="meta"><b>Repository:</b> ENTITY-FINANCE<br><b>Commit:</b> <code>2efe26dbd906499126342af99b91ef80b05862ef</code></div><p><b>Path:</b> <code>sdk/canonical_global_passport_sdk.py</code></p><p><b>SHA-256:</b> <code>50d40713fe7f8462f54388bd7650705fd3f17027f7692a7cf87bf3ad59230e64</code></p><p><b>Bytes:</b> 4,252</p><p><a href="https://github.com/blackmore-technology-group/ENTITY-FINANCE/blob/2efe26dbd906499126342af99b91ef80b05862ef/sdk/canonical_global_passport_sdk.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity-finance/entityglobalpassportsdk-f86741fdcb96.html">EntityGlobalPassportSDK</a></li><li><a href="../../../reference/symbols/entity-finance/entityglobalpassportsdk-init-2f92fa21780b.html">EntityGlobalPassportSDK.__init__</a></li><li><a href="../../../reference/symbols/entity-finance/entityglobalpassportsdk-profile-ref-fa57470d05a8.html">EntityGlobalPassportSDK.profile_ref</a></li><li><a href="../../../reference/symbols/entity-finance/entityglobalpassportsdk-compose-profiles-23a561796a5b.html">EntityGlobalPassportSDK.compose_profiles</a></li><li><a href="../../../reference/symbols/entity-finance/entityglobalpassportsdk-register-file-c3fd2a9cdb44.html">EntityGlobalPassportSDK.register_file</a></li><li><a href="../../../reference/symbols/entity-finance/entityglobalpassportsdk-package-plan-3decdcaaaad3.html">EntityGlobalPassportSDK.package_plan</a></li><li><a href="../../../reference/symbols/entity-finance/entityglobalpassportsdk-map-external-ee1dea537ee3.html">EntityGlobalPassportSDK.map_external</a></li><li><a href="../../../reference/symbols/entity-finance/entityglobalpassportsdk-ingest-package-file-777aeb24b206.html">EntityGlobalPassportSDK.ingest_package_file</a></li><li><a href="../../../reference/symbols/entity-finance/entityglobalpassportsdk-verify-passport-9ba288678cc8.html">EntityGlobalPassportSDK.verify_passport</a></li><li><a href="../../../reference/symbols/entity-finance/entityglobalpassportsdk-capability-status-dc74b4947173.html">EntityGlobalPassportSDK.capability_status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+
+PROFILE_ALIASES={
+    &quot;global&quot;:&quot;entity-profile:global@1.0&quot;,&quot;healthcare&quot;:&quot;entity-profile:healthcare@1.0&quot;,&quot;finance&quot;:&quot;entity-profile:finance@1.0&quot;,
+    &quot;manufacturing&quot;:&quot;entity-profile:manufacturing@1.0&quot;,&quot;ai&quot;:&quot;entity-profile:ai@1.0&quot;,&quot;robotics&quot;:&quot;entity-profile:robotics@1.0&quot;,
+    &quot;defence&quot;:&quot;entity-profile:defence-public@1.0&quot;,&quot;defense&quot;:&quot;entity-profile:defence-public@1.0&quot;,
+}
+
+class EntityGlobalPassportSDK:
+    &quot;&quot;&quot;Public v3.4 facade. SDK convenience never creates authority, truth or regulatory status.&quot;&quot;&quot;
+    def __init__(self,profile_registry,global_passports,continuous_ingestion,industry_packages=None):
+        self.profiles=profile_registry
+        self.passports=global_passports
+        self.ingestion=continuous_ingestion
+        self.industry_packages=industry_packages
+
+    @staticmethod
+    def profile_ref(name:str)-&gt;str:
+        key=str(name).strip().lower()
+        if key not in PROFILE_ALIASES: raise KeyError(&quot;unknown built-in profile alias&quot;)
+        return PROFILE_ALIASES[key]
+
+    def compose_profiles(self,*names_or_refs:str)-&gt;dict:
+        refs=[]
+        if not any(str(x).startswith(&quot;entity-profile:global@&quot;) or str(x).lower()==&quot;global&quot; for x in names_or_refs):
+            refs.append(PROFILE_ALIASES[&quot;global&quot;])
+        for item in names_or_refs:
+            text=str(item); refs.append(text if text.startswith(&quot;entity-profile:&quot;) else self.profile_ref(text))
+        return self.profiles.resolve_stack(refs)
+    def register_file(self,path,controller_entity_id:str,*profiles:str,logical_path:str|None=None,
+                      previous_object_id:str|None=None,version:str=&quot;1.0&quot;)-&gt;dict:
+        stack=self.compose_profiles(*profiles)
+        result=self.ingestion.ingest_file(path,controller_entity_id,stack[&quot;profile_refs&quot;],logical_path=logical_path,
+                                          previous_object_id=previous_object_id,version=version)
+        return {&quot;object_id&quot;:result[&quot;object&quot;][&quot;object_id&quot;],&quot;content_sha256&quot;:result[&quot;object&quot;][&quot;content_sha256&quot;],
+                &quot;rights_passport_id&quot;:result[&quot;rights_passport&quot;][&quot;passport_id&quot;],
+                &quot;global_passport_id&quot;:result[&quot;global_passport&quot;][&quot;passport_id&quot;],
+                &quot;global_passport_sha256&quot;:result[&quot;global_passport&quot;][&quot;body_sha256&quot;],
+                &quot;evidence_id&quot;:result[&quot;evidence&quot;][&quot;evidence_id&quot;],&quot;profile_refs&quot;:stack[&quot;profile_refs&quot;],
+                &quot;custody_is_not_authority&quot;:True,&quot;economic_value_invented&quot;:False}
+
+    def package_plan(self,package:str,config:dict,asset_kind:str)-&gt;dict:
+        if self.industry_packages is None: raise RuntimeError(&quot;industry package registry not configured&quot;)
+        return self.industry_packages.deployment_plan(package,config,asset_kind)
+
+    def map_external(self,package:str,standard:str,record:dict)-&gt;dict:
+        if self.industry_packages is None: raise RuntimeError(&quot;industry package registry not configured&quot;)
+        return self.industry_packages.map_external(package,standard,record)
+
+    def ingest_package_file(self,path,controller_entity_id:str,package:str,config:dict,asset_kind:str,**kwargs)-&gt;dict:
+        plan=self.package_plan(package,config,asset_kind)
+        result=self.ingestion.ingest_file(path,controller_entity_id,plan[&quot;profile_refs&quot;],
+                                          rights_actions=plan[&quot;rights_actions&quot;],**kwargs)
+        return {&quot;deployment_plan&quot;:plan,&quot;object_id&quot;:result[&quot;object&quot;][&quot;object_id&quot;],
+                &quot;global_passport_id&quot;:result[&quot;global_passport&quot;][&quot;passport_id&quot;],
+                &quot;content_sha256&quot;:result[&quot;object&quot;][&quot;content_sha256&quot;],&quot;economic_value_invented&quot;:False}
+    def verify_passport(self,passport_or_id)-&gt;dict:
+        passport=self.passports.get(passport_or_id) if isinstance(passport_or_id,str) else passport_or_id
+        return self.passports.verify(passport)
+
+    @staticmethod
+    def capability_status()-&gt;dict:
+        return {&quot;schema&quot;:&quot;entity-v3-global-passport-sdk-status-v1&quot;,&quot;sdk_does_not_create_authority&quot;:True,
+                &quot;profile_is_not_regulatory_compliance&quot;:True,&quot;external_standards_are_mapped_not_redefined&quot;:True,
+                &quot;continuous_provenance_supported&quot;:True,&quot;industry_packages_supported&quot;:True,
+                &quot;developer_configures_not_redesigns&quot;:True,&quot;built_in_profile_aliases&quot;:sorted(PROFILE_ALIASES)}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,163 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DataSourceGateway Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>DataSourceGateway</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/08_Data_Vaults/canonical_data_source_gateway.py#L28">ENTITY/src/08_Data_Vaults/canonical_data_source_gateway.py#L28</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Default-deny source enrollment and least-privilege data access policy.</p><h2>Source excerpt</h2><pre><code>class DataSourceGateway:
+    &quot;&quot;&quot;Default-deny source enrollment and least-privilege data access policy.&quot;&quot;&quot;
+    def __init__(self, state_dir: str | Path):
+        self.root = Path(state_dir) / &quot;data_source_gateway&quot;
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.path = self.root / &quot;sources.sqlite&quot;
+        self._lock = RLock()
+        self._init_db()
+    @contextmanager
+    def _connect(self):
+        db = sqlite3.connect(self.path, timeout=30)
+        db.row_factory = sqlite3.Row
+        try:
+            yield db
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        finally:
+            db.close()
+
+    def _init_db(self) -&gt; None:
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS sources(source_id TEXT PRIMARY KEY, controller_entity_id TEXT NOT NULL, root_path TEXT NOT NULL UNIQUE, mode TEXT NOT NULL, discovery_allowed INTEGER NOT NULL, content_allowed INTEGER NOT NULL, economic_allowed INTEGER NOT NULL, niki_content_allowed INTEGER NOT NULL, default_classification TEXT NOT NULL, default_licensable INTEGER NOT NULL, created_at_ms INTEGER NOT NULL, updated_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS exclusions(exclusion_id TEXT PRIMARY KEY, source_id TEXT, pattern TEXT NOT NULL, reason TEXT NOT NULL, hard INTEGER NOT NULL, created_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_source_controller ON sources(controller_entity_id)&quot;)
+            count = db.execute(&quot;SELECT COUNT(*) FROM exclusions WHERE hard=1 AND source_id IS NULL&quot;).fetchone()[0]
+            if not count:
+                now = _now()
+                for pattern in DEFAULT_NEVER_TOUCH:
+                    db.execute(&quot;INSERT INTO exclusions(exclusion_id,source_id,pattern,reason,hard,created_at_ms) VALUES(?,?,?,?,?,?)&quot;, (&quot;exc1-&quot;+uuid.uuid4().hex,None,pattern,&quot;default never-touch boundary&quot;,1,now))
+
+    @staticmethod
+    def _mode_ceiling(mode: str) -&gt; dict:
+        mode = str(mode or &quot;OFF&quot;).upper()
+        if mode not in SOURCE_MODES:
+            raise ValueError(f&quot;unsupported source mode: {mode}&quot;)
+        return {
+            &quot;OFF&quot;: {&quot;discover&quot;:False,&quot;content&quot;:False,&quot;provenance&quot;:False,&quot;managed&quot;:False},
+            &quot;OBSERVE&quot;: {&quot;discover&quot;:True,&quot;content&quot;:False,&quot;provenance&quot;:False,&quot;managed&quot;:False},
+            &quot;INDEX&quot;: {&quot;discover&quot;:True,&quot;content&quot;:True,&quot;provenance&quot;:False,&quot;managed&quot;:False},
+            &quot;PROVENANCE&quot;: {&quot;discover&quot;:True,&quot;content&quot;:True,&quot;provenance&quot;:True,&quot;managed&quot;:False},
+            &quot;MANAGED&quot;: {&quot;discover&quot;:True,&quot;content&quot;:True,&quot;provenance&quot;:True,&quot;managed&quot;:True},
+        }[mode]
+    def enroll_source(self, controller_entity_id: str, root_path: str | Path, *, mode: str,
+                      discovery_allowed: bool = True, content_allowed: bool = False,
+                      economic_allowed: bool = False, niki_content_allowed: bool = False,
+                      default_classification: str = &quot;PRIVATE&quot;,
+                      default_licensable: bool = False) -&gt; dict:
+        resolved = Path(root_path).resolve()
+        ceiling = self._mode_ceiling(mode)
+        mode = str(mode).upper()
+        if not resolved.exists():
+            raise FileNotFoundError(str(resolved))
+        if discovery_allowed and not ceiling[&quot;discover&quot;]:
+            raise PermissionError(&quot;source mode does not permit discovery&quot;)
+        if content_allowed and not ceiling[&quot;content&quot;]:
+            raise PermissionError(&quot;source mode does not permit content access&quot;)
+        if niki_content_allowed and not content_allowed:
+            raise PermissionError(&quot;NIKI content access requires content permission&quot;)
+        if economic_allowed and mode != &quot;MANAGED&quot;:
+            raise PermissionError(&quot;economic rights require MANAGED mode&quot;)
+        if default_licensable and not economic_allowed:
+            raise PermissionError(&quot;licensable default requires explicit economic permission&quot;)
+        source_id = &quot;src1-&quot; + uuid.uuid4().hex
+        now = _now()
+        with self._lock, self._connect() as db:
+            db.execute(&quot;INSERT INTO sources(source_id,controller_entity_id,root_path,mode,discovery_allowed,content_allowed,economic_allowed,niki_content_allowed,default_classification,default_licensable,created_at_ms,updated_at_ms) VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(root_path) DO UPDATE SET controller_entity_id=excluded.controller_entity_id,mode=excluded.mode,discovery_allowed=excluded.discovery_allowed,content_allowed=excluded.content_allowed,economic_allowed=excluded.economic_allowed,niki_content_allowed=excluded.niki_content_allowed,default_classification=excluded.default_classification,default_licensable=excluded.default_licensable,updated_at_ms=excluded.updated_at_ms&quot;, (source_id,controller_entity_id,str(resolved),mode,int(discovery_allowed),int(content_allowed),int(economic_allowed),int(niki_content_allowed),str(default_classification).upper()[:32],int(default_licensable),now,now))
+            row = db.execute(&quot;SELECT * FROM sources WHERE root_path=?&quot;, (str(resolved),)).fetchone()
+        return self._view(row)
+
+    @staticmethod
+    def _view(row) -&gt; dict:
+        out = dict(row)
+        for key in (&quot;discovery_allowed&quot;,&quot;content_allowed&quot;,&quot;economic_allowed&quot;,&quot;niki_content_allowed&quot;,&quot;default_licensable&quot;):
+            out[key] = bool(out[key])
+        return out
+    def add_exclusion(self, pattern: str, *, source_id: str | None = None,
+                      reason: str = &quot;owner exclusion&quot;, hard: bool = False) -&gt; dict:
+        pattern = str(pattern or &quot;&quot;).strip().lower().replace(&quot;\\&quot;, &quot;/&quot;)
+        if not pattern:
+            raise ValueError(&quot;exclusion pattern required&quot;)
+        exclusion_id = &quot;exc1-&quot; + uuid.uuid4().hex
+        with self._connect() as db:
+            if source_id and not db.execute(&quot;SELECT 1 FROM sources WHERE source_id=?&quot;, (source_id,)).fetchone():
+                raise KeyError(&quot;source not found&quot;)
+            db.execute(&quot;INSERT INTO exclusions(exclusion_id,source_id,pattern,reason,hard,created_at_ms) VALUES(?,?,?,?,?,?)&quot;, (exclusion_id,source_id,pattern,str(reason)[:512],int(hard),_now()))
+        return {&quot;exclusion_id&quot;:exclusion_id,&quot;source_id&quot;:source_id,&quot;pattern&quot;:pattern,&quot;reason&quot;:reason,&quot;hard&quot;:bool(hard)}
+
+    def list_sources(self, controller_entity_id: str | None = None) -&gt; list[dict]:
+        with self._connect() as db:
+            if controller_entity_id:
+                rows = db.execute(&quot;SELECT * FROM sources WHERE controller_entity_id=? ORDER BY root_path&quot;, (controller_entity_id,)).fetchall()
+            else:
+                rows = db.execute(&quot;SELECT * FROM sources ORDER BY root_path&quot;).fetchall()
+        return [self._view(r) for r in rows]
+
+    def _matching_source(self, path: Path):
+        target = _norm(path)
+        matches = []
+        with self._connect() as db:
+            for row in db.execute(&quot;SELECT * FROM sources WHERE mode!=&#x27;OFF&#x27;&quot;).fetchall():
+                root = _norm(row[&quot;root_path&quot;])
+                if target == root or target.startswith(root.rstrip(&quot;/&quot;) + &quot;/&quot;):
+                    matches.append(row)
+        if not matches:
+            return None
+        return max(matches, key=lambda r: len(_norm(r[&quot;root_path&quot;])))
+
+    def _excluded(self, path: Path, source_id: str | None) -&gt; dict | None:
+        target = _norm(path)
+        with self._connect() as db:
+            rows = db.execute(&quot;SELECT * FROM exclusions WHERE source_id IS NULL OR source_id=? ORDER BY hard DESC&quot;, (source_id,)).fetchall()
+        for row in rows:
+            pattern = str(row[&quot;pattern&quot;]).lower()
+            if fnmatch.fnmatch(target, pattern) or fnmatch.fnmatch(path.name.lower(), pattern):
+                return dict(row)
+        return None
+    def assess_path(self, path: str | Path, *, purpose: str = &quot;discover&quot;) -&gt; dict:
+        target = Path(path).resolve()
+        source = self._matching_source(target)
+        if not source:
+            return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;source_not_enrolled&quot;,&quot;path&quot;:str(target),&quot;purpose&quot;:purpose}
+        exclusion = self._excluded(target, source[&quot;source_id&quot;])
+        if exclusion:
+            return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;excluded&quot;,&quot;path&quot;:str(target),&quot;purpose&quot;:purpose,&quot;source_id&quot;:source[&quot;source_id&quot;],&quot;exclusion&quot;:{&quot;pattern&quot;:exclusion[&quot;pattern&quot;],&quot;reason&quot;:exclusion[&quot;reason&quot;],&quot;hard&quot;:bool(exclusion[&quot;hard&quot;])}}
+        view = self._view(source)
+        ceiling = self._mode_ceiling(view[&quot;mode&quot;])
+        purpose = str(purpose or &quot;discover&quot;).lower()
+        allowed = False
+        if purpose in {&quot;discover&quot;,&quot;metadata&quot;}:
+            allowed = view[&quot;discovery_allowed&quot;] and ceiling[&quot;discover&quot;]
+        elif purpose in {&quot;content&quot;,&quot;read&quot;}:
+            allowed = view[&quot;content_allowed&quot;] and ceiling[&quot;content&quot;]
+        elif purpose in {&quot;hash&quot;,&quot;provenance&quot;}:
+            allowed = view[&quot;content_allowed&quot;] and ceiling[&quot;provenance&quot;]
+        elif purpose == &quot;niki_content&quot;:
+            allowed = view[&quot;niki_content_allowed&quot;] and view[&quot;content_allowed&quot;] and ceiling[&quot;content&quot;]
+        elif purpose in {&quot;economic&quot;,&quot;license&quot;,&quot;market&quot;}:
+            allowed = view[&quot;economic_allowed&quot;] and ceiling[&quot;managed&quot;]
+        return {&quot;allowed&quot;:bool(allowed),&quot;reason&quot;:&quot;policy&quot;,&quot;path&quot;:str(target),&quot;purpose&quot;:purpose,&quot;source&quot;:view}
+
+    def roots_for_provenance(self, controller_entity_id: str) -&gt; list[Path]:
+        roots=[]
+        for source in self.list_sources(controller_entity_id):
+            if self._mode_ceiling(source[&quot;mode&quot;])[&quot;provenance&quot;] and source[&quot;content_allowed&quot;]:
+                roots.append(Path(source[&quot;root_path&quot;]))
+        return roots
+
+    def status(self) -&gt; dict:
+        sources = self.list_sources()
+        return {
+            &quot;ready&quot;:True,
+            &quot;default_deny&quot;:True,
+            &quot;source_count&quot;:len(sources),
+            &quot;modes&quot;:sorted(SOURCE_MODES),
+            &quot;permissions_independent&quot;:[&quot;discovery&quot;,&quot;content&quot;,&quot;economic&quot;,&quot;niki_content&quot;],
+            &quot;new_data_default&quot;:&quot;PRIVATE_NON_LICENSABLE&quot;,
+            &quot;never_touch_boundary&quot;:True,
+            &quot;database&quot;:str(self.path),
+        }</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

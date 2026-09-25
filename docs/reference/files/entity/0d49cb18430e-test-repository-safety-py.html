@@ -1,0 +1,115 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tests/test_repository_safety.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tests/test_repository_safety.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tests/test_repository_safety.py</code></p><p><b>SHA-256:</b> <code>b839151f357f69d6d6b9939ef954db362b5c1b5725f841a4cb776a6d62c72d69</code></p><p><b>Bytes:</b> 4,261</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_repository_safety.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/cp1252-byte-4f959c855628.html">cp1252_byte</a></li><li><a href="../../../reference/symbols/entity/reconstructable-mojibake-count-4163151a9871.html">reconstructable_mojibake_count</a></li><li><a href="../../../reference/symbols/entity/repositorysafetytests-b4cb6254eefb.html">RepositorySafetyTests</a></li><li><a href="../../../reference/symbols/entity/repositorysafetytests-tracked-candidate-files-6b648831d4db.html">RepositorySafetyTests.tracked_candidate_files</a></li><li><a href="../../../reference/symbols/entity/repositorysafetytests-test-no-forbidden-operational-artifacts-0c1d322693fe.html">RepositorySafetyTests.test_no_forbidden_operational_artifacts</a></li><li><a href="../../../reference/symbols/entity/repositorysafetytests-test-all-public-text-is-clean-utf8-e4f8ca597e2c.html">RepositorySafetyTests.test_all_public_text_is_clean_utf8</a></li><li><a href="../../../reference/symbols/entity/repositorysafetytests-test-no-private-key-blocks-or-btg-absolute-paths-3c5cc1963fdf.html">RepositorySafetyTests.test_no_private_key_blocks_or_btg_absolute_paths</a></li></ul><h2>Preview</h2><pre><code>import pathlib
+import re
+import unittest
+
+
+REPO = pathlib.Path(__file__).resolve().parents[1]
+FORBIDDEN_SUFFIXES = {
+    &quot;.key&quot;, &quot;.p12&quot;, &quot;.pfx&quot;, &quot;.jks&quot;, &quot;.keystore&quot;,
+    &quot;.sqlite&quot;, &quot;.sqlite3&quot;, &quot;.db&quot;, &quot;.entitybackup&quot;,
+    &quot;.exe&quot;, &quot;.dll&quot;, &quot;.ipa&quot;, &quot;.apk&quot;, &quot;.aab&quot;,
+}
+TEXT_SUFFIXES = {&quot;.py&quot;, &quot;.md&quot;, &quot;.json&quot;, &quot;.txt&quot;, &quot;.cfg&quot;, &quot;.yml&quot;, &quot;.yaml&quot;}
+FORBIDDEN_LIVE_JSON_NAMES = {&quot;credentials.json&quot;, &quot;secrets.json&quot;, &quot;auth.json&quot;, &quot;cookies.json&quot;}
+FORBIDDEN_LIVE_JSON_SUFFIXES = (&quot;_principal_binding.json&quot;, &quot;_device_binding.json&quot;)
+PRIVATE_KEY_MARKERS = tuple(
+    &quot;-----BEGIN &quot; + kind + &quot;PRIVATE KEY-----&quot;
+    for kind in (&quot;&quot;, &quot;RSA &quot;, &quot;EC &quot;, &quot;OPENSSH &quot;)
+)
+
+
+def cp1252_byte(ch):
+    try:
+        encoded = ch.encode(&quot;cp1252&quot;)
+        if len(encoded) == 1:
+            return encoded[0]
+    except UnicodeEncodeError:
+        pass
+    codepoint = ord(ch)
+    if 0x80 &lt;= codepoint &lt;= 0x9F:
+        return codepoint
+    if codepoint &lt;= 0xFF:
+        return codepoint
+    return None
+
+
+def reconstructable_mojibake_count(text):
+    count = 0
+    i = 0
+    while i &lt; len(text):
+        lead = cp1252_byte(text[i])
+        length = 0
+        if lead is not None:
+            if 0xC2 &lt;= lead &lt;= 0xDF:
+                length = 2
+            elif 0xE0 &lt;= lead &lt;= 0xEF:
+                length = 3
+            elif 0xF0 &lt;= lead &lt;= 0xF4:
+                length = 4
+        if length and i + length &lt;= len(text):
+            values = [cp1252_byte(ch) for ch in text[i:i + length]]
+            if None not in values and all(0x80 &lt;= value &lt;= 0xBF for value in values[1:]):
+                try:
+                    bytes(values).decode(&quot;utf-8&quot;)
+                except UnicodeDecodeError:
+                    pass
+                else:
+                    count += 1
+                    i += length
+                    continue
+        i += 1
+    return count
+
+
+class RepositorySafetyTests(unittest.TestCase):
+    def tracked_candidate_files(self):
+        for path in REPO.rglob(&quot;*&quot;):
+            if path.is_file() and &quot;.git&quot; not in path.parts and &quot;__pycache__&quot; not in path.parts:
+                yield path
+
+    def test_no_forbidden_operational_artifacts(self):
+        bad = []
+        for path in self.tracked_candidate_files():
+            name = path.name.lower()
+            if path.suffix.lower() in FORBIDDEN_SUFFIXES:
+                bad.append(str(path.relative_to(REPO)))
+            elif name in FORBIDDEN_LIVE_JSON_NAMES or name.endswith(FORBIDDEN_LIVE_JSON_SUFFIXES):
+                bad.append(str(path.relative_to(REPO)))
+        self.assertEqual(bad, [], f&quot;forbidden operational artifacts: {bad}&quot;)
+
+
+    def test_all_public_text_is_clean_utf8(self):
+        findings = []
+        for path in self.tracked_candidate_files():
+            if path.suffix.lower() not in TEXT_SUFFIXES and path.name not in {
+                &quot;README.md&quot;, &quot;CHANGELOG.md&quot;, &quot;NOTICE&quot;, &quot;LICENSE&quot;, &quot;.gitignore&quot;, &quot;.gitattributes&quot;
+            }:
+                continue
+            try:
+                text = path.read_text(encoding=&quot;utf-8-sig&quot;)
+            except UnicodeDecodeError as exc:
+                findings.append(f&quot;{path.relative_to(REPO)}: invalid UTF-8: {exc}&quot;)
+                continue
+            if &quot;\ufffd&quot; in text:
+                findings.append(f&quot;{path.relative_to(REPO)}: Unicode replacement character&quot;)
+            count = reconstructable_mojibake_count(text)
+            if count:
+                findings.append(f&quot;{path.relative_to(REPO)}: {count} reconstructable mojibake sequence(s)&quot;)
+        self.assertEqual(findings, [], &quot;\n&quot;.join(findings))
+
+    def test_no_private_key_blocks_or_btg_absolute_paths(self):
+        findings = []
+        drive_pattern = re.compile(r&quot;(?i)\b[A-Z]:\\&quot;)
+        for path in self.tracked_candidate_files():
+            if path.suffix.lower() not in TEXT_SUFFIXES:
+                continue
+            text = path.read_text(encoding=&quot;utf-8-sig&quot;, errors=&quot;replace&quot;)
+            if any(marker in text for marker in PRIVATE_KEY_MARKERS):
+                findings.append(f&quot;{path.relative_to(REPO)}: private-key block&quot;)
+            if drive_pattern.search(text):
+                findings.append(f&quot;{path.relative_to(REPO)}: absolute Windows path&quot;)
+        self.assertEqual(findings, [], &quot;\n&quot;.join(findings))
+
+
+if __name__ == &quot;__main__&quot;:
+    unittest.main()</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

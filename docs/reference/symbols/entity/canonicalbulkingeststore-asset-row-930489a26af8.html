@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CanonicalBulkIngestStore._asset_row Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>CanonicalBulkIngestStore._asset_row</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/04_Entity_Registry/bulk_ingest/canonical_bulk_ingest.py#L86">ENTITY/src/04_Entity_Registry/bulk_ingest/canonical_bulk_ingest.py#L86</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>CanonicalBulkIngestStore._asset_row(self, ordinal: int, batch_id: str, item: dict, now: int)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def _asset_row(self, ordinal: int, batch_id: str, item: dict, now: int):
+        digest = self._validate_digest(item.get(&quot;content_sha256&quot;))
+        metadata = dict(item.get(&quot;metadata&quot;) or {})
+        metadata_sha = _sha(metadata)
+        asset_id = &quot;assetb1-&quot; + hashlib.sha256(f&quot;{self.controller_entity_id}|{batch_id}|{ordinal}|{digest}&quot;.encode()).hexdigest()
+        body = {
+            &quot;schema&quot;: &quot;entity-bulk-asset-v1&quot;,
+            &quot;asset_id&quot;: asset_id,
+            &quot;controller_entity_id&quot;: self.controller_entity_id,
+            &quot;content_sha256&quot;: digest,
+            &quot;size_bytes&quot;: max(0, int(item.get(&quot;size_bytes&quot;) or 0)),
+            &quot;media_type&quot;: str(item.get(&quot;media_type&quot;) or &quot;application/octet-stream&quot;)[:128],
+            &quot;title&quot;: str(item.get(&quot;title&quot;) or &quot;&quot;)[:512],
+            &quot;classification&quot;: str(item.get(&quot;classification&quot;) or &quot;PRIVATE&quot;).upper()[:32],
+            &quot;metadata_sha256&quot;: metadata_sha,
+            &quot;batch_id&quot;: batch_id,
+            &quot;created_at_ms&quot;: now,
+            &quot;registration_not_ownership&quot;: True,
+        }
+        record_sha = _sha(body)
+        row = (asset_id, self.controller_entity_id, digest, body[&quot;size_bytes&quot;], body[&quot;media_type&quot;], body[&quot;title&quot;], body[&quot;classification&quot;], metadata_sha, record_sha, batch_id, now)
+        return body, row, record_sha</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

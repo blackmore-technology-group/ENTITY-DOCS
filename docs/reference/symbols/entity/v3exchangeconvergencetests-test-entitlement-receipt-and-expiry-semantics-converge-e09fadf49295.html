@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V3ExchangeConvergenceTests.test_entitlement_receipt_and_expiry_semantics_converge Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>V3ExchangeConvergenceTests.test_entitlement_receipt_and_expiry_semantics_converge</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_exchange_convergence.py#L462">ENTITY/tests/test_v3_exchange_convergence.py#L462</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>V3ExchangeConvergenceTests.test_entitlement_receipt_and_expiry_semantics_converge(self)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def test_entitlement_receipt_and_expiry_semantics_converge(self):
+        required={&quot;schema&quot;,&quot;entitlement_id&quot;,&quot;trade_id&quot;,&quot;instrument_id&quot;,&quot;holder&quot;,&quot;quantity&quot;,&quot;rights&quot;,
+                  &quot;expires_at_ms&quot;,&quot;created_at_ms&quot;,&quot;instrument_issuer&quot;,&quot;venue_operator&quot;,
+                  &quot;ownership_of_underlying_transferred&quot;,&quot;venue_operator_is_not_underlying_owner&quot;,&quot;signature&quot;}
+        for eep,venue,_base,prefix in (
+            (*self.make_ref_exchange(),&quot;r&quot;),
+            (*self.make_mirror_exchange(),&quot;m&quot;),
+        ):
+            inst=eep.define_instrument(self.owner,self.dco[&quot;object_id&quot;],&quot;SPOT_LICENSE&quot;,{&quot;actions&quot;:[&quot;TRAIN&quot;]},10,&quot;CAD&quot;,transferable=True,duration_ms=20)
+            content=hashlib.sha256((prefix+&quot;-expiry-disclosure&quot;).encode()).hexdigest()
+            disc=eep.publish_disclosure(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;OFFERING&quot;,content)
+            eep.list_instrument(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,min_lot=1,tick_size=1,disclosure_sha256=disc[&quot;content_sha256&quot;])
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;SELL&quot;,1,5,nonce=f&quot;{prefix}-expiry-sell&quot;)
+            eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.buyer,&quot;BUY&quot;,1,5,nonce=f&quot;{prefix}-expiry-buy&quot;)
+            trade=eep.match_order_book(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;])[0]
+            settled=eep.settle_trade(trade[&quot;trade_id&quot;],payment_ref=f&quot;{prefix}-expiry-pay&quot;,external_verified=False)
+            entitlement=settled[&quot;entitlement&quot;]
+            self.assertEqual(set(entitlement),required)
+            self.assertFalse(entitlement[&quot;ownership_of_underlying_transferred&quot;])
+            self.assertTrue(entitlement[&quot;venue_operator_is_not_underlying_owner&quot;])
+            self.assertEqual(entitlement[&quot;instrument_issuer&quot;],self.owner)
+            self.assertEqual(entitlement[&quot;venue_operator&quot;],self.owner)
+            self.assertIsNotNone(entitlement[&quot;expires_at_ms&quot;])
+            time.sleep(0.04)
+            usage={&quot;schema&quot;:&quot;entity-eep-usage-v1&quot;,&quot;usage_id&quot;:f&quot;{prefix}-expired-usage&quot;,&quot;instrument_id&quot;:inst[&quot;instrument_id&quot;],
+                   &quot;holder&quot;:self.buyer,&quot;action&quot;:&quot;TRAIN&quot;,&quot;units&quot;:1,&quot;nonce&quot;:f&quot;{prefix}-expired-usage-nonce&quot;,&quot;created_at_ms&quot;:int(time.time()*1000)}
+            usage_sig=self.identity.sign(self.buyer,usage)
+            with self.assertRaises(PermissionError): eep.submit_signed_usage(usage,usage_sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

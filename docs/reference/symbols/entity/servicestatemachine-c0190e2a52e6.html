@@ -1,0 +1,63 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ServiceStateMachine Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ServiceStateMachine</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/15_Operations/runtime_states/service_state_machine.py#L39">ENTITY/src/15_Operations/runtime_states/service_state_machine.py#L39</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class ServiceStateMachine:
+    def __init__(self,state_dir:str|Path):
+        self.root=Path(state_dir)/&quot;service_states&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;service_states.sqlite&quot;; self._lock=RLock(); self._init_db()
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS services(service_id TEXT PRIMARY KEY,state TEXT NOT NULL,reason TEXT NOT NULL,version INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS transitions(transition_id TEXT PRIMARY KEY,service_id TEXT NOT NULL,from_state TEXT,to_state TEXT NOT NULL,trigger TEXT NOT NULL,evidence_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+    def register(self,service_id:str)-&gt;dict:
+        sid=str(service_id).strip()
+        if not sid: raise ValueError(&quot;service_id required&quot;)
+        now=_now()
+        with self._connect() as db:
+            db.execute(&quot;INSERT OR IGNORE INTO services VALUES(?,?,?,?,?)&quot;,(sid,&quot;NORMAL&quot;,&quot;registered&quot;,1,now))
+            row=db.execute(&quot;SELECT * FROM services WHERE service_id=?&quot;,(sid,)).fetchone()
+        return dict(row)
+    def get(self,service_id:str)-&gt;dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM services WHERE service_id=?&quot;,(service_id,)).fetchone()
+        if not row: raise KeyError(&quot;service not registered&quot;)
+        return dict(row)
+    def transition(self,service_id:str,to_state:str,*,trigger:str,evidence:dict|None=None)-&gt;dict:
+        target=str(to_state).upper()
+        if target not in STATES: raise ValueError(&quot;invalid service state&quot;)
+        with self._lock,self._connect() as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;); row=db.execute(&quot;SELECT * FROM services WHERE service_id=?&quot;,(service_id,)).fetchone()
+            if not row: raise KeyError(&quot;service not registered&quot;)
+            current=str(row[&quot;state&quot;])
+            if target==current: raise ValueError(&quot;state transition must change state&quot;)
+            if target not in TRANSITIONS[current]: raise PermissionError(f&quot;invalid transition {current}-&gt;{target}&quot;)
+            ev=dict(evidence or {})
+            if target in {&quot;MALICIOUS_INPUT&quot;,&quot;CONFLICTING_STATE&quot;,&quot;QUARANTINED&quot;} and not ev: raise ValueError(&quot;security/conflict transition requires evidence&quot;)
+            now=_now(); version=int(row[&quot;version&quot;])+1; tid=&quot;sst1-&quot;+uuid.uuid4().hex
+            db.execute(&quot;UPDATE services SET state=?,reason=?,version=?,updated_at_ms=? WHERE service_id=?&quot;,(target,str(trigger)[:1024],version,now,service_id))
+            db.execute(&quot;INSERT INTO transitions VALUES(?,?,?,?,?,?,?)&quot;,(tid,service_id,current,target,str(trigger)[:1024],json.dumps(ev,sort_keys=True),now))
+        return {&quot;transition_id&quot;:tid,&quot;service_id&quot;:service_id,&quot;from_state&quot;:current,&quot;to_state&quot;:target,&quot;version&quot;:version,&quot;evidence&quot;:ev}
+    def authorize_operation(self,service_id:str,operation:str)-&gt;dict:
+        row=self.get(service_id); state=str(row[&quot;state&quot;]); op=str(operation or &quot;&quot;).upper(); policy=_policy(state)
+        if not op: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;operation_required&quot;,&quot;state&quot;:state}
+        if op in HIGH_IMPACT and state!=&quot;NORMAL&quot;: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;high_impact_fail_closed&quot;,&quot;state&quot;:state,&quot;operation&quot;:op}
+        allowed=op in policy[&quot;allowed_operations&quot;]
+        return {&quot;allowed&quot;:bool(allowed),&quot;reason&quot;:&quot;allowed&quot; if allowed else &quot;operation_not_allowed_in_state&quot;,&quot;state&quot;:state,&quot;operation&quot;:op}
+    def describe(self,service_id:str)-&gt;dict:
+        row=self.get(service_id); state=str(row[&quot;state&quot;]); policy=_policy(state)
+        status={&quot;NORMAL&quot;:&quot;operational&quot;,&quot;DEGRADED&quot;:&quot;limited functionality&quot;,&quot;OFFLINE&quot;:&quot;local/offline only&quot;,&quot;DEPENDENCY_UNAVAILABLE&quot;:&quot;required dependency unavailable&quot;,&quot;MALICIOUS_INPUT&quot;:&quot;malicious input detected&quot;,&quot;CONFLICTING_STATE&quot;:&quot;conflicting authoritative state&quot;,&quot;RECOVERY&quot;:&quot;recovery in progress&quot;,&quot;QUARANTINED&quot;:&quot;service quarantined&quot;}[state]
+        recovery={&quot;NORMAL&quot;:&quot;none&quot;,&quot;DEGRADED&quot;:&quot;restore dependency or enter recovery&quot;,&quot;OFFLINE&quot;:&quot;restore connectivity/dependency or recover&quot;,&quot;DEPENDENCY_UNAVAILABLE&quot;:&quot;restore dependency or migrate&quot;,&quot;MALICIOUS_INPUT&quot;:&quot;quarantine evidence and recover&quot;,&quot;CONFLICTING_STATE&quot;:&quot;resolve dispute/conflict before mutation&quot;,&quot;RECOVERY&quot;:&quot;verify restored state before normal&quot;,&quot;QUARANTINED&quot;:&quot;forensic review then recovery&quot;}[state]
+        return {**row,&quot;user_visible_status&quot;:status,&quot;audit_behavior&quot;:&quot;record all transitions and denied high-impact operations&quot;,&quot;recovery_action&quot;:recovery,&quot;fail_closed&quot;:state!=&quot;NORMAL&quot;,&quot;policy&quot;:policy}
+    def history(self,service_id:str)-&gt;list[dict]:
+        with self._connect() as db: rows=db.execute(&quot;SELECT * FROM transitions WHERE service_id=? ORDER BY created_at_ms,transition_id&quot;,(service_id,)).fetchall()
+        out=[]
+        for row in rows:
+            item=dict(row); item[&quot;evidence&quot;]=json.loads(item.pop(&quot;evidence_json&quot;)); out.append(item)
+        return out
+    def status(self)-&gt;dict:
+        with self._connect() as db:
+            rows=db.execute(&quot;SELECT state,COUNT(*) n FROM services GROUP BY state&quot;).fetchall()
+        return {&quot;ready&quot;:True,&quot;schema&quot;:&quot;entity-service-state-machine-v1&quot;,&quot;states&quot;:sorted(STATES),&quot;high_impact_fail_closed&quot;:True,&quot;service_counts&quot;:{r[&quot;state&quot;]:int(r[&quot;n&quot;]) for r in rows}}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

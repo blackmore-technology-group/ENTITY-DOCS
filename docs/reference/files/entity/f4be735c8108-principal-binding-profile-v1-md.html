@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / sdk/principal_binding/PRINCIPAL_BINDING_PROFILE_v1.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / sdk/principal_binding/PRINCIPAL_BINDING_PROFILE_v1.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>sdk/principal_binding/PRINCIPAL_BINDING_PROFILE_v1.md</code></p><p><b>SHA-256:</b> <code>4effac8076c9a0196d5ce981fb01341a6467c33eb992e42fdd258e6ca91a3e04</code></p><p><b>Bytes:</b> 1,583</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/principal_binding/PRINCIPAL_BINDING_PROFILE_v1.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY Principal Binding Profile v1
+
+A data-producing application MUST distinguish the sovereign principal, application product, physical/logical device, and installed application instance.
+
+Canonical chain:
+
+`principal Entity -&gt; device Entity -&gt; installation Entity -&gt; application Entity -&gt; governed data/evidence asset`
+
+The human-readable `.entity` alias is not authority. The canonical `ent2-...` Entity ID is authority; the alias-binding SHA provides collision-safe display/disambiguation.
+
+A principal binding is signed by the principal Entity and is revocable. A bare Entity ID MUST NOT establish user authority.
+
+An application installation receives only `INGEST_ASSET` and `RECORD_EVENT` delegation under this profile. It receives no ownership, consent, licensing, payment, settlement, capital, governance, or policy authority.
+
+For user-generated application data, the default asset controller is the bound principal. The producer remains the application Entity. Registration is not legal ownership adjudication.
+
+Every directly captured asset records origin principal, pairwise principal reference, installation Entity, device Entity, producer application Entity, content commitment, and parent lineage.
+
+Derived assets MUST retain parent asset links. Canonical provenance traversal therefore preserves the path back to originating principals even when data passes through other applications, NIKI, ADAM, BSIE, providers, or devices.
+
+Public-facing contexts SHOULD use pairwise principal references when disclosure of the root human/business Entity is not necessary.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

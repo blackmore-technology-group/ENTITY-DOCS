@@ -1,0 +1,102 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SovereignAuthorityRegistry Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>SovereignAuthorityRegistry</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/04_Entity_Registry/relationships/canonical_sovereign_authority.py#L15">ENTITY/src/04_Entity_Registry/relationships/canonical_sovereign_authority.py#L15</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Explicit authority/custody/storage relationships. Infrastructure possession never escalates authority implicitly.</p><h2>Source excerpt</h2><pre><code>class SovereignAuthorityRegistry:
+    &quot;&quot;&quot;Explicit authority/custody/storage relationships. Infrastructure possession never escalates authority implicitly.&quot;&quot;&quot;
+    def __init__(self,state_dir:str|Path,identity):
+        self.root=Path(state_dir)/&quot;sovereign_authority&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;sovereign_authority.sqlite&quot;; self.identity=identity; self._init_db()
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;); db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS relationships(relationship_id TEXT PRIMARY KEY,entity_id TEXT NOT NULL,party_ref TEXT NOT NULL,relationship_type TEXT NOT NULL,scope_json TEXT NOT NULL,evidence_origin TEXT NOT NULL,evidence_json TEXT NOT NULL,status TEXT NOT NULL,effective_at_ms INTEGER NOT NULL,expires_at_ms INTEGER,created_at_ms INTEGER NOT NULL,revoked_at_ms INTEGER,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_sovereign_rel_entity ON relationships(entity_id,relationship_type,status)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS storage_bindings(binding_id TEXT PRIMARY KEY,entity_id TEXT NOT NULL,provider_ref TEXT NOT NULL,storage_ref TEXT NOT NULL,relationship_id TEXT NOT NULL,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL,retired_at_ms INTEGER,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS economic_participation(participation_id TEXT PRIMARY KEY,entity_id TEXT NOT NULL,party_ref TEXT NOT NULL,basis_ref TEXT NOT NULL,participation_type TEXT NOT NULL,terms_json TEXT NOT NULL,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL,revoked_at_ms INTEGER,signature_json TEXT NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS migrations(migration_id TEXT PRIMARY KEY,entity_id TEXT NOT NULL,from_provider_ref TEXT NOT NULL,to_provider_ref TEXT NOT NULL,from_binding_id TEXT NOT NULL,to_binding_id TEXT NOT NULL,pre_semantic_sha256 TEXT NOT NULL,post_semantic_sha256 TEXT NOT NULL,export_sha256 TEXT NOT NULL,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+    def _require_entity(self,entity_id:str):
+        self.identity.load_manifest(entity_id)
+    def _signed(self,entity_id:str,body:dict)-&gt;dict:
+        return self.identity.sign(entity_id,body)
+    def grant_relationship(self,entity_id:str,party_ref:str,relationship_type:str,*,scope=None,evidence_origin=&quot;ENTITY_ASSERTION&quot;,evidence=None,effective_at_ms=None,expires_at_ms=None)-&gt;dict:
+        self._require_entity(entity_id); rtype=str(relationship_type or &quot;&quot;).upper(); origin=str(evidence_origin or &quot;&quot;).upper(); party=str(party_ref or &quot;&quot;).strip()
+        if rtype not in RELATIONSHIP_TYPES or origin not in EVIDENCE_ORIGINS or not party: raise ValueError(&quot;invalid relationship&quot;)
+        if expires_at_ms is not None and int(expires_at_ms)&lt;=int(effective_at_ms or _now()): raise ValueError(&quot;expiry must follow effective time&quot;)
+        rid=_id(&quot;srel1&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-sovereign-relationship-v1&quot;,&quot;relationship_id&quot;:rid,&quot;entity_id&quot;:entity_id,&quot;party_ref&quot;:party,&quot;relationship_type&quot;:rtype,&quot;scope&quot;:dict(scope or {}),&quot;evidence_origin&quot;:origin,&quot;evidence&quot;:dict(evidence or {}),&quot;status&quot;:&quot;ACTIVE&quot;,&quot;effective_at_ms&quot;:int(effective_at_ms or now),&quot;expires_at_ms&quot;:expires_at_ms,&quot;created_at_ms&quot;:now}
+        sig=self._signed(entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO relationships VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(rid,entity_id,party,rtype,json.dumps(body[&quot;scope&quot;],sort_keys=True),origin,json.dumps(body[&quot;evidence&quot;],sort_keys=True),&quot;ACTIVE&quot;,body[&quot;effective_at_ms&quot;],expires_at_ms,now,None,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+    def revoke_relationship(self,entity_id:str,relationship_id:str,reason=&quot;owner_action&quot;)-&gt;dict:
+        self._require_entity(entity_id); now=_now()
+        with self._connect() as db:
+            row=db.execute(&quot;SELECT * FROM relationships WHERE relationship_id=?&quot;,(relationship_id,)).fetchone()
+            if not row: raise KeyError(&quot;relationship not found&quot;)
+            if row[&quot;entity_id&quot;]!=entity_id: raise PermissionError(&quot;entity mismatch&quot;)
+            db.execute(&quot;UPDATE relationships SET status=&#x27;REVOKED&#x27;,revoked_at_ms=? WHERE relationship_id=?&quot;,(now,relationship_id))
+        return {&quot;relationship_id&quot;:relationship_id,&quot;status&quot;:&quot;REVOKED&quot;,&quot;revoked_at_ms&quot;:now,&quot;reason&quot;:str(reason)}
+    def active_relationships(self,entity_id:str,party_ref:str|None=None)-&gt;list[dict]:
+        now=_now(); sql=&quot;SELECT * FROM relationships WHERE entity_id=? AND status=&#x27;ACTIVE&#x27; AND effective_at_ms&lt;=? AND (expires_at_ms IS NULL OR expires_at_ms&gt;?)&quot;; args=[entity_id,now,now]
+        if party_ref is not None: sql+=&quot; AND party_ref=?&quot;; args.append(str(party_ref))
+        sql+=&quot; ORDER BY relationship_type,relationship_id&quot;
+        with self._connect() as db: rows=db.execute(sql,args).fetchall()
+        out=[]
+        for row in rows:
+            x=dict(row); x[&quot;scope&quot;]=json.loads(x.pop(&quot;scope_json&quot;) or &quot;{}&quot;); x[&quot;evidence&quot;]=json.loads(x.pop(&quot;evidence_json&quot;) or &quot;{}&quot;); x[&quot;signature&quot;]=json.loads(x.pop(&quot;signature_json&quot;) or &quot;{}&quot;); out.append(x)
+        return out
+    def authorize_relationship_action(self,entity_id:str,party_ref:str,action:str)-&gt;dict:
+        required=AUTHORITY_ACTIONS.get(str(action or &quot;&quot;).upper())
+        if not required: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;unsupported_action&quot;}
+        active=self.active_relationships(entity_id,party_ref); types={x[&quot;relationship_type&quot;] for x in active}
+        if required not in types: return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;required_authority_missing&quot;,&quot;required_relationship&quot;:required,&quot;observed_relationships&quot;:sorted(types),&quot;implicit_escalation_prohibited&quot;:True}
+        return {&quot;allowed&quot;:True,&quot;required_relationship&quot;:required,&quot;authority_relationship_ids&quot;:[x[&quot;relationship_id&quot;] for x in active if x[&quot;relationship_type&quot;]==required]}
+    def bind_storage(self,entity_id:str,provider_ref:str,storage_ref:str,*,evidence=None)-&gt;dict:
+        relationship=self.grant_relationship(entity_id,provider_ref,&quot;STORAGE_CONTROL&quot;,scope={&quot;storage_ref&quot;:storage_ref},evidence_origin=&quot;COUNTERPARTY_ATTESTATION&quot; if evidence else &quot;ENTITY_ASSERTION&quot;,evidence=evidence or {})
+        bid=_id(&quot;sbind1&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-storage-binding-v1&quot;,&quot;binding_id&quot;:bid,&quot;entity_id&quot;:entity_id,&quot;provider_ref&quot;:str(provider_ref),&quot;storage_ref&quot;:str(storage_ref),&quot;relationship_id&quot;:relationship[&quot;relationship_id&quot;],&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now}; sig=self._signed(entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO storage_bindings VALUES(?,?,?,?,?,?,?,?,?)&quot;,(bid,entity_id,str(provider_ref),str(storage_ref),relationship[&quot;relationship_id&quot;],&quot;ACTIVE&quot;,now,None,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig,storage_does_not_imply_authority=True)
+    def record_economic_participation(self,entity_id:str,party_ref:str,*,basis_ref:str,participation_type:str,terms:dict)-&gt;dict:
+        self._require_entity(entity_id); party=str(party_ref or &quot;&quot;).strip(); basis=str(basis_ref or &quot;&quot;).strip(); ptype=str(participation_type or &quot;&quot;).upper()
+        if not party or not basis or not ptype: raise ValueError(&quot;party, basis and participation_type required&quot;)
+        pid=_id(&quot;epart1&quot;); now=_now(); body={&quot;schema&quot;:&quot;entity-economic-participation-v1&quot;,&quot;participation_id&quot;:pid,&quot;entity_id&quot;:entity_id,&quot;party_ref&quot;:party,&quot;basis_ref&quot;:basis,&quot;participation_type&quot;:ptype,&quot;terms&quot;:dict(terms or {}),&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now}; sig=self._signed(entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO economic_participation VALUES(?,?,?,?,?,?,?,?,?,?)&quot;,(pid,entity_id,party,basis,ptype,json.dumps(body[&quot;terms&quot;],sort_keys=True),&quot;ACTIVE&quot;,now,None,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+    def semantic_snapshot(self,entity_id:str)-&gt;dict:
+        relationships=self.active_relationships(entity_id)
+        with self._connect() as db:
+            bindings=[dict(r) for r in db.execute(&quot;SELECT binding_id,entity_id,provider_ref,storage_ref,relationship_id,status,created_at_ms,retired_at_ms FROM storage_bindings WHERE entity_id=? ORDER BY binding_id&quot;,(entity_id,))]
+            parts=[dict(r) for r in db.execute(&quot;SELECT participation_id,entity_id,party_ref,basis_ref,participation_type,terms_json,status,created_at_ms,revoked_at_ms FROM economic_participation WHERE entity_id=? ORDER BY participation_id&quot;,(entity_id,))]
+        for p in parts: p[&quot;terms&quot;]=json.loads(p.pop(&quot;terms_json&quot;) or &quot;{}&quot;)
+        projection={&quot;schema&quot;:&quot;entity-sovereign-semantic-snapshot-v1&quot;,&quot;entity_id&quot;:entity_id,&quot;relationships&quot;:[{k:v for k,v in r.items() if k not in {&quot;signature&quot;,&quot;created_at_ms&quot;,&quot;revoked_at_ms&quot;}} for r in relationships],&quot;storage_bindings&quot;:[{k:v for k,v in b.items() if k not in {&quot;created_at_ms&quot;,&quot;retired_at_ms&quot;}} for b in bindings],&quot;economic_participation&quot;:[{k:v for k,v in p.items() if k not in {&quot;created_at_ms&quot;,&quot;revoked_at_ms&quot;}} for p in parts]}
+        projection[&quot;semantic_sha256&quot;]=_sha(projection); return projection
+    def export_manifest(self,entity_id:str)-&gt;dict:
+        self._require_entity(entity_id); snapshot=self.semantic_snapshot(entity_id); now=_now(); body={&quot;schema&quot;:&quot;entity-sovereign-export-manifest-v1&quot;,&quot;entity_id&quot;:entity_id,&quot;semantic_sha256&quot;:snapshot[&quot;semantic_sha256&quot;],&quot;relationship_count&quot;:len(snapshot[&quot;relationships&quot;]),&quot;storage_binding_count&quot;:len(snapshot[&quot;storage_bindings&quot;]),&quot;economic_participation_count&quot;:len(snapshot[&quot;economic_participation&quot;]),&quot;created_at_ms&quot;:now}; sig=self._signed(entity_id,body)
+        return dict(body,signature=sig,snapshot=snapshot,provider_independent=True)
+    def authority_semantic_hash(self,entity_id:str)-&gt;str:
+        infrastructure={&quot;POSSESSION&quot;,&quot;CUSTODY&quot;,&quot;STORAGE_CONTROL&quot;,&quot;PROCESSING_AUTHORITY&quot;}
+        relationships=[r for r in self.active_relationships(entity_id) if r[&quot;relationship_type&quot;] not in infrastructure]
+        with self._connect() as db: parts=[dict(r) for r in db.execute(&quot;SELECT party_ref,basis_ref,participation_type,terms_json,status FROM economic_participation WHERE entity_id=? AND status=&#x27;ACTIVE&#x27; ORDER BY participation_id&quot;,(entity_id,))]
+        for p in parts: p[&quot;terms&quot;]=json.loads(p.pop(&quot;terms_json&quot;) or &quot;{}&quot;)
+        projection={&quot;entity_id&quot;:entity_id,&quot;authoritative_relationships&quot;:[{k:v for k,v in r.items() if k not in {&quot;signature&quot;,&quot;created_at_ms&quot;,&quot;revoked_at_ms&quot;,&quot;relationship_id&quot;}} for r in relationships],&quot;economic_participation&quot;:parts}
+        return _sha(projection)
+    def migrate_storage_provider(self,entity_id:str,from_binding_id:str,to_provider_ref:str,to_storage_ref:str,*,export_sha256:str,evidence=None)-&gt;dict:
+        self._require_entity(entity_id); digest=str(export_sha256 or &quot;&quot;).lower()
+        if len(digest)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in digest): raise ValueError(&quot;export_sha256 required&quot;)
+        with self._connect() as db: old=db.execute(&quot;SELECT * FROM storage_bindings WHERE binding_id=?&quot;,(from_binding_id,)).fetchone()
+        if not old or old[&quot;entity_id&quot;]!=entity_id or old[&quot;status&quot;]!=&quot;ACTIVE&quot;: raise ValueError(&quot;active source storage binding required&quot;)
+        before=self.authority_semantic_hash(entity_id); new=self.bind_storage(entity_id,to_provider_ref,to_storage_ref,evidence=evidence)
+        now=_now()
+        with self._connect() as db:
+            db.execute(&quot;UPDATE storage_bindings SET status=&#x27;RETIRED&#x27;,retired_at_ms=? WHERE binding_id=?&quot;,(now,from_binding_id))
+            db.execute(&quot;UPDATE relationships SET status=&#x27;REVOKED&#x27;,revoked_at_ms=? WHERE relationship_id=?&quot;,(now,old[&quot;relationship_id&quot;]))
+        after=self.authority_semantic_hash(entity_id)
+        if before!=after: raise RuntimeError(&quot;provider migration changed sovereign authority semantics&quot;)
+        mid=_id(&quot;pmig1&quot;); body={&quot;schema&quot;:&quot;entity-provider-migration-v1&quot;,&quot;migration_id&quot;:mid,&quot;entity_id&quot;:entity_id,&quot;from_provider_ref&quot;:old[&quot;provider_ref&quot;],&quot;to_provider_ref&quot;:str(to_provider_ref),&quot;from_binding_id&quot;:from_binding_id,&quot;to_binding_id&quot;:new[&quot;binding_id&quot;],&quot;pre_semantic_sha256&quot;:before,&quot;post_semantic_sha256&quot;:after,&quot;export_sha256&quot;:digest,&quot;status&quot;:&quot;VERIFIED&quot;,&quot;created_at_ms&quot;:now}; sig=self._signed(entity_id,body)
+        with self._connect() as db: db.execute(&quot;INSERT INTO migrations VALUES(?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(mid,entity_id,old[&quot;provider_ref&quot;],str(to_provider_ref),from_binding_id,new[&quot;binding_id&quot;],before,after,digest,&quot;VERIFIED&quot;,now,json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig,entity_root_unchanged=True,former_provider_authority_not_inferred=True)
+    def status(self)-&gt;dict:
+        with self._connect() as db:
+            rel=db.execute(&quot;SELECT COUNT(*) FROM relationships&quot;).fetchone()[0]; mig=db.execute(&quot;SELECT COUNT(*) FROM migrations WHERE status=&#x27;VERIFIED&#x27;&quot;).fetchone()[0]
+        return {&quot;ready&quot;:True,&quot;schema&quot;:&quot;entity-sovereign-authority-v1&quot;,&quot;relationships&quot;:int(rel),&quot;verified_provider_migrations&quot;:int(mig),&quot;custody_is_not_authority&quot;:True,&quot;storage_is_not_ownership&quot;:True,&quot;processing_is_not_consent&quot;:True,&quot;access_is_not_licence&quot;:True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

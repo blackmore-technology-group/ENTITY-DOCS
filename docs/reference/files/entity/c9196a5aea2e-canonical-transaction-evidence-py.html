@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/15_Operations/transaction_evidence/canonical_transaction_evidence.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/15_Operations/transaction_evidence/canonical_transaction_evidence.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/15_Operations/transaction_evidence/canonical_transaction_evidence.py</code></p><p><b>SHA-256:</b> <code>daab45b04ed034ffa2d5f03d73aa73655ece8c7b19267491129f7ce697dc244c</code></p><p><b>Bytes:</b> 16,142</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/15_Operations/transaction_evidence/canonical_transaction_evidence.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-b5e999fd4242.html">_now</a></li><li><a href="../../../reference/symbols/entity/id-fefdcd574252.html">_id</a></li><li><a href="../../../reference/symbols/entity/canon-9c745d7ff847.html">_canon</a></li><li><a href="../../../reference/symbols/entity/sha-bytes-8c133a79f113.html">_sha_bytes</a></li><li><a href="../../../reference/symbols/entity/sha-file-3ac220abed85.html">_sha_file</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-0b557879551e.html">TransactionEvidenceExporter</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-init-f9c768f00dc7.html">TransactionEvidenceExporter.__init__</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-connect-a1452bd02cef.html">TransactionEvidenceExporter._connect</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-init-db-02b540d3fbd8.html">TransactionEvidenceExporter._init_db</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-register-897d116ea0e3.html">TransactionEvidenceExporter.register</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-get-23981969afc4.html">TransactionEvidenceExporter.get</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-one-4b40ff5835e9.html">TransactionEvidenceExporter._one</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-many-30118c736dad.html">TransactionEvidenceExporter._many</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-json-fields-68780e8f76b0.html">TransactionEvidenceExporter._json_fields</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-manifest-025339c355c1.html">TransactionEvidenceExporter._manifest</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-transaction-record-body-2443f1159404.html">TransactionEvidenceExporter._transaction_record_body</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-settlement-evidence-4a1a561f0502.html">TransactionEvidenceExporter._settlement_evidence</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-rights-evidence-d3ed49ac4c86.html">TransactionEvidenceExporter._rights_evidence</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-licence-evidence-fdc960ea2882.html">TransactionEvidenceExporter._licence_evidence</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-threshold-evidence-932f7c5f0989.html">TransactionEvidenceExporter._threshold_evidence</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-capital-evidence-46c4cce0eeb6.html">TransactionEvidenceExporter._capital_evidence</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-asset-and-provenance-1a40a061b428.html">TransactionEvidenceExporter._asset_and_provenance</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-usage-evidence-1f6f38afc1ae.html">TransactionEvidenceExporter._usage_evidence</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-commodity-evidence-95fd9c2aabc5.html">TransactionEvidenceExporter._commodity_evidence</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-ledger-evidence-32468482a69d.html">TransactionEvidenceExporter._ledger_evidence</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-trust-anchors-22c6d0cbf462.html">TransactionEvidenceExporter._trust_anchors</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-build-bundle-3885054d8fca.html">TransactionEvidenceExporter.build_bundle</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-export-bundle-655ba67c3c9b.html">TransactionEvidenceExporter.export_bundle</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-create-sovereign-export-a1ef2b07a486.html">TransactionEvidenceExporter.create_sovereign_export</a></li><li><a href="../../../reference/symbols/entity/transactionevidenceexporter-status-4152a8043125.html">TransactionEvidenceExporter.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from contextlib import contextmanager
+from pathlib import Path
+import base64, hashlib, json, secrets, sqlite3, time
+
+SCHEMA=&quot;entity-transaction-evidence-record-v1&quot;
+BUNDLE_SCHEMA=&quot;entity-transaction-evidence-bundle-v1&quot;
+RECOVERY_SCHEMA=&quot;entity-sovereign-transaction-export-v1&quot;
+REQUIRED_REFS={
+    &quot;asset_id&quot;,&quot;claim_id&quot;,&quot;licence_id&quot;,&quot;usage_receipt_id&quot;,&quot;license_settlement_id&quot;,&quot;value_id&quot;,
+    &quot;commodity_id&quot;,&quot;commodity_event_id&quot;,&quot;threshold_policy_id&quot;,&quot;threshold_request_id&quot;,&quot;share_class_id&quot;,
+    &quot;corporate_action_id&quot;,&quot;capital_event_id&quot;,&quot;capital_accounting_batch_id&quot;,&quot;share_settlement_id&quot;,
+    &quot;disclosure_snapshot_id&quot;,&quot;ledger_checkpoint_id&quot;
+}
+
+def _now(): return int(time.time()*1000)
+def _id(): return &quot;txev1-&quot;+secrets.token_hex(20)
+def _canon(v): return json.dumps(v,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False,default=str).encode()
+def _sha_bytes(v): return hashlib.sha256(v).hexdigest()
+def _sha_file(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+class TransactionEvidenceExporter:
+    &quot;&quot;&quot;Self-contained, implementation-independent transaction evidence and recovery packaging.&quot;&quot;&quot;
+    def __init__(self,state_dir:str|Path,identity):
+        self.state=Path(state_dir).resolve(); self.identity=identity
+        self.root=self.state/&quot;transaction_evidence&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;transactions.sqlite&quot;; self._init_db()
+    @contextmanager
+    def _connect(self,path:Path|None=None):
+        db=sqlite3.connect(path or self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS transactions(transaction_id TEXT PRIMARY KEY,issuer_entity_id TEXT NOT NULL,jurisdiction TEXT NOT NULL,references_json TEXT NOT NULL,participants_json TEXT NOT NULL,notes_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,signature_json TEXT NOT NULL)&quot;)
+
+    def register(self,issuer_entity_id:str,*,jurisdiction:str,references:dict,participants:list[str],notes:dict|None=None)-&gt;dict:
+        refs={str(k):str(v) for k,v in dict(references or {}).items() if str(v)}
+        missing=sorted(REQUIRED_REFS-set(refs))
+        if missing: raise ValueError(f&quot;transaction evidence references missing: {missing}&quot;)
+        people=sorted({str(x) for x in participants if str(x)})
+        if issuer_entity_id not in people: people.append(issuer_entity_id); people.sort()
+        for entity_id in people: self.identity.load_manifest(entity_id)
+        txid=_id(); now=_now(); body={&quot;schema&quot;:SCHEMA,&quot;transaction_id&quot;:txid,&quot;issuer_entity_id&quot;:issuer_entity_id,
+            &quot;jurisdiction&quot;:str(jurisdiction).upper(),&quot;references&quot;:refs,&quot;participants&quot;:people,&quot;notes&quot;:dict(notes or {}),&quot;created_at_ms&quot;:now}
+        signature=self.identity.sign(issuer_entity_id,body)
+        with self._connect() as db:
+            db.execute(&quot;INSERT INTO transactions VALUES(?,?,?,?,?,?,?,?)&quot;,(txid,issuer_entity_id,body[&quot;jurisdiction&quot;],json.dumps(refs,sort_keys=True),json.dumps(people),json.dumps(body[&quot;notes&quot;],sort_keys=True),now,json.dumps(signature,sort_keys=True)))
+        return {**body,&quot;signature&quot;:signature}
+    def get(self,transaction_id:str)-&gt;dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM transactions WHERE transaction_id=?&quot;,(str(transaction_id),)).fetchone()
+        if not row: raise KeyError(&quot;transaction evidence record not found&quot;)
+        out=dict(row); out[&quot;references&quot;]=json.loads(out.pop(&quot;references_json&quot;)); out[&quot;participants&quot;]=json.loads(out.pop(&quot;participants_json&quot;)); out[&quot;notes&quot;]=json.loads(out.pop(&quot;notes_json&quot;)); out[&quot;signature&quot;]=json.loads(out.pop(&quot;signature_json&quot;)); out[&quot;schema&quot;]=SCHEMA
+        return out
+
+    def _one(self,relative_db:str,sql:str,args=()):
+        path=self.state/relative_db
+        if not path.is_file(): raise FileNotFoundError(str(path))
+        with self._connect(path) as db: row=db.execute(sql,args).fetchone()
+        if not row: raise KeyError(f&quot;required evidence row missing in {relative_db}&quot;)
+        return dict(row)
+
+    def _many(self,relative_db:str,sql:str,args=()):
+        path=self.state/relative_db
+        if not path.is_file(): raise FileNotFoundError(str(path))
+        with self._connect(path) as db: return [dict(r) for r in db.execute(sql,args).fetchall()]
+
+    @staticmethod
+    def _json_fields(row:dict,*fields):
+        out=dict(row)
+        for field in fields:
+            if field in out: out[field[:-5] if field.endswith(&quot;_json&quot;) else field]=json.loads(out.pop(field) or &quot;{}&quot;)
+        return out
+
+    def _manifest(self,entity_id:str)-&gt;dict: return self.identity.load_manifest(entity_id)
+
+    def _transaction_record_body(self,record:dict)-&gt;dict:
+        return {&quot;schema&quot;:SCHEMA,&quot;transaction_id&quot;:record[&quot;transaction_id&quot;],&quot;issuer_entity_id&quot;:record[&quot;issuer_entity_id&quot;],&quot;jurisdiction&quot;:record[&quot;jurisdiction&quot;],&quot;references&quot;:record[&quot;references&quot;],&quot;participants&quot;:record[&quot;participants&quot;],&quot;notes&quot;:record[&quot;notes&quot;],&quot;created_at_ms&quot;:record[&quot;created_at_ms&quot;]}
+    def _settlement_evidence(self,settlement_id:str)-&gt;dict:
+        settlement=self._one(&quot;settlement/settlement.sqlite&quot;,&quot;SELECT * FROM settlements WHERE settlement_id=?&quot;,(settlement_id,))
+        settlement=self._json_fields(settlement,&quot;evidence_json&quot;); settlement[&quot;money_movement_verified&quot;]=bool(settlement[&quot;money_movement_verified&quot;])
+        events=self._many(&quot;settlement/settlement.sqlite&quot;,&quot;SELECT rowid AS _rowid,* FROM settlement_events WHERE settlement_id=? ORDER BY rowid&quot;,(settlement_id,))
+        events=[self._json_fields(x,&quot;payload_json&quot;,&quot;signature_json&quot;) for x in events]
+        postings=self._many(&quot;settlement/settlement.sqlite&quot;,&quot;SELECT * FROM postings WHERE settlement_id=? ORDER BY direction,entry_id&quot;,(settlement_id,))
+        return {&quot;settlement&quot;:settlement,&quot;events&quot;:events,&quot;postings&quot;:postings}
+
+    def _rights_evidence(self,claim_id:str)-&gt;dict:
+        claim=self._one(&quot;rights_claims/rights_claims.sqlite&quot;,&quot;SELECT * FROM claims WHERE claim_id=?&quot;,(claim_id,))
+        claim=self._json_fields(claim,&quot;scope_json&quot;,&quot;evidence_json&quot;,&quot;signature_json&quot;)
+        claim[&quot;share&quot;]={&quot;numerator&quot;:int(claim.pop(&quot;share_num&quot;)),&quot;denominator&quot;:int(claim.pop(&quot;share_den&quot;))}
+        events=self._many(&quot;rights_claims/rights_claims.sqlite&quot;,&quot;SELECT * FROM claim_events WHERE claim_id=? ORDER BY sequence&quot;,(claim_id,))
+        events=[self._json_fields(x,&quot;payload_json&quot;,&quot;signature_json&quot;) for x in events]
+        return {&quot;claim&quot;:claim,&quot;events&quot;:events}
+
+    def _licence_evidence(self,licence_id:str)-&gt;dict:
+        licence=self._one(&quot;contracts/licensing.sqlite&quot;,&quot;SELECT * FROM licences WHERE licence_id=?&quot;,(licence_id,))
+        licence=self._json_fields(licence,&quot;terms_json&quot;,&quot;authority_basis_json&quot;)
+        events=self._many(&quot;contracts/licensing.sqlite&quot;,&quot;SELECT rowid AS _rowid,* FROM licence_events WHERE licence_id=? ORDER BY rowid&quot;,(licence_id,))
+        events=[self._json_fields(x,&quot;payload_json&quot;,&quot;signature_json&quot;) for x in events]
+        return {&quot;licence&quot;:licence,&quot;events&quot;:events}
+    def _threshold_evidence(self,policy_id:str,request_id:str)-&gt;dict:
+        policy=self._one(&quot;authority/threshold_authority.sqlite&quot;,&quot;SELECT * FROM threshold_policies WHERE policy_id=?&quot;,(policy_id,))
+        policy=self._json_fields(policy,&quot;approvers_json&quot;,&quot;signature_json&quot;)
+        votes=self._many(&quot;authority/threshold_authority.sqlite&quot;,&quot;SELECT * FROM threshold_votes WHERE policy_id=? AND request_id=? ORDER BY approver_entity_id&quot;,(policy_id,request_id))
+        votes=[self._json_fields(x,&quot;signature_json&quot;) for x in votes]
+        return {&quot;policy&quot;:policy,&quot;request_id&quot;:request_id,&quot;votes&quot;:votes}
+
+    def _capital_evidence(self,class_id:str,action_id:str,capital_event_id:str,batch_id:str,disclosure_id:str)-&gt;dict:
+        share=self._one(&quot;corporate_capital/corporate_capital.sqlite&quot;,&quot;SELECT * FROM share_classes WHERE class_id=?&quot;,(class_id,))
+        share=self._json_fields(share,&quot;rights_json&quot;)
+        positions=self._many(&quot;corporate_capital/corporate_capital.sqlite&quot;,&quot;SELECT * FROM share_positions WHERE class_id=? ORDER BY holder_ref&quot;,(class_id,))
+        events=self._many(&quot;corporate_capital/corporate_capital.sqlite&quot;,&quot;SELECT * FROM capital_evidence WHERE class_id=? ORDER BY created_at_ms,event_id&quot;,(class_id,))
+        events=[self._json_fields(x,&quot;payload_json&quot;,&quot;signature_json&quot;) for x in events]
+        if not any(x[&quot;event_id&quot;]==capital_event_id for x in events): raise KeyError(&quot;referenced capital event not found&quot;)
+        action=self._one(&quot;corporate_actions/corporate_actions.sqlite&quot;,&quot;SELECT * FROM actions WHERE action_id=?&quot;,(action_id,)); action=self._json_fields(action,&quot;payload_json&quot;,&quot;signature_json&quot;)
+        batch=self._one(&quot;capital_accounting/capital_accounting.sqlite&quot;,&quot;SELECT * FROM accounting_batches WHERE batch_id=?&quot;,(batch_id,)); batch=self._json_fields(batch,&quot;payload_json&quot;,&quot;signature_json&quot;)
+        disclosure=self._one(&quot;corporate_capital/corporate_capital.sqlite&quot;,&quot;SELECT * FROM disclosure_snapshots WHERE snapshot_id=?&quot;,(disclosure_id,)); disclosure=self._json_fields(disclosure,&quot;snapshot_json&quot;)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

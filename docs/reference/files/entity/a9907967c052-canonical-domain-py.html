@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/22_Sovereign_Domain/core/canonical_domain.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/22_Sovereign_Domain/core/canonical_domain.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/22_Sovereign_Domain/core/canonical_domain.py</code></p><p><b>SHA-256:</b> <code>5761e3954e588d653251236e13740393236af893d71c432385b96c54863b371c</code></p><p><b>Bytes:</b> 26,161</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/core/canonical_domain.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-0a0b23c73735.html">_now</a></li><li><a href="../../../reference/symbols/entity/id-102dd3921ce5.html">_id</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-5500b71228f4.html">EntityDomainAuthority</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-init-3fcc6a324bb1.html">EntityDomainAuthority.__init__</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-connect-00190c16a959.html">EntityDomainAuthority._connect</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-init-db-479f111cf077.html">EntityDomainAuthority._init_db</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-normalize-name-77d0ab56521c.html">EntityDomainAuthority.normalize_name</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-audit-655ee4775b56.html">EntityDomainAuthority._audit</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-create-domain-07e1092b3265.html">EntityDomainAuthority.create_domain</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-claim-name-b185ffb66622.html">EntityDomainAuthority.claim_name</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-authorize-node-fb11758ab3b4.html">EntityDomainAuthority.authorize_node</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-revoke-node-94678b32be59.html">EntityDomainAuthority.revoke_node</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-publish-service-5c0bdfd0fba3.html">EntityDomainAuthority.publish_service</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-get-domain-a2f5bac6e816.html">EntityDomainAuthority.get_domain</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-get-node-caf0c16e431e.html">EntityDomainAuthority.get_node</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-get-service-1a203901a31b.html">EntityDomainAuthority.get_service</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-list-services-42f0391242c9.html">EntityDomainAuthority.list_services</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-current-name-claim-f2fbe2fa5479.html">EntityDomainAuthority.current_name_claim</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-verify-node-e6538fea1ab4.html">EntityDomainAuthority.verify_node</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-verify-service-8bba7d98a9aa.html">EntityDomainAuthority.verify_service</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-semantic-hash-a977c5014632.html">EntityDomainAuthority.semantic_hash</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-record-migration-a004720a7a71.html">EntityDomainAuthority.record_migration</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-public-snapshot-a92b1afc82e0.html">EntityDomainAuthority.public_snapshot</a></li><li><a href="../../../reference/symbols/entity/entitydomainauthority-status-16ee2833d670.html">EntityDomainAuthority.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from contextlib import contextmanager
+import json, sqlite3, secrets, time
+
+ACCESS_CLASSES={&quot;PUBLIC&quot;,&quot;RELATIONSHIP_ONLY&quot;,&quot;CREDENTIAL_REQUIRED&quot;,&quot;LICENSE_REQUIRED&quot;,&quot;PAID&quot;,&quot;PRIVATE&quot;,&quot;LOCAL_ONLY&quot;,&quot;DISABLED&quot;}
+SERVICE_TYPES={&quot;PRESENCE&quot;,&quot;PUBLIC_PROFILE&quot;,&quot;CONTENT&quot;,&quot;FILES&quot;,&quot;APPLICATION&quot;,&quot;API&quot;,&quot;MESSAGING&quot;,&quot;SEARCH&quot;,&quot;SOFTWARE&quot;,&quot;DATASET&quot;,&quot;DATA_OFFER&quot;,&quot;MARKETPLACE&quot;,&quot;LICENSING&quot;,&quot;PAYMENT&quot;,&quot;VERIFICATION&quot;,&quot;CREDENTIALS&quot;,&quot;AI_SERVICE&quot;,&quot;COMPUTE_TO_DATA&quot;,&quot;STREAM&quot;,&quot;NOTIFICATION&quot;,&quot;DISCOVERY&quot;,&quot;ECONOMIC_SERVICE&quot;}
+
+def _now(): return int(time.time()*1000)
+def _id(prefix): return f&quot;{prefix}-&quot;+secrets.token_hex(20)
+
+class EntityDomainAuthority:
+    &quot;&quot;&quot;Sovereign Entity-domain registry. Nodes, endpoints and providers never become the Entity root.&quot;&quot;&quot;
+    def __init__(self,state_dir:str|Path,identity):
+        self.root=Path(state_dir)/&quot;sovereign_domain&quot;
+        self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;domain.sqlite&quot;
+        self.identity=identity
+        self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30)
+        db.row_factory=sqlite3.Row
+        try:
+            yield db
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        finally:
+            db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS domains(
+                domain_id TEXT PRIMARY KEY,entity_id TEXT NOT NULL,namespace TEXT NOT NULL,
+                current_name TEXT,version INTEGER NOT NULL,status TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS name_claims(
+                claim_id TEXT PRIMARY KEY,domain_id TEXT NOT NULL,entity_id TEXT NOT NULL,
+                normalized_name TEXT NOT NULL,namespace TEXT NOT NULL,status TEXT NOT NULL,
+                conflict_state TEXT NOT NULL,evidence_json TEXT NOT NULL,signature_json TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS nodes(
+                node_id TEXT PRIMARY KEY,domain_id TEXT NOT NULL,entity_id TEXT NOT NULL,
+                public_key_b64 TEXT NOT NULL,permitted_services_json TEXT NOT NULL,
+                network_scopes_json TEXT NOT NULL,publication_scopes_json TEXT NOT NULL,
+                data_scopes_json TEXT NOT NULL,not_before_ms INTEGER NOT NULL,expires_at_ms INTEGER,
+                delegation_json TEXT NOT NULL,status TEXT NOT NULL,auth_version INTEGER NOT NULL,
+                signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS services(
+                service_id TEXT PRIMARY KEY,domain_id TEXT NOT NULL,node_id TEXT NOT NULL,
+                service_type TEXT NOT NULL,endpoint_json TEXT NOT NULL,protocol_version TEXT NOT NULL,
+                capabilities_json TEXT NOT NULL,access_class TEXT NOT NULL,
+                required_credentials_json TEXT NOT NULL,policy_refs_json TEXT NOT NULL,
+                data_classifications_json TEXT NOT NULL,economic_terms_ref TEXT,
+                availability_json TEXT NOT NULL,manifest_version INTEGER NOT NULL,
+                expires_at_ms INTEGER,status TEXT NOT NULL,signature_json TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS migrations(
+                migration_id TEXT PRIMARY KEY,domain_id TEXT NOT NULL,from_node TEXT,to_node TEXT,
+                from_provider TEXT,to_provider TEXT,semantic_hash_before TEXT NOT NULL,
+                semantic_hash_after TEXT NOT NULL,signature_json TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS revocations(
+                revocation_id TEXT PRIMARY KEY,domain_id TEXT NOT NULL,node_id TEXT NOT NULL,
+                entity_id TEXT NOT NULL,reason TEXT NOT NULL,effective_at_ms INTEGER NOT NULL,
+                signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS audit(
+                audit_id TEXT PRIMARY KEY,domain_id TEXT,event_type TEXT NOT NULL,
+                actor_entity_id TEXT NOT NULL,payload_json TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+
+    @staticmethod
+    def normalize_name(value:str)-&gt;str:
+        name=&quot;.&quot;.join(part.strip().lower() for part in str(value or &quot;&quot;).strip().split(&quot;.&quot;) if part.strip())
+        if not name or len(name)&gt;253: raise ValueError(&quot;invalid Entity name&quot;)
+        if any(not all(c.isalnum() or c in &quot;-_&quot; for c in part) for part in name.split(&quot;.&quot;)):
+            raise ValueError(&quot;Entity name contains unsupported characters&quot;)
+        return name
+
+    def _audit(self,db,domain_id,event_type,actor,payload):
+        db.execute(&quot;INSERT INTO audit VALUES(?,?,?,?,?,?)&quot;,
+                   (_id(&quot;daud1&quot;),domain_id,str(event_type),actor,json.dumps(dict(payload or {}),sort_keys=True),_now()))
+
+    def create_domain(self,entity_id:str,*,namespace:str=&quot;entity&quot;,requested_name:str|None=None)-&gt;dict:
+        self.identity.load_manifest(entity_id)
+        did=_id(&quot;domain1&quot;); now=_now(); ns=str(namespace or &quot;entity&quot;).lower()
+        with self._connect() as db:
+            db.execute(&quot;INSERT INTO domains VALUES(?,?,?,?,?,?,?,?)&quot;,(did,entity_id,ns,None,1,&quot;ACTIVE&quot;,now,now))
+            self._audit(db,did,&quot;DOMAIN_CREATED&quot;,entity_id,{&quot;namespace&quot;:ns})
+        out={&quot;schema&quot;:&quot;entity-domain-v1&quot;,&quot;domain_id&quot;:did,&quot;entity_root&quot;:entity_id,&quot;namespace&quot;:ns,
+             &quot;version&quot;:1,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now,
+             &quot;dns_required&quot;:False,&quot;registrar_required&quot;:False,&quot;btg_host_required&quot;:False}
+        if requested_name:
+            out[&quot;name_claim&quot;]=self.claim_name(entity_id,did,requested_name)
+        return out
+
+    def claim_name(self,entity_id:str,domain_id:str,name:str,*,evidence:dict|None=None)-&gt;dict:
+        row=self.get_domain(domain_id)
+        if row[&quot;entity_root&quot;]!=entity_id: raise PermissionError(&quot;domain controller mismatch&quot;)
+        normalized=self.normalize_name(name); now=_now(); cid=_id(&quot;name1&quot;)
+        with self._connect() as db:
+            clashes=db.execute(&quot;SELECT domain_id FROM name_claims WHERE namespace=? AND normalized_name=? AND status=&#x27;ACTIVE&#x27; AND domain_id&lt;&gt;?&quot;,
+                               (row[&quot;namespace&quot;],normalized,domain_id)).fetchall()
+        conflict=&quot;CONFLICT&quot; if clashes else &quot;CLEAR&quot;
+        body={&quot;schema&quot;:&quot;entity-name-claim-v1&quot;,&quot;claim_id&quot;:cid,&quot;domain_id&quot;:domain_id,&quot;entity_root&quot;:entity_id,
+              &quot;normalized_name&quot;:normalized,&quot;namespace&quot;:row[&quot;namespace&quot;],&quot;status&quot;:&quot;ACTIVE&quot;,
+              &quot;conflict_state&quot;:conflict,&quot;evidence&quot;:dict(evidence or {}),&quot;created_at_ms&quot;:now,
+              &quot;first_seen_is_not_ownership&quot;:True,&quot;dns_possession_is_not_authority&quot;:True}
+        sig=self.identity.sign(entity_id,body)
+        with self._connect() as db:
+            db.execute(&quot;INSERT INTO name_claims VALUES(?,?,?,?,?,?,?,?,?,?)&quot;,
+                       (cid,domain_id,entity_id,normalized,row[&quot;namespace&quot;],&quot;ACTIVE&quot;,conflict,
+                        json.dumps(body[&quot;evidence&quot;],sort_keys=True),json.dumps(sig,sort_keys=True),now))
+            db.execute(&quot;UPDATE domains SET current_name=?,version=version+1,updated_at_ms=? WHERE domain_id=?&quot;,
+                       (normalized,now,domain_id))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

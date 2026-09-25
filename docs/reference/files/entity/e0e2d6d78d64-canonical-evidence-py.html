@@ -1,0 +1,90 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/04_Entity_Registry/evidence_assertions/canonical_evidence.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/04_Entity_Registry/evidence_assertions/canonical_evidence.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/04_Entity_Registry/evidence_assertions/canonical_evidence.py</code></p><p><b>SHA-256:</b> <code>e9fc64a04ee45beb5e326decda35b4a2a9c8f2aabd354bd80d75a5c371f27a59</code></p><p><b>Bytes:</b> 5,367</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/04_Entity_Registry/evidence_assertions/canonical_evidence.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-093e70fdec9c.html">_now</a></li><li><a href="../../../reference/symbols/entity/hash-f9c571421419.html">_hash</a></li><li><a href="../../../reference/symbols/entity/evidenceassertionenvelope-4d5a8d4e487b.html">EvidenceAssertionEnvelope</a></li><li><a href="../../../reference/symbols/entity/evidenceassertionfactory-2ebb7ced870b.html">EvidenceAssertionFactory</a></li><li><a href="../../../reference/symbols/entity/evidenceassertionenvelope-to-dict-1e2f149e3ba8.html">EvidenceAssertionEnvelope.to_dict</a></li><li><a href="../../../reference/symbols/entity/evidenceassertionfactory-create-cb6fcee9ad01.html">EvidenceAssertionFactory.create</a></li><li><a href="../../../reference/symbols/entity/evidenceassertionfactory-transition-20b951dbb173.html">EvidenceAssertionFactory.transition</a></li><li><a href="../../../reference/symbols/entity/evidenceassertionfactory-display-label-54d5aa5aceb6.html">EvidenceAssertionFactory.display_label</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from dataclasses import dataclass, asdict
+from pathlib import Path
+import hashlib, json, time, uuid
+
+ORIGINS={&quot;DIRECT_OBSERVATION&quot;,&quot;ENTITY_ASSERTION&quot;,&quot;COUNTERPARTY_ATTESTATION&quot;,&quot;EXTERNAL_AUTHORITATIVE_RECORD&quot;,&quot;DERIVED_INFERENCE&quot;,&quot;UNKNOWN&quot;}
+VERIFICATION={&quot;UNVERIFIED&quot;,&quot;SELF_ASSERTED&quot;,&quot;CORROBORATED&quot;,&quot;VERIFIED&quot;,&quot;AUTHORITATIVELY_VERIFIED&quot;}
+DISPUTE={&quot;ACTIVE&quot;,&quot;CHALLENGED&quot;,&quot;DISPUTED&quot;,&quot;ADJUDICATED&quot;,&quot;SUPERSEDED&quot;}
+
+
+def _now(): return int(time.time()*1000)
+def _hash(value) -&gt; str:
+    return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),default=str).encode()).hexdigest()
+
+
+@dataclass(frozen=True)
+class EvidenceAssertionEnvelope:
+    claim_id: str
+    claim: object
+    claimant: str | None
+    evidence_origin: str
+    evidence_references: tuple[str,...]
+    confidence: float | None
+    verification_level: str
+    observed_at_ms: int | None
+    recorded_at_ms: int
+    signatures: tuple[dict,...]
+    jurisdiction: str | None
+    dispute_state: str
+    supersedes: str | None
+    schema: str = &quot;entity-evidence-assertion-v1&quot;
+
+    def to_dict(self) -&gt; dict:
+        out=asdict(self); out[&quot;evidence_references&quot;]=list(self.evidence_references); out[&quot;signatures&quot;]=list(self.signatures)
+        out[&quot;assertion_sha256&quot;]=_hash({k:v for k,v in out.items() if k!=&quot;assertion_sha256&quot;})
+        return out
+
+
+class EvidenceAssertionFactory:
+    @staticmethod
+    def create(claim,*,claimant: str|None,evidence_origin: str,evidence_references=None,
+               confidence: float|None=None,verification_level: str=&quot;UNVERIFIED&quot;,
+               observed_at_ms: int|None=None,signatures=None,jurisdiction: str|None=None,
+               dispute_state: str=&quot;ACTIVE&quot;,supersedes: str|None=None) -&gt; dict:
+        origin=str(evidence_origin).upper(); level=str(verification_level).upper(); dispute=str(dispute_state).upper()
+        if origin not in ORIGINS: raise ValueError(&quot;unsupported evidence origin&quot;)
+        if level not in VERIFICATION: raise ValueError(&quot;unsupported verification level&quot;)
+        if dispute not in DISPUTE: raise ValueError(&quot;unsupported dispute state&quot;)
+        if confidence is not None and not 0.0 &lt;= float(confidence) &lt;= 1.0: raise ValueError(&quot;confidence must be 0..1&quot;)
+        if origin==&quot;UNKNOWN&quot; and level!=&quot;UNVERIFIED&quot;: raise ValueError(&quot;UNKNOWN evidence cannot be represented as verified&quot;)
+        if origin==&quot;DERIVED_INFERENCE&quot; and level in {&quot;VERIFIED&quot;,&quot;AUTHORITATIVELY_VERIFIED&quot;}:
+            raise ValueError(&quot;derived inference requires qualifying external evidence transition before verification&quot;)
+        env=EvidenceAssertionEnvelope(
+            claim_id=&quot;claimenv1-&quot;+uuid.uuid4().hex,claim=claim,claimant=claimant,evidence_origin=origin,
+            evidence_references=tuple(str(x) for x in (evidence_references or [])),confidence=float(confidence) if confidence is not None else None,
+            verification_level=level,observed_at_ms=observed_at_ms,recorded_at_ms=_now(),
+            signatures=tuple(dict(x) for x in (signatures or [])),jurisdiction=jurisdiction,
+            dispute_state=dispute,supersedes=supersedes)
+        return env.to_dict()
+
+    @staticmethod
+    def transition(existing: dict,*,verification_level: str,evidence_origin: str,evidence_reference: str,
+                   actor: str|None=None,signature: dict|None=None) -&gt; dict:
+        if not evidence_reference: raise ValueError(&quot;qualifying evidence reference required&quot;)
+        prior_origin=str(existing.get(&quot;evidence_origin&quot;) or &quot;UNKNOWN&quot;).upper()
+        new_origin=str(evidence_origin).upper(); level=str(verification_level).upper()
+        if new_origin not in ORIGINS or level not in VERIFICATION: raise ValueError(&quot;unsupported evidence transition&quot;)
+        if level in {&quot;VERIFIED&quot;,&quot;AUTHORITATIVELY_VERIFIED&quot;} and new_origin not in {&quot;COUNTERPARTY_ATTESTATION&quot;,&quot;EXTERNAL_AUTHORITATIVE_RECORD&quot;,&quot;DIRECT_OBSERVATION&quot;}:
+            raise ValueError(&quot;strong verification requires qualifying observed/attested/authoritative evidence&quot;)
+        refs=list(existing.get(&quot;evidence_references&quot;) or []); refs.append(str(evidence_reference))
+        out=EvidenceAssertionFactory.create(
+            existing.get(&quot;claim&quot;),claimant=existing.get(&quot;claimant&quot;),evidence_origin=new_origin,
+            evidence_references=refs,confidence=existing.get(&quot;confidence&quot;),verification_level=level,
+            observed_at_ms=existing.get(&quot;observed_at_ms&quot;),signatures=[*(existing.get(&quot;signatures&quot;) or []),*([signature] if signature else [])],
+            jurisdiction=existing.get(&quot;jurisdiction&quot;),dispute_state=existing.get(&quot;dispute_state&quot;) or &quot;ACTIVE&quot;,
+            supersedes=str(existing.get(&quot;claim_id&quot;) or &quot;&quot;) or None)
+        out[&quot;transition_actor&quot;]=actor; out[&quot;prior_evidence_origin&quot;]=prior_origin
+        return out
+
+    @staticmethod
+    def display_label(envelope: dict) -&gt; str:
+        level=str(envelope.get(&quot;verification_level&quot;) or &quot;UNVERIFIED&quot;).upper()
+        origin=str(envelope.get(&quot;evidence_origin&quot;) or &quot;UNKNOWN&quot;).upper()
+        if origin==&quot;UNKNOWN&quot;: return &quot;UNKNOWN&quot;
+        if origin==&quot;DERIVED_INFERENCE&quot;: return &quot;INFERRED&quot;
+        if level==&quot;AUTHORITATIVELY_VERIFIED&quot;: return &quot;AUTHORITATIVELY_VERIFIED&quot;
+        if level==&quot;VERIFIED&quot;: return &quot;VERIFIED&quot;
+        if origin==&quot;COUNTERPARTY_ATTESTATION&quot;: return &quot;COUNTERPARTY_ATTESTED&quot;
+        if origin==&quot;DIRECT_OBSERVATION&quot;: return &quot;OBSERVED&quot;
+        return &quot;ASSERTED&quot;</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

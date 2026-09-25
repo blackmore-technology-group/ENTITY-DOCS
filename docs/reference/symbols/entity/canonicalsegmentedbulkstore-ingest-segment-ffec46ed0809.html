@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CanonicalSegmentedBulkStore.ingest_segment Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>CanonicalSegmentedBulkStore.ingest_segment</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/04_Entity_Registry/bulk_ingest/canonical_segmented_bulk_ingest.py#L114">ENTITY/src/04_Entity_Registry/bulk_ingest/canonical_segmented_bulk_ingest.py#L114</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>CanonicalSegmentedBulkStore.ingest_segment(self, records: Iterable[dict], *, batch_id: str)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def ingest_segment(self,records:Iterable[dict],*,batch_id:str)-&gt;dict:
+        batch_id=str(batch_id or &quot;&quot;).strip()
+        if not batch_id: raise ValueError(&quot;batch_id required&quot;)
+        with self._lock:
+            final_path=self._segment_path(batch_id); temp_path=final_path.with_suffix(&quot;.sqlite.tmp&quot;)
+            with self._manifest() as db:
+                if db.execute(&quot;SELECT 1 FROM batches WHERE batch_id=?&quot;,(batch_id,)).fetchone(): raise ValueError(&quot;batch_id already exists&quot;)
+            start_event,prior_batch,asset_total,event_total=self._heads(); now=_now()
+            built=self._build_segment(records,batch_id,start_event,now,temp_path)
+            segment_sha=_file_sha(temp_path)
+            segment_name=final_path.name
+            batch_body={&quot;schema&quot;:&quot;entity-segmented-batch-v1&quot;,&quot;batch_id&quot;:batch_id,&quot;segment_name&quot;:segment_name,&quot;segment_sha256&quot;:segment_sha,&quot;controller_entity_id&quot;:self.controller_entity_id,&quot;asset_count&quot;:built[&quot;asset_count&quot;],&quot;event_count&quot;:built[&quot;event_count&quot;],&quot;asset_merkle_root&quot;:built[&quot;asset_merkle_root&quot;],&quot;start_prior_event_hash&quot;:start_event,&quot;end_event_hash&quot;:built[&quot;end_event_hash&quot;],&quot;prior_batch_hash&quot;:prior_batch,&quot;created_at_ms&quot;:now,&quot;registration_not_ownership&quot;:True,&quot;segment_attestation_not_legal_truth&quot;:True}
+            signature=self.sign(batch_body); batch_hash=_sha({&quot;body&quot;:batch_body,&quot;signature&quot;:signature})
+            if final_path.exists(): raise FileExistsError(str(final_path))
+            os.replace(temp_path,final_path)
+            try:
+                with self._manifest() as db:
+                    db.execute(&quot;BEGIN IMMEDIATE&quot;)
+                    current_event=db.execute(&quot;SELECT v FROM meta WHERE k=&#x27;event_head&#x27;&quot;).fetchone()[0]
+                    current_batch=db.execute(&quot;SELECT v FROM meta WHERE k=&#x27;batch_head&#x27;&quot;).fetchone()[0]
+                    if current_event!=start_event or current_batch!=prior_batch:
+                        raise RuntimeError(&quot;manifest head changed concurrently&quot;)
+                    db.execute(&quot;INSERT INTO batches(batch_id,segment_name,segment_sha256,controller_entity_id,asset_count,event_count,asset_merkle_root,start_prior_event_hash,end_event_hash,prior_batch_hash,batch_hash,signature_json,created_at_ms) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(batch_id,segment_name,segment_sha,self.controller_entity_id,built[&quot;asset_count&quot;],built[&quot;event_count&quot;],built[&quot;asset_merkle_root&quot;],start_event,built[&quot;end_event_hash&quot;],prior_batch,batch_hash,json.dumps(signature,sort_keys=True),now))
+                    db.execute(&quot;UPDATE meta SET v=? WHERE k=&#x27;event_head&#x27;&quot;,(built[&quot;end_event_hash&quot;],))
+                    db.execute(&quot;UPDATE meta SET v=? WHERE k=&#x27;batch_head&#x27;&quot;,(batch_hash,))
+                    db.execute(&quot;UPDATE meta SET v=? WHERE k=&#x27;asset_total&#x27;&quot;,(str(asset_total+built[&quot;asset_count&quot;]),))
+                    db.execute(&quot;UPDATE meta SET v=? WHERE k=&#x27;event_total&#x27;&quot;,(str(event_total+built[&quot;event_count&quot;]),))
+            except Exception:
+                try: final_path.unlink()
+                except OSError: pass
+                raise
+            return {**batch_body,&quot;batch_hash&quot;:batch_hash,&quot;signature&quot;:signature,&quot;segment_path&quot;:str(final_path)}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

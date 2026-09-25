@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ExchangeProtocol._record_signed_cancellation Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ExchangeProtocol._record_signed_cancellation</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/exchange_protocol.py#L514">ENTITY/src/31_Profiles/exchange_protocol.py#L514</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>ExchangeProtocol._record_signed_cancellation(self, body: dict, signature: dict)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def _record_signed_cancellation(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;cancellation_id&quot;,&quot;order_id&quot;,&quot;participant&quot;,&quot;nonce&quot;,&quot;created_at_ms&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-order-cancel-v1&quot;:
+            raise ValueError(&quot;invalid signed cancellation shape&quot;)
+        participant=str(body[&quot;participant&quot;]); created=int(body[&quot;created_at_ms&quot;])
+        if not str(body[&quot;cancellation_id&quot;]) or not str(body[&quot;nonce&quot;]) or created&lt;0:
+            raise ValueError(&quot;invalid cancellation identity/time&quot;)
+        manifest=self.identity.load_manifest(participant)
+        if not self.identity.verify_signature(manifest, body, signature):
+            raise PermissionError(&quot;cancellation signature invalid&quot;)
+        received=now_ms()
+        try:
+            with self._db() as db:
+                row=db.execute(&quot;SELECT * FROM orders WHERE order_id=?&quot;,(body[&quot;order_id&quot;],)).fetchone()
+                if not row or row[&quot;participant&quot;]!=participant: raise PermissionError(&quot;order owner required&quot;)
+                if row[&quot;status&quot;] not in {&quot;OPEN&quot;,&quot;PARTIAL&quot;}: raise ValueError(&quot;order not cancellable&quot;)
+                db.execute(&quot;INSERT INTO order_cancellations VALUES(?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;cancellation_id&quot;],body[&quot;order_id&quot;],participant,str(body[&quot;nonce&quot;]),created,received,json.dumps(signature,sort_keys=True)))
+                db.execute(&quot;UPDATE orders SET status=&#x27;CANCELLED&#x27;,remaining=0 WHERE order_id=?&quot;,(body[&quot;order_id&quot;],))
+                total=db.execute(&quot;SELECT COUNT(*) FROM orders WHERE venue_id=? AND participant=?&quot;,(row[&quot;venue_id&quot;],participant)).fetchone()[0]
+                cancelled=db.execute(&quot;SELECT COUNT(*) FROM orders WHERE venue_id=? AND participant=? AND status=&#x27;CANCELLED&#x27;&quot;,(row[&quot;venue_id&quot;],participant)).fetchone()[0]
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&quot;duplicate/replayed cancellation&quot;) from exc
+        ratio=cancelled/total if total else 0; alert=None
+        if total&gt;=5 and ratio&gt;=0.8:
+            alert=self._alert(row[&quot;venue_id&quot;],row[&quot;instrument_id&quot;],participant,&quot;HIGH_CANCEL_RATIO&quot;,{&quot;total&quot;:total,&quot;cancelled&quot;:cancelled,&quot;ratio&quot;:ratio})
+        return dict(body,status=&quot;CANCELLED&quot;,received_at_ms=received,cancel_ratio=ratio,alert_id=alert,signature=signature)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

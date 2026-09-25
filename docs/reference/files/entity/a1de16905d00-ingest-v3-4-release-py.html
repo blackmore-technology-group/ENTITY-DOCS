@@ -1,0 +1,83 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/ingest_v3_4_release.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/ingest_v3_4_release.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/ingest_v3_4_release.py</code></p><p><b>SHA-256:</b> <code>ddea429260f673daef32a62c97948aaac924e25e752f3bfbb0691cac3bb649e9</code></p><p><b>Bytes:</b> 4,968</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/ingest_v3_4_release.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-1c6f2ef6b962.html">load</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, importlib.util, json, os, pathlib, shutil, sys
+
+ROOT=pathlib.Path(__file__).resolve().parents[1]
+STATE=pathlib.Path(os.environ.get(&quot;ENTITY_V34_INGEST_STATE&quot;, str(ROOT.parent/&quot;_ENTITY_V3_4_RELEASE_INGEST_STATE&quot;)))
+OUT=ROOT/&quot;docs/qualification/ENTITY_V3_4_0_CONTINUOUS_PROVENANCE_INGEST_2026-09-24.json&quot;
+
+def load(name,rel):
+    spec=importlib.util.spec_from_file_location(name,ROOT/rel); mod=importlib.util.module_from_spec(spec)
+    sys.modules[name]=mod; spec.loader.exec_module(mod); return mod
+
+identity_mod=load(&quot;ing34_identity&quot;,&quot;src/01_Core_Runtime/identity/canonical_identity.py&quot;)
+fabric_mod=load(&quot;ing34_fabric&quot;,&quot;src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py&quot;)
+rights_mod=load(&quot;ing34_rights&quot;,&quot;src/36_Adoption_Layer/rights_passport.py&quot;)
+reality_profile=load(&quot;reality_profile&quot;,&quot;src/37_Verifiable_Reality/reality_profile.py&quot;)
+evidence_mod=load(&quot;ing34_evidence&quot;,&quot;src/37_Verifiable_Reality/evidence_objects.py&quot;)
+profile_mod=load(&quot;ing34_profiles&quot;,&quot;src/38_Global_Passports/profile_registry.py&quot;)
+industry_mod=load(&quot;ing34_industry&quot;,&quot;src/38_Global_Passports/industry_profiles.py&quot;)
+global_mod=load(&quot;ing34_global&quot;,&quot;src/38_Global_Passports/global_passport.py&quot;)
+ingest_mod=load(&quot;ing34_ingest&quot;,&quot;src/38_Global_Passports/continuous_ingestion.py&quot;)
+
+if STATE.exists(): shutil.rmtree(STATE)
+identity=identity_mod.EntityIdentityVault(STATE); fabric=fabric_mod.UniversalTransactionFabric(STATE,identity)
+controller=identity.create(&quot;ENTITY v3.4 Release Provenance&quot;,&quot;organization&quot;)[&quot;entity_id&quot;]
+evidence=evidence_mod.EvidenceRegistry(STATE,identity); rights=rights_mod.RightsPassportRegistry(STATE,identity,fabric)
+profiles=profile_mod.GlobalProfileRegistry(STATE,identity); industry_mod.install_builtin_profiles(profiles,controller)
+passports=global_mod.GlobalPassportRegistry(STATE,identity,fabric,rights,profiles)
+ingestion=ingest_mod.ContinuousProvenanceEngine(STATE,identity,fabric,evidence,rights,passports)
+FILES=[
+ &quot;src/38_Global_Passports/profile_registry.py&quot;,
+ &quot;src/38_Global_Passports/industry_profiles.py&quot;,
+ &quot;src/38_Global_Passports/global_passport.py&quot;,
+ &quot;src/38_Global_Passports/continuous_ingestion.py&quot;,
+ &quot;src/38_Global_Passports/global_passport_profile.py&quot;,
+ &quot;src/38_Global_Passports/passport_conformance.py&quot;,
+ &quot;src/39_Implementation_Packages/industry_packages.py&quot;,
+ &quot;sdk/global_passport_sdk/canonical_global_passport_sdk.py&quot;,
+ &quot;sdk/global_passport_sdk/README.md&quot;,
+ &quot;protocol/v3/ENTITY_GLOBAL_PASSPORT.schema.json&quot;,
+ &quot;protocol/v3/ENTITY_V3_4_GLOBAL_PASSPORT_CLEANROOM_KIT.min.json&quot;,
+ &quot;profiles/registry.json&quot;,
+ &quot;tools/build_v3_4_cleanroom_kit.py&quot;,
+ &quot;tools/verify_v3_4_global_passport_release.py&quot;,
+ &quot;tools/build_v3_4_industry_packages.py&quot;,
+ &quot;tools/entity_v3_4_cli.py&quot;,
+ &quot;tests/test_v3_global_passports.py&quot;,
+ &quot;docs/qualification/ENTITY_V3_4_0_RELEASE_QUALIFICATION_2026-09-24.json&quot;,
+ &quot;docs/qualification/ENTITY_V3_4_0_RELEASE_QUALIFICATION_2026-09-24.md&quot;,
+ &quot;RELEASE_NOTES_v3.4.0.md&quot;,
+]
+records=[]
+for rel in FILES:
+    path=ROOT/rel
+    if not path.is_file(): raise SystemExit(f&quot;missing release-ingest file: {rel}&quot;)
+    item=ingestion.ingest_file(path,controller,[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],logical_path=rel,version=&quot;3.4.0&quot;)
+    checked=passports.verify(item[&quot;global_passport&quot;])
+    if not checked[&quot;valid&quot;]: raise SystemExit(f&quot;passport verification failed: {rel}&quot;)
+    records.append({
+      &quot;path&quot;:rel,
+      &quot;content_sha256&quot;:item[&quot;object&quot;][&quot;content_sha256&quot;],
+      &quot;object_id&quot;:item[&quot;object&quot;][&quot;object_id&quot;],
+      &quot;evidence_id&quot;:item[&quot;evidence&quot;][&quot;evidence_id&quot;],
+      &quot;rights_passport_id&quot;:item[&quot;rights_passport&quot;][&quot;passport_id&quot;],
+      &quot;global_passport_id&quot;:item[&quot;global_passport&quot;][&quot;passport_id&quot;],
+      &quot;global_passport_sha256&quot;:item[&quot;global_passport&quot;][&quot;body_sha256&quot;],
+      &quot;passport_valid&quot;:True,
+      &quot;economic_value_invented&quot;:False,
+      &quot;custody_is_not_authority&quot;:True})
+
+material=&quot;\n&quot;.join(f&quot;{r[&#x27;content_sha256&#x27;]}  {r[&#x27;path&#x27;]}&quot; for r in records).encode()
+report={
+ &quot;schema&quot;:&quot;entity-v3-4-continuous-provenance-release-ingest-v1&quot;,
+ &quot;version&quot;:&quot;3.4.0&quot;,&quot;date&quot;:&quot;2026-09-24&quot;,
+ &quot;qualified_source_commit&quot;:&quot;854529e6cb88e77f29cce581beb74b530768224c&quot;,
+ &quot;controller_entity_id&quot;:controller,
+ &quot;profile_refs&quot;:[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],
+ &quot;files&quot;:len(records),&quot;inventory_sha256&quot;:hashlib.sha256(material).hexdigest(),&quot;records&quot;:records,
+ &quot;content_addressed&quot;:True,&quot;custody_is_not_authority&quot;:True,&quot;provider_credentials_included&quot;:False,
+ &quot;economic_value_invented&quot;:False,&quot;historical_provenance_before_v3_4_claimed&quot;:False,
+ &quot;claim_boundary&quot;:&quot;This campaign proves v3.4 release artifacts were registered under the new continuous-provenance workflow; it does not reconstruct or certify pre-v3.4 history.&quot;
+}
+OUT.parent.mkdir(parents=True,exist_ok=True); OUT.write_bytes((json.dumps(report,indent=2,sort_keys=True)+&quot;\n&quot;).encode(&quot;utf-8&quot;))
+print(json.dumps({&quot;files&quot;:report[&quot;files&quot;],&quot;inventory_sha256&quot;:report[&quot;inventory_sha256&quot;],&quot;state&quot;:str(STATE),&quot;report&quot;:str(OUT)},indent=2))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

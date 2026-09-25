@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityIdentityVault.verify_manifest Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityIdentityVault.verify_manifest</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/identity/canonical_identity.py#L152">ENTITY/src/01_Core_Runtime/identity/canonical_identity.py#L152</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EntityIdentityVault.verify_manifest(cls, signed: dict)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def verify_manifest(cls, signed: dict) -&gt; bool:
+        try:
+            if signed.get(&quot;schema&quot;) == &quot;sovereign-entity-manifest-v1&quot;:
+                return cls._verify_v1(signed)
+            if signed.get(&quot;schema&quot;) != &quot;sovereign-entity-manifest-v2&quot;:
+                return False
+            data = dict(signed)
+            signature = dict(data.pop(&quot;signature&quot;))
+            if not ENTITY_ID_RE.fullmatch(str(data.get(&quot;entity_id&quot;) or &quot;&quot;)):
+                return False
+            method = cls._method(data, str(signature.get(&quot;key_id&quot;) or &quot;&quot;))
+            if not method or method.get(&quot;status&quot;) != &quot;active&quot; or method.get(&quot;suite&quot;) != SIG_SUITE:
+                return False
+            rotation = data.get(&quot;rotation_proof&quot;)
+            if rotation:
+                proof=dict(rotation); proof_sig=dict(proof.pop(&quot;signature&quot;)); old=cls._method(data,str(proof_sig.get(&quot;key_id&quot;) or &quot;&quot;))
+                if not old or old.get(&quot;status&quot;) not in {&quot;retired&quot;,&quot;active&quot;}: return False
+                if proof.get(&quot;entity_id&quot;)!=data.get(&quot;entity_id&quot;) or proof.get(&quot;new_key_id&quot;)!=data.get(&quot;active_signing_key_id&quot;) or int(proof.get(&quot;manifest_revision&quot;,0))!=int(data.get(&quot;manifest_revision&quot;,0)): return False
+                if proof.get(&quot;new_public_key&quot;)!=method.get(&quot;public_key&quot;) or proof.get(&quot;new_suite&quot;)!=method.get(&quot;suite&quot;): return False
+                Ed25519PublicKey.from_public_bytes(_unb64(str(old[&quot;public_key&quot;]))).verify(_unb64(str(proof_sig[&quot;signature&quot;])),canonical_json(proof))
+            recovery = data.get(&quot;recovery_proof&quot;)
+            if recovery:
+                proof=dict(recovery); proof_sig=dict(proof.pop(&quot;signature&quot;)); authority=cls._method(data,str(proof_sig.get(&quot;key_id&quot;) or &quot;&quot;))
+                if not authority or &quot;recovery&quot; not in set(authority.get(&quot;purpose&quot;) or []) or authority.get(&quot;status&quot;)!=&quot;active&quot;: return False
+                if proof.get(&quot;entity_id&quot;)!=data.get(&quot;entity_id&quot;) or proof.get(&quot;new_key_id&quot;)!=data.get(&quot;active_signing_key_id&quot;) or int(proof.get(&quot;manifest_revision&quot;,0))!=int(data.get(&quot;manifest_revision&quot;,0)): return False
+                if proof.get(&quot;new_public_key&quot;)!=method.get(&quot;public_key&quot;) or proof.get(&quot;new_suite&quot;)!=method.get(&quot;suite&quot;): return False
+                Ed25519PublicKey.from_public_bytes(_unb64(str(authority[&quot;public_key&quot;]))).verify(_unb64(str(proof_sig[&quot;signature&quot;])),canonical_json(proof))
+            public_raw = _unb64(str(method[&quot;public_key&quot;]))
+            Ed25519PublicKey.from_public_bytes(public_raw).verify(_unb64(str(signature[&quot;signature&quot;])), canonical_json(data))
+            return True
+        except Exception:
+            return False</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>JurisdictionProfileRegistry.evaluate Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>JurisdictionProfileRegistry.evaluate</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/institutional_semantics.py#L167">ENTITY/src/35_Global_Infrastructure/institutional_semantics.py#L167</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>JurisdictionProfileRegistry.evaluate(self, jurisdictions: list[str], domain: str, action: str, context: dict | None=None, *, at_ms: int | None=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def evaluate(self, jurisdictions: list[str], domain: str, action: str,
+                 context: dict | None = None, *, at_ms: int | None = None) -&gt; dict:
+        action = str(action).upper()
+        context = dict(context or {})
+        profiles = self.applicable(jurisdictions, domain, at_ms=at_ms)
+        matched = []
+        for profile in profiles:
+            for rule in profile[&quot;rules&quot;]:
+                if action not in rule[&quot;actions&quot;]:
+                    continue
+                if any(context.get(k) != v for k, v in rule[&quot;conditions&quot;].items()):
+                    continue
+                matched.append({&quot;profile_id&quot;: profile[&quot;profile_id&quot;],
+                                &quot;jurisdiction&quot;: profile[&quot;jurisdiction_code&quot;], **rule})
+        effects = {m[&quot;effect&quot;] for m in matched}
+        conflict = &quot;PROHIBIT&quot; in effects and (&quot;ALLOW&quot; in effects or &quot;REQUIRE&quot; in effects)
+        if &quot;PROHIBIT&quot; in effects:
+            decision = &quot;DENY&quot;
+        elif &quot;REQUIRE&quot; in effects:
+            decision = &quot;CONDITIONAL&quot;
+        elif &quot;ALLOW&quot; in effects:
+            decision = &quot;ALLOW&quot;
+        else:
+            decision = &quot;DENY&quot;
+        obligations = sorted({o for m in matched for o in m.get(&quot;obligations&quot;, [])})
+        return {
+            &quot;domain&quot;: str(domain).upper(), &quot;action&quot;: action, &quot;decision&quot;: decision,
+            &quot;jurisdictions&quot;: sorted({str(x).upper() for x in jurisdictions}),
+            &quot;matched_rules&quot;: matched, &quot;obligations&quot;: obligations,
+            &quot;conflict_detected&quot;: conflict, &quot;fail_closed&quot;: decision == &quot;DENY&quot;,
+            &quot;profile_count&quot;: len(profiles), &quot;legal_determination_not_made&quot;: True,
+        }</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

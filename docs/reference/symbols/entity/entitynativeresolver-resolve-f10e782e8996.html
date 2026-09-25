@@ -1,0 +1,41 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityNativeResolver.resolve Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityNativeResolver.resolve</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/resolution/canonical_resolution.py#L91">ENTITY/src/22_Sovereign_Domain/resolution/canonical_resolution.py#L91</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EntityNativeResolver.resolve(self, identifier: str, *, service_type: str | None=None, service_id: str | None=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def resolve(self,identifier:str,*,service_type:str|None=None,service_id:str|None=None)-&gt;dict:
+        ident=str(identifier).strip().lower()
+        candidates=[]
+        for (_,did),snap in self.sources.items():
+            domain=snap[&quot;domain&quot;]; claim=snap.get(&quot;name_claim&quot;)
+            matches=(did.lower()==ident or domain[&quot;entity_root&quot;].lower()==ident or
+                     (claim and (claim.get(&quot;normalized_name&quot;) or &quot;&quot;).lower()==ident))
+            if matches: candidates.append(snap)
+        unique={s[&quot;domain&quot;][&quot;domain_id&quot;]:s for s in candidates}
+        if not unique: raise KeyError(&quot;Entity domain not found&quot;)
+        if len(unique)&gt;1:
+            raise RuntimeError(&quot;Entity name conflict requires cryptographic/disambiguated identifier&quot;)
+        snap=next(iter(unique.values())); proof=self.verify_snapshot(snap)
+        if not proof[&quot;valid&quot;]: raise PermissionError(&quot;resolution snapshot verification failed&quot;)
+        domain=snap[&quot;domain&quot;]; did=domain[&quot;domain_id&quot;]; dv=int(domain.get(&quot;version&quot;) or 0)
+        prior=self.highest_domain_version.get(did,0)
+        if dv&lt;prior: raise PermissionError(&quot;domain rollback/stale state detected&quot;)
+        self.highest_domain_version[did]=max(prior,dv)
+        services=[s for s in snap.get(&quot;services&quot;) or [] if s.get(&quot;status&quot;)==&quot;ACTIVE&quot;]
+        if service_type: services=[s for s in services if str(s.get(&quot;service_type&quot;)).upper()==str(service_type).upper()]
+        if service_id: services=[s for s in services if s.get(&quot;service_id&quot;)==service_id]
+        valid=[]
+        nodes={n[&quot;node_id&quot;]:n for n in snap.get(&quot;nodes&quot;) or []}
+        for s in services:
+            sid=s[&quot;service_id&quot;]; version=int(s.get(&quot;manifest_version&quot;) or 0); high=self.highest_service_version.get(sid,0)
+            if version&lt;high: continue
+            node=nodes.get(s[&quot;node_id&quot;])
+            if not node or node.get(&quot;effective_status&quot;,node.get(&quot;status&quot;))!=&quot;ACTIVE&quot;: continue
+            self.highest_service_version[sid]=max(high,version)
+            valid.append({&quot;service&quot;:s,&quot;node&quot;:node})
+        if not valid: raise KeyError(&quot;no current authorized service endpoint&quot;)
+        claim=snap.get(&quot;name_claim&quot;)
+        if claim and claim.get(&quot;conflict_state&quot;)==&quot;CONFLICT&quot; and ident==(claim.get(&quot;normalized_name&quot;) or &quot;&quot;).lower():
+            raise RuntimeError(&quot;name conflict requires entity/domain identifier&quot;)
+        root=domain[&quot;entity_root&quot;]
+        result={&quot;schema&quot;:&quot;entity-resolution-proof-v1&quot;,&quot;requested_identifier&quot;:identifier,&quot;domain_id&quot;:did,&quot;entity_root&quot;:root,
+                &quot;domain_name&quot;:claim.get(&quot;normalized_name&quot;) if claim else None,&quot;domain_version&quot;:dv,
+                &quot;snapshot_sha256&quot;:proof[&quot;snapshot_sha256&quot;],&quot;services&quot;:valid,
+                &quot;dns_used_as_authority&quot;:False,&quot;resolver_is_authority&quot;:False,&quot;verified&quot;:True,&quot;resolved_at_ms&quot;:_now()}
+        result[&quot;resolution_proof_sha256&quot;]=_sha(result)
+        return result</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

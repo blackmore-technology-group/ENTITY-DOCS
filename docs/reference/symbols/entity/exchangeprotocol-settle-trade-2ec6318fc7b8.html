@@ -1,0 +1,34 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ExchangeProtocol.settle_trade Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ExchangeProtocol.settle_trade</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/exchange_protocol.py#L621">ENTITY/src/31_Profiles/exchange_protocol.py#L621</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>ExchangeProtocol.settle_trade(self, trade_id: str, *, payment_ref: str | None, external_verified=False, payment_attestation_id: str | None=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def settle_trade(self, trade_id: str, *, payment_ref: str | None,
+                     external_verified=False, payment_attestation_id: str | None=None) -&gt; dict:
+        with self._db() as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;)
+            trade=db.execute(&quot;SELECT * FROM trades WHERE trade_id=? AND status=&#x27;EXECUTED_UNSETTLED&#x27;&quot;,(trade_id,)).fetchone()
+            clear=db.execute(&quot;SELECT * FROM clearing WHERE trade_id=? AND status=&#x27;PENDING&#x27;&quot;,(trade_id,)).fetchone()
+            if not trade or not clear: raise KeyError(&quot;unsettled trade required&quot;)
+            inst=db.execute(&quot;SELECT * FROM instruments WHERE instrument_id=?&quot;,(trade[&quot;instrument_id&quot;],)).fetchone()
+            venue=db.execute(&quot;SELECT * FROM venues WHERE venue_id=?&quot;,(trade[&quot;venue_id&quot;],)).fetchone()
+            if not inst or not venue: raise KeyError(&quot;trade instrument/venue required&quot;)
+            if int(clear[&quot;amount_units&quot;])&gt;0 and not payment_ref: raise ValueError(&quot;payment reference required for DvP settlement&quot;)
+            if external_verified:
+                if not payment_attestation_id: raise ValueError(&quot;payment attestation required for external verification&quot;)
+                attestation=db.execute(&quot;SELECT * FROM payment_attestations WHERE attestation_id=? AND trade_id=? AND settlement_ref=?&quot;,
+                                       (str(payment_attestation_id),trade_id,str(payment_ref))).fetchone()
+                if not attestation: raise PermissionError(&quot;valid payment attestation required for external verification&quot;)
+            bal=db.execute(&quot;SELECT units FROM balances WHERE instrument_id=? AND holder=?&quot;,(trade[&quot;instrument_id&quot;],trade[&quot;seller&quot;])).fetchone()
+            if not bal or int(bal[&quot;units&quot;])&lt;int(trade[&quot;quantity&quot;]): raise PermissionError(&quot;seller entitlement unavailable at settlement&quot;)
+            for holder,delta in ((trade[&quot;seller&quot;],-int(trade[&quot;quantity&quot;])),(trade[&quot;buyer&quot;],int(trade[&quot;quantity&quot;]))):
+                old=db.execute(&quot;SELECT units FROM balances WHERE instrument_id=? AND holder=?&quot;,(trade[&quot;instrument_id&quot;],holder)).fetchone()
+                units=(int(old[&quot;units&quot;]) if old else 0)+delta
+                db.execute(&quot;INSERT INTO balances(instrument_id,holder,units) VALUES(?,?,?) ON CONFLICT(instrument_id,holder) DO UPDATE SET units=excluded.units&quot;,(trade[&quot;instrument_id&quot;],holder,units))
+            expires=now_ms()+int(inst[&quot;duration_ms&quot;]) if inst[&quot;duration_ms&quot;] is not None else None
+            receipt={&quot;schema&quot;:&quot;entity-eep-entitlement-v1&quot;,&quot;entitlement_id&quot;:rid(&quot;ent3&quot;),&quot;trade_id&quot;:trade_id,&quot;instrument_id&quot;:trade[&quot;instrument_id&quot;],
+                     &quot;holder&quot;:trade[&quot;buyer&quot;],&quot;quantity&quot;:int(trade[&quot;quantity&quot;]),&quot;rights&quot;:json.loads(inst[&quot;rights_json&quot;]),&quot;expires_at_ms&quot;:expires,
+                     &quot;created_at_ms&quot;:now_ms(),&quot;instrument_issuer&quot;:inst[&quot;issuer&quot;],&quot;venue_operator&quot;:venue[&quot;operator&quot;],
+                     &quot;ownership_of_underlying_transferred&quot;:False,&quot;venue_operator_is_not_underlying_owner&quot;:True}
+            sig=self.identity.sign(venue[&quot;operator&quot;],receipt)
+            db.execute(&quot;INSERT INTO entitlements(entitlement_id,trade_id,instrument_id,holder,quantity,rights_json,expires_at_ms,created_at_ms,signature_json) VALUES(?,?,?,?,?,?,?,?,?)&quot;,
+                       (receipt[&quot;entitlement_id&quot;],trade_id,trade[&quot;instrument_id&quot;],trade[&quot;buyer&quot;],receipt[&quot;quantity&quot;],json.dumps(receipt[&quot;rights&quot;],sort_keys=True),expires,receipt[&quot;created_at_ms&quot;],json.dumps(sig,sort_keys=True)))
+            db.execute(&quot;UPDATE trades SET status=&#x27;SETTLED&#x27; WHERE trade_id=?&quot;,(trade_id,))
+            db.execute(&quot;UPDATE clearing SET status=&#x27;SETTLED&#x27;,payment_ref=?,external_verified=? WHERE trade_id=?&quot;,(payment_ref,int(bool(external_verified)),trade_id))
+        return {&quot;trade_id&quot;:trade_id,&quot;status&quot;:&quot;SETTLED&quot;,&quot;payment_ref&quot;:payment_ref,&quot;external_money_movement_verified&quot;:bool(external_verified),
+                &quot;payment_attestation_id&quot;:str(payment_attestation_id) if payment_attestation_id else None,&quot;entitlement&quot;:dict(receipt,signature=sig)}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY-DEFENCE / templates.json Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY-DEFENCE / templates.json</h1><div class="meta"><b>Repository:</b> ENTITY-DEFENCE<br><b>Commit:</b> <code>2f3246d6101ff49711a9d401ed53fcec8458d245</code></div><p><b>Path:</b> <code>templates.json</code></p><p><b>SHA-256:</b> <code>b7b37d52d64815af226121ec3ab90e3cfa1501f4f97be84b0910c1ab1704a80d</code></p><p><b>Bytes:</b> 4,924</p><p><a href="https://github.com/blackmore-technology-group/ENTITY-DEFENCE/blob/2f3246d6101ff49711a9d401ed53fcec8458d245/templates.json">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>{
+  &quot;package&quot;: &quot;defence-public&quot;,
+  &quot;templates&quot;: {
+    &quot;custody_record&quot;: {
+      &quot;asset_kind&quot;: &quot;custody_record&quot;,
+      &quot;default_right_actions&quot;: [
+        &quot;INSPECT&quot;,
+        &quot;READ&quot;,
+        &quot;DERIVE&quot;
+      ],
+      &quot;economic_value_invented&quot;: false,
+      &quot;object_type&quot;: &quot;DOCUMENT&quot;,
+      &quot;package&quot;: &quot;defence-public&quot;,
+      &quot;package_version&quot;: &quot;1.0&quot;,
+      &quot;privacy_defaults&quot;: {
+        &quot;classified_material_prohibited&quot;: true,
+        &quot;default&quot;: &quot;RESTRICTED_DISCLOSURE&quot;,
+        &quot;minimum_data&quot;: true,
+        &quot;purpose_bound&quot;: true
+      },
+      &quot;profile_is_not_authority&quot;: true,
+      &quot;profile_refs&quot;: [
+        &quot;entity-profile:global@1.0&quot;,
+        &quot;entity-profile:defence-public@1.0&quot;
+      ],
+      &quot;required_evidence_types&quot;: [
+        &quot;DOCUMENT&quot;,
+        &quot;REGISTRY_RECORD&quot;
+      ],
+      &quot;schema&quot;: &quot;entity-v3-industry-asset-template-v1&quot;
+    },
+    &quot;device&quot;: {
+      &quot;asset_kind&quot;: &quot;device&quot;,
+      &quot;default_right_actions&quot;: [
+        &quot;INSPECT&quot;,
+        &quot;READ&quot;,
+        &quot;DERIVE&quot;
+      ],
+      &quot;economic_value_invented&quot;: false,
+      &quot;object_type&quot;: &quot;DEVICE&quot;,
+      &quot;package&quot;: &quot;defence-public&quot;,
+      &quot;package_version&quot;: &quot;1.0&quot;,
+      &quot;privacy_defaults&quot;: {
+        &quot;classified_material_prohibited&quot;: true,
+        &quot;default&quot;: &quot;RESTRICTED_DISCLOSURE&quot;,
+        &quot;minimum_data&quot;: true,
+        &quot;purpose_bound&quot;: true
+      },
+      &quot;profile_is_not_authority&quot;: true,
+      &quot;profile_refs&quot;: [
+        &quot;entity-profile:global@1.0&quot;,
+        &quot;entity-profile:defence-public@1.0&quot;
+      ],
+      &quot;required_evidence_types&quot;: [
+        &quot;DOCUMENT&quot;,
+        &quot;REGISTRY_RECORD&quot;
+      ],
+      &quot;schema&quot;: &quot;entity-v3-industry-asset-template-v1&quot;
+    },
+    &quot;model&quot;: {
+      &quot;asset_kind&quot;: &quot;model&quot;,
+      &quot;default_right_actions&quot;: [
+        &quot;INSPECT&quot;,
+        &quot;READ&quot;,
+        &quot;DERIVE&quot;
+      ],
+      &quot;economic_value_invented&quot;: false,
+      &quot;object_type&quot;: &quot;MODEL&quot;,
+      &quot;package&quot;: &quot;defence-public&quot;,
+      &quot;package_version&quot;: &quot;1.0&quot;,
+      &quot;privacy_defaults&quot;: {
+        &quot;classified_material_prohibited&quot;: true,
+        &quot;default&quot;: &quot;RESTRICTED_DISCLOSURE&quot;,
+        &quot;minimum_data&quot;: true,
+        &quot;purpose_bound&quot;: true
+      },
+      &quot;profile_is_not_authority&quot;: true,
+      &quot;profile_refs&quot;: [
+        &quot;entity-profile:global@1.0&quot;,
+        &quot;entity-profile:defence-public@1.0&quot;
+      ],
+      &quot;required_evidence_types&quot;: [
+        &quot;DOCUMENT&quot;,
+        &quot;REGISTRY_RECORD&quot;
+      ],
+      &quot;schema&quot;: &quot;entity-v3-industry-asset-template-v1&quot;
+    },
+    &quot;public_asset&quot;: {
+      &quot;asset_kind&quot;: &quot;public_asset&quot;,
+      &quot;default_right_actions&quot;: [
+        &quot;INSPECT&quot;,
+        &quot;READ&quot;,
+        &quot;DERIVE&quot;
+      ],
+      &quot;economic_value_invented&quot;: false,
+      &quot;object_type&quot;: &quot;PHYSICAL_ASSET&quot;,
+      &quot;package&quot;: &quot;defence-public&quot;,
+      &quot;package_version&quot;: &quot;1.0&quot;,
+      &quot;privacy_defaults&quot;: {
+        &quot;classified_material_prohibited&quot;: true,
+        &quot;default&quot;: &quot;RESTRICTED_DISCLOSURE&quot;,
+        &quot;minimum_data&quot;: true,
+        &quot;purpose_bound&quot;: true
+      },
+      &quot;profile_is_not_authority&quot;: true,
+      &quot;profile_refs&quot;: [
+        &quot;entity-profile:global@1.0&quot;,
+        &quot;entity-profile:defence-public@1.0&quot;
+      ],
+      &quot;required_evidence_types&quot;: [
+        &quot;DOCUMENT&quot;,
+        &quot;REGISTRY_RECORD&quot;
+      ],
+      &quot;schema&quot;: &quot;entity-v3-industry-asset-template-v1&quot;
+    },
+    &quot;public_dataset&quot;: {
+      &quot;asset_kind&quot;: &quot;public_dataset&quot;,
+      &quot;default_right_actions&quot;: [
+        &quot;INSPECT&quot;,
+        &quot;READ&quot;,</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / sdk/open_entity_sdk/README.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / sdk/open_entity_sdk/README.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>sdk/open_entity_sdk/README.md</code></p><p><b>SHA-256:</b> <code>670bb5fca8d6bb11a7af8ec8cb314482086839ee97166e2f75632a598d82c8de</code></p><p><b>Bytes:</b> 1,560</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/open_entity_sdk/README.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY Open Developer SDK v1
+
+Purpose: allow any application to become an ENTITY-native producer without making BTG, DNS, a cloud host, or a registrar sovereign authority.
+
+Identity model:
+- `display_alias`: human-readable name such as `huntar.entity`; aliases may collide.
+- `entity_address`: canonical sovereign `ent2-...` Entity root; this is the authoritative address.
+- `entity_address_sha256`: hash of the canonical address for compact verification/display.
+- `alias_binding_sha256`: hash of namespace + alias + Entity root; this uniquely disambiguates duplicate aliases.
+- `collision_safe_display`: alias plus short binding fingerprint for UI use.
+
+Data model:
+Applications submit content hashes and metadata, not raw data bytes. ENTITY records software, data, model, knowledge and evidence assets with origin Entity, provenance, source/data-subject references, optional explicit rights claims and derivation lineage.
+
+Security boundaries:
+- authorization defaults to deny;
+- registration never proves ownership;
+- provenance never proves rights or truth;
+- duplicate aliases never replace cryptographic Entity-root verification;
+- app events cannot bypass consent, rights verification, licensing, settlement, Digital Commodity, payment, authority or capital subsystems;
+- storage/provider/device possession never becomes sovereign authority.
+
+The JSON envelope is language/platform neutral. Python here is the reference implementation; Android, Apple, Windows, Web, Linux and other SDKs should reproduce the same envelopes and verification rules.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

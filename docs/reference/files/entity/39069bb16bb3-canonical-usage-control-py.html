@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/01_Core_Runtime/usage_control/canonical_usage_control.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/01_Core_Runtime/usage_control/canonical_usage_control.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/01_Core_Runtime/usage_control/canonical_usage_control.py</code></p><p><b>SHA-256:</b> <code>0071888192d77a651e3011536b373952cc83b8b31e71ef5362f66aa1e0c6dcd5</code></p><p><b>Bytes:</b> 14,460</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/usage_control/canonical_usage_control.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-4a564dc2f44a.html">_now</a></li><li><a href="../../../reference/symbols/entity/id-805c60d1c2a4.html">_id</a></li><li><a href="../../../reference/symbols/entity/canon-06afa8ba8eca.html">_canon</a></li><li><a href="../../../reference/symbols/entity/sha-c976e3629253.html">_sha</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-b8f0e13d23dd.html">UsageControlEngine</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-init-4a13c663a647.html">UsageControlEngine.__init__</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-connect-3517d3216f3a.html">UsageControlEngine._connect</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-init-db-6dbaa269b28c.html">UsageControlEngine._init_db</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-contract-scope-61b6ad212cbb.html">UsageControlEngine._contract_scope</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-audit-a8e91c315c9f.html">UsageControlEngine._audit</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-receipt-d4a3397d2a88.html">UsageControlEngine._receipt</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-record-declared-519df2d9eee3.html">UsageControlEngine.record_declared</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-issue-gateway-ticket-d2d359a990f5.html">UsageControlEngine.issue_gateway_ticket</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-consume-gateway-ticket-9dbb2e84bced.html">UsageControlEngine.consume_gateway_ticket</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-record-counterparty-attested-a4b9a09f748c.html">UsageControlEngine.record_counterparty_attested</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-register-environment-verifier-05a591a70ef9.html">UsageControlEngine.register_environment_verifier</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-record-environment-attested-7712d95f0028.html">UsageControlEngine.record_environment_attested</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-get-receipt-414348452b42.html">UsageControlEngine.get_receipt</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-verify-receipt-b67342ac8ae1.html">UsageControlEngine.verify_receipt</a></li><li><a href="../../../reference/symbols/entity/usagecontrolengine-status-7c37177194cf.html">UsageControlEngine.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from contextlib import contextmanager
+from threading import RLock
+import hashlib, json, secrets, sqlite3, time
+
+ASSURANCE={&quot;DECLARED&quot;:1,&quot;ENTITY_GATEWAY_OBSERVED&quot;:2,&quot;COUNTERPARTY_ATTESTED&quot;:3,&quot;ENVIRONMENT_ATTESTED&quot;:4}
+
+def _now(): return int(time.time()*1000)
+def _id(prefix): return f&quot;{prefix}-&quot;+secrets.token_hex(20)
+def _canon(v): return json.dumps(v,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False).encode()
+def _sha(v): return hashlib.sha256(v if isinstance(v,(bytes,bytearray)) else _canon(v)).hexdigest()
+
+class UsageControlEngine:
+    &quot;&quot;&quot;Licence-bound usage evidence; assurance describes evidence strength, not universal downstream control.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path,identity,contracts,event_ledger=None):
+        self.root=Path(state_dir)/&quot;usage_control&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;usage.sqlite&quot;; self.identity=identity; self.contracts=contracts; self.ledger=event_ledger
+        self._lock=RLock(); self._environment_verifiers={}; self._init_db()
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;); db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS tickets(ticket_id TEXT PRIMARY KEY,issuer_entity_id TEXT NOT NULL,licence_id TEXT NOT NULL,asset_id TEXT NOT NULL,use_type TEXT NOT NULL,quantity INTEGER NOT NULL,nonce TEXT UNIQUE NOT NULL,expires_at_ms INTEGER NOT NULL,status TEXT NOT NULL,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,consumed_at_ms INTEGER)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS receipts(receipt_id TEXT PRIMARY KEY,licence_id TEXT NOT NULL,actor_entity_id TEXT NOT NULL,asset_id TEXT NOT NULL,use_type TEXT NOT NULL,purpose TEXT NOT NULL,quantity INTEGER NOT NULL,assurance TEXT NOT NULL,assurance_level INTEGER NOT NULL,evidence_origin TEXT NOT NULL,evidence_json TEXT NOT NULL,evidence_sha256 TEXT NOT NULL,nonce TEXT UNIQUE NOT NULL,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+    def _contract_scope(self,actor_entity_id: str,licence_id: str,asset_id: str,use_type: str,purpose: str,quantity: int) -&gt; dict:
+        contract=self.contracts.get(licence_id)
+        if contract[&quot;state&quot;]!=&quot;ACTIVE&quot;: raise PermissionError(&quot;licence is not active&quot;)
+        if contract[&quot;licensee_entity_id&quot;]!=actor_entity_id: raise PermissionError(&quot;named licensee required&quot;)
+        terms=contract[&quot;terms&quot;]; right=str(use_type).upper(); requested_purpose=str(purpose or &quot;&quot;)
+        if asset_id not in set(terms.get(&quot;assets&quot;) or []): raise PermissionError(&quot;asset outside licence scope&quot;)
+        if right not in set(terms.get(&quot;rights&quot;) or []): raise PermissionError(&quot;use outside licence rights&quot;)
+        allowed_purpose=str(terms.get(&quot;purpose&quot;) or &quot;&quot;)
+        if allowed_purpose and requested_purpose!=allowed_purpose: raise PermissionError(&quot;purpose outside licence scope&quot;)
+        qty=max(1,int(quantity)); req=dict(terms.get(&quot;usage_requirements&quot;) or {})
+        max_qty=int(req.get(&quot;max_quantity_per_event&quot;,qty))
+        if qty&gt;max(1,max_qty): raise PermissionError(&quot;quantity exceeds licence usage requirement&quot;)
+        return {&quot;contract&quot;:contract,&quot;right&quot;:right,&quot;purpose&quot;:requested_purpose,&quot;quantity&quot;:qty}
+    def _audit(self,signer: str,receipt: dict):
+        if self.ledger is not None:
+            self.ledger.append(signer,&quot;usage.receipted&quot;,subject_ids=[receipt[&quot;licence_id&quot;],receipt[&quot;actor_entity_id&quot;]],object_ids=[receipt[&quot;asset_id&quot;]],payload={&quot;receipt_id&quot;:receipt[&quot;receipt_id&quot;],&quot;assurance&quot;:receipt[&quot;assurance&quot;],&quot;evidence_sha256&quot;:receipt[&quot;evidence_sha256&quot;]},evidence_origin=receipt[&quot;evidence_origin&quot;],confidence=1.0)
+    def _receipt(self,*,signer: str,licence_id: str,actor: str,asset_id: str,use_type: str,purpose: str,quantity: int,assurance: str,evidence_origin: str,evidence: dict,nonce: str) -&gt; dict:
+        mode=str(assurance).upper(); level=ASSURANCE[mode]; now=_now(); receipt_id=_id(&quot;urc2&quot;)
+        ev=dict(evidence or {}); ev_hash=_sha(ev)
+        body={&quot;schema&quot;:&quot;entity-usage-receipt-v2&quot;,&quot;receipt_id&quot;:receipt_id,&quot;licence_id&quot;:licence_id,&quot;actor_entity_id&quot;:actor,&quot;asset_id&quot;:asset_id,&quot;use_type&quot;:str(use_type).upper(),&quot;purpose&quot;:str(purpose),&quot;quantity&quot;:int(quantity),&quot;assurance&quot;:mode,&quot;assurance_level&quot;:level,&quot;evidence_origin&quot;:str(evidence_origin).upper(),&quot;evidence_sha256&quot;:ev_hash,&quot;nonce&quot;:str(nonce),&quot;created_at_ms&quot;:now}
+        signature=self.identity.sign(signer,body)
+        with self._lock,self._connect() as db:
+            try: db.execute(&quot;INSERT INTO receipts VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(receipt_id,licence_id,actor,asset_id,body[&quot;use_type&quot;],body[&quot;purpose&quot;],body[&quot;quantity&quot;],mode,level,body[&quot;evidence_origin&quot;],json.dumps(ev,sort_keys=True),ev_hash,str(nonce),json.dumps(signature,sort_keys=True),now))
+            except sqlite3.IntegrityError as exc: raise ValueError(&quot;duplicate/replayed usage nonce&quot;) from exc
+        out={**body,&quot;signature&quot;:signature,&quot;evidence&quot;:ev,&quot;verified_scope&quot;:&quot;EVIDENCE_CLASS_ONLY&quot;}
+        self._audit(signer,out); return out
+    def record_declared(self,actor_entity_id: str,licence_id: str,*,asset_id: str,use_type: str,purpose: str,quantity: int=1,evidence: dict|None=None,nonce: str) -&gt; dict:
+        scoped=self._contract_scope(actor_entity_id,licence_id,asset_id,use_type,purpose,quantity)
+        out=self._receipt(signer=actor_entity_id,licence_id=licence_id,actor=actor_entity_id,asset_id=asset_id,use_type=scoped[&quot;right&quot;],purpose=scoped[&quot;purpose&quot;],quantity=scoped[&quot;quantity&quot;],assurance=&quot;DECLARED&quot;,evidence_origin=&quot;ENTITY_ASSERTION&quot;,evidence=dict(evidence or {}),nonce=nonce)
+        out[&quot;independently_verified&quot;]=False; out[&quot;meaning&quot;]=&quot;licensee-declared usage only&quot;
+        return out
+    def issue_gateway_ticket(self,grantor_entity_id: str,*,licence_id: str,asset_id: str,use_type: str,quantity: int=1,ttl_ms: int=300000,nonce: str|None=None) -&gt; dict:
+        contract=self.contracts.get(licence_id)
+        if contract[&quot;state&quot;]!=&quot;ACTIVE&quot; or contract[&quot;grantor_entity_id&quot;]!=grantor_entity_id: raise PermissionError(&quot;active grantor licence required&quot;)
+        self.identity.load_manifest(grantor_entity_id)
+        terms=contract[&quot;terms&quot;]; right=str(use_type).upper()
+        if asset_id not in set(terms.get(&quot;assets&quot;) or []) or right not in set(terms.get(&quot;rights&quot;) or []): raise PermissionError(&quot;ticket outside licence scope&quot;)
+        qty=max(1,int(quantity)); now=_now(); ticket_id=_id(&quot;ugt1&quot;); token=str(nonce or secrets.token_urlsafe(18)); expires=now+max(1000,int(ttl_ms))
+        body={&quot;schema&quot;:&quot;entity-usage-gateway-ticket-v1&quot;,&quot;ticket_id&quot;:ticket_id,&quot;issuer_entity_id&quot;:grantor_entity_id,&quot;licence_id&quot;:licence_id,&quot;asset_id&quot;:asset_id,&quot;use_type&quot;:right,&quot;quantity&quot;:qty,&quot;nonce&quot;:token,&quot;expires_at_ms&quot;:expires,&quot;created_at_ms&quot;:now}
+        signature=self.identity.sign(grantor_entity_id,body)
+        with self._connect() as db:
+            try: db.execute(&quot;INSERT INTO tickets VALUES(?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(ticket_id,grantor_entity_id,licence_id,asset_id,right,qty,token,expires,&quot;ISSUED&quot;,json.dumps(signature,sort_keys=True),now,None))
+            except sqlite3.IntegrityError as exc: raise ValueError(&quot;duplicate/replayed ticket nonce&quot;) from exc
+        return {**body,&quot;signature&quot;:signature,&quot;status&quot;:&quot;ISSUED&quot;}
+    def consume_gateway_ticket(self,actor_entity_id: str,ticket_id: str,*,purpose: str,nonce: str) -&gt; dict:
+        now=_now()
+        with self._lock,self._connect() as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;)
+            row=db.execute(&quot;SELECT * FROM tickets WHERE ticket_id=?&quot;,(ticket_id,)).fetchone()
+            if not row: raise KeyError(&quot;usage ticket not found&quot;)
+            if row[&quot;status&quot;]!=&quot;ISSUED&quot; or row[&quot;consumed_at_ms&quot;] is not None: raise PermissionError(&quot;usage ticket already consumed&quot;)
+            if int(row[&quot;expires_at_ms&quot;])&lt;=now: raise PermissionError(&quot;usage ticket expired&quot;)
+            contract=self.contracts.get(row[&quot;licence_id&quot;])
+            if contract[&quot;licensee_entity_id&quot;]!=actor_entity_id: raise PermissionError(&quot;usage ticket licensee mismatch&quot;)
+            scoped=self._contract_scope(actor_entity_id,row[&quot;licence_id&quot;],row[&quot;asset_id&quot;],row[&quot;use_type&quot;],purpose,int(row[&quot;quantity&quot;]))
+            body={&quot;schema&quot;:&quot;entity-usage-gateway-ticket-v1&quot;,&quot;ticket_id&quot;:row[&quot;ticket_id&quot;],&quot;issuer_entity_id&quot;:row[&quot;issuer_entity_id&quot;],&quot;licence_id&quot;:row[&quot;licence_id&quot;],&quot;asset_id&quot;:row[&quot;asset_id&quot;],&quot;use_type&quot;:row[&quot;use_type&quot;],&quot;quantity&quot;:row[&quot;quantity&quot;],&quot;nonce&quot;:row[&quot;nonce&quot;],&quot;expires_at_ms&quot;:row[&quot;expires_at_ms&quot;],&quot;created_at_ms&quot;:row[&quot;created_at_ms&quot;]}
+            manifest=self.identity.load_manifest(row[&quot;issuer_entity_id&quot;]); signature=json.loads(row[&quot;signature_json&quot;])
+            if not self.identity.verify_signature(manifest,body,signature): raise PermissionError(&quot;usage ticket signature invalid&quot;)
+            db.execute(&quot;UPDATE tickets SET status=&#x27;CONSUMED&#x27;,consumed_at_ms=? WHERE ticket_id=?&quot;,(now,ticket_id))
+        evidence={&quot;ticket_id&quot;:ticket_id,&quot;issuer_entity_id&quot;:row[&quot;issuer_entity_id&quot;],&quot;consumed_at_ms&quot;:now,&quot;observation&quot;:&quot;authorized gateway access consumed&quot;}
+        out=self._receipt(signer=row[&quot;issuer_entity_id&quot;],licence_id=row[&quot;licence_id&quot;],actor=actor_entity_id,asset_id=row[&quot;asset_id&quot;],use_type=scoped[&quot;right&quot;],purpose=scoped[&quot;purpose&quot;],quantity=scoped[&quot;quantity&quot;],assurance=&quot;ENTITY_GATEWAY_OBSERVED&quot;,evidence_origin=&quot;DIRECT_OBSERVATION&quot;,evidence=evidence,nonce=nonce)
+        out[&quot;independently_verified&quot;]=False; out[&quot;meaning&quot;]=&quot;ENTITY gateway observed authorized access; downstream use beyond the gateway is not proven&quot;
+        return out
+    def record_counterparty_attested(self,attestor_entity_id: str,actor_entity_id: str,licence_id: str,*,asset_id: str,use_type: str,purpose: str,quantity: int=1,evidence: dict|None=None,nonce: str) -&gt; dict:
+        contract=self.contracts.get(licence_id)
+        if attestor_entity_id not in {contract[&quot;grantor_entity_id&quot;],contract[&quot;licensee_entity_id&quot;]} or attestor_entity_id==actor_entity_id: raise PermissionError(&quot;independent contract counterparty attestor required&quot;)
+        self.identity.load_manifest(attestor_entity_id)
+        scoped=self._contract_scope(actor_entity_id,licence_id,asset_id,use_type,purpose,quantity)
+        out=self._receipt(signer=attestor_entity_id,licence_id=licence_id,actor=actor_entity_id,asset_id=asset_id,use_type=scoped[&quot;right&quot;],purpose=scoped[&quot;purpose&quot;],quantity=scoped[&quot;quantity&quot;],assurance=&quot;COUNTERPARTY_ATTESTED&quot;,evidence_origin=&quot;COUNTERPARTY_ATTESTATION&quot;,evidence=dict(evidence or {}),nonce=nonce)
+        out[&quot;independently_verified&quot;]=False; out[&quot;meaning&quot;]=&quot;signed counterparty attestation; not independent environmental verification&quot;
+        return out
+    def register_environment_verifier(self,verifier_id: str,verifier_fn) -&gt; None:
+        if not str(verifier_id).strip() or not callable(verifier_fn): raise ValueError(&quot;verifier id and callable required&quot;)
+        self._environment_verifiers[str(verifier_id)]=verifier_fn
+    def record_environment_attested(self,recorder_entity_id: str,actor_entity_id: str,licence_id: str,*,asset_id: str,use_type: str,purpose: str,quantity: int=1,evidence: dict,verifier_id: str,nonce: str) -&gt; dict:
+        contract=self.contracts.get(licence_id)
+        if recorder_entity_id!=contract[&quot;grantor_entity_id&quot;]: raise PermissionError(&quot;grantor recorder required&quot;)
+        self.identity.load_manifest(recorder_entity_id)
+        verifier=self._environment_verifiers.get(str(verifier_id))
+        if verifier is None: raise PermissionError(&quot;environment verifier is not registered&quot;)
+        scoped=self._contract_scope(actor_entity_id,licence_id,asset_id,use_type,purpose,quantity); ev=dict(evidence or {})
+        if not bool(verifier(ev)): raise PermissionError(&quot;environment attestation verification failed&quot;)
+        ev[&quot;verifier_id&quot;]=str(verifier_id)
+        out=self._receipt(signer=recorder_entity_id,licence_id=licence_id,actor=actor_entity_id,asset_id=asset_id,use_type=scoped[&quot;right&quot;],purpose=scoped[&quot;purpose&quot;],quantity=scoped[&quot;quantity&quot;],assurance=&quot;ENVIRONMENT_ATTESTED&quot;,evidence_origin=&quot;EXTERNAL_AUTHORITATIVE_RECORD&quot;,evidence=ev,nonce=nonce)
+        out[&quot;independently_verified&quot;]=True; out[&quot;meaning&quot;]=&quot;registered environment verifier accepted the supplied evidence within its declared scope&quot;
+        return out
+    def get_receipt(self,receipt_id: str) -&gt; dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM receipts WHERE receipt_id=?&quot;,(receipt_id,)).fetchone()
+        if not row: raise KeyError(&quot;usage receipt not found&quot;)
+        out=dict(row); out[&quot;evidence&quot;]=json.loads(out.pop(&quot;evidence_json&quot;)); out[&quot;signature&quot;]=json.loads(out.pop(&quot;signature_json&quot;)); return out</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

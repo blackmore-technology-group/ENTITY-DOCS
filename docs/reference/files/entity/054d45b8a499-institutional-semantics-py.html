@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/35_Global_Infrastructure/institutional_semantics.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/35_Global_Infrastructure/institutional_semantics.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/35_Global_Infrastructure/institutional_semantics.py</code></p><p><b>SHA-256:</b> <code>39844e07cf7e2443613da5762e3762f94a850322ebcaa5ec8d04ecd37a63221b</code></p><p><b>Bytes:</b> 30,646</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/institutional_semantics.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-ms-382e63b00a88.html">now_ms</a></li><li><a href="../../../reference/symbols/entity/canon-1c3cc0b9b592.html">canon</a></li><li><a href="../../../reference/symbols/entity/digest-a293ffea54af.html">digest</a></li><li><a href="../../../reference/symbols/entity/rid-29f8811de921.html">rid</a></li><li><a href="../../../reference/symbols/entity/sha256-ef95910b38a6.html">_sha256</a></li><li><a href="../../../reference/symbols/entity/jurisdictionprofileregistry-b5e1d806a651.html">JurisdictionProfileRegistry</a></li><li><a href="../../../reference/symbols/entity/semanticregistry-7b19d963c119.html">SemanticRegistry</a></li><li><a href="../../../reference/symbols/entity/multistakeholdergovernance-96e26573b30c.html">MultiStakeholderGovernance</a></li><li><a href="../../../reference/symbols/entity/jurisdictionprofileregistry-init-ed636e922256.html">JurisdictionProfileRegistry.__init__</a></li><li><a href="../../../reference/symbols/entity/jurisdictionprofileregistry-validate-rules-44d29f7ad66c.html">JurisdictionProfileRegistry._validate_rules</a></li><li><a href="../../../reference/symbols/entity/jurisdictionprofileregistry-register-4c53bc2db451.html">JurisdictionProfileRegistry.register</a></li><li><a href="../../../reference/symbols/entity/jurisdictionprofileregistry-supersede-9d08e8d8da84.html">JurisdictionProfileRegistry.supersede</a></li><li><a href="../../../reference/symbols/entity/jurisdictionprofileregistry-applicable-8bf53ac0b869.html">JurisdictionProfileRegistry.applicable</a></li><li><a href="../../../reference/symbols/entity/jurisdictionprofileregistry-evaluate-646cdcbae169.html">JurisdictionProfileRegistry.evaluate</a></li><li><a href="../../../reference/symbols/entity/semanticregistry-init-b637ddd514b9.html">SemanticRegistry.__init__</a></li><li><a href="../../../reference/symbols/entity/semanticregistry-register-namespace-4a7ca47d6e59.html">SemanticRegistry.register_namespace</a></li><li><a href="../../../reference/symbols/entity/semanticregistry-register-term-fb833f31ece7.html">SemanticRegistry.register_term</a></li><li><a href="../../../reference/symbols/entity/semanticregistry-term-ref-94866ab00884.html">SemanticRegistry.term_ref</a></li><li><a href="../../../reference/symbols/entity/semanticregistry-resolve-6865c95ed84e.html">SemanticRegistry.resolve</a></li><li><a href="../../../reference/symbols/entity/semanticregistry-map-terms-81277e1cdbc5.html">SemanticRegistry.map_terms</a></li><li><a href="../../../reference/symbols/entity/semanticregistry-mappings-ca5ad971c0f3.html">SemanticRegistry.mappings</a></li><li><a href="../../../reference/symbols/entity/multistakeholdergovernance-init-05b7eca6f20e.html">MultiStakeholderGovernance.__init__</a></li><li><a href="../../../reference/symbols/entity/multistakeholdergovernance-create-body-c17d94b62942.html">MultiStakeholderGovernance.create_body</a></li><li><a href="../../../reference/symbols/entity/multistakeholdergovernance-add-member-1e59180c77d3.html">MultiStakeholderGovernance.add_member</a></li><li><a href="../../../reference/symbols/entity/multistakeholdergovernance-propose-e71a034f1d79.html">MultiStakeholderGovernance.propose</a></li><li><a href="../../../reference/symbols/entity/multistakeholdergovernance-declare-conflict-94878461fa57.html">MultiStakeholderGovernance.declare_conflict</a></li><li><a href="../../../reference/symbols/entity/multistakeholdergovernance-vote-736c8e01b1c7.html">MultiStakeholderGovernance.vote</a></li><li><a href="../../../reference/symbols/entity/multistakeholdergovernance-tally-b74328bf0aad.html">MultiStakeholderGovernance.tally</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from typing import Any
+import hashlib, json, secrets, sqlite3, time
+
+REGISTRY_KINDS = {
+    &quot;SCHEMA&quot;, &quot;RIGHT&quot;, &quot;EVENT&quot;, &quot;CAPABILITY&quot;, &quot;ASSET_CLASS&quot;,
+    &quot;TRUST_FRAMEWORK&quot;, &quot;DISPUTE_AUTHORITY&quot;, &quot;ATTESTATION_CLASS&quot;,
+}
+MAPPING_RELATIONS = {&quot;EXACT&quot;, &quot;BROADER&quot;, &quot;NARROWER&quot;, &quot;RELATED&quot;, &quot;INCOMPATIBLE&quot;}
+RULE_EFFECTS = {&quot;ALLOW&quot;, &quot;REQUIRE&quot;, &quot;PROHIBIT&quot;}
+
+def now_ms() -&gt; int:
+    return int(time.time() * 1000)
+
+def canon(value: Any) -&gt; bytes:
+    return json.dumps(value, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False, default=str).encode()
+
+def digest(value: Any) -&gt; str:
+    raw = value if isinstance(value, (bytes, bytearray)) else canon(value)
+    return hashlib.sha256(raw).hexdigest()
+
+def rid(prefix: str) -&gt; str:
+    return prefix + &quot;-&quot; + secrets.token_hex(12)
+
+def _sha256(value: str) -&gt; str:
+    value = str(value).lower()
+    if len(value) != 64 or any(c not in &quot;0123456789abcdef&quot; for c in value):
+        raise ValueError(&quot;expected lowercase SHA-256&quot;)
+    return value
+
+class JurisdictionProfileRegistry:
+    &quot;&quot;&quot;Immutable jurisdiction/domain overlays. Profiles are policy evidence, not legal truth.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_jurisdiction_profiles.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS profiles(
+                profile_id TEXT PRIMARY KEY, jurisdiction_code TEXT NOT NULL,
+                domain TEXT NOT NULL, version TEXT NOT NULL, authority_entity_id TEXT NOT NULL,
+                schema_sha256 TEXT NOT NULL, rules_json TEXT NOT NULL,
+                effective_from_ms INTEGER NOT NULL, effective_to_ms INTEGER,
+                precedence INTEGER NOT NULL, parent_profile_id TEXT,
+                status TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+                signature_json TEXT NOT NULL,
+                UNIQUE(jurisdiction_code,domain,version))&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS supersessions(
+                old_profile_id TEXT PRIMARY KEY, new_profile_id TEXT NOT NULL,
+                actor_entity_id TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+                signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+
+    @staticmethod
+    def _validate_rules(rules: list[dict]) -&gt; list[dict]:
+        out = []
+        for rule in rules:
+            effect = str(rule.get(&quot;effect&quot;) or &quot;&quot;).upper()
+            if effect not in RULE_EFFECTS:
+                raise ValueError(&quot;invalid jurisdiction rule effect&quot;)
+            actions = sorted({str(a).upper() for a in (rule.get(&quot;actions&quot;) or [])})
+            if not actions:
+                raise ValueError(&quot;jurisdiction rule actions required&quot;)
+            out.append({
+                &quot;effect&quot;: effect,
+                &quot;actions&quot;: actions,
+                &quot;conditions&quot;: dict(rule.get(&quot;conditions&quot;) or {}),
+                &quot;obligations&quot;: sorted({str(x) for x in (rule.get(&quot;obligations&quot;) or [])}),
+                &quot;authority_basis&quot;: rule.get(&quot;authority_basis&quot;),
+            })
+        return out
+
+    def register(self, authority: str, jurisdiction_code: str, domain: str, version: str,
+                 schema_sha256: str, rules: list[dict], *, effective_from_ms: int,
+                 effective_to_ms: int | None = None, precedence: int = 100,
+                 parent_profile_id: str | None = None) -&gt; dict:
+        jurisdiction_code = str(jurisdiction_code).strip().upper()
+        domain = str(domain).strip().upper()
+        version = str(version).strip()
+        if not jurisdiction_code or not domain or not version:
+            raise ValueError(&quot;jurisdiction, domain and version required&quot;)
+        schema_sha256 = _sha256(schema_sha256)
+        normalized_rules = self._validate_rules(rules)
+        start = int(effective_from_ms)
+        end = None if effective_to_ms is None else int(effective_to_ms)
+        if end is not None and end &lt;= start:
+            raise ValueError(&quot;effective_to_ms must follow effective_from_ms&quot;)
+        self.identity.load_manifest(authority)
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            if parent_profile_id and not db.execute(
+                &quot;SELECT 1 FROM profiles WHERE profile_id=?&quot;, (parent_profile_id,)
+            ).fetchone():
+                raise ValueError(&quot;parent jurisdiction profile missing&quot;)
+            old = db.execute(
+                &quot;SELECT * FROM profiles WHERE jurisdiction_code=? AND domain=? AND version=?&quot;,
+                (jurisdiction_code, domain, version),
+            ).fetchone()
+            if old:
+                expected = digest(normalized_rules)
+                if old[&quot;schema_sha256&quot;] != schema_sha256 or digest(json.loads(old[&quot;rules_json&quot;])) != expected:
+                    raise ValueError(&quot;immutable jurisdiction profile version changed&quot;)
+                return dict(old)
+        profile_id = &quot;jprof3-&quot; + digest({
+            &quot;jurisdiction&quot;: jurisdiction_code, &quot;domain&quot;: domain, &quot;version&quot;: version,
+            &quot;schema&quot;: schema_sha256, &quot;rules&quot;: normalized_rules,
+        })[:24]
+        body = {
+            &quot;schema&quot;: &quot;entity-v3-jurisdiction-profile-v1&quot;, &quot;profile_id&quot;: profile_id,
+            &quot;jurisdiction_code&quot;: jurisdiction_code, &quot;domain&quot;: domain, &quot;version&quot;: version,
+            &quot;authority_entity_id&quot;: authority, &quot;schema_sha256&quot;: schema_sha256,
+            &quot;rules&quot;: normalized_rules, &quot;effective_from_ms&quot;: start, &quot;effective_to_ms&quot;: end,
+            &quot;precedence&quot;: int(precedence), &quot;parent_profile_id&quot;: parent_profile_id,
+            &quot;status&quot;: &quot;ACTIVE&quot;, &quot;created_at_ms&quot;: now_ms(),
+            &quot;legal_effect_is_deployment_specific&quot;: True,
+        }
+        sig = self.identity.sign(authority, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO profiles VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;, (
+                profile_id, jurisdiction_code, domain, version, authority, schema_sha256,
+                json.dumps(normalized_rules, sort_keys=True), start, end, int(precedence),</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

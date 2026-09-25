@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V3ExchangeConvergenceTests.test_signed_revenue_rules_require_instrument_issuer_in_both Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>V3ExchangeConvergenceTests.test_signed_revenue_rules_require_instrument_issuer_in_both</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_exchange_convergence.py#L248">ENTITY/tests/test_v3_exchange_convergence.py#L248</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>V3ExchangeConvergenceTests.test_signed_revenue_rules_require_instrument_issuer_in_both(self)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def test_signed_revenue_rules_require_instrument_issuer_in_both(self):
+        for eep,venue,inst,prefix in (
+            (*self.make_ref_exchange(),&quot;r&quot;),
+            (*self.make_mirror_exchange(),&quot;m&quot;),
+        ):
+            body={&quot;schema&quot;:&quot;entity-eep-revenue-rule-set-v1&quot;,&quot;rule_set_id&quot;:f&quot;{prefix}-rules&quot;,&quot;instrument_id&quot;:inst[&quot;instrument_id&quot;],
+                  &quot;issuer&quot;:self.owner,&quot;allocations_bps&quot;:{self.owner:700,self.agent:300},&quot;nonce&quot;:f&quot;{prefix}-rules-nonce&quot;,
+                  &quot;created_at_ms&quot;:int(time.time()*1000)}
+            sig=self.identity.sign(self.owner,body); original=self.identity.sign
+            def guard(entity_id,payload):
+                if entity_id==self.owner: raise AssertionError(&quot;venue must not use issuer private key&quot;)
+                return original(entity_id,payload)
+            self.identity.sign=guard
+            try: result=eep.submit_signed_revenue_rules(body,sig)
+            finally: self.identity.sign=original
+            self.assertEqual(result[&quot;total_bps&quot;],1000)
+            with self.assertRaises(PermissionError):
+                eep.submit_signed_revenue_rules(dict(body,rule_set_id=f&quot;{prefix}-tamper&quot;,allocations_bps={self.owner:900,self.agent:100}),sig)
+            rogue=dict(body,rule_set_id=f&quot;{prefix}-rogue&quot;,issuer=self.buyer,nonce=f&quot;{prefix}-rogue-nonce&quot;)
+            rogue_sig=self.identity.sign(self.buyer,rogue)
+            with self.assertRaises(PermissionError): eep.submit_signed_revenue_rules(rogue,rogue_sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

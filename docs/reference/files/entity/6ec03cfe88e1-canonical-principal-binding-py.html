@@ -1,0 +1,109 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / sdk/principal_binding/canonical_principal_binding.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / sdk/principal_binding/canonical_principal_binding.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>sdk/principal_binding/canonical_principal_binding.py</code></p><p><b>SHA-256:</b> <code>51ff55451f119f73c66173413e8e24af23e63edd72d9d2e53743412b0001a6a4</code></p><p><b>Bytes:</b> 8,352</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/principal_binding/canonical_principal_binding.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-d6959fc36099.html">_load</a></li><li><a href="../../../reference/symbols/entity/canon-491e137e9060.html">_canon</a></li><li><a href="../../../reference/symbols/entity/sha-dbfc5067efec.html">_sha</a></li><li><a href="../../../reference/symbols/entity/now-9b60acc9bcac.html">_now</a></li><li><a href="../../../reference/symbols/entity/provision-bound-installation-bc04e1b9c035.html">provision_bound_installation</a></li><li><a href="../../../reference/symbols/entity/validate-bound-installation-b4e16390132b.html">validate_bound_installation</a></li><li><a href="../../../reference/symbols/entity/binding-authorizer-03ea06d6f8d3.html">binding_authorizer</a></li><li><a href="../../../reference/symbols/entity/revoke-bound-installation-a67d80378b4f.html">revoke_bound_installation</a></li><li><a href="../../../reference/symbols/entity/active-a62642503228.html">active</a></li><li><a href="../../../reference/symbols/entity/authorize-f4407a44f238.html">_authorize</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+import hashlib, importlib.util, json, time, uuid
+
+REPO=Path(__file__).resolve().parents[2]
+SRC=REPO/&quot;src&quot;
+SDK_ROOT=REPO/&quot;sdk&quot;
+
+def _load(name,path):
+    spec=importlib.util.spec_from_file_location(name,path)
+    mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+
+def _canon(v): return json.dumps(v,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),default=str).encode()
+def _sha(v): return hashlib.sha256(v if isinstance(v,(bytes,bytearray)) else _canon(v)).hexdigest()
+def _now(): return int(time.time()*1000)
+
+IDENTITY=_load(&quot;entity_principal_identity&quot;,SRC/&quot;01_Core_Runtime&quot;/&quot;identity&quot;/&quot;canonical_identity.py&quot;)
+SOVEREIGN=_load(&quot;entity_principal_sovereign&quot;,SRC/&quot;04_Entity_Registry&quot;/&quot;relationships&quot;/&quot;canonical_sovereign_authority.py&quot;)
+OPENSDK=_load(&quot;entity_principal_open_sdk&quot;,SDK_ROOT/&quot;open_entity_sdk&quot;/&quot;canonical_open_entity_sdk.py&quot;)
+
+SCHEMA=&quot;entity-principal-binding-v1&quot;
+def provision_bound_installation(state_dir:str|Path,*,principal_entity_id:str,application_entity_id:str,
+                                 device_entity_id:str,display_name:str,alias:str,metadata=None)-&gt;dict:
+    state=Path(state_dir); identity=IDENTITY.EntityIdentityVault(state)
+    for entity_id in (principal_entity_id,application_entity_id,device_entity_id): identity.load_manifest(str(entity_id))
+    name=OPENSDK.normalize_alias(alias)
+    meta=dict(metadata or {}); meta.update({&quot;binding_schema&quot;:SCHEMA,&quot;principal_entity_id&quot;:str(principal_entity_id),
+        &quot;application_entity_id&quot;:str(application_entity_id),&quot;device_entity_id&quot;:str(device_entity_id),
+        &quot;delegated_installation&quot;:True,&quot;ownership_not_inferred&quot;:True,&quot;authority_scope&quot;:&quot;DATA_PROVENANCE_CAPTURE_ONLY&quot;})
+    meta[&quot;entity_subtype&quot;]=&quot;application_installation&quot;
+    manifest=identity.create(str(display_name),&quot;application&quot;,aliases=[name],metadata=meta)
+    install_id=manifest[&quot;entity_id&quot;]; sovereign=SOVEREIGN.SovereignAuthorityRegistry(state,identity)
+    rel_device=sovereign.grant_relationship(str(device_entity_id),install_id,&quot;POSSESSION&quot;,
+        scope={&quot;installed_instance&quot;:True,&quot;device_possession_not_ownership&quot;:True},
+        evidence_origin=&quot;ENTITY_ASSERTION&quot;,evidence={&quot;binding_schema&quot;:SCHEMA})
+    rel_app=sovereign.grant_relationship(str(application_entity_id),install_id,&quot;PROCESSING_AUTHORITY&quot;,
+        scope={&quot;application_instance_of&quot;:str(application_entity_id),&quot;data_rights_not_transferred&quot;:True},
+        evidence_origin=&quot;ENTITY_ASSERTION&quot;,evidence={&quot;binding_schema&quot;:SCHEMA})
+    rel_principal=sovereign.grant_relationship(str(principal_entity_id),install_id,&quot;SOVEREIGN_AUTHORITY&quot;,
+        scope={&quot;delegated_actions&quot;:[&quot;INGEST_ASSET&quot;,&quot;RECORD_EVENT&quot;],&quot;revocable&quot;:True,
+               &quot;data_controller_defaults_to_principal&quot;:True,&quot;application_ownership_not_transferred&quot;:True},
+        evidence_origin=&quot;ENTITY_ASSERTION&quot;,evidence={&quot;binding_schema&quot;:SCHEMA})
+    descriptor=OPENSDK.address_descriptor(name,install_id)
+    pairwise_ref=identity.pairwise_id(str(principal_entity_id),f&quot;application:{application_entity_id}:installation:{install_id}&quot;)
+    body={&quot;schema&quot;:SCHEMA,&quot;binding_id&quot;:&quot;pbind1-&quot;+uuid.uuid4().hex,&quot;principal_entity_id&quot;:str(principal_entity_id),
+        &quot;principal_pairwise_ref&quot;:pairwise_ref,&quot;application_entity_id&quot;:str(application_entity_id),&quot;device_entity_id&quot;:str(device_entity_id),
+        &quot;installation_entity_id&quot;:install_id,&quot;installation_alias&quot;:name,&quot;issued_at_ms&quot;:_now(),&quot;status&quot;:&quot;ACTIVE&quot;,
+        &quot;delegated_actions&quot;:[&quot;INGEST_ASSET&quot;,&quot;RECORD_EVENT&quot;],
+        &quot;relationships&quot;:{&quot;principal&quot;:rel_principal[&quot;relationship_id&quot;],&quot;application&quot;:rel_app[&quot;relationship_id&quot;],
+                         &quot;device&quot;:rel_device[&quot;relationship_id&quot;]},&quot;address&quot;:descriptor}
+    signature=identity.sign(str(principal_entity_id),body)
+    binding=dict(body,principal_signature=signature); binding[&quot;binding_sha256&quot;]=_sha(body)
+    return binding
+
+def validate_bound_installation(state_dir:str|Path,binding:dict)-&gt;dict:
+    state=Path(state_dir); identity=IDENTITY.EntityIdentityVault(state); sovereign=SOVEREIGN.SovereignAuthorityRegistry(state,identity)
+    required=(&quot;principal_entity_id&quot;,&quot;application_entity_id&quot;,&quot;device_entity_id&quot;,&quot;installation_entity_id&quot;)
+    if binding.get(&quot;schema&quot;)!=SCHEMA or any(not binding.get(k) for k in required):
+        return {&quot;valid&quot;:False,&quot;reason&quot;:&quot;binding_schema_or_fields_invalid&quot;}
+    body={k:v for k,v in binding.items() if k not in {&quot;principal_signature&quot;,&quot;binding_sha256&quot;}}
+    if binding.get(&quot;binding_sha256&quot;)!=_sha(body): return {&quot;valid&quot;:False,&quot;reason&quot;:&quot;binding_hash_mismatch&quot;}
+    try:
+        principal=str(binding[&quot;principal_entity_id&quot;]); app=str(binding[&quot;application_entity_id&quot;])
+        device=str(binding[&quot;device_entity_id&quot;]); install=str(binding[&quot;installation_entity_id&quot;])
+        principal_manifest=identity.load_manifest(principal); install_manifest=identity.load_manifest(install)
+        identity.load_manifest(app); identity.load_manifest(device)
+    except Exception as exc: return {&quot;valid&quot;:False,&quot;reason&quot;:&quot;identity_missing_or_invalid&quot;,&quot;detail&quot;:str(exc)}
+    if not IDENTITY.EntityIdentityVault.verify_signature(principal_manifest,body,dict(binding.get(&quot;principal_signature&quot;) or {})):
+        return {&quot;valid&quot;:False,&quot;reason&quot;:&quot;principal_signature_invalid&quot;}
+    meta=dict(install_manifest.get(&quot;metadata&quot;) or {})
+    if meta.get(&quot;principal_entity_id&quot;)!=principal or meta.get(&quot;application_entity_id&quot;)!=app or meta.get(&quot;device_entity_id&quot;)!=device:
+        return {&quot;valid&quot;:False,&quot;reason&quot;:&quot;installation_manifest_binding_mismatch&quot;}
+    rels=dict(binding.get(&quot;relationships&quot;) or {})
+    def active(owner,party,rtype,rid):
+        return any(x.get(&quot;relationship_id&quot;)==rid and x.get(&quot;relationship_type&quot;)==rtype
+                   for x in sovereign.active_relationships(owner,party))
+    checks={&quot;principal&quot;:active(principal,install,&quot;SOVEREIGN_AUTHORITY&quot;,rels.get(&quot;principal&quot;)),
+            &quot;application&quot;:active(app,install,&quot;PROCESSING_AUTHORITY&quot;,rels.get(&quot;application&quot;)),
+            &quot;device&quot;:active(device,install,&quot;POSSESSION&quot;,rels.get(&quot;device&quot;))}
+    if not all(checks.values()): return {&quot;valid&quot;:False,&quot;reason&quot;:&quot;binding_relationship_inactive&quot;,&quot;checks&quot;:checks}
+    return {&quot;valid&quot;:True,&quot;schema&quot;:SCHEMA,&quot;principal_entity_id&quot;:principal,
+            &quot;principal_pairwise_ref&quot;:binding.get(&quot;principal_pairwise_ref&quot;),&quot;application_entity_id&quot;:app,
+            &quot;device_entity_id&quot;:device,&quot;installation_entity_id&quot;:install,
+            &quot;authorized_asset_controllers&quot;:[principal],&quot;authorized_rights_claimants&quot;:[],
+            &quot;delegated_actions&quot;:list(binding.get(&quot;delegated_actions&quot;) or []),&quot;checks&quot;:checks}
+def binding_authorizer(state_dir:str|Path,binding:dict):
+    def _authorize(envelope:dict,operation:str)-&gt;dict:
+        verified=validate_bound_installation(state_dir,binding)
+        if not verified.get(&quot;valid&quot;): return {&quot;allowed&quot;:False,&quot;reason&quot;:verified.get(&quot;reason&quot;,&quot;binding_invalid&quot;)}
+        if str(envelope.get(&quot;application_entity_id&quot;))!=verified[&quot;application_entity_id&quot;]:
+            return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;application_binding_mismatch&quot;}
+        if operation not in set(verified.get(&quot;delegated_actions&quot;) or []):
+            return {&quot;allowed&quot;:False,&quot;reason&quot;:&quot;operation_not_delegated&quot;}
+        return {&quot;allowed&quot;:True,&quot;principal_entity_id&quot;:verified[&quot;principal_entity_id&quot;],
+                &quot;installation_entity_id&quot;:verified[&quot;installation_entity_id&quot;],
+                &quot;device_entity_id&quot;:verified[&quot;device_entity_id&quot;],
+                &quot;authorized_asset_controllers&quot;:verified[&quot;authorized_asset_controllers&quot;],
+                &quot;authorized_rights_claimants&quot;:[]}
+    return _authorize
+
+def revoke_bound_installation(state_dir:str|Path,binding:dict,reason=&quot;principal_revocation&quot;)-&gt;dict:
+    state=Path(state_dir); identity=IDENTITY.EntityIdentityVault(state)
+    principal=str(binding.get(&quot;principal_entity_id&quot;) or &quot;&quot;); rel=(binding.get(&quot;relationships&quot;) or {}).get(&quot;principal&quot;)
+    if not principal or not rel: raise ValueError(&quot;principal binding relationship required&quot;)
+    sovereign=SOVEREIGN.SovereignAuthorityRegistry(state,identity)
+    result=sovereign.revoke_relationship(principal,str(rel),reason=reason)
+    return {&quot;schema&quot;:&quot;entity-principal-binding-revocation-v1&quot;,&quot;binding_id&quot;:binding.get(&quot;binding_id&quot;),
+            &quot;principal_entity_id&quot;:principal,&quot;installation_entity_id&quot;:binding.get(&quot;installation_entity_id&quot;),
+            &quot;status&quot;:&quot;REVOKED&quot;,&quot;relationship&quot;:result}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

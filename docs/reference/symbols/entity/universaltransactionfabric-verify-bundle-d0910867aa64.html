@@ -1,0 +1,38 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UniversalTransactionFabric.verify_bundle Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>UniversalTransactionFabric.verify_bundle</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py#L364">ENTITY/src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py#L364</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>UniversalTransactionFabric.verify_bundle(self, bundle: dict)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def verify_bundle(self,bundle:dict)-&gt;dict:
+        failures=[]; b=dict(bundle or {})
+        if b.get(&quot;schema&quot;)!=&quot;entity-v3-sovereign-bundle-v1&quot;: failures.append(&quot;schema_invalid&quot;)
+        expected=_sha({k:v for k,v in b.items() if k not in {&quot;exported_at_ms&quot;,&quot;semantic_sha256&quot;}})
+        if b.get(&quot;semantic_sha256&quot;)!=expected: failures.append(&quot;semantic_hash_invalid&quot;)
+        if set(b.get(&quot;primitives&quot;) or [])!=set(PRIMITIVES): failures.append(&quot;primitive_set_incomplete&quot;)
+        manifests={}
+        for manifest in b.get(&quot;identity_manifests&quot;) or []:
+            entity_id=str(manifest.get(&quot;entity_id&quot;) or &quot;&quot;)
+            if not self.identity.verify_manifest(manifest): failures.append(f&quot;manifest_invalid:{entity_id}&quot;)
+            elif entity_id in manifests: failures.append(f&quot;manifest_duplicate:{entity_id}&quot;)
+            else: manifests[entity_id]=manifest
+        object_ids={str(x.get(&quot;object_id&quot;)) for x in b.get(&quot;objects&quot;) or []}
+        if b.get(&quot;root_object_id&quot;) not in object_ids: failures.append(&quot;root_object_missing&quot;)
+        collections=((&quot;object&quot;,&quot;objects&quot;),(&quot;authority&quot;,&quot;authorities&quot;),(&quot;right&quot;,&quot;rights&quot;),(&quot;event&quot;,&quot;events&quot;),(&quot;provenance&quot;,&quot;provenance_edges&quot;),(&quot;value&quot;,&quot;values&quot;),(&quot;attestation&quot;,&quot;attestations&quot;),(&quot;resolution&quot;,&quot;resolution&quot;))
+        for kind,key in collections:
+            for row in b.get(key) or []:
+                try:
+                    signer,body=self._record_body(kind,row); manifest=manifests.get(signer)
+                    if manifest is None: failures.append(f&quot;manifest_missing:{signer}&quot;)
+                    elif not self.identity.verify_signature(manifest,body,row[&quot;signature&quot;]): failures.append(f&quot;signature_invalid:{kind}:{next((str(v) for k,v in row.items() if k.endswith(&#x27;_id&#x27;)), &#x27;?&#x27;)}&quot;)
+                except Exception as exc: failures.append(f&quot;record_invalid:{kind}:{type(exc).__name__}&quot;)
+        incoming={}; adjacency={oid:[] for oid in object_ids}
+        for edge in b.get(&quot;provenance_edges&quot;) or []:
+            parent=str(edge.get(&quot;parent_object_id&quot;)); child=str(edge.get(&quot;child_object_id&quot;)); weight=int(edge.get(&quot;contribution_bps&quot;) or 0)
+            if parent not in object_ids or child not in object_ids: failures.append(&quot;provenance_reference_missing&quot;)
+            incoming[child]=incoming.get(child,0)+weight; adjacency.setdefault(parent,[]).append(child)
+        if any(v&gt;10000 for v in incoming.values()): failures.append(&quot;provenance_weight_overflow&quot;)
+        visiting=set(); visited=set()
+        def visit(node):
+            if node in visiting: return False
+            if node in visited: return True
+            visiting.add(node)
+            for child in adjacency.get(node,[]):
+                if not visit(child): return False
+            visiting.remove(node); visited.add(node); return True
+        if any(not visit(oid) for oid in sorted(object_ids) if oid not in visited): failures.append(&quot;provenance_cycle&quot;)
+        return {&quot;valid&quot;:not failures,&quot;failures&quot;:failures,&quot;root_object_id&quot;:b.get(&quot;root_object_id&quot;),&quot;semantic_sha256&quot;:b.get(&quot;semantic_sha256&quot;),&quot;provider_independent&quot;:bool(b.get(&quot;provider_independent&quot;)),&quot;portable_verification_uses_embedded_manifests&quot;:True,&quot;primitive_set_complete&quot;:set(b.get(&quot;primitives&quot;) or [])==set(PRIMITIVES),&quot;verified_manifest_count&quot;:len(manifests)}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

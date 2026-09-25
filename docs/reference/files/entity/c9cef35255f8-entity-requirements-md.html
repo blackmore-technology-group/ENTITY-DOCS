@@ -1,0 +1,31 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/15_Operations/transaction_evidence/ENTITY_REQUIREMENTS.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/15_Operations/transaction_evidence/ENTITY_REQUIREMENTS.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/15_Operations/transaction_evidence/ENTITY_REQUIREMENTS.md</code></p><p><b>SHA-256:</b> <code>cf3d120c6d94db465da41f8f83d65d15387eaa3df8e924701966b919c054d23e</code></p><p><b>Bytes:</b> 2,612</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/15_Operations/transaction_evidence/ENTITY_REQUIREMENTS.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY Transaction Evidence Bundle Requirements
+Source: SERS-ENTITY-003 v2.2 — Sections 171–172
+Protocol specification: `14_Protocols_SDK/schemas/ENTITY_TRANSACTION_EVIDENCE_BUNDLE_v1.md`
+Status: Authoritative repository requirement mapping
+
+## Independent Reproducibility
+- ENTITY SHALL produce a self-contained transaction evidence bundle whose material conclusions can be reproduced without executing the originating BTG production application.
+- The transaction root SHALL deterministically commit to the complete rooted evidence object.
+- The bundle SHALL bind identity, provenance, rights, licence, usage, settlement, accounting/value, Digital Commodity contribution, corporate authorization, share issuance/cap table, capital accounting, disclosure and ledger checkpoint evidence.
+- Broken or contradictory cross-links SHALL fail closed.
+
+## Sovereign Recovery
+- ENTITY SHALL support an encrypted sovereign state package associated with the transaction bundle.
+- The public recovery manifest SHALL bind the transaction root, bundle hash and encrypted-state hash while excluding the private recovery key.
+- Live-state loss SHALL NOT prevent independent verification of the public transaction bundle and recovery package.
+- Post-restore regeneration SHALL reproduce the same transaction root for unchanged rooted evidence.
+## Evidence Boundary
+- Cryptographic validity SHALL remain distinct from legal ownership, factual truth, real-world authority and market value.
+- Possession, custody, storage or processing SHALL NOT silently establish sovereign authority, consent authority, licensing authority or economic participation.
+- Provider-confirmed external payment SHALL require cryptographically verified provider evidence when the strong external-verification path is enabled.
+- Digital Commodity economic events SHALL be signed and SHALL reference the underlying usage/licence/settlement evidence used for attribution.
+
+## Verification and Tamper Resistance
+- The standalone verifier SHALL recompute the transaction root and validate all required signatures, cross-links, accounting and capitalization invariants.
+- The standalone verifier SHALL run without importing ENTITY production runtime modules.
+- Tampering with any rooted material economic/capital evidence SHALL cause verification failure.
+- Qualification SHALL compare pre-loss, live-state-unavailable and post-restore verification results.
+
+## Publication
+- Bundle v1 schema and canonicalization rules SHALL be versioned and documented.
+- Historical v1 evidence SHALL remain interpretable under v1 rules after future protocol changes.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

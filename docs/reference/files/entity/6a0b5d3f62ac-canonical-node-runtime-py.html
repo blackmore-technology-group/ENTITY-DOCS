@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/22_Sovereign_Domain/node_runtime/canonical_node_runtime.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/22_Sovereign_Domain/node_runtime/canonical_node_runtime.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/22_Sovereign_Domain/node_runtime/canonical_node_runtime.py</code></p><p><b>SHA-256:</b> <code>d3457df8e7998080c42c9fcfb9dd0347c9570ee6987bde80f2e4484d67aa4190</code></p><p><b>Bytes:</b> 11,890</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/node_runtime/canonical_node_runtime.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/b64-636df7d7ae01.html">_b64</a></li><li><a href="../../../reference/symbols/entity/unb64-d7ecf250089b.html">_unb64</a></li><li><a href="../../../reference/symbols/entity/canon-b673fa15ce29.html">_canon</a></li><li><a href="../../../reference/symbols/entity/sha-1eb3629babd4.html">_sha</a></li><li><a href="../../../reference/symbols/entity/now-a906216f49af.html">_now</a></li><li><a href="../../../reference/symbols/entity/send-afba35cc49e4.html">_send</a></li><li><a href="../../../reference/symbols/entity/recv-e9fe952faf93.html">_recv</a></li><li><a href="../../../reference/symbols/entity/nodekeymaterial-9f60c2244743.html">NodeKeyMaterial</a></li><li><a href="../../../reference/symbols/entity/threadingtcpserver-907a8f645725.html">_ThreadingTCPServer</a></li><li><a href="../../../reference/symbols/entity/entitynoderuntime-397228eff75d.html">EntityNodeRuntime</a></li><li><a href="../../../reference/symbols/entity/entitydirectclient-fee86e7498af.html">EntityDirectClient</a></li><li><a href="../../../reference/symbols/entity/nodekeymaterial-init-d0c2863394f0.html">NodeKeyMaterial.__init__</a></li><li><a href="../../../reference/symbols/entity/nodekeymaterial-public-b64-27ae1407e23a.html">NodeKeyMaterial.public_b64</a></li><li><a href="../../../reference/symbols/entity/nodekeymaterial-sign-db06c5718594.html">NodeKeyMaterial.sign</a></li><li><a href="../../../reference/symbols/entity/entitynoderuntime-init-1270cb590c99.html">EntityNodeRuntime.__init__</a></li><li><a href="../../../reference/symbols/entity/entitynoderuntime-public-key-b64-abd153970ba9.html">EntityNodeRuntime.public_key_b64</a></li><li><a href="../../../reference/symbols/entity/entitynoderuntime-add-content-service-a1b40a4224f6.html">EntityNodeRuntime.add_content_service</a></li><li><a href="../../../reference/symbols/entity/entitynoderuntime-add-api-service-9f2de4b35198.html">EntityNodeRuntime.add_api_service</a></li><li><a href="../../../reference/symbols/entity/entitynoderuntime-derive-c52ff9dbcba1.html">EntityNodeRuntime._derive</a></li><li><a href="../../../reference/symbols/entity/entitynoderuntime-application-ace1c1483b12.html">EntityNodeRuntime._application</a></li><li><a href="../../../reference/symbols/entity/entitynoderuntime-handle-23be28d0c5f7.html">EntityNodeRuntime._handle</a></li><li><a href="../../../reference/symbols/entity/entitynoderuntime-start-e3d55357991a.html">EntityNodeRuntime.start</a></li><li><a href="../../../reference/symbols/entity/entitynoderuntime-stop-949cd6550164.html">EntityNodeRuntime.stop</a></li><li><a href="../../../reference/symbols/entity/entitynoderuntime-status-da246c6066f7.html">EntityNodeRuntime.status</a></li><li><a href="../../../reference/symbols/entity/entitydirectclient-request-9abcd59109ab.html">EntityDirectClient.request</a></li><li><a href="../../../reference/symbols/entity/entitydirectclient-derive-c45d70672047.html">EntityDirectClient._derive</a></li><li><a href="../../../reference/symbols/entity/entitynoderuntime-handler-0f9d75c9dcf0.html">EntityNodeRuntime.Handler</a></li><li><a href="../../../reference/symbols/entity/entitynoderuntime-handler-handle-493081a9a651.html">EntityNodeRuntime.Handler.handle</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+import base64, hashlib, ipaddress, json, mimetypes, os, secrets, socket, socketserver, struct, threading, time
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey,Ed25519PublicKey
+from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey,X25519PublicKey
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from cryptography.hazmat.primitives import hashes
+
+def _b64(v:bytes)-&gt;str: return base64.urlsafe_b64encode(v).decode().rstrip(&#x27;=&#x27;)
+def _unb64(v:str)-&gt;bytes: return base64.urlsafe_b64decode(str(v)+&#x27;=&#x27;*(-len(str(v))%4))
+def _canon(v)-&gt;bytes: return json.dumps(v,sort_keys=True,separators=(&#x27;,&#x27;,&#x27;:&#x27;),ensure_ascii=False).encode()
+def _sha(v)-&gt;str: return hashlib.sha256(v if isinstance(v,(bytes,bytearray)) else _canon(v)).hexdigest()
+def _now()-&gt;int: return int(time.time()*1000)
+def _send(sock,obj):
+    raw=_canon(obj); sock.sendall(struct.pack(&#x27;!I&#x27;,len(raw))+raw)
+def _recv(sock,max_size=4*1024*1024):
+    head=b&#x27;&#x27;
+    while len(head)&lt;4:
+        part=sock.recv(4-len(head))
+        if not part: raise ConnectionError(&#x27;connection closed&#x27;)
+        head+=part
+    size=struct.unpack(&#x27;!I&#x27;,head)[0]
+    if size&lt;1 or size&gt;max_size: raise ValueError(&#x27;invalid frame size&#x27;)
+    data=b&#x27;&#x27;
+    while len(data)&lt;size:
+        part=sock.recv(min(65536,size-len(data)))
+        if not part: raise ConnectionError(&#x27;connection closed&#x27;)
+        data+=part
+    return json.loads(data.decode())
+class NodeKeyMaterial:
+    def __init__(self,key_path:str|Path):
+        self.path=Path(key_path); self.path.parent.mkdir(parents=True,exist_ok=True)
+        if self.path.is_file(): self.private=Ed25519PrivateKey.from_private_bytes(self.path.read_bytes())
+        else:
+            self.private=Ed25519PrivateKey.generate()
+            raw=self.private.private_bytes(serialization.Encoding.Raw,serialization.PrivateFormat.Raw,serialization.NoEncryption())
+            self.path.write_bytes(raw)
+            try: os.chmod(self.path,0o600)
+            except OSError: pass
+    @property
+    def public_b64(self)-&gt;str:
+        return _b64(self.private.public_key().public_bytes(serialization.Encoding.Raw,serialization.PublicFormat.Raw))
+    def sign(self,body:dict)-&gt;dict:
+        return {&#x27;suite&#x27;:&#x27;Ed25519&#x27;,&#x27;signature_b64&#x27;:_b64(self.private.sign(_canon(body))),&#x27;payload_sha256&#x27;:_sha(body)}
+
+class _ThreadingTCPServer(socketserver.ThreadingTCPServer):
+    allow_reuse_address=True
+    daemon_threads=True
+    # Qualification requirement: sustain request storms without inheriting
+    # socketserver&#x27;s tiny default listen backlog (5). The OS may clamp this
+    # value, but a large explicit queue prevents avoidable connection refusal
+    # during bounded high-concurrency bursts.
+    request_queue_size=8192
+
+class EntityNodeRuntime:
+    &quot;&quot;&quot;Owner-controlled DNS-free node runtime with signed ephemeral E2E session establishment.&quot;&quot;&quot;
+    def __init__(self,node_root:str|Path,node_id:str):
+        self.root=Path(node_root).resolve(); self.root.mkdir(parents=True,exist_ok=True)
+        self.node_id=str(node_id); self.keys=NodeKeyMaterial(self.root/&#x27;node_ed25519.key&#x27;)
+        self.services={}; self._seen=set(); self._lock=threading.RLock(); self._server=None; self._thread=None
+    @property
+    def public_key_b64(self): return self.keys.public_b64
+    def add_content_service(self,service_id:str,content_root:str|Path):
+        root=Path(content_root).resolve(); root.mkdir(parents=True,exist_ok=True)
+        self.services[str(service_id)]={&#x27;type&#x27;:&#x27;CONTENT&#x27;,&#x27;root&#x27;:root}
+        return {&#x27;service_id&#x27;:str(service_id),&#x27;content_root&#x27;:str(root),&#x27;source_data_uploaded_centrally&#x27;:False}
+    def add_api_service(self,service_id:str,handler):
+        if not callable(handler): raise TypeError(&#x27;handler must be callable&#x27;)
+        self.services[str(service_id)]={&#x27;type&#x27;:&#x27;API&#x27;,&#x27;handler&#x27;:handler}; return {&#x27;service_id&#x27;:str(service_id),&#x27;type&#x27;:&#x27;API&#x27;}
+    def _derive(self,private:X25519PrivateKey,peer_public_b64:str,aad:bytes)-&gt;bytes:
+        shared=private.exchange(X25519PublicKey.from_public_bytes(_unb64(peer_public_b64)))
+        return HKDF(algorithm=hashes.SHA256(),length=32,salt=hashlib.sha256(aad).digest(),info=b&#x27;ENTITY-DIRECT-SESSION-v1&#x27;).derive(shared)
+    def _application(self,service_id:str,request:dict)-&gt;dict:
+        svc=self.services.get(str(service_id))
+        if not svc: return {&#x27;status&#x27;:404,&#x27;error&#x27;:&#x27;service_not_found&#x27;}
+        if svc[&#x27;type&#x27;]==&#x27;CONTENT&#x27;:
+            if str(request.get(&#x27;operation&#x27;) or &#x27;GET&#x27;).upper()!=&#x27;GET&#x27;: return {&#x27;status&#x27;:405,&#x27;error&#x27;:&#x27;operation_denied&#x27;}
+            rel=str(request.get(&#x27;path&#x27;) or &#x27;index.html&#x27;).lstrip(&#x27;/\\&#x27;)
+            target=(svc[&#x27;root&#x27;]/rel).resolve()
+            try: target.relative_to(svc[&#x27;root&#x27;])
+            except ValueError: return {&#x27;status&#x27;:403,&#x27;error&#x27;:&#x27;path_scope_denied&#x27;}
+            if not target.is_file(): return {&#x27;status&#x27;:404,&#x27;error&#x27;:&#x27;content_not_found&#x27;}
+            raw=target.read_bytes()
+            return {&#x27;status&#x27;:200,&#x27;content_b64&#x27;:_b64(raw),&#x27;sha256&#x27;:hashlib.sha256(raw).hexdigest(),
+                    &#x27;media_type&#x27;:mimetypes.guess_type(target.name)[0] or &#x27;application/octet-stream&#x27;,
+                    &#x27;source_path_exposed&#x27;:False,&#x27;central_upload_required&#x27;:False}
+        result=svc[&#x27;handler&#x27;](dict(request))
+        return {&#x27;status&#x27;:200,&#x27;result&#x27;:result,&#x27;central_upload_required&#x27;:False}
+
+    def _handle(self,sock):
+        hello=_recv(sock); service_id=str(hello.get(&#x27;service_id&#x27;) or &#x27;&#x27;); nonce=str(hello.get(&#x27;nonce&#x27;) or &#x27;&#x27;)
+        if hello.get(&#x27;schema&#x27;)!=&#x27;entity-direct-hello-v1&#x27; or hello.get(&#x27;node_id&#x27;)!=self.node_id or service_id not in self.services:
+            raise PermissionError(&#x27;invalid direct-session hello&#x27;)
+        if not nonce or nonce in self._seen: raise ValueError(&#x27;direct-session replay&#x27;)
+        with self._lock: self._seen.add(nonce)
+        client_pub=str(hello.get(&#x27;client_x25519_b64&#x27;) or &#x27;&#x27;); ephemeral=X25519PrivateKey.generate()
+        server_pub=_b64(ephemeral.public_key().public_bytes(serialization.Encoding.Raw,serialization.PublicFormat.Raw))
+        body={&#x27;schema&#x27;:&#x27;entity-direct-server-hello-v1&#x27;,&#x27;node_id&#x27;:self.node_id,&#x27;service_id&#x27;:service_id,
+              &#x27;client_x25519_b64&#x27;:client_pub,&#x27;server_x25519_b64&#x27;:server_pub,&#x27;nonce&#x27;:nonce,&#x27;created_at_ms&#x27;:_now()}
+        signature=self.keys.sign(body); _send(sock,{**body,&#x27;node_signature&#x27;:signature})
+        aad=_canon(body); key=self._derive(ephemeral,client_pub,aad)
+        packet=_recv(sock)
+        iv=_unb64(packet[&#x27;nonce_b64&#x27;]); plain=AESGCM(key).decrypt(iv,_unb64(packet[&#x27;ciphertext_b64&#x27;]),aad)
+        request=json.loads(plain.decode()); response=self._application(service_id,request)
+        raw=_canon(response); out_iv=os.urandom(12); cipher=AESGCM(key).encrypt(out_iv,raw,aad)
+        _send(sock,{&#x27;schema&#x27;:&#x27;entity-direct-data-v1&#x27;,&#x27;nonce_b64&#x27;:_b64(out_iv),&#x27;ciphertext_b64&#x27;:_b64(cipher)})
+
+    def start(self,host:str=&#x27;127.0.0.1&#x27;,port:int=0)-&gt;dict:
+        ipaddress.ip_address(host)
+        runtime=self
+        class Handler(socketserver.BaseRequestHandler):
+            def handle(self):
+                try: runtime._handle(self.request)
+                except Exception as exc:
+                    try: _send(self.request,{&#x27;schema&#x27;:&#x27;entity-direct-error-v1&#x27;,&#x27;error&#x27;:type(exc).__name__})
+                    except Exception: pass
+        self._server=_ThreadingTCPServer((host,int(port)),Handler)
+        self._thread=threading.Thread(target=self._server.serve_forever,daemon=True); self._thread.start()</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,159 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EvidenceRegistry Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EvidenceRegistry</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/37_Verifiable_Reality/evidence_objects.py#L39">ENTITY/src/37_Verifiable_Reality/evidence_objects.py#L39</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Immutable evidence plus typed claims. Signatures prove attribution, not objective truth.</p><h2>Source excerpt</h2><pre><code>class EvidenceRegistry:
+    &quot;&quot;&quot;Immutable evidence plus typed claims. Signatures prove attribution, not objective truth.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_3_evidence.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS evidence(
+                evidence_id TEXT PRIMARY KEY, source_entity_id TEXT NOT NULL, evidence_type TEXT NOT NULL,
+                subject_ref TEXT NOT NULL, content_sha256 TEXT NOT NULL, body_sha256 TEXT NOT NULL,
+                body_json TEXT NOT NULL, signature_json TEXT NOT NULL, created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS claims(
+                claim_id TEXT PRIMARY KEY, issuer_entity_id TEXT NOT NULL, subject_ref TEXT NOT NULL,
+                predicate TEXT NOT NULL, value_sha256 TEXT NOT NULL, state TEXT NOT NULL,
+                body_sha256 TEXT NOT NULL, body_json TEXT NOT NULL, signature_json TEXT NOT NULL,
+                created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS claim_transitions(
+                transition_id TEXT PRIMARY KEY, claim_id TEXT NOT NULL, actor_entity_id TEXT NOT NULL,
+                from_state TEXT NOT NULL, to_state TEXT NOT NULL, reason TEXT NOT NULL,
+                evidence_refs_json TEXT NOT NULL, body_sha256 TEXT NOT NULL, body_json TEXT NOT NULL,
+                signature_json TEXT NOT NULL, created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+
+    def issue_evidence(self, source_entity_id: str, evidence_type: str, subject_ref: str,
+                       content_sha256: str, *, observed_at_ms: int | None = None,
+                       provenance_refs: list[str] | None = None,
+                       confidentiality: str = &quot;RESTRICTED&quot;) -&gt; dict:
+        self.identity.load_manifest(source_entity_id)
+        evidence_type = str(evidence_type).upper()
+        if evidence_type not in EVIDENCE_TYPES:
+            raise ValueError(&quot;unsupported evidence type&quot;)
+        body = {
+            &quot;schema&quot;: &quot;entity-v3-evidence-object-v1&quot;,
+            &quot;evidence_id&quot;: rid(&quot;evidence3&quot;),
+            &quot;source_entity_id&quot;: source_entity_id,
+            &quot;evidence_type&quot;: evidence_type,
+            &quot;subject_ref&quot;: str(subject_ref),
+            &quot;content_sha256&quot;: sha256_hex(content_sha256, &quot;content_sha256&quot;),
+            &quot;observed_at_ms&quot;: int(observed_at_ms if observed_at_ms is not None else now_ms()),
+            &quot;provenance_refs&quot;: sorted({str(x) for x in (provenance_refs or [])}),
+            &quot;confidentiality&quot;: str(confidentiality).upper(),
+            &quot;signature_proves_attribution_not_objective_truth&quot;: True,
+            &quot;immutable_evidence_record&quot;: True,
+            &quot;created_at_ms&quot;: now_ms(),
+        }
+        body_sha = digest(body)
+        sig = self.identity.sign(source_entity_id, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO evidence VALUES(?,?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;evidence_id&quot;], source_entity_id, evidence_type, body[&quot;subject_ref&quot;],
+                body[&quot;content_sha256&quot;], body_sha, json.dumps(body, sort_keys=True),
+                json.dumps(sig, sort_keys=True), body[&quot;created_at_ms&quot;]))
+        return dict(body, body_sha256=body_sha, signature=sig)
+
+    def verify_evidence(self, evidence: dict) -&gt; dict:
+        try:
+            body = {k: v for k, v in evidence.items() if k not in {&quot;body_sha256&quot;, &quot;signature&quot;}}
+            if body.get(&quot;schema&quot;) != &quot;entity-v3-evidence-object-v1&quot;:
+                raise ValueError(&quot;schema&quot;)
+            if body.get(&quot;evidence_type&quot;) not in EVIDENCE_TYPES:
+                raise ValueError(&quot;evidence_type&quot;)
+            sha256_hex(body.get(&quot;content_sha256&quot;), &quot;content_sha256&quot;)
+            if body.get(&quot;signature_proves_attribution_not_objective_truth&quot;) is not True:
+                raise ValueError(&quot;truth boundary&quot;)
+            if body.get(&quot;immutable_evidence_record&quot;) is not True:
+                raise ValueError(&quot;immutability&quot;)
+            expected = digest(body)
+            if evidence.get(&quot;body_sha256&quot;) != expected:
+                raise ValueError(&quot;hash&quot;)
+            manifest = self.identity.load_manifest(body[&quot;source_entity_id&quot;])
+            if not self.identity.verify_signature(manifest, body, dict(evidence.get(&quot;signature&quot;) or {})):
+                raise ValueError(&quot;signature&quot;)
+            return {&quot;valid&quot;: True, &quot;evidence_id&quot;: body[&quot;evidence_id&quot;], &quot;body_sha256&quot;: expected,
+                    &quot;objective_truth_claimed&quot;: False}
+        except Exception as exc:
+            return {&quot;valid&quot;: False, &quot;reason&quot;: type(exc).__name__, &quot;objective_truth_claimed&quot;: False}
+
+    def issue_claim(self, issuer_entity_id: str, subject_ref: str, predicate: str, value: Any,
+                    *, state: str = &quot;ASSERTED&quot;, evidence_refs: list[str] | None = None,
+                    confidence: float | None = None) -&gt; dict:
+        self.identity.load_manifest(issuer_entity_id)
+        state = str(state).upper()
+        if state not in CLAIM_STATES:
+            raise ValueError(&quot;unsupported claim state&quot;)
+        if state in {&quot;ATTESTED&quot;, &quot;EXTERNALLY_VERIFIED&quot;, &quot;ADJUDICATED&quot;}:
+            raise ValueError(&quot;verified states require a governed transition&quot;)
+        if confidence is not None and not (0.0 &lt;= float(confidence) &lt;= 1.0):
+            raise ValueError(&quot;confidence must be between 0 and 1&quot;)
+        body = {
+            &quot;schema&quot;: &quot;entity-v3-evidence-bound-claim-v1&quot;,
+            &quot;claim_id&quot;: rid(&quot;claim3&quot;),
+            &quot;issuer_entity_id&quot;: issuer_entity_id,
+            &quot;subject_ref&quot;: str(subject_ref),
+            &quot;predicate&quot;: str(predicate),
+            &quot;value_sha256&quot;: digest(value),
+            &quot;state&quot;: state,
+            &quot;evidence_refs&quot;: sorted({str(x) for x in (evidence_refs or [])}),
+            &quot;confidence&quot;: None if confidence is None else float(confidence),
+            &quot;claim_is_not_objective_truth&quot;: True,
+            &quot;state_is_typed_not_absolute&quot;: True,
+            &quot;created_at_ms&quot;: now_ms(),
+        }
+        body_sha = digest(body)
+        sig = self.identity.sign(issuer_entity_id, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO claims VALUES(?,?,?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;claim_id&quot;], issuer_entity_id, body[&quot;subject_ref&quot;], body[&quot;predicate&quot;],
+                body[&quot;value_sha256&quot;], state, body_sha, json.dumps(body, sort_keys=True),
+                json.dumps(sig, sort_keys=True), body[&quot;created_at_ms&quot;]))
+        return dict(body, body_sha256=body_sha, signature=sig)
+
+    def get_claim(self, claim_id: str) -&gt; dict:
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            row = db.execute(&quot;SELECT * FROM claims WHERE claim_id=?&quot;, (claim_id,)).fetchone()
+        if not row:
+            raise KeyError(&quot;claim missing&quot;)
+        body = json.loads(row[&quot;body_json&quot;])
+        body[&quot;state&quot;] = row[&quot;state&quot;]
+        return dict(body, body_sha256=row[&quot;body_sha256&quot;], signature=json.loads(row[&quot;signature_json&quot;]))
+
+    def transition_claim(self, actor_entity_id: str, claim_id: str, to_state: str, reason: str,
+                         *, evidence_refs: list[str] | None = None) -&gt; dict:
+        self.identity.load_manifest(actor_entity_id)
+        claim = self.get_claim(claim_id)
+        from_state = claim[&quot;state&quot;]
+        to_state = str(to_state).upper()
+        if to_state not in CLAIM_STATES or to_state not in _ALLOWED_TRANSITIONS.get(from_state, set()):
+            raise ValueError(&quot;invalid claim-state transition&quot;)
+        if to_state in {&quot;ATTESTED&quot;, &quot;EXTERNALLY_VERIFIED&quot;, &quot;ADJUDICATED&quot;} and not evidence_refs:
+            raise ValueError(&quot;evidence required for stronger claim state&quot;)
+        body = {
+            &quot;schema&quot;: &quot;entity-v3-claim-status-transition-v1&quot;,
+            &quot;transition_id&quot;: rid(&quot;claimtx3&quot;),
+            &quot;claim_id&quot;: claim_id,
+            &quot;actor_entity_id&quot;: actor_entity_id,
+            &quot;from_state&quot;: from_state,
+            &quot;to_state&quot;: to_state,
+            &quot;reason&quot;: str(reason),
+            &quot;evidence_refs&quot;: sorted({str(x) for x in (evidence_refs or [])}),
+            &quot;history_rewrite_prohibited&quot;: True,
+            &quot;transition_does_not_establish_objective_truth&quot;: True,
+            &quot;created_at_ms&quot;: now_ms(),
+        }
+        body_sha = digest(body)
+        sig = self.identity.sign(actor_entity_id, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO claim_transitions VALUES(?,?,?,?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;transition_id&quot;], claim_id, actor_entity_id, from_state, to_state, body[&quot;reason&quot;],
+                json.dumps(body[&quot;evidence_refs&quot;]), body_sha, json.dumps(body, sort_keys=True),
+                json.dumps(sig, sort_keys=True), body[&quot;created_at_ms&quot;]))
+            db.execute(&quot;UPDATE claims SET state=? WHERE claim_id=?&quot;, (to_state, claim_id))
+        return dict(body, body_sha256=body_sha, signature=sig)
+
+    def claim_history(self, claim_id: str) -&gt; list[dict]:
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            rows = db.execute(&quot;SELECT body_json,body_sha256,signature_json FROM claim_transitions WHERE claim_id=? ORDER BY created_at_ms,transition_id&quot;, (claim_id,)).fetchall()
+        return [dict(json.loads(r[&quot;body_json&quot;]), body_sha256=r[&quot;body_sha256&quot;],
+                     signature=json.loads(r[&quot;signature_json&quot;])) for r in rows]</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

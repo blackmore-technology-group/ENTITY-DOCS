@@ -1,0 +1,31 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY-GITHUB-APP / tests/test_callback.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY-GITHUB-APP / tests/test_callback.py</h1><div class="meta"><b>Repository:</b> ENTITY-GITHUB-APP<br><b>Commit:</b> <code>7ef6b33b5d586cabd1f912491152fcff10e0ad47</code></div><p><b>Path:</b> <code>tests/test_callback.py</code></p><p><b>SHA-256:</b> <code>9cb77ff7d81ba0777cfe19c8b958ffa3a1842a80ee1a117f54ec743e433cc34a</code></p><p><b>Bytes:</b> 1,118</p><p><a href="https://github.com/blackmore-technology-group/ENTITY-GITHUB-APP/blob/7ef6b33b5d586cabd1f912491152fcff10e0ad47/tests/test_callback.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity-github-app/callbacktests-92a9e8cc0661.html">CallbackTests</a></li><li><a href="../../../reference/symbols/entity-github-app/callbacktests-test-callback-returns-200-017531f4512b.html">CallbackTests.test_callback_returns_200</a></li></ul><h2>Preview</h2><pre><code>import threading
+import unittest
+import urllib.request
+
+from entity_github_app.callback_server import CallbackHandler
+from http.server import ThreadingHTTPServer
+
+
+class CallbackTests(unittest.TestCase):
+    def test_callback_returns_200(self):
+        server = ThreadingHTTPServer((&quot;127.0.0.1&quot;, 0), CallbackHandler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            host, port = server.server_address
+            with urllib.request.urlopen(
+                f&quot;http://{host}:{port}/github/callback&quot;, timeout=3
+            ) as response:
+                body = response.read().decode(&quot;utf-8&quot;)
+                self.assertEqual(response.status, 200)
+                self.assertIn(&quot;ENTITY Evidence Bridge&quot;, body)
+                self.assertIn(&quot;No user OAuth token&quot;, body)
+                self.assertEqual(response.headers[&quot;Cache-Control&quot;], &quot;no-store&quot;)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=3)
+
+
+if __name__ == &quot;__main__&quot;:
+    unittest.main()</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

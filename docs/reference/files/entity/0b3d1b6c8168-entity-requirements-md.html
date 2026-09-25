@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/01_Core_Runtime/ENTITY_REQUIREMENTS.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/01_Core_Runtime/ENTITY_REQUIREMENTS.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/01_Core_Runtime/ENTITY_REQUIREMENTS.md</code></p><p><b>SHA-256:</b> <code>a908f8e4b6b7927d486ace4a04dd683a81cdd0db2e13d0882f808c37c4b54c02</code></p><p><b>Bytes:</b> 1,430</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/ENTITY_REQUIREMENTS.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY Core Runtime Requirements
+Source: SERS-ENTITY-003 Complete Master Engineering Design v2.2
+Status: Authoritative repository requirement mapping
+
+## Core Responsibilities
+- Implement stable sovereign identity independent of any one operational key.
+- Provide key hierarchy, rotation, revocation, recovery, succession and threshold organizational authority.
+- Provide versioned APIs for identity, sources, vault, assets, claims, policies, licensing, usage, ledger, settlement, exports, disputes, capabilities and administration.
+- Implement policy authorization for every authoritative operation.
+
+## Runtime Invariants
+- Authorization SHALL evaluate actor, role, capability, asset, action, purpose, policy, jurisdiction/configuration, approval threshold, time and counterparty.
+- Authorization failure SHALL fail closed.
+- Durable signed records SHALL include schema/version identifiers.
+- State-changing network APIs SHOULD support idempotency keys.
+- Invalid state transitions, replay and duplicate operations SHALL be rejected.
+- Ordinary asset registration SHALL not require remote consensus.
+- Core owner-controlled functions SHOULD remain available offline where feasible.
+
+## Security Boundaries
+- Secrets SHALL not enter ordinary AI context or logs.
+- No schema SHALL permanently assume a single signature or hash algorithm.
+- Existing valid signed/evidentiary records SHALL remain verifiable through migration.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

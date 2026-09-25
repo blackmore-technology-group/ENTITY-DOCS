@@ -1,0 +1,67 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>validate_signed_wire Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>validate_signed_wire</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/32_V3_Hardening/exchange_protocol.py#L26">ENTITY/src/32_V3_Hardening/exchange_protocol.py#L26</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>validate_signed_wire(body)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>def validate_signed_wire(body):
+    if type(body) is not dict:
+        raise ValueError(&#x27;signed record must be a JSON object&#x27;)
+    schema=body.get(&#x27;schema&#x27;)
+    if type(schema) is not str:
+        raise ValueError(&#x27;signed record schema must be a string&#x27;)
+    def sid(name): require_id(body.get(name),name)
+    def sint(name,minimum=0): require_int(body.get(name),name,minimum)
+    def sup(name): require_upper(body.get(name),name)
+    def sha256(name): require_sha256(body.get(name))
+    common_time=lambda: sint(&#x27;created_at_ms&#x27;,0)
+    if schema==&#x27;entity-eep-instrument-v1&#x27;:
+        for n in (&#x27;instrument_id&#x27;,&#x27;issuer&#x27;,&#x27;underlying_object_id&#x27;): sid(n)
+        sup(&#x27;instrument_class&#x27;); sup(&#x27;settlement_currency&#x27;); sup(&#x27;delivery_mode&#x27;); common_time(); sint(&#x27;total_units&#x27;,1)
+        if type(body.get(&#x27;transferable&#x27;)) is not bool: raise ValueError(&#x27;transferable must be boolean&#x27;)
+        d=body.get(&#x27;duration_ms&#x27;)
+        if d is not None: require_int(d,&#x27;duration_ms&#x27;,1)
+        if body.get(&#x27;status&#x27;)!=&#x27;ACTIVE&#x27; or body.get(&#x27;bytes_are_not_the_traded_scarcity&#x27;) is not True: raise ValueError(&#x27;invalid instrument constants&#x27;)
+        rights=body.get(&#x27;rights&#x27;)
+        if type(rights) is not dict: raise ValueError(&#x27;rights must be an object&#x27;)
+        actions=rights.get(&#x27;actions&#x27;)
+        if type(actions) is not list or not actions or any(type(a) is not str or not a or a!=a.upper() for a in actions): raise ValueError(&#x27;rights.actions must be non-empty canonical uppercase strings&#x27;)
+        if actions!=sorted(set(actions)): raise ValueError(&#x27;rights.actions must be sorted and unique&#x27;)
+    elif schema==&#x27;entity-eep-disclosure-v1&#x27;:
+        for n in (&#x27;disclosure_id&#x27;,&#x27;venue_id&#x27;,&#x27;instrument_id&#x27;,&#x27;publisher&#x27;): sid(n)
+        sup(&#x27;disclosure_type&#x27;); sha256(&#x27;content_sha256&#x27;); common_time()
+        if body.get(&#x27;protected_data_included&#x27;) is not False: raise ValueError(&#x27;protected_data_included must be false&#x27;)
+    elif schema==&#x27;entity-eep-listing-v1&#x27;:
+        for n in (&#x27;listing_id&#x27;,&#x27;venue_id&#x27;,&#x27;instrument_id&#x27;,&#x27;lister&#x27;): sid(n)
+        sint(&#x27;min_lot&#x27;,1); sint(&#x27;tick_size&#x27;,1); sha256(&#x27;disclosure_sha256&#x27;); common_time()
+        if body.get(&#x27;status&#x27;)!=&#x27;ACTIVE&#x27;: raise ValueError(&#x27;listing status must be ACTIVE&#x27;)
+    elif schema==&#x27;entity-eep-order-v1&#x27;:
+        for n in (&#x27;order_id&#x27;,&#x27;venue_id&#x27;,&#x27;instrument_id&#x27;,&#x27;participant&#x27;,&#x27;nonce&#x27;): sid(n)
+        sup(&#x27;side&#x27;); sup(&#x27;tif&#x27;); sint(&#x27;quantity&#x27;,1); sint(&#x27;limit_price&#x27;,0); common_time()
+        if body[&#x27;side&#x27;] not in {&#x27;BUY&#x27;,&#x27;SELL&#x27;} or body[&#x27;tif&#x27;] not in {&#x27;GTC&#x27;,&#x27;IOC&#x27;,&#x27;DAY&#x27;}: raise ValueError(&#x27;invalid canonical order enum&#x27;)
+    elif schema==&#x27;entity-eep-order-cancel-v1&#x27;:
+        for n in (&#x27;cancellation_id&#x27;,&#x27;order_id&#x27;,&#x27;participant&#x27;,&#x27;nonce&#x27;): sid(n)
+        common_time()
+    elif schema==&#x27;entity-eep-payment-attestation-v1&#x27;:
+        for n in (&#x27;attestation_id&#x27;,&#x27;trade_id&#x27;,&#x27;verifier_entity_id&#x27;,&#x27;settlement_ref&#x27;,&#x27;nonce&#x27;): sid(n)
+        sha256(&#x27;evidence_sha256&#x27;); common_time()
+        if body.get(&#x27;verification_is_attestation_not_absolute_truth&#x27;) is not True: raise ValueError(&#x27;payment attestation truth-boundary flag required&#x27;)
+    elif schema==&#x27;entity-eep-usage-v1&#x27;:
+        for n in (&#x27;usage_id&#x27;,&#x27;instrument_id&#x27;,&#x27;holder&#x27;,&#x27;nonce&#x27;): sid(n)
+        sup(&#x27;action&#x27;); sint(&#x27;units&#x27;,1); common_time()
+    elif schema==&#x27;entity-eep-revenue-rule-set-v1&#x27;:
+        for n in (&#x27;rule_set_id&#x27;,&#x27;instrument_id&#x27;,&#x27;issuer&#x27;,&#x27;nonce&#x27;): sid(n)
+        common_time(); allocations=body.get(&#x27;allocations_bps&#x27;)
+        if type(allocations) is not dict: raise ValueError(&#x27;allocations_bps must be an object&#x27;)
+        total=0
+        for k,v in allocations.items():
+            require_id(k,&#x27;allocation recipient&#x27;); require_int(v,f&#x27;allocation {k}&#x27;,0); total+=v
+        if total&gt;10000: raise ValueError(&#x27;revenue allocation exceeds 10000 bps&#x27;)
+    elif schema==&#x27;entity-eep-rfq-v1&#x27;:
+        for n in (&#x27;rfq_id&#x27;,&#x27;venue_id&#x27;,&#x27;instrument_id&#x27;,&#x27;requester&#x27;,&#x27;nonce&#x27;): sid(n)
+        sup(&#x27;side&#x27;); sint(&#x27;quantity&#x27;,1); sint(&#x27;expires_at_ms&#x27;,0); common_time()
+        if body[&#x27;side&#x27;] not in {&#x27;BUY&#x27;,&#x27;SELL&#x27;} or body[&#x27;expires_at_ms&#x27;]&lt;=body[&#x27;created_at_ms&#x27;]: raise ValueError(&#x27;invalid canonical RFQ&#x27;)
+    elif schema==&#x27;entity-eep-rfq-quote-v1&#x27;:
+        for n in (&#x27;quote_id&#x27;,&#x27;rfq_id&#x27;,&#x27;provider&#x27;,&#x27;nonce&#x27;): sid(n)
+        sint(&#x27;price&#x27;,0); sint(&#x27;expires_at_ms&#x27;,0); common_time()
+        if body[&#x27;expires_at_ms&#x27;]&lt;=body[&#x27;created_at_ms&#x27;]: raise ValueError(&#x27;quote expiry must follow creation&#x27;)
+    elif schema==&#x27;entity-eep-rfq-acceptance-v1&#x27;:
+        for n in (&#x27;acceptance_id&#x27;,&#x27;rfq_id&#x27;,&#x27;quote_id&#x27;,&#x27;requester&#x27;,&#x27;nonce&#x27;): sid(n)
+        common_time()
+    else:
+        raise ValueError(&#x27;unsupported signed EEP wire schema&#x27;)
+    return True</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

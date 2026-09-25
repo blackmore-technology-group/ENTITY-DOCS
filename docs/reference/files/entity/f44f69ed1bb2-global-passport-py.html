@@ -1,0 +1,82 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/38_Global_Passports/global_passport.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/38_Global_Passports/global_passport.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/38_Global_Passports/global_passport.py</code></p><p><b>SHA-256:</b> <code>78377698ed2021862757dd3f5bc8622e959c21fe43dc8085a6b83c502e047dfa</code></p><p><b>Bytes:</b> 6,971</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/38_Global_Passports/global_passport.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-ms-407178643d85.html">now_ms</a></li><li><a href="../../../reference/symbols/entity/canon-6844fd984275.html">canon</a></li><li><a href="../../../reference/symbols/entity/digest-c635d64eff55.html">digest</a></li><li><a href="../../../reference/symbols/entity/rid-fcf7d0725d40.html">rid</a></li><li><a href="../../../reference/symbols/entity/globalpassportregistry-3b8c13398f91.html">GlobalPassportRegistry</a></li><li><a href="../../../reference/symbols/entity/globalpassportregistry-init-360337343685.html">GlobalPassportRegistry.__init__</a></li><li><a href="../../../reference/symbols/entity/globalpassportregistry-issue-c28abac93cbd.html">GlobalPassportRegistry.issue</a></li><li><a href="../../../reference/symbols/entity/globalpassportregistry-get-dbfef14c950e.html">GlobalPassportRegistry.get</a></li><li><a href="../../../reference/symbols/entity/globalpassportregistry-verify-d06e6fb8df44.html">GlobalPassportRegistry.verify</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from typing import Any
+import hashlib, json, secrets, sqlite3, time
+
+CORE_PRIMITIVES=(&quot;ENTITY&quot;,&quot;AUTHORITY&quot;,&quot;RIGHT&quot;,&quot;EVENT&quot;,&quot;VALUE&quot;)
+def now_ms()-&gt;int: return int(time.time()*1000)
+def canon(v:Any)-&gt;bytes: return json.dumps(v,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False,default=str).encode()
+def digest(v:Any)-&gt;str: return hashlib.sha256(v if isinstance(v,(bytes,bytearray)) else canon(v)).hexdigest()
+def rid(prefix:str)-&gt;str: return prefix+&quot;-&quot;+secrets.token_hex(12)
+
+class GlobalPassportRegistry:
+    &quot;&quot;&quot;One passport envelope, many composable profiles. It binds existing rights/evidence rather than replacing them.&quot;&quot;&quot;
+    def __init__(self,root:str|Path,identity,fabric,rights_passports,profile_registry):
+        self.path=Path(root)/&quot;entity_v3_4_global_passports.sqlite&quot;; self.path.parent.mkdir(parents=True,exist_ok=True)
+        self.identity=identity; self.fabric=fabric; self.rights=rights_passports; self.profiles=profile_registry
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS global_passports(
+            passport_id TEXT PRIMARY KEY, object_id TEXT NOT NULL, controller_entity_id TEXT NOT NULL,
+            version TEXT NOT NULL, body_sha256 TEXT NOT NULL, body_json TEXT NOT NULL,
+            signature_json TEXT NOT NULL, created_at_ms INTEGER NOT NULL, UNIQUE(object_id,version))&quot;&quot;&quot;)
+
+    def issue(self,controller_entity_id:str,object_id:str,rights_passport_id:str,profile_refs:list[str],*,
+              version:str=&quot;1.0&quot;,evidence_refs:list[str]|None=None,provenance_refs:list[str]|None=None,
+              jurisdiction_profile_refs:list[str]|None=None,standards_mappings:list[dict]|None=None,
+              economic_state:dict|None=None,industry_context:dict|None=None)-&gt;dict:
+        self.identity.load_manifest(controller_entity_id); obj=self.fabric.get_object(object_id)
+        if obj[&quot;controller_entity_id&quot;]!=controller_entity_id: raise PermissionError(&quot;object controller required&quot;)
+        right=self.rights.get(rights_passport_id)
+        if right[&quot;object_id&quot;]!=object_id or right[&quot;controller_entity_id&quot;]!=controller_entity_id: raise ValueError(&quot;rights passport mismatch&quot;)
+        if not self.rights.verify(right)[&quot;valid&quot;]: raise ValueError(&quot;rights passport invalid&quot;)
+        stack=self.profiles.resolve_stack(profile_refs)
+        mappings=[]
+        for item in standards_mappings or []:
+            m=dict(item)
+            if m.get(&quot;normative_equivalence_claimed&quot;) is True: raise ValueError(&quot;standards mapping cannot claim normative equivalence&quot;)
+            m[&quot;normative_equivalence_claimed&quot;]=False; mappings.append(m)
+        econ=dict(economic_state or {&quot;state&quot;:&quot;POTENTIAL&quot;,&quot;amount_units&quot;:0,&quot;currency&quot;:&quot;UNSPECIFIED&quot;})
+        if int(econ.get(&quot;amount_units&quot;,0))&lt;0: raise ValueError(&quot;economic amount cannot be negative&quot;)
+        econ[&quot;market_observation_is_not_accounting_fair_value&quot;]=True
+        body={&quot;schema&quot;:&quot;entity-v3-global-passport-v1&quot;,&quot;passport_id&quot;:rid(&quot;gpassport3&quot;),&quot;object_id&quot;:object_id,
+              &quot;controller_entity_id&quot;:controller_entity_id,&quot;version&quot;:str(version),&quot;core_primitives&quot;:list(CORE_PRIMITIVES),
+              &quot;rights_passport_id&quot;:rights_passport_id,&quot;rights_passport_sha256&quot;:right[&quot;passport_sha256&quot;],
+              &quot;profile_stack&quot;:stack,&quot;evidence_refs&quot;:sorted({str(x) for x in (evidence_refs or [])}),
+              &quot;provenance_refs&quot;:sorted({str(x) for x in (provenance_refs or [])}),
+              &quot;jurisdiction_profile_refs&quot;:sorted({str(x) for x in (jurisdiction_profile_refs or [])}),
+              &quot;standards_mappings&quot;:sorted(mappings,key=lambda x:json.dumps(x,sort_keys=True)),
+              &quot;economic_state&quot;:econ,&quot;industry_context&quot;:dict(industry_context or {}),
+              &quot;one_passport_many_profiles&quot;:True,&quot;profile_composition_does_not_create_authority&quot;:True,
+              &quot;standards_mapping_is_not_normative_equivalence&quot;:True,&quot;evidence_does_not_establish_objective_truth&quot;:True,
+              &quot;legal_effect_is_deployment_specific&quot;:True,&quot;underlying_information_remains_nonrival&quot;:True,&quot;created_at_ms&quot;:now_ms()}
+        body_sha=digest(body); sig=self.identity.sign(controller_entity_id,body)
+        try:
+            with sqlite3.connect(self.path) as db:
+                db.execute(&quot;INSERT INTO global_passports VALUES(?,?,?,?,?,?,?,?)&quot;,(body[&quot;passport_id&quot;],object_id,controller_entity_id,body[&quot;version&quot;],body_sha,json.dumps(body,sort_keys=True),json.dumps(sig,sort_keys=True),body[&quot;created_at_ms&quot;]))
+        except sqlite3.IntegrityError as exc: raise ValueError(&quot;immutable global passport version already exists&quot;) from exc
+        return dict(body,body_sha256=body_sha,signature=sig)
+    def get(self,passport_id:str)-&gt;dict:
+        with sqlite3.connect(self.path) as db:
+            db.row_factory=sqlite3.Row; row=db.execute(&quot;SELECT * FROM global_passports WHERE passport_id=?&quot;,(str(passport_id),)).fetchone()
+        if not row: raise KeyError(&quot;global passport missing&quot;)
+        body=json.loads(row[&quot;body_json&quot;])
+        return dict(body,body_sha256=row[&quot;body_sha256&quot;],signature=json.loads(row[&quot;signature_json&quot;]))
+
+    def verify(self,passport:dict)-&gt;dict:
+        try:
+            body={k:v for k,v in passport.items() if k not in {&quot;body_sha256&quot;,&quot;signature&quot;}}
+            if body.get(&quot;schema&quot;)!=&quot;entity-v3-global-passport-v1&quot; or body.get(&quot;core_primitives&quot;)!=list(CORE_PRIMITIVES): raise ValueError(&quot;schema/core&quot;)
+            for flag in (&quot;one_passport_many_profiles&quot;,&quot;profile_composition_does_not_create_authority&quot;,&quot;standards_mapping_is_not_normative_equivalence&quot;,&quot;evidence_does_not_establish_objective_truth&quot;,&quot;legal_effect_is_deployment_specific&quot;,&quot;underlying_information_remains_nonrival&quot;):
+                if body.get(flag) is not True: raise ValueError(flag)
+            right=self.rights.get(body[&quot;rights_passport_id&quot;])
+            if right[&quot;passport_sha256&quot;]!=body[&quot;rights_passport_sha256&quot;] or not self.rights.verify(right)[&quot;valid&quot;]: raise ValueError(&quot;rights passport&quot;)
+            stack=self.profiles.resolve_stack(body[&quot;profile_stack&quot;][&quot;profile_refs&quot;])
+            if stack[&quot;profile_hashes&quot;]!=body[&quot;profile_stack&quot;][&quot;profile_hashes&quot;]: raise ValueError(&quot;profile stack&quot;)
+            if any(m.get(&quot;normative_equivalence_claimed&quot;) is not False for m in body.get(&quot;standards_mappings&quot;,[])): raise ValueError(&quot;standards equivalence&quot;)
+            expected=digest(body)
+            if passport.get(&quot;body_sha256&quot;)!=expected: raise ValueError(&quot;hash&quot;)
+            manifest=self.identity.load_manifest(body[&quot;controller_entity_id&quot;])
+            if not self.identity.verify_signature(manifest,body,dict(passport.get(&quot;signature&quot;) or {})): raise ValueError(&quot;signature&quot;)
+            return {&quot;valid&quot;:True,&quot;passport_id&quot;:body[&quot;passport_id&quot;],&quot;body_sha256&quot;:expected,&quot;objective_truth_claimed&quot;:False,&quot;legal_compliance_claimed&quot;:False}
+        except Exception as exc:
+            return {&quot;valid&quot;:False,&quot;reason&quot;:type(exc).__name__,&quot;objective_truth_claimed&quot;:False,&quot;legal_compliance_claimed&quot;:False}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

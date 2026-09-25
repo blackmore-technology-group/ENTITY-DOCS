@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>StatusTimeProfile Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>StatusTimeProfile</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/32_V3_Hardening/hardening_profiles.py#L142">ENTITY/src/32_V3_Hardening/hardening_profiles.py#L142</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class StatusTimeProfile:
+    STATES={&#x27;ACTIVE&#x27;,&#x27;SUSPENDED&#x27;,&#x27;REVOKED&#x27;,&#x27;COMPROMISED&#x27;,&#x27;RETIRED&#x27;}
+    POLICIES={&#x27;FAIL_CLOSED&#x27;,&#x27;READ_ONLY_GRACE&#x27;,&#x27;ALLOW_UNTIL_EXPIRY&#x27;}
+    def __init__(self,root,identity):
+        self.path=Path(root)/&#x27;entity_v3_status_time.sqlite&#x27;; self.identity=identity
+        with dbctx(self.path) as db: db.execute(&#x27;CREATE TABLE IF NOT EXISTS statuses(status_id TEXT PRIMARY KEY,subject_ref TEXT,issuer TEXT,state TEXT,epoch INTEGER,effective_at_ms INTEGER,expires_at_ms INTEGER,stale_policy TEXT,created_at_ms INTEGER,signature_json TEXT)&#x27;)
+    def timestamp(self,authority,payload_sha256,uncertainty_ms=0):
+        body={&#x27;schema&#x27;:&#x27;entity-v3-time-attestation-v1&#x27;,&#x27;authority_entity_id&#x27;:authority,&#x27;payload_sha256&#x27;:require_sha256(payload_sha256),&#x27;timestamp_ms&#x27;:now_ms(),&#x27;uncertainty_ms&#x27;:max(0,int(uncertainty_ms))}; return dict(body,signature=self.identity.sign(authority,body))
+    def publish(self,issuer,subject_ref,state,epoch,ttl_ms,stale_policy=&#x27;FAIL_CLOSED&#x27;,effective_at_ms=None):
+        state=str(state).upper(); stale_policy=str(stale_policy).upper()
+        if state not in self.STATES or stale_policy not in self.POLICIES: raise ValueError(&#x27;invalid status/policy&#x27;)
+        effective=int(effective_at_ms or now_ms()); expires=effective+max(1,int(ttl_ms))
+        with dbctx(self.path) as db:
+            latest=db.execute(&#x27;SELECT COALESCE(MAX(epoch),-1) FROM statuses WHERE subject_ref=?&#x27;,(subject_ref,)).fetchone()[0]
+            if int(epoch)&lt;=int(latest): raise ValueError(&#x27;status epoch must increase&#x27;)
+        body={&#x27;schema&#x27;:&#x27;entity-v3-status-v1&#x27;,&#x27;status_id&#x27;:rid(&#x27;status3&#x27;),&#x27;subject_ref&#x27;:subject_ref,&#x27;issuer&#x27;:issuer,&#x27;state&#x27;:state,&#x27;epoch&#x27;:int(epoch),&#x27;effective_at_ms&#x27;:effective,&#x27;expires_at_ms&#x27;:expires,&#x27;stale_policy&#x27;:stale_policy,&#x27;created_at_ms&#x27;:now_ms()}; sig=self.identity.sign(issuer,body)
+        with dbctx(self.path) as db: db.execute(&#x27;INSERT INTO statuses VALUES(?,?,?,?,?,?,?,?,?,?)&#x27;,(body[&#x27;status_id&#x27;],subject_ref,issuer,state,int(epoch),effective,expires,stale_policy,body[&#x27;created_at_ms&#x27;],json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+    def evaluate(self,subject_ref,at_ms=None):
+        at=int(at_ms or now_ms())
+        with dbctx(self.path) as db:
+            db.row_factory=sqlite3.Row; row=db.execute(&#x27;SELECT * FROM statuses WHERE subject_ref=? AND effective_at_ms&lt;=? ORDER BY epoch DESC LIMIT 1&#x27;,(subject_ref,at)).fetchone()
+        if not row: return {&#x27;subject_ref&#x27;:subject_ref,&#x27;decision&#x27;:&#x27;DENY&#x27;,&#x27;reason&#x27;:&#x27;NO_STATUS&#x27;}
+        stale=at&gt;int(row[&#x27;expires_at_ms&#x27;]); state=row[&#x27;state&#x27;]
+        decision=&#x27;DENY&#x27; if state in {&#x27;REVOKED&#x27;,&#x27;COMPROMISED&#x27;} else &#x27;DENY&#x27; if stale and row[&#x27;stale_policy&#x27;]==&#x27;FAIL_CLOSED&#x27; else &#x27;READ_ONLY&#x27; if stale and row[&#x27;stale_policy&#x27;]==&#x27;READ_ONLY_GRACE&#x27; else &#x27;ALLOW&#x27;
+        return {&#x27;subject_ref&#x27;:subject_ref,&#x27;state&#x27;:state,&#x27;epoch&#x27;:row[&#x27;epoch&#x27;],&#x27;stale&#x27;:stale,&#x27;stale_policy&#x27;:row[&#x27;stale_policy&#x27;],&#x27;decision&#x27;:decision}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

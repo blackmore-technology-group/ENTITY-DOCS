@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EconomicParticipationTests.test_secondary_sale_creates_originator_royalty Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EconomicParticipationTests.test_secondary_sale_creates_originator_royalty</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_economic_participation.py#L86">ENTITY/tests/test_v3_economic_participation.py#L86</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EconomicParticipationTests.test_secondary_sale_creates_originator_royalty(self)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def test_secondary_sale_creates_originator_royalty(self):
+        primary=self._trade(self.originator,self.buyer1,20,100,&#x27;seed-secondary&#x27;)
+        self.profile.capture_settled_eep_trade(self.exchange,primary[&#x27;trade_id&#x27;])
+        secondary=self._trade(self.buyer1,self.buyer2,5,120,&#x27;secondary&#x27;)
+        original_sign=self.identity.sign
+        def guarded_sign(entity_id,payload):
+            if entity_id==self.buyer1:
+                raise AssertionError(&#x27;secondary seller private key must not be used during royalty capture&#x27;)
+            return original_sign(entity_id,payload)
+        self.identity.sign=guarded_sign
+        try:
+            captured=self.profile.capture_settled_eep_trade(self.exchange,secondary[&#x27;trade_id&#x27;])
+        finally:
+            self.identity.sign=original_sign
+        self.assertEqual(captured[&#x27;trade_class&#x27;],&#x27;SECONDARY&#x27;)
+        self.assertEqual(captured[&#x27;gross_amount_units&#x27;],600)
+        self.assertEqual(captured[&#x27;obligation&#x27;][&#x27;amount_units&#x27;],9)
+        self.assertEqual(captured[&#x27;obligation&#x27;][&#x27;basis&#x27;],&#x27;SECONDARY_ORIGINATOR_ROYALTY&#x27;)
+        self.assertEqual(captured[&#x27;event&#x27;][&#x27;actor_entity_id&#x27;],self.originator)
+        self.assertTrue(captured[&#x27;event&#x27;][&#x27;details&#x27;][&#x27;sell_order_signature_verified&#x27;])
+        with self.assertRaises(ValueError):
+            self.profile.capture_settled_eep_trade(self.exchange,secondary[&#x27;trade_id&#x27;])</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

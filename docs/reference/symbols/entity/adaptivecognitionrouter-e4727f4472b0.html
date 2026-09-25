@@ -1,0 +1,63 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AdaptiveCognitionRouter Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>AdaptiveCognitionRouter</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/10_NIKI/cognition_router.py#L6">ENTITY/src/10_NIKI/cognition_router.py#L6</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Selects bounded reasoning stages; it never grants authority or executes actions.</p><h2>Source excerpt</h2><pre><code>class AdaptiveCognitionRouter:
+    &quot;&quot;&quot;Selects bounded reasoning stages; it never grants authority or executes actions.&quot;&quot;&quot;
+
+    VERSION = &quot;1.0&quot;
+
+    def route(self, *, analysis: dict[str, Any], evidence_count: int, conflicts: dict[str, Any] | None,
+              domain_intelligence: dict[str, Any] | None, metadata: dict[str, Any] | None,
+              causal_available: bool) -&gt; dict[str, Any]:
+        md = metadata or {}
+        conflicts = conflicts or {}
+        domain_intelligence = domain_intelligence or {}
+        intent = str((analysis or {}).get(&quot;intent&quot;) or &quot;situational_awareness&quot;)
+        risk = str(md.get(&quot;risk_level&quot;) or &quot;normal&quot;).lower()
+        uncertainty = float(md.get(&quot;uncertainty_hint&quot;, 0.0) or 0.0)
+        conflict_ratio = max(float(conflicts.get(&quot;explicit_conflict_ratio&quot;, 0.0) or 0.0),
+                             float(conflicts.get(&quot;polarity_disagreement&quot;, 0.0) or 0.0))
+        stages = [&quot;deterministic_request_analysis&quot;]
+        reasons = [&quot;request classified before optional reasoning stages&quot;]
+
+        if evidence_count &gt; 0:
+            stages.append(&quot;adam_evidence_reasoning&quot;)
+            reasons.append(&quot;ADAM evidence is available&quot;)
+        if (analysis or {}).get(&quot;requires_spatial_context&quot;):
+            stages.append(&quot;bsie_spatial_reasoning&quot;)
+            reasons.append(&quot;request requires spatial/world context&quot;)
+        if domain_intelligence.get(&quot;present&quot;):
+            stages.append(&quot;application_domain_model_reasoning&quot;)
+            reasons.append(&quot;application-owned domain signals supplied&quot;)
+
+        wants_causal = bool(md.get(&quot;causal_analysis&quot;)) or intent in {&quot;diagnosis&quot;, &quot;prediction&quot;, &quot;planning&quot;, &quot;comparison&quot;, &quot;safety&quot;}
+        if causal_available and wants_causal:
+            stages.append(&quot;causal_intervention_reasoning&quot;)
+            stages.append(&quot;counterfactual_reasoning&quot;)
+            reasons.append(&quot;qualified causal model supplied for an intervention-relevant request&quot;)
+
+        if conflict_ratio &gt;= 0.15 or uncertainty &gt;= 0.35 or risk in {&quot;high&quot;, &quot;critical&quot;}:
+            stages.append(&quot;qualified_critique&quot;)
+            reasons.append(&quot;risk, uncertainty, or evidence conflict requires extra critique&quot;)
+
+        stages.append(&quot;synthesis&quot;)
+        return {
+            &quot;schema&quot;: &quot;niki-adaptive-cognition-route-v1&quot;,
+            &quot;router_version&quot;: self.VERSION,
+            &quot;intent&quot;: intent,
+            &quot;risk_level&quot;: risk,
+            &quot;stages&quot;: stages,
+            &quot;reasons&quot;: reasons,
+            &quot;authority&quot;: &quot;NIKI_ROUTING_ONLY&quot;,
+            &quot;execution_authority&quot;: &quot;ENTITY&quot;,
+            &quot;executor&quot;: &quot;ADAM&quot;,
+            &quot;autonomous_side_effects&quot;: False,
+            &quot;model_selection_is_not_authority&quot;: True,
+        }
+
+    def status(self) -&gt; dict[str, Any]:
+        return {
+            &quot;schema&quot;: &quot;niki-adaptive-cognition-router-status-v1&quot;,
+            &quot;version&quot;: self.VERSION,
+            &quot;dynamic_stage_selection&quot;: True,
+            &quot;uses_risk_uncertainty_conflict&quot;: True,
+            &quot;autonomous_side_effects&quot;: False,
+            &quot;authority_owner&quot;: &quot;NIKI_REASONING_ONLY&quot;,
+        }</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PublicCausalNikiTests Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>PublicCausalNikiTests</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_public_causal_niki.py#L32">ENTITY/tests/test_public_causal_niki.py#L32</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class PublicCausalNikiTests(unittest.TestCase):
+    def test_intervention_and_authority_boundary(self):
+        with tempfile.TemporaryDirectory() as td:
+            engine = C.CausalIntelligenceEngine(td)
+            out = engine.analyze({
+                &quot;model&quot;: model(),
+                &quot;observed&quot;: {&quot;x&quot;: 1},
+                &quot;interventions&quot;: [{&quot;scenario_id&quot;: &quot;raise-x&quot;, &quot;set&quot;: {&quot;x&quot;: 3}}],
+                &quot;objectives&quot;: [{&quot;variable&quot;: &quot;y&quot;, &quot;direction&quot;: &quot;maximize&quot;}],
+            })
+        self.assertEqual(out[&quot;baseline&quot;][&quot;y&quot;], 2.0)
+        self.assertEqual(out[&quot;best_positive_intervention&quot;][&quot;state&quot;][&quot;y&quot;], 6.0)
+        self.assertFalse(out[&quot;authoritative_state_mutation&quot;])
+        self.assertEqual(out[&quot;execution_authority&quot;], &quot;ENTITY&quot;)
+        self.assertEqual(out[&quot;executor&quot;], &quot;ADAM&quot;)
+
+    def test_persistent_model_activation_requires_entity(self):
+        with tempfile.TemporaryDirectory() as td:
+            registry = C.CausalModelRegistry(td)
+            with self.assertRaises(PermissionError):
+                registry.register(model(), {&quot;approved&quot;: True, &quot;authority&quot;: &quot;NIKI&quot;, &quot;approval_id&quot;: &quot;bad&quot;})
+            self.assertTrue(registry.register(model(), {&quot;approved&quot;: True, &quot;authority&quot;: &quot;ENTITY&quot;, &quot;approval_id&quot;: &quot;ok&quot;})[&quot;registered&quot;])
+
+    def test_router_never_grants_execution(self):
+        route = R.AdaptiveCognitionRouter().route(
+            analysis={&quot;intent&quot;: &quot;prediction&quot;, &quot;requires_spatial_context&quot;: True},
+            evidence_count=2, conflicts={}, domain_intelligence={&quot;present&quot;: True},
+            metadata={&quot;causal_analysis&quot;: {}}, causal_available=True,
+        )
+        self.assertIn(&quot;counterfactual_reasoning&quot;, route[&quot;stages&quot;])
+        self.assertFalse(route[&quot;autonomous_side_effects&quot;])
+        self.assertEqual(route[&quot;execution_authority&quot;], &quot;ENTITY&quot;)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

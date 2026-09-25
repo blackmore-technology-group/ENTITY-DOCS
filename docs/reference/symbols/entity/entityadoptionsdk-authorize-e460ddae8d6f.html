@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EntityAdoptionSDK.authorize Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>EntityAdoptionSDK.authorize</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/36_Adoption_Layer/adoption_profile.py#L40">ENTITY/src/36_Adoption_Layer/adoption_profile.py#L40</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>EntityAdoptionSDK.authorize(self, passport: dict, action: str, *, context: dict | None=None, jurisdictions: list[str] | None=None, domain: str=&#x27;DATA&#x27;)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def authorize(self, passport: dict, action: str, *, context: dict | None = None,
+                  jurisdictions: list[str] | None = None, domain: str = &quot;DATA&quot;) -&gt; dict:
+        context = dict(context or {})
+        action = str(action).upper()
+        if self.rights_ontology is None:
+            raise RuntimeError(&quot;rights ontology not configured&quot;)
+        rights = self.rights_ontology.evaluate(list(passport.get(&quot;rights&quot;) or []), action, context)
+        jurisdiction = None
+        if jurisdictions:
+            if self.jurisdictions is None:
+                raise RuntimeError(&quot;jurisdiction registry not configured&quot;)
+            jurisdiction = self.jurisdictions.evaluate(jurisdictions, domain, action, context)
+        final = rights[&quot;decision&quot;]
+        if jurisdiction and jurisdiction[&quot;decision&quot;] == &quot;DENY&quot;:
+            final = &quot;DENY&quot;
+        elif jurisdiction and jurisdiction[&quot;decision&quot;] == &quot;CONDITIONAL&quot; and final == &quot;ALLOW&quot;:
+            final = &quot;CONDITIONAL&quot;
+        return {
+            &quot;action&quot;: action, &quot;decision&quot;: final, &quot;rights_decision&quot;: rights,
+            &quot;jurisdiction_decision&quot;: jurisdiction, &quot;deny_by_default&quot;: True,
+            &quot;sdk_does_not_create_authority&quot;: True,
+        }</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,43 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / sdk/simple_sdk/ENTITY_USER_EXPERIENCE_PROFILE_v1.json Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / sdk/simple_sdk/ENTITY_USER_EXPERIENCE_PROFILE_v1.json</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>sdk/simple_sdk/ENTITY_USER_EXPERIENCE_PROFILE_v1.json</code></p><p><b>SHA-256:</b> <code>4df31c74850998ee876e4b07c2a619ef4751a752f360d7ac646a9a04074a2fd6</code></p><p><b>Bytes:</b> 1,516</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/simple_sdk/ENTITY_USER_EXPERIENCE_PROFILE_v1.json">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>{
+  &quot;schema&quot;: &quot;entity-user-experience-profile-v1&quot;,
+  &quot;version&quot;: &quot;1.0&quot;,
+  &quot;principle&quot;: &quot;Expose human intent, not internal authority topology.&quot;,
+  &quot;user_actions&quot;: [
+    {
+      &quot;label&quot;: &quot;Sign In&quot;,
+      &quot;meaning&quot;: &quot;Select and authenticate an existing Entity/principal relationship.&quot;,
+      &quot;must_not_mean&quot;: &quot;Create provider-owned identity&quot;
+    },
+    {
+      &quot;label&quot;: &quot;Pair Device&quot;,
+      &quot;sdk_operation&quot;: &quot;pair_device&quot;,
+      &quot;meaning&quot;: &quot;Create a revocable principal-to-application-to-device binding.&quot;
+    },
+    {
+      &quot;label&quot;: &quot;Authorize&quot;,
+      &quot;meaning&quot;: &quot;Grant an explicit scoped capability; default is deny.&quot;
+    },
+    {
+      &quot;label&quot;: &quot;Created by me — verified&quot;,
+      &quot;meaning&quot;: &quot;Cryptographic provenance/controller evidence is valid.&quot;,
+      &quot;must_not_mean&quot;: &quot;Legal ownership or factual truth automatically proven&quot;
+    },
+    {
+      &quot;label&quot;: &quot;Export My Entity&quot;,
+      &quot;sdk_operation&quot;: &quot;export_entity&quot;,
+      &quot;meaning&quot;: &quot;Create a signed portable Entity export.&quot;,
+      &quot;status&quot;: &quot;AVAILABLE&quot;
+    },
+    {
+      &quot;label&quot;: &quot;Move My Entity&quot;,
+      &quot;meaning&quot;: &quot;Export, import into another provider, verify unchanged identity/controller continuity, reconnect services.&quot;,
+      &quot;status&quot;: &quot;RESERVED_UNTIL_END_TO_END_PROVIDER_MIGRATION_IS_QUALIFIED&quot;
+    },
+    {
+      &quot;label&quot;: &quot;Recover&quot;,
+      &quot;meaning&quot;: &quot;Use governed recovery authority without assigning sovereignty to the recovery provider.&quot;
+    }
+  ],
+  &quot;internal_authority_count_exposed_to_user&quot;: 0,
+  &quot;raw_key_management_required_from_normal_user&quot;: false
+}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

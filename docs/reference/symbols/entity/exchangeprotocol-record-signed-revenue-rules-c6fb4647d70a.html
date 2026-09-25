@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ExchangeProtocol._record_signed_revenue_rules Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ExchangeProtocol._record_signed_revenue_rules</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/exchange_protocol.py#L743">ENTITY/src/31_Profiles/exchange_protocol.py#L743</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>ExchangeProtocol._record_signed_revenue_rules(self, body: dict, signature: dict)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def _record_signed_revenue_rules(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;rule_set_id&quot;,&quot;instrument_id&quot;,&quot;issuer&quot;,&quot;allocations_bps&quot;,&quot;nonce&quot;,&quot;created_at_ms&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-revenue-rule-set-v1&quot;: raise ValueError(&quot;invalid signed revenue rule shape&quot;)
+        issuer=str(body[&quot;issuer&quot;]); created=int(body[&quot;created_at_ms&quot;]); allocations={str(k):int(v) for k,v in dict(body[&quot;allocations_bps&quot;]).items()}
+        total=sum(allocations.values())
+        if created&lt;0 or not str(body[&quot;rule_set_id&quot;]) or not str(body[&quot;nonce&quot;]) or total&lt;0 or total&gt;10000 or any(v&lt;0 for v in allocations.values()):
+            raise ValueError(&quot;invalid revenue allocation&quot;)
+        canonical=dict(body,allocations_bps=dict(sorted(allocations.items())))
+        manifest=self.identity.load_manifest(issuer)
+        if not self.identity.verify_signature(manifest,canonical,signature): raise PermissionError(&quot;revenue rule signature invalid&quot;)
+        received=now_ms()
+        try:
+            with self._db() as db:
+                inst=db.execute(&quot;SELECT * FROM instruments WHERE instrument_id=?&quot;,(body[&quot;instrument_id&quot;],)).fetchone()
+                if not inst or inst[&quot;issuer&quot;]!=issuer: raise PermissionError(&quot;instrument issuer required&quot;)
+                db.execute(&quot;INSERT INTO revenue_rule_sets VALUES(?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;rule_set_id&quot;],body[&quot;instrument_id&quot;],issuer,json.dumps(dict(sorted(allocations.items())),sort_keys=True),str(body[&quot;nonce&quot;]),created,received,json.dumps(signature,sort_keys=True)))
+                db.execute(&quot;DELETE FROM revenue_rules WHERE instrument_id=?&quot;,(body[&quot;instrument_id&quot;],))
+                for recipient,bps in sorted(allocations.items()):
+                    db.execute(&quot;INSERT INTO revenue_rules VALUES(?,?,?)&quot;,(body[&quot;instrument_id&quot;],recipient,bps))
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&quot;duplicate/replayed revenue rule set&quot;) from exc
+        return dict(canonical,total_bps=total,unallocated_bps=10000-total,received_at_ms=received,signature=signature)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

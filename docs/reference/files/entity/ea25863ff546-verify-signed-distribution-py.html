@@ -1,0 +1,60 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / protocol/verify_signed_distribution.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / protocol/verify_signed_distribution.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>protocol/verify_signed_distribution.py</code></p><p><b>SHA-256:</b> <code>5ed4712fbc0e013ae0e37fe27c6d1382aa30d449953168815999dcaa942df63a</code></p><p><b>Bytes:</b> 3,663</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/protocol/verify_signed_distribution.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/canon-dc54ef4398a0.html">canon</a></li><li><a href="../../../reference/symbols/entity/unb64-053a71573748.html">unb64</a></li><li><a href="../../../reference/symbols/entity/sha-fe4ef7a15209.html">sha</a></li><li><a href="../../../reference/symbols/entity/verify-entity-manifest-26d0e902c9fd.html">verify_entity_manifest</a></li><li><a href="../../../reference/symbols/entity/verify-signature-37250aa87887.html">verify_signature</a></li><li><a href="../../../reference/symbols/entity/verify-distribution-1e35896ceafd.html">verify_distribution</a></li><li><a href="../../../reference/symbols/entity/main-7055d688cb72.html">main</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+import base64, hashlib, json, sys
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
+def canon(value):
+    return json.dumps(value,sort_keys=True,separators=(&quot;,&quot;,&quot;:&quot;),ensure_ascii=False).encode(&quot;utf-8&quot;)
+def unb64(value):
+    s=str(value); return base64.urlsafe_b64decode(s+&quot;=&quot;*((4-len(s)%4)%4))
+def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+def verify_entity_manifest(manifest):
+    if manifest.get(&quot;schema&quot;)!=&quot;sovereign-entity-manifest-v2&quot;: return False
+    data=dict(manifest); sig=dict(data.pop(&quot;signature&quot;,{})); key_id=str(sig.get(&quot;key_id&quot;) or &quot;&quot;)
+    method=next((x for x in data.get(&quot;verification_methods&quot;,[]) if x.get(&quot;key_id&quot;)==key_id),None)
+    if not method or method.get(&quot;suite&quot;)!=sig.get(&quot;suite&quot;) or method.get(&quot;status&quot;)!=&quot;active&quot;: return False
+    try:
+        Ed25519PublicKey.from_public_bytes(unb64(method[&quot;public_key&quot;])).verify(unb64(sig[&quot;signature&quot;]),canon(data))
+        return True
+    except Exception: return False
+
+def verify_signature(manifest,payload,record):
+    if not verify_entity_manifest(manifest): return False
+    if record.get(&quot;entity_id&quot;)!=manifest.get(&quot;entity_id&quot;): return False
+    payload_hash=hashlib.sha256(canon(payload)).hexdigest()
+    if record.get(&quot;payload_sha256&quot;)!=payload_hash: return False
+    method=next((x for x in manifest.get(&quot;verification_methods&quot;,[]) if x.get(&quot;key_id&quot;)==record.get(&quot;key_id&quot;)),None)
+    if not method or method.get(&quot;suite&quot;)!=record.get(&quot;suite&quot;): return False
+    signed={&quot;signature_schema&quot;:record.get(&quot;signature_schema&quot;),&quot;entity_id&quot;:record.get(&quot;entity_id&quot;),
+            &quot;key_id&quot;:record.get(&quot;key_id&quot;),&quot;suite&quot;:record.get(&quot;suite&quot;),
+            &quot;signed_at_ms&quot;:record.get(&quot;signed_at_ms&quot;),&quot;payload_sha256&quot;:payload_hash}
+    try:
+        Ed25519PublicKey.from_public_bytes(unb64(method[&quot;public_key&quot;])).verify(unb64(record[&quot;signature&quot;]),canon(signed))
+        return True
+    except Exception: return False
+
+def verify_distribution(root):
+    root=Path(root).resolve(); mp=root/&quot;SIGNED_RELEASE_MANIFEST.json&quot;; tp=root/&quot;ENTITY_RELEASE_SIGNER_PUBLIC.json&quot;
+    if not mp.is_file() or not tp.is_file(): return {&quot;valid&quot;:False,&quot;reason&quot;:&quot;required_manifest_missing&quot;}
+    release=json.loads(mp.read_text(encoding=&quot;utf-8&quot;)); trust=json.loads(tp.read_text(encoding=&quot;utf-8&quot;))
+    signature=dict(release.get(&quot;signature&quot;) or {}); payload={k:v for k,v in release.items() if k!=&quot;signature&quot;}
+    checks={&quot;trust_manifest_valid&quot;:verify_entity_manifest(trust),
+            &quot;release_signature_valid&quot;:verify_signature(trust,payload,signature),
+            &quot;signer_matches&quot;:release.get(&quot;release_signer_entity_id&quot;)==trust.get(&quot;entity_id&quot;)}
+    failures=[]
+    for item in release.get(&quot;artifacts&quot;) or []:
+        rel=str(item.get(&quot;path&quot;) or &quot;&quot;); p=(root/rel).resolve()
+        try: p.relative_to(root)
+        except ValueError: failures.append({&quot;path&quot;:rel,&quot;reason&quot;:&quot;path_escape&quot;}); continue
+        if not p.is_file(): failures.append({&quot;path&quot;:rel,&quot;reason&quot;:&quot;missing&quot;}); continue
+        if sha(p)!=item.get(&quot;sha256&quot;): failures.append({&quot;path&quot;:rel,&quot;reason&quot;:&quot;sha256_mismatch&quot;})
+    checks[&quot;artifact_hashes_valid&quot;]=not failures
+    return {&quot;valid&quot;:all(checks.values()),&quot;checks&quot;:checks,&quot;artifact_failures&quot;:failures,
+            &quot;release_id&quot;:release.get(&quot;release_id&quot;),&quot;release_status&quot;:release.get(&quot;status&quot;),
+            &quot;signer_entity_id&quot;:trust.get(&quot;entity_id&quot;)}
+
+def main():
+    target=Path(sys.argv[1] if len(sys.argv)&gt;1 else &quot;.&quot;)
+    result=verify_distribution(target); print(json.dumps(result,indent=2,sort_keys=True)); return 0 if result[&quot;valid&quot;] else 2
+if __name__==&quot;__main__&quot;: raise SystemExit(main())</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

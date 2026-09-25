@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PortableStateManager.export_entity Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>PortableStateManager.export_entity</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/15_Operations/backups/canonical_portable_state.py#L117">ENTITY/src/15_Operations/backups/canonical_portable_state.py#L117</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>PortableStateManager.export_entity(self, entity_id: str, destination: str | Path)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def export_entity(self,entity_id:str,destination:str|Path)-&gt;dict:
+        entity_id=self.resolve_entity_ref(entity_id)
+        dest=Path(destination).resolve(); dest.mkdir(parents=True,exist_ok=True)
+        manifest=self.identity.load_manifest(entity_id)
+        (dest/&quot;identity_manifest.json&quot;).write_text(json.dumps(manifest,indent=2,sort_keys=True),encoding=&quot;utf-8&quot;)
+        db_paths=[p for p in sorted(self.state.rglob(&quot;*.sqlite&quot;)) if &quot;portability&quot; not in {part.lower() for part in p.parts}]
+        selected_by_db={}; seen_by_db={}; tokens={entity_id}; closure_passes=0
+        for pass_index in range(6):
+            snapshot=set(tokens); discovered=set()
+            for db_path in db_paths:
+                rel=&quot;__&quot;.join(db_path.relative_to(self.state).parts)+&quot;.json&quot;
+                scan,new_ids=self._sqlite_scan(db_path,snapshot); discovered |= new_ids
+                bucket=selected_by_db.setdefault(rel,{}); seen=seen_by_db.setdefault(rel,{})
+                for table,rows in scan[&quot;tables&quot;].items():
+                    target=bucket.setdefault(table,[]); table_seen=seen.setdefault(table,set())
+                    for row in rows:
+                        encoded=json.dumps(row,sort_keys=True,default=str,separators=(&quot;,&quot;,&quot;:&quot;))
+                        if encoded not in table_seen:
+                            target.append(row); table_seen.add(encoded)
+            tokens |= discovered; closure_passes=pass_index+1
+            if tokens==snapshot: break
+        exported=[]
+        for db_path in db_paths:
+            rel=&quot;__&quot;.join(db_path.relative_to(self.state).parts)+&quot;.json&quot;
+            tables=selected_by_db.get(rel,{})
+            identifiers={entity_id} | self._collect_ids(tables)
+            data={&quot;database&quot;:db_path.name,&quot;scope&quot;:&quot;ENTITY_ONLY&quot;,&quot;scope_policy&quot;:&quot;TARGET_ENTITY_AND_NON_ENTITY_OBJECT_CLOSURE&quot;,&quot;foreign_entity_traversal&quot;:False,&quot;selected_object_identifiers&quot;:len(identifiers),&quot;tables&quot;:tables}
+            out=dest/rel
+            out.write_text(json.dumps(data,indent=2,sort_keys=True,default=str),encoding=&quot;utf-8&quot;)
+            exported.append(out)
+        files=[dest/&quot;identity_manifest.json&quot;,*exported]
+        evidence={&quot;schema&quot;:&quot;entity-portable-export-v1&quot;,&quot;entity_id&quot;:entity_id,&quot;created_at_ms&quot;:_now(),&quot;scope&quot;:&quot;ENTITY_ONLY&quot;,&quot;scope_policy&quot;:&quot;TARGET_ENTITY_AND_NON_ENTITY_OBJECT_CLOSURE&quot;,&quot;foreign_entity_traversal&quot;:False,&quot;cross_database_object_closure&quot;:True,&quot;closure_passes&quot;:closure_passes,&quot;formats&quot;:[&quot;JSON&quot;],&quot;files&quot;:[{&quot;name&quot;:p.name,&quot;sha256&quot;:_sha(p),&quot;bytes&quot;:p.stat().st_size} for p in files],&quot;private_keys_included&quot;:False,&quot;raw_vault_content_included&quot;:False,&quot;local_paths_redacted&quot;:True,&quot;global_interleaved_ledger_chain_included&quot;:False,&quot;independent_subset_proof_target&quot;:&quot;MERKLE_WITNESS_PHASE&quot;}
+        evidence[&quot;signature&quot;]=self.identity.sign(entity_id,{k:v for k,v in evidence.items() if k!=&quot;signature&quot;})
+        (dest/&quot;EXPORT_MANIFEST.json&quot;).write_text(json.dumps(evidence,indent=2,sort_keys=True),encoding=&quot;utf-8&quot;)
+        return evidence</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

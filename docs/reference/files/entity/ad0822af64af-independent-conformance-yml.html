@@ -1,0 +1,67 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / .github/ISSUE_TEMPLATE/independent-conformance.yml Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / .github/ISSUE_TEMPLATE/independent-conformance.yml</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>.github/ISSUE_TEMPLATE/independent-conformance.yml</code></p><p><b>SHA-256:</b> <code>38e95b1a881c3f33e164a777eaa6db168d5a7bfb6b9028dbacae107221cc48a0</code></p><p><b>Bytes:</b> 2,304</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/.github/ISSUE_TEMPLATE/independent-conformance.yml">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>name: Independent implementation / conformance result
+about: Share an independently authored implementation, partial result, or clean-room conformance finding.
+title: &quot;[INTEROP] &quot;
+labels:
+  - interoperability
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Independent attempts are useful whether they pass, fail, or expose ambiguity. BTG will not rewrite a contributor&#x27;s evidence into a stronger claim than it supports.
+  - type: input
+    id: repository
+    attributes:
+      label: Independent repository
+      description: Link the repository controlled by the independent implementer or organization.
+      placeholder: https://github.com/...
+    validations:
+      required: true
+  - type: input
+    id: target
+    attributes:
+      label: Exact ENTITY target
+      description: Release/tag/commit and sealed kit or specification used.
+      placeholder: v3.3.0 / exact clean-room material
+    validations:
+      required: true
+  - type: input
+    id: language
+    attributes:
+      label: Language / runtime
+      placeholder: Rust 1.xx, Go 1.xx, .NET 9, JVM 25, etc.
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Current stage
+      options:
+        - Reproduction / kit verification
+        - Partial semantic implementation
+        - Vector campaign complete
+        - Live interoperability attempted
+        - Sovereign export / recovery attempted
+        - Full independent qualification evidence available
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Results
+      description: Include pass/fail counts, hashes, CI links, unexpected behavior and unresolved questions.
+    validations:
+      required: true
+  - type: textarea
+    id: cleanroom
+    attributes:
+      label: Clean-room boundary
+      description: Briefly describe what public material was used and how BTG implementation code was excluded where independence is claimed.
+    validations:
+      required: true
+  - type: checkboxes
+    id: claim
+    attributes:
+      label: Claim boundary
+      options:
+        - label: I understand that partial conformance is welcome and will not be represented as full independent interoperability unless every required stage is evidenced.
+          required: true</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

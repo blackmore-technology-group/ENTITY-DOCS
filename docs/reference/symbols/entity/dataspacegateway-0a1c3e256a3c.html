@@ -1,0 +1,43 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DataSpaceGateway Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>DataSpaceGateway</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/service_runtime/canonical_data_economy.py#L53">ENTITY/src/01_Core_Runtime/service_runtime/canonical_data_economy.py#L53</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Metered compute-to-data authority; raw-file transfer is not implied by access.</p><h2>Source excerpt</h2><pre><code>class DataSpaceGateway:
+    &quot;&quot;&quot;Metered compute-to-data authority; raw-file transfer is not implied by access.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path,identity):
+        self.root=Path(state_dir)/&quot;data_economy&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;data_spaces.sqlite&quot;; self.identity=identity; self._init_db()
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS spaces(space_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,assets_json TEXT NOT NULL,operations_json TEXT NOT NULL,status TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS sessions(session_id TEXT PRIMARY KEY,space_id TEXT NOT NULL,counterparty_entity_id TEXT NOT NULL,operation TEXT NOT NULL,nonce TEXT UNIQUE NOT NULL,status TEXT NOT NULL,quantity INTEGER NOT NULL,created_at_ms INTEGER NOT NULL,consumed_at_ms INTEGER)&quot;)
+    def create_space(self,controller_entity_id:str,assets:list[str],operations:list[str])-&gt;dict:
+        aid=sorted({str(x) for x in assets if str(x)}); ops=sorted({str(x).upper() for x in operations if str(x)})
+        if not aid or not ops: raise ValueError(&quot;assets and operations required&quot;)
+        sid=_id(&quot;space1&quot;); now=_now()
+        with self._connect() as db: db.execute(&quot;INSERT INTO spaces VALUES(?,?,?,?,?,?)&quot;,(sid,controller_entity_id,json.dumps(aid),json.dumps(ops),&quot;ACTIVE&quot;,now))
+        return {&quot;space_id&quot;:sid,&quot;controller_entity_id&quot;:controller_entity_id,&quot;assets&quot;:aid,&quot;operations&quot;:ops,&quot;raw_file_transfer_authorized&quot;:False}
+    def issue_session(self,controller_entity_id:str,space_id:str,counterparty_entity_id:str,operation:str,*,quantity:int=1,nonce:str)-&gt;dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM spaces WHERE space_id=?&quot;,(space_id,)).fetchone()
+        if not row or row[&quot;status&quot;]!=&quot;ACTIVE&quot;: raise KeyError(&quot;active data space not found&quot;)
+        if row[&quot;controller_entity_id&quot;]!=controller_entity_id: raise PermissionError(&quot;data space controller mismatch&quot;)
+        op=str(operation).upper()
+        if op not in set(json.loads(row[&quot;operations_json&quot;])): raise PermissionError(&quot;operation outside data-space scope&quot;)
+        session=_id(&quot;dss1&quot;); now=_now()
+        with self._connect() as db:
+            try: db.execute(&quot;INSERT INTO sessions VALUES(?,?,?,?,?,?,?,?,?)&quot;,(session,space_id,counterparty_entity_id,op,str(nonce),&quot;ISSUED&quot;,max(1,int(quantity)),now,None))
+            except sqlite3.IntegrityError as exc: raise ValueError(&quot;duplicate/replayed data-space nonce&quot;) from exc
+        return {&quot;session_id&quot;:session,&quot;space_id&quot;:space_id,&quot;counterparty_entity_id&quot;:counterparty_entity_id,&quot;operation&quot;:op,&quot;status&quot;:&quot;ISSUED&quot;,&quot;raw_file_transfer_authorized&quot;:False}
+    def consume(self,counterparty_entity_id:str,session_id:str)-&gt;dict:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM sessions WHERE session_id=?&quot;,(session_id,)).fetchone()
+        if not row: raise KeyError(&quot;data-space session not found&quot;)
+        if row[&quot;counterparty_entity_id&quot;]!=counterparty_entity_id: raise PermissionError(&quot;data-space counterparty mismatch&quot;)
+        if row[&quot;status&quot;]!=&quot;ISSUED&quot;: raise PermissionError(&quot;data-space session already consumed&quot;)
+        now=_now()
+        with self._connect() as db: db.execute(&quot;UPDATE sessions SET status=&#x27;CONSUMED&#x27;,consumed_at_ms=? WHERE session_id=?&quot;,(now,session_id))
+        return {&quot;session_id&quot;:session_id,&quot;status&quot;:&quot;CONSUMED&quot;,&quot;metered_quantity&quot;:int(row[&quot;quantity&quot;]),&quot;raw_file_transfer_observed&quot;:False,&quot;consumed_at_ms&quot;:now}
+    def status(self)-&gt;dict:
+        with self._connect() as db: spaces=int(db.execute(&quot;SELECT COUNT(*) FROM spaces&quot;).fetchone()[0]); sessions=int(db.execute(&quot;SELECT COUNT(*) FROM sessions&quot;).fetchone()[0])
+        return {&quot;ready&quot;:True,&quot;spaces&quot;:spaces,&quot;sessions&quot;:sessions,&quot;compute_to_data&quot;:True,&quot;raw_transfer_not_implied&quot;:True,&quot;replay_protected&quot;:True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

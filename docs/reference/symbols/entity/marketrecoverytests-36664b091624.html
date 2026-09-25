@@ -1,0 +1,283 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MarketRecoveryTests Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>MarketRecoveryTests</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_market_recovery.py#L28">ENTITY/tests/test_v3_market_recovery.py#L28</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class MarketRecoveryTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = pathlib.Path(self.tmp.name)
+        self.identity = identity_mod.EntityIdentityVault(self.root)
+        self.originator = self.identity.create(&quot;Originator&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        self.treasury_entity = self.identity.create(&quot;Treasury&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        self.buyer = self.identity.create(&quot;Buyer&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        self.verifier = self.identity.create(&quot;Verifier&quot;, &quot;system&quot;)[&quot;entity_id&quot;]
+        self.fabric = fabric_mod.UniversalTransactionFabric(self.root, self.identity)
+        self.exchange = eep_mod.ExchangeProtocol(self.root, self.identity, self.fabric)
+        self.econ = econ_mod.EconomicParticipationProfile(self.root, self.identity)
+        self.asset = self.fabric.register_digital_commodity(
+            self.originator, &quot;Recovery Corpus&quot;, hashlib.sha256(b&quot;recovery-corpus&quot;).hexdigest()
+        )
+        self.instrument = self.exchange.define_instrument(
+            self.originator, self.asset[&quot;object_id&quot;], &quot;SPOT_LICENSE&quot;,
+            {&quot;actions&quot;: [&quot;DERIVE&quot;, &quot;TRAIN&quot;], &quot;raw_redistribution&quot;: False},
+            1000, &quot;CAD&quot;, transferable=True, duration_ms=86_400_000,
+        )
+        self.treasury = self.econ.create_treasury(
+            self.originator, self.treasury_entity, &quot;Treasury&quot;, &quot;CA&quot;,
+            hashlib.sha256(b&quot;treasury-policy&quot;).hexdigest(),
+        )
+        self.econ.authorize_settlement_verifier(
+            self.treasury[&quot;treasury_id&quot;], self.originator, self.verifier
+        )
+        self.policy = self.econ.define_participation(
+            self.originator, self.treasury[&quot;treasury_id&quot;], self.instrument[&quot;instrument_id&quot;],
+            1000, 200, &quot;CAD&quot;, primary_treasury_bps=2500,
+            secondary_royalty_bps=150, derivative_participation_bps=100,
+            terms={&quot;raw_redistribution&quot;: &quot;PROHIBITED&quot;},
+        )
+        self.econ.allocate_eep_reserve(self.exchange, self.policy[&quot;policy_id&quot;])
+        self.venue = self.exchange.create_venue(
+            self.originator, &quot;Recovery Venue&quot;, &quot;CA&quot;, [&quot;ORDER_BOOK&quot;, &quot;RFQ&quot;],
+            hashlib.sha256(b&quot;venue-policy&quot;).hexdigest(),
+        )
+        disclosure = hashlib.sha256(b&quot;market-disclosure&quot;).hexdigest()
+        self.exchange.publish_disclosure(
+            self.venue[&quot;venue_id&quot;], self.instrument[&quot;instrument_id&quot;],
+            self.originator, &quot;OFFERING&quot;, disclosure,
+        )
+        self.exchange.list_instrument(
+            self.venue[&quot;venue_id&quot;], self.instrument[&quot;instrument_id&quot;], self.originator,
+            1, 1, disclosure,
+        )
+        self.exchange.set_revenue_rules(
+            self.instrument[&quot;instrument_id&quot;], self.originator,
+            {self.originator: 150, self.treasury_entity: 50}, nonce=&quot;recovery-rules&quot;,
+        )
+        sell = self.exchange.submit_order(
+            self.venue[&quot;venue_id&quot;], self.instrument[&quot;instrument_id&quot;], self.originator,
+            &quot;SELL&quot;, 10, 100, &quot;recovery-sell&quot;,
+        )
+        buy = self.exchange.submit_order(
+            self.venue[&quot;venue_id&quot;], self.instrument[&quot;instrument_id&quot;], self.buyer,
+            &quot;BUY&quot;, 10, 100, &quot;recovery-buy&quot;,
+        )
+        self.assertEqual(sell[&quot;status&quot;], &quot;OPEN&quot;)
+        self.assertEqual(buy[&quot;status&quot;], &quot;OPEN&quot;)
+        trade = self.exchange.match_order_book(
+            self.venue[&quot;venue_id&quot;], self.instrument[&quot;instrument_id&quot;]
+        )[0]
+        payment_ref = &quot;bank:recovery-1&quot;
+        attestation = self.exchange.attest_payment(
+            trade[&quot;trade_id&quot;], self.buyer, payment_ref,
+            hashlib.sha256(b&quot;bank-evidence&quot;).hexdigest(), nonce=&quot;recovery-payment-attestation&quot;,
+        )
+        self.exchange.settle_trade(
+            trade[&quot;trade_id&quot;], payment_ref,
+            external_verified=True, payment_attestation_id=attestation[&quot;attestation_id&quot;],
+        )
+        self.trade_id = trade[&quot;trade_id&quot;]
+        captured = self.econ.capture_settled_eep_trade(self.exchange, self.trade_id)
+        self.obligation_id = captured[&quot;obligation&quot;][&quot;obligation_id&quot;]
+        self.econ.settle_obligation(
+            self.obligation_id, self.verifier, &quot;treasury-bank:1&quot;, external_verified=True,
+            evidence_sha256=hashlib.sha256(b&quot;treasury-bank-evidence&quot;).hexdigest(),
+        )
+        self.econ.record_service_revenue(
+            self.treasury[&quot;treasury_id&quot;], self.buyer, &quot;MARKET_DATA&quot;, 300, &quot;CAD&quot;,
+            &quot;invoice:market-data-recovery&quot;,
+        )
+        self.exchange.meter_usage(
+            self.instrument[&quot;instrument_id&quot;], self.buyer, &quot;TRAIN&quot;, 2, &quot;recovery-usage&quot;
+        )
+        self.econ.seal_snapshot(
+            self.treasury[&quot;treasury_id&quot;], self.originator, self.exchange
+        )
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _export(self):
+        core = self.fabric.export_bundle(self.asset[&quot;object_id&quot;])
+        return recovery_mod.MarketStateRecovery.export(
+            self.exchange.path, self.econ.path, self.identity, core_bundles=[core]
+        )
+
+    def test_bundle_verifies_without_source_private_keys(self):
+        bundle = self._export()
+        result = recovery_mod.MarketStateRecovery.verify(
+            bundle,
+            verify_manifest=identity_mod.EntityIdentityVault.verify_manifest,
+            verify_signature=identity_mod.EntityIdentityVault.verify_signature,
+            verify_core_bundle=self.fabric.verify_bundle,
+        )
+        self.assertTrue(result[&quot;valid&quot;], result[&quot;failures&quot;])
+        self.assertTrue(result[&quot;logical_state_not_database_bytes&quot;])
+        self.assertGreater(result[&quot;embedded_manifest_count&quot;], 0)
+        self.assertEqual(
+            result[&quot;exchange_state_sha256&quot;], bundle[&quot;exchange&quot;][&quot;state_sha256&quot;]
+        )
+
+    def test_tampered_market_state_fails_closed(self):
+        bundle = self._export()
+        tampered = copy.deepcopy(bundle)
+        rows = tampered[&quot;exchange&quot;][&quot;tables&quot;][&quot;balances&quot;][&quot;rows&quot;]
+        self.assertTrue(rows)
+        rows[0][&quot;units&quot;] += 1
+        result = recovery_mod.MarketStateRecovery.verify(
+            tampered,
+            verify_manifest=identity_mod.EntityIdentityVault.verify_manifest,
+            verify_signature=identity_mod.EntityIdentityVault.verify_signature,
+            verify_core_bundle=self.fabric.verify_bundle,
+        )
+        self.assertFalse(result[&quot;valid&quot;])
+        self.assertTrue(any(x.startswith(&quot;table_hash_invalid:exchange:balances&quot;) for x in result[&quot;failures&quot;]))
+        self.assertIn(&quot;bundle_semantic_hash_invalid&quot;, result[&quot;failures&quot;])
+
+    def test_rehashed_tamper_still_fails_controller_signatures(self):
+        bundle = self._export()
+        tampered = copy.deepcopy(bundle)
+        balance = tampered[&quot;exchange&quot;][&quot;tables&quot;][&quot;balances&quot;]
+        balance[&quot;rows&quot;][0][&quot;units&quot;] += 7
+        balance[&quot;semantic_sha256&quot;] = recovery_mod.semantic_sha256(
+            recovery_mod._table_payload(balance)
+        )
+        tampered[&quot;exchange&quot;][&quot;state_sha256&quot;] = recovery_mod.semantic_sha256(
+            {&quot;tables&quot;: tampered[&quot;exchange&quot;][&quot;tables&quot;]}
+        )
+        semantic = {
+            k: v for k, v in tampered.items()
+            if k not in {&quot;exported_at_ms&quot;, &quot;semantic_sha256&quot;, &quot;bundle_attestations&quot;}
+        }
+        tampered[&quot;semantic_sha256&quot;] = recovery_mod.semantic_sha256(semantic)
+        for attestation in tampered[&quot;bundle_attestations&quot;]:
+            attestation[&quot;semantic_sha256&quot;] = tampered[&quot;semantic_sha256&quot;]
+        result = recovery_mod.MarketStateRecovery.verify(
+            tampered,
+            verify_manifest=identity_mod.EntityIdentityVault.verify_manifest,
+            verify_signature=identity_mod.EntityIdentityVault.verify_signature,
+            verify_core_bundle=self.fabric.verify_bundle,
+        )
+        self.assertFalse(result[&quot;valid&quot;])
+        self.assertTrue(any(
+            x.startswith(&quot;controller_attestation_signature_invalid:&quot;)
+            for x in result[&quot;failures&quot;]
+        ))
+
+    def test_destructive_market_database_recovery_preserves_state_roots(self):
+        bundle = self._export()
+        expected_exchange = bundle[&quot;exchange&quot;][&quot;state_sha256&quot;]
+        expected_economic = bundle[&quot;economic_participation&quot;][&quot;state_sha256&quot;]
+        self.exchange.path.unlink()
+        self.econ.path.unlink()
+
+        restored_exchange = eep_mod.ExchangeProtocol(self.root, self.identity, self.fabric)
+        restored_econ = econ_mod.EconomicParticipationProfile(self.root, self.identity)
+        result = recovery_mod.MarketStateRecovery.restore(
+            bundle, restored_exchange.path, restored_econ.path,
+            verify_manifest=identity_mod.EntityIdentityVault.verify_manifest,
+            verify_signature=identity_mod.EntityIdentityVault.verify_signature,
+            verify_core_bundle=self.fabric.verify_bundle,
+        )
+        self.assertTrue(result[&quot;restored&quot;])
+        self.assertTrue(result[&quot;atomic_cross_database_restore&quot;])
+        self.assertEqual(result[&quot;exchange_state_sha256&quot;], expected_exchange)
+        self.assertEqual(result[&quot;economic_state_sha256&quot;], expected_economic)
+        self.assertEqual(
+            restored_exchange.balance(self.instrument[&quot;instrument_id&quot;], self.buyer), 10
+        )
+        self.assertEqual(
+            restored_exchange.balance(self.instrument[&quot;instrument_id&quot;], self.treasury_entity), 200
+        )
+        with restored_exchange._db() as db:
+            trade = db.execute(
+                &quot;SELECT status FROM trades WHERE trade_id=?&quot;, (self.trade_id,)
+            ).fetchone()
+            entitlements = db.execute(
+                &quot;SELECT COUNT(*) FROM entitlements WHERE trade_id=?&quot;, (self.trade_id,)
+            ).fetchone()[0]
+            attestations = db.execute(
+                &quot;SELECT COUNT(*) FROM payment_attestations WHERE trade_id=?&quot;, (self.trade_id,)
+            ).fetchone()[0]
+            usage = db.execute(
+                &quot;SELECT COUNT(*) FROM usage WHERE instrument_id=? AND holder=?&quot;,
+                (self.instrument[&quot;instrument_id&quot;], self.buyer),
+            ).fetchone()[0]
+        self.assertEqual(trade[&quot;status&quot;], &quot;SETTLED&quot;)
+        self.assertEqual(entitlements, 1)
+        self.assertEqual(attestations, 1)
+        self.assertEqual(usage, 1)
+
+        with restored_econ._db() as db:
+            statuses = [r[0] for r in db.execute(
+                &quot;SELECT status FROM obligations ORDER BY obligation_id&quot;
+            ).fetchall()]
+        self.assertIn(&quot;SETTLED&quot;, statuses)
+        self.assertIn(&quot;ACCRUED&quot;, statuses)
+
+    def test_restore_refuses_nonempty_destination(self):
+        bundle = self._export()
+        target_root = self.root / &quot;nonempty-target&quot;
+        target_root.mkdir()
+        target_exchange = eep_mod.ExchangeProtocol(target_root, self.identity, self.fabric)
+        target_econ = econ_mod.EconomicParticipationProfile(target_root, self.identity)
+        with target_exchange._db() as db:
+            db.execute(
+                &quot;INSERT INTO balances(instrument_id,holder,units) VALUES(?,?,?)&quot;,
+                (&quot;inst-existing&quot;, &quot;holder-existing&quot;, 1),
+            )
+        with self.assertRaises(ValueError):
+            recovery_mod.MarketStateRecovery.restore(
+                bundle, target_exchange.path, target_econ.path,
+                verify_manifest=identity_mod.EntityIdentityVault.verify_manifest,
+                verify_signature=identity_mod.EntityIdentityVault.verify_signature,
+                verify_core_bundle=self.fabric.verify_bundle,
+            )
+        with target_exchange._db() as db:
+            self.assertEqual(
+                db.execute(&quot;SELECT units FROM balances WHERE instrument_id=&#x27;inst-existing&#x27;&quot;).fetchone()[0],
+                1,
+            )
+
+    def test_cross_database_restore_rolls_back_on_eopp_failure(self):
+        bundle = self._export()
+        target_root = self.root / &quot;rollback-target&quot;
+        target_root.mkdir()
+        target_exchange = eep_mod.ExchangeProtocol(target_root, self.identity, self.fabric)
+        target_econ = econ_mod.EconomicParticipationProfile(target_root, self.identity)
+        with target_econ._db() as db:
+            db.execute(
+                &quot;CREATE TRIGGER fail_restore_obligation BEFORE INSERT ON obligations &quot;
+                &quot;BEGIN SELECT RAISE(ABORT,&#x27;forced recovery failure&#x27;); END&quot;
+            )
+        with self.assertRaises(sqlite3.DatabaseError):
+            recovery_mod.MarketStateRecovery.restore(
+                bundle, target_exchange.path, target_econ.path,
+                verify_manifest=identity_mod.EntityIdentityVault.verify_manifest,
+                verify_signature=identity_mod.EntityIdentityVault.verify_signature,
+                verify_core_bundle=self.fabric.verify_bundle,
+            )
+        with target_exchange._db() as db:
+            for table in recovery_mod.EEP_REQUIRED:
+                self.assertEqual(
+                    db.execute(f&#x27;SELECT COUNT(*) FROM &quot;{table}&quot;&#x27;).fetchone()[0], 0,
+                    table,
+                )
+        with target_econ._db() as db:
+            for table in recovery_mod.EOPP_REQUIRED:
+                self.assertEqual(
+                    db.execute(f&#x27;SELECT COUNT(*) FROM &quot;{table}&quot;&#x27;).fetchone()[0], 0,
+                    table,
+                )
+
+
+    def test_market_recovery_evidence_manifest_self_verifies(self):
+        path = REPO / &quot;ENTITY_V3_MARKET_RECOVERY_MANIFEST.json&quot;
+        evidence = __import__(&quot;json&quot;).loads(path.read_text(encoding=&quot;utf-8&quot;))
+        for entry in evidence[&quot;files&quot;]:
+            actual = hashlib.sha256((REPO / entry[&quot;path&quot;]).read_bytes()).hexdigest()
+            self.assertEqual(actual, entry[&quot;sha256&quot;], entry[&quot;path&quot;])
+        base = {k: v for k, v in evidence.items() if k not in {&quot;files&quot;, &quot;snapshot_sha256&quot;}}
+        seed = __import__(&quot;json&quot;).dumps(
+            base, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;)
+        ).encode() + b&quot;\n&quot;
+        seed += b&quot;\n&quot;.join(
+            (entry[&quot;path&quot;] + &quot; &quot; + entry[&quot;sha256&quot;]).encode()
+            for entry in evidence[&quot;files&quot;]
+        )
+        self.assertEqual(hashlib.sha256(seed).hexdigest(), evidence[&quot;snapshot_sha256&quot;])</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

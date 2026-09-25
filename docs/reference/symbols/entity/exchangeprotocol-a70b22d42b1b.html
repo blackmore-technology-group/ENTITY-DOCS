@@ -1,0 +1,819 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ExchangeProtocol Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ExchangeProtocol</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/exchange_protocol.py#L94">ENTITY/src/31_Profiles/exchange_protocol.py#L94</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>ENTITY Exchange Protocol (EEP): venue-neutral rights-market reference profile.</p><h2>Source excerpt</h2><pre><code>class ExchangeProtocol:
+    &quot;&quot;&quot;ENTITY Exchange Protocol (EEP): venue-neutral rights-market reference profile.&quot;&quot;&quot;
+    EXECUTION_MODELS = {&quot;ORDER_BOOK&quot;, &quot;CALL_AUCTION&quot;, &quot;RFQ&quot;}
+    INSTRUMENT_CLASSES = {&quot;SPOT_LICENSE&quot;, &quot;SUBSCRIPTION&quot;, &quot;COMPUTE_TO_DATA&quot;,
+                          &quot;PROCUREMENT&quot;, &quot;CONTRIBUTION&quot;, &quot;SECONDARY_LICENSE&quot;}
+    SIDES = {&quot;BUY&quot;, &quot;SELL&quot;}
+
+    def __init__(self, root: str | Path, identity, fabric):
+        self.path = Path(root) / &quot;entity_v3_exchange.sqlite&quot;
+        self.identity, self.fabric = identity, fabric
+        self._init()
+
+    @contextmanager
+    def _db(self):
+        db=sqlite3.connect(self.path); db.row_factory=sqlite3.Row
+        try:
+            yield db
+            db.commit()
+        except Exception:
+            db.rollback(); raise
+        finally:
+            db.close()
+
+    def _init(self):
+        with self._db() as db:
+            db.executescript(&quot;&quot;&quot;
+            CREATE TABLE IF NOT EXISTS venues(
+              venue_id TEXT PRIMARY KEY, operator TEXT NOT NULL, name TEXT NOT NULL,
+              jurisdiction TEXT NOT NULL, execution_models_json TEXT NOT NULL,
+              policy_sha256 TEXT NOT NULL, status TEXT NOT NULL,
+              created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS instruments(
+              instrument_id TEXT PRIMARY KEY, issuer TEXT NOT NULL, underlying_object_id TEXT NOT NULL,
+              instrument_class TEXT NOT NULL, rights_json TEXT NOT NULL, total_units INTEGER NOT NULL,
+              transferable INTEGER NOT NULL, duration_ms INTEGER, settlement_currency TEXT NOT NULL,
+              delivery_mode TEXT NOT NULL, status TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+              signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS balances(
+              instrument_id TEXT NOT NULL, holder TEXT NOT NULL, units INTEGER NOT NULL,
+              PRIMARY KEY(instrument_id,holder));
+            CREATE TABLE IF NOT EXISTS listings(
+              listing_id TEXT PRIMARY KEY, venue_id TEXT NOT NULL, instrument_id TEXT NOT NULL,
+              lister TEXT NOT NULL, min_lot INTEGER NOT NULL, tick_size INTEGER NOT NULL,
+              disclosure_sha256 TEXT NOT NULL, status TEXT NOT NULL,
+              created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS orders(
+              order_id TEXT PRIMARY KEY, venue_id TEXT NOT NULL, instrument_id TEXT NOT NULL,
+              participant TEXT NOT NULL, side TEXT NOT NULL, quantity INTEGER NOT NULL,
+              remaining INTEGER NOT NULL, limit_price INTEGER NOT NULL, tif TEXT NOT NULL,
+              status TEXT NOT NULL, nonce TEXT NOT NULL UNIQUE, created_at_ms INTEGER NOT NULL,
+              received_at_ms INTEGER, signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS trades(
+              trade_id TEXT PRIMARY KEY, venue_id TEXT NOT NULL, instrument_id TEXT NOT NULL,
+              buy_order_id TEXT, sell_order_id TEXT, buyer TEXT NOT NULL, seller TEXT NOT NULL,
+              quantity INTEGER NOT NULL, price INTEGER NOT NULL, execution_model TEXT NOT NULL,
+              status TEXT NOT NULL, created_at_ms INTEGER NOT NULL);
+            CREATE TABLE IF NOT EXISTS clearing(
+              trade_id TEXT PRIMARY KEY, payer TEXT NOT NULL, payee TEXT NOT NULL,
+              amount_units INTEGER NOT NULL, currency TEXT NOT NULL, status TEXT NOT NULL,
+              payment_ref TEXT, external_verified INTEGER NOT NULL DEFAULT 0);
+            CREATE TABLE IF NOT EXISTS entitlements(
+              entitlement_id TEXT PRIMARY KEY, trade_id TEXT NOT NULL, instrument_id TEXT NOT NULL,
+              holder TEXT NOT NULL, quantity INTEGER NOT NULL, rights_json TEXT NOT NULL,
+              expires_at_ms INTEGER, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS disclosures(
+              disclosure_id TEXT PRIMARY KEY, venue_id TEXT NOT NULL, instrument_id TEXT NOT NULL,
+              publisher TEXT NOT NULL, disclosure_type TEXT NOT NULL, content_sha256 TEXT NOT NULL,
+              created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS usage(
+              usage_id TEXT PRIMARY KEY, instrument_id TEXT NOT NULL, holder TEXT NOT NULL,
+              action TEXT NOT NULL, units INTEGER NOT NULL, nonce TEXT NOT NULL UNIQUE,
+              created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS surveillance(
+              alert_id TEXT PRIMARY KEY, venue_id TEXT NOT NULL, instrument_id TEXT,
+              participant TEXT, alert_type TEXT NOT NULL, evidence_json TEXT NOT NULL,
+              created_at_ms INTEGER NOT NULL);
+            CREATE TABLE IF NOT EXISTS revenue_rules(
+              instrument_id TEXT NOT NULL, recipient TEXT NOT NULL, bps INTEGER NOT NULL,
+              PRIMARY KEY(instrument_id,recipient));
+            CREATE TABLE IF NOT EXISTS revenue_rule_sets(
+              rule_set_id TEXT PRIMARY KEY, instrument_id TEXT NOT NULL, issuer TEXT NOT NULL,
+              allocations_json TEXT NOT NULL, nonce TEXT NOT NULL UNIQUE, created_at_ms INTEGER NOT NULL,
+              received_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS trade_revenue_bindings(
+              trade_id TEXT PRIMARY KEY, instrument_id TEXT NOT NULL, rule_set_id TEXT,
+              allocations_json TEXT NOT NULL, bound_at_ms INTEGER NOT NULL);
+            CREATE TABLE IF NOT EXISTS rfqs(
+              rfq_id TEXT PRIMARY KEY, venue_id TEXT NOT NULL, instrument_id TEXT NOT NULL,
+              requester TEXT NOT NULL, side TEXT NOT NULL, quantity INTEGER NOT NULL,
+              expires_at_ms INTEGER NOT NULL, status TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+              nonce TEXT, received_at_ms INTEGER, signature_json TEXT);
+            CREATE TABLE IF NOT EXISTS quotes(
+              quote_id TEXT PRIMARY KEY, rfq_id TEXT NOT NULL, provider TEXT NOT NULL,
+              price INTEGER NOT NULL, expires_at_ms INTEGER NOT NULL,
+              status TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+              nonce TEXT, received_at_ms INTEGER, signature_json TEXT);
+            CREATE TABLE IF NOT EXISTS rfq_acceptances(
+              acceptance_id TEXT PRIMARY KEY, rfq_id TEXT NOT NULL, quote_id TEXT NOT NULL,
+              requester TEXT NOT NULL, nonce TEXT NOT NULL UNIQUE, created_at_ms INTEGER NOT NULL,
+              received_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS order_cancellations(
+              cancellation_id TEXT PRIMARY KEY, order_id TEXT NOT NULL, participant TEXT NOT NULL,
+              nonce TEXT NOT NULL UNIQUE, created_at_ms INTEGER NOT NULL,
+              received_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS settlement_verifiers(
+              venue_id TEXT NOT NULL, verifier_entity_id TEXT NOT NULL, status TEXT NOT NULL,
+              created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL,
+              PRIMARY KEY(venue_id,verifier_entity_id));
+            CREATE TABLE IF NOT EXISTS payment_attestations(
+              attestation_id TEXT PRIMARY KEY, trade_id TEXT NOT NULL, verifier_entity_id TEXT NOT NULL,
+              settlement_ref TEXT NOT NULL, evidence_sha256 TEXT NOT NULL, nonce TEXT NOT NULL UNIQUE,
+              created_at_ms INTEGER NOT NULL, received_at_ms INTEGER NOT NULL,
+              authority_basis TEXT NOT NULL, signature_json TEXT NOT NULL);
+            &quot;&quot;&quot;)
+            columns={row[1] for row in db.execute(&quot;PRAGMA table_info(orders)&quot;).fetchall()}
+            if &quot;received_at_ms&quot; not in columns:
+                db.execute(&quot;ALTER TABLE orders ADD COLUMN received_at_ms INTEGER&quot;)
+                db.execute(&quot;UPDATE orders SET received_at_ms=created_at_ms WHERE received_at_ms IS NULL&quot;)
+            entitlement_columns={row[1] for row in db.execute(&quot;PRAGMA table_info(entitlements)&quot;).fetchall()}
+            if &quot;expires_at_ms&quot; not in entitlement_columns:
+                db.execute(&quot;ALTER TABLE entitlements ADD COLUMN expires_at_ms INTEGER&quot;)
+            for table in (&quot;rfqs&quot;,&quot;quotes&quot;):
+                cols={row[1] for row in db.execute(f&quot;PRAGMA table_info({table})&quot;).fetchall()}
+                if &quot;nonce&quot; not in cols: db.execute(f&quot;ALTER TABLE {table} ADD COLUMN nonce TEXT&quot;)
+                if &quot;received_at_ms&quot; not in cols:
+                    db.execute(f&quot;ALTER TABLE {table} ADD COLUMN received_at_ms INTEGER&quot;)
+                    db.execute(f&quot;UPDATE {table} SET received_at_ms=created_at_ms WHERE received_at_ms IS NULL&quot;)
+                if &quot;signature_json&quot; not in cols: db.execute(f&quot;ALTER TABLE {table} ADD COLUMN signature_json TEXT&quot;)
+            db.execute(&quot;CREATE UNIQUE INDEX IF NOT EXISTS idx_eep_rfq_nonce ON rfqs(nonce) WHERE nonce IS NOT NULL&quot;)
+            db.execute(&quot;CREATE UNIQUE INDEX IF NOT EXISTS idx_eep_quote_nonce ON quotes(nonce) WHERE nonce IS NOT NULL&quot;)
+
+    def create_venue(self, operator: str, name: str, jurisdiction: str,
+                     execution_models: list[str], policy_sha256: str) -&gt; dict:
+        models = sorted({m.upper() for m in execution_models})
+        if not models or set(models) - self.EXECUTION_MODELS:
+            raise ValueError(&quot;unsupported execution model&quot;)
+        body = {&quot;schema&quot;: &quot;entity-eep-venue-v1&quot;, &quot;venue_id&quot;: rid(&quot;venue3&quot;),
+                &quot;operator&quot;: operator, &quot;name&quot;: str(name)[:256], &quot;jurisdiction&quot;: jurisdiction.upper(),
+                &quot;execution_models&quot;: models, &quot;policy_sha256&quot;: policy_sha256,
+                &quot;status&quot;: &quot;ACTIVE&quot;, &quot;created_at_ms&quot;: now_ms(),
+                &quot;venue_is_not_protocol_authority&quot;: True}
+        sig = self.identity.sign(operator, body)
+        with self._db() as db:
+            db.execute(&quot;INSERT INTO venues VALUES(?,?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;venue_id&quot;], operator, body[&quot;name&quot;], body[&quot;jurisdiction&quot;],
+                json.dumps(models), policy_sha256, &quot;ACTIVE&quot;, body[&quot;created_at_ms&quot;],
+                json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)
+
+    def _record_signed_instrument(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;instrument_id&quot;,&quot;issuer&quot;,&quot;underlying_object_id&quot;,&quot;instrument_class&quot;,&quot;rights&quot;,&quot;total_units&quot;,&quot;transferable&quot;,&quot;duration_ms&quot;,&quot;settlement_currency&quot;,&quot;delivery_mode&quot;,&quot;status&quot;,&quot;created_at_ms&quot;,&quot;bytes_are_not_the_traded_scarcity&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-instrument-v1&quot; or body.get(&quot;status&quot;)!=&quot;ACTIVE&quot; or body.get(&quot;bytes_are_not_the_traded_scarcity&quot;) is not True:
+            raise ValueError(&quot;invalid signed instrument shape&quot;)
+        issuer=str(body[&quot;issuer&quot;]); instrument_class=str(body[&quot;instrument_class&quot;]); units=int(body[&quot;total_units&quot;]); created=int(body[&quot;created_at_ms&quot;])
+        if instrument_class not in self.INSTRUMENT_CLASSES or units&lt;1 or created&lt;0 or not str(body[&quot;instrument_id&quot;]): raise ValueError(&quot;invalid instrument&quot;)
+        if str(body[&quot;settlement_currency&quot;])!=str(body[&quot;settlement_currency&quot;]).upper() or str(body[&quot;delivery_mode&quot;])!=str(body[&quot;delivery_mode&quot;]).upper(): raise ValueError(&quot;instrument enums must be canonical uppercase&quot;)
+        rights=dict(body[&quot;rights&quot;]); actions={str(a).upper() for a in rights.get(&quot;actions&quot;) or []}
+        if not actions: raise ValueError(&quot;instrument rights actions required&quot;)
+        obj=self.fabric.get_object(body[&quot;underlying_object_id&quot;])
+        if obj[&quot;controller_entity_id&quot;]!=issuer: raise PermissionError(&quot;underlying controller must issue instrument&quot;)
+        manifest=self.identity.load_manifest(issuer)
+        if not self.identity.verify_signature(manifest,body,signature): raise PermissionError(&quot;instrument signature invalid&quot;)
+        try:
+            with self._db() as db:
+                db.execute(&quot;INSERT INTO instruments VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;instrument_id&quot;],issuer,body[&quot;underlying_object_id&quot;],instrument_class,json.dumps(rights,sort_keys=True),units,
+                    int(bool(body[&quot;transferable&quot;])),int(body[&quot;duration_ms&quot;]) if body[&quot;duration_ms&quot;] is not None else None,
+                    body[&quot;settlement_currency&quot;],body[&quot;delivery_mode&quot;],&quot;ACTIVE&quot;,created,json.dumps(signature,sort_keys=True)))
+                db.execute(&quot;INSERT INTO balances VALUES(?,?,?)&quot;,(body[&quot;instrument_id&quot;],issuer,units))
+        except sqlite3.IntegrityError as exc: raise ValueError(&quot;duplicate/replayed instrument&quot;) from exc
+        return dict(body,total_units=units,signature=signature)
+
+    def submit_signed_instrument(self, instrument: dict, signature: dict) -&gt; dict:
+        return self._record_signed_instrument(dict(instrument),dict(signature))
+
+    def define_instrument(self, issuer: str, underlying_object_id: str, instrument_class: str,
+                          rights: dict, total_units: int, settlement_currency: str, *,
+                          transferable=False, duration_ms=None, delivery_mode=&quot;ENTITLEMENT&quot;) -&gt; dict:
+        rights_doc=dict(rights); rights_doc[&quot;actions&quot;]=sorted({str(a).upper() for a in rights_doc.get(&quot;actions&quot;) or []})
+        body={&quot;schema&quot;:&quot;entity-eep-instrument-v1&quot;,&quot;instrument_id&quot;:rid(&quot;inst3&quot;),&quot;issuer&quot;:issuer,
+              &quot;underlying_object_id&quot;:underlying_object_id,&quot;instrument_class&quot;:str(instrument_class).upper(),&quot;rights&quot;:rights_doc,
+              &quot;total_units&quot;:int(total_units),&quot;transferable&quot;:bool(transferable),&quot;duration_ms&quot;:int(duration_ms) if duration_ms is not None else None,
+              &quot;settlement_currency&quot;:str(settlement_currency).upper(),&quot;delivery_mode&quot;:str(delivery_mode).upper(),&quot;status&quot;:&quot;ACTIVE&quot;,
+              &quot;created_at_ms&quot;:now_ms(),&quot;bytes_are_not_the_traded_scarcity&quot;:True}
+        sig=self.identity.sign(issuer,body)
+        return self._record_signed_instrument(body,sig)
+
+    def balance(self, instrument_id: str, holder: str) -&gt; int:
+        with self._db() as db:
+            row = db.execute(&quot;SELECT units FROM balances WHERE instrument_id=? AND holder=?&quot;,
+                             (instrument_id, holder)).fetchone()
+        return int(row[&quot;units&quot;]) if row else 0
+
+    def _record_signed_listing(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;listing_id&quot;,&quot;venue_id&quot;,&quot;instrument_id&quot;,&quot;lister&quot;,&quot;min_lot&quot;,&quot;tick_size&quot;,&quot;disclosure_sha256&quot;,&quot;status&quot;,&quot;created_at_ms&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-listing-v1&quot; or body.get(&quot;status&quot;)!=&quot;ACTIVE&quot;: raise ValueError(&quot;invalid signed listing shape&quot;)
+        lister=str(body[&quot;lister&quot;]); min_lot=max(1,int(body[&quot;min_lot&quot;])); tick=max(1,int(body[&quot;tick_size&quot;])); created=int(body[&quot;created_at_ms&quot;]); disclosure=str(body[&quot;disclosure_sha256&quot;]).lower()
+        if len(disclosure)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in disclosure): raise ValueError(&quot;SHA-256 hex required&quot;)
+        if created&lt;0 or not str(body[&quot;listing_id&quot;]): raise ValueError(&quot;invalid listing identity/time&quot;)
+        manifest=self.identity.load_manifest(lister)
+        if not self.identity.verify_signature(manifest,body,signature): raise PermissionError(&quot;listing signature invalid&quot;)
+        with self._db() as db:
+            venue=db.execute(&quot;SELECT * FROM venues WHERE venue_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(body[&quot;venue_id&quot;],)).fetchone()
+            inst=db.execute(&quot;SELECT * FROM instruments WHERE instrument_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(body[&quot;instrument_id&quot;],)).fetchone()
+            disc=db.execute(&quot;SELECT 1 FROM disclosures WHERE venue_id=? AND instrument_id=? AND content_sha256=?&quot;,(body[&quot;venue_id&quot;],body[&quot;instrument_id&quot;],disclosure)).fetchone()
+        if not venue or not inst: raise KeyError(&quot;active venue/instrument required&quot;)
+        if not disc: raise ValueError(&quot;listing disclosure has not been published for venue/instrument&quot;)
+        if self.balance(body[&quot;instrument_id&quot;],lister)&lt;=0: raise PermissionError(&quot;lister has no entitlement&quot;)
+        try:
+            with self._db() as db:
+                db.execute(&quot;INSERT INTO listings VALUES(?,?,?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;listing_id&quot;],body[&quot;venue_id&quot;],body[&quot;instrument_id&quot;],lister,min_lot,tick,disclosure,&quot;ACTIVE&quot;,created,json.dumps(signature,sort_keys=True)))
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&quot;duplicate/replayed listing&quot;) from exc
+        return dict(body,min_lot=min_lot,tick_size=tick,disclosure_sha256=disclosure,signature=signature)
+
+    def submit_signed_listing(self, listing: dict, signature: dict) -&gt; dict:
+        return self._record_signed_listing(dict(listing),dict(signature))
+
+    def list_instrument(self, venue_id: str, instrument_id: str, lister: str, *,
+                        min_lot=1, tick_size=1, disclosure_sha256: str) -&gt; dict:
+        disclosure=str(disclosure_sha256).lower()
+        if len(disclosure)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in disclosure): raise ValueError(&quot;SHA-256 hex required&quot;)
+        body={&quot;schema&quot;:&quot;entity-eep-listing-v1&quot;,&quot;listing_id&quot;:rid(&quot;listing3&quot;),&quot;venue_id&quot;:venue_id,&quot;instrument_id&quot;:instrument_id,
+              &quot;lister&quot;:lister,&quot;min_lot&quot;:max(1,int(min_lot)),&quot;tick_size&quot;:max(1,int(tick_size)),
+              &quot;disclosure_sha256&quot;:disclosure,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now_ms()}
+        sig=self.identity.sign(lister,body)
+        return self._record_signed_listing(body,sig)
+
+    def _listing(self, venue_id: str, instrument_id: str):
+        with self._db() as db:
+            return db.execute(&quot;SELECT * FROM listings WHERE venue_id=? AND instrument_id=? &quot;
+                              &quot;AND status=&#x27;ACTIVE&#x27; ORDER BY created_at_ms DESC LIMIT 1&quot;,
+                              (venue_id, instrument_id)).fetchone()
+
+    def _reserved_sell_db(self, db, instrument_id: str, participant: str) -&gt; int:
+        open_row = db.execute(&quot;SELECT COALESCE(SUM(remaining),0) AS q FROM orders &quot;
+                              &quot;WHERE instrument_id=? AND participant=? AND side=&#x27;SELL&#x27; &quot;
+                              &quot;AND status IN (&#x27;OPEN&#x27;,&#x27;PARTIAL&#x27;)&quot;,
+                              (instrument_id, participant)).fetchone()
+        pending_row = db.execute(&quot;SELECT COALESCE(SUM(t.quantity),0) AS q FROM trades t &quot;
+                                 &quot;JOIN clearing c ON c.trade_id=t.trade_id &quot;
+                                 &quot;WHERE t.instrument_id=? AND t.seller=? AND c.status=&#x27;PENDING&#x27; &quot;
+                                 &quot;AND t.status IN (&#x27;EXECUTED&#x27;,&#x27;EXECUTED_UNSETTLED&#x27;)&quot;,
+                                 (instrument_id, participant)).fetchone()
+        return int(open_row[&quot;q&quot;]) + int(pending_row[&quot;q&quot;])
+
+    def _reserved_sell(self, instrument_id: str, participant: str) -&gt; int:
+        with self._db() as db:
+            return self._reserved_sell_db(db,instrument_id,participant)
+
+    def _record_signed_order(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;order_id&quot;,&quot;venue_id&quot;,&quot;instrument_id&quot;,&quot;participant&quot;,&quot;side&quot;,&quot;quantity&quot;,&quot;limit_price&quot;,&quot;tif&quot;,&quot;nonce&quot;,&quot;created_at_ms&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-order-v1&quot;: raise ValueError(&quot;invalid signed order shape&quot;)
+        participant=str(body[&quot;participant&quot;]); side=str(body[&quot;side&quot;]).upper(); tif=str(body[&quot;tif&quot;]).upper()
+        qty,price,created=int(body[&quot;quantity&quot;]),int(body[&quot;limit_price&quot;]),int(body[&quot;created_at_ms&quot;])
+        if side not in self.SIDES or tif not in {&quot;GTC&quot;,&quot;IOC&quot;,&quot;DAY&quot;}: raise ValueError(&quot;invalid order&quot;)
+        if not str(body[&quot;order_id&quot;]) or not str(body[&quot;nonce&quot;]) or created&lt;0: raise ValueError(&quot;invalid order identity/time&quot;)
+        listing=self._listing(body[&quot;venue_id&quot;],body[&quot;instrument_id&quot;])
+        if not listing: raise KeyError(&quot;instrument not listed on venue&quot;)
+        if qty&lt;1 or qty%int(listing[&quot;min_lot&quot;]): raise ValueError(&quot;invalid lot size&quot;)
+        if price&lt;0 or price%int(listing[&quot;tick_size&quot;]): raise ValueError(&quot;invalid tick&quot;)
+        manifest=self.identity.load_manifest(participant)
+        if not self.identity.verify_signature(manifest,body,signature): raise PermissionError(&quot;order signature invalid&quot;)
+        with self._db() as db:
+            inst=db.execute(&quot;SELECT * FROM instruments WHERE instrument_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(body[&quot;instrument_id&quot;],)).fetchone()
+        if not inst: raise KeyError(&quot;active instrument required&quot;)
+        if side==&quot;SELL&quot;:
+            if participant!=inst[&quot;issuer&quot;] and not bool(inst[&quot;transferable&quot;]): raise PermissionError(&quot;secondary transfer prohibited&quot;)
+            available=self.balance(body[&quot;instrument_id&quot;],participant)-self._reserved_sell(body[&quot;instrument_id&quot;],participant)
+            if available&lt;qty: raise PermissionError(&quot;insufficient unreserved entitlement&quot;)
+        received=now_ms()
+        try:
+            with self._db() as db:
+                if side==&quot;SELL&quot;:
+                    db.execute(&quot;BEGIN IMMEDIATE&quot;)
+                    bal=db.execute(&quot;SELECT units FROM balances WHERE instrument_id=? AND holder=?&quot;,
+                                   (body[&quot;instrument_id&quot;],participant)).fetchone()
+                    available=(int(bal[&quot;units&quot;]) if bal else 0)-self._reserved_sell_db(db,body[&quot;instrument_id&quot;],participant)
+                    if available&lt;qty: raise PermissionError(&quot;insufficient unreserved entitlement&quot;)
+                db.execute(&quot;INSERT INTO orders VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;order_id&quot;],body[&quot;venue_id&quot;],body[&quot;instrument_id&quot;],participant,side,qty,qty,
+                    price,tif,&quot;OPEN&quot;,str(body[&quot;nonce&quot;]),created,received,json.dumps(signature,sort_keys=True)))
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&quot;duplicate/replayed order id or nonce&quot;) from exc
+        return dict(body,side=side,tif=tif,quantity=qty,limit_price=price,remaining=qty,status=&quot;OPEN&quot;,received_at_ms=received,signature=signature)
+
+    def submit_signed_order(self, order: dict, signature: dict) -&gt; dict:
+        return self._record_signed_order(dict(order),dict(signature))
+
+    def submit_order(self, venue_id: str, instrument_id: str, participant: str,
+                     side: str, quantity: int, limit_price: int, *, nonce: str, tif=&quot;GTC&quot;) -&gt; dict:
+        body={&quot;schema&quot;:&quot;entity-eep-order-v1&quot;,&quot;order_id&quot;:rid(&quot;order3&quot;),&quot;venue_id&quot;:venue_id,
+              &quot;instrument_id&quot;:instrument_id,&quot;participant&quot;:participant,&quot;side&quot;:str(side).upper(),
+              &quot;quantity&quot;:int(quantity),&quot;limit_price&quot;:int(limit_price),&quot;tif&quot;:str(tif).upper(),
+              &quot;nonce&quot;:str(nonce),&quot;created_at_ms&quot;:now_ms()}
+        sig=self.identity.sign(participant,body)
+        return self._record_signed_order(body,sig)
+
+    def _alert(self, venue_id, instrument_id, participant, alert_type, evidence, db=None):
+        alert_id = rid(&quot;alert3&quot;)
+        values = (alert_id, venue_id, instrument_id, participant, alert_type,
+                  json.dumps(evidence, sort_keys=True), now_ms())
+        if db is not None:
+            db.execute(&quot;INSERT INTO surveillance VALUES(?,?,?,?,?,?,?)&quot;, values)
+        else:
+            with self._db() as own_db:
+                own_db.execute(&quot;INSERT INTO surveillance VALUES(?,?,?,?,?,?,?)&quot;, values)
+        return alert_id
+
+    def _bind_trade_revenue(self, db, trade_id: str, instrument_id: str) -&gt; None:
+        row=db.execute(&quot;SELECT rule_set_id,allocations_json FROM revenue_rule_sets WHERE instrument_id=? &quot;
+                       &quot;ORDER BY received_at_ms DESC,rule_set_id DESC LIMIT 1&quot;,(instrument_id,)).fetchone()
+        rule_set_id=row[&quot;rule_set_id&quot;] if row else None
+        allocations=json.loads(row[&quot;allocations_json&quot;]) if row else {}
+        db.execute(&quot;INSERT INTO trade_revenue_bindings VALUES(?,?,?,?,?)&quot;,
+                   (trade_id,instrument_id,rule_set_id,json.dumps(allocations,sort_keys=True),now_ms()))
+
+    def trade_revenue_binding(self, trade_id: str) -&gt; dict:
+        with self._db() as db:
+            row=db.execute(&quot;SELECT * FROM trade_revenue_bindings WHERE trade_id=?&quot;,(trade_id,)).fetchone()
+        if not row: raise KeyError(&quot;trade revenue binding not found&quot;)
+        return {&quot;trade_id&quot;:row[&quot;trade_id&quot;],&quot;instrument_id&quot;:row[&quot;instrument_id&quot;],
+                &quot;rule_set_id&quot;:row[&quot;rule_set_id&quot;],&quot;allocations_bps&quot;:json.loads(row[&quot;allocations_json&quot;]),
+                &quot;bound_at_ms&quot;:int(row[&quot;bound_at_ms&quot;]),&quot;bound_at_execution&quot;:True}
+
+    def _execute_trade(self, db, buy, sell, quantity: int, price: int, execution_model: str):
+        trade_id = rid(&quot;trade3&quot;)
+        db.execute(&quot;INSERT INTO trades VALUES(?,?,?,?,?,?,?,?,?,?,?,?)&quot;, (
+            trade_id, buy[&quot;venue_id&quot;], buy[&quot;instrument_id&quot;], buy[&quot;order_id&quot;], sell[&quot;order_id&quot;],
+            buy[&quot;participant&quot;], sell[&quot;participant&quot;], quantity, price, execution_model,
+            &quot;EXECUTED_UNSETTLED&quot;, now_ms()))
+        inst = db.execute(&quot;SELECT settlement_currency FROM instruments WHERE instrument_id=?&quot;,
+                          (buy[&quot;instrument_id&quot;],)).fetchone()
+        db.execute(&quot;INSERT INTO clearing VALUES(?,?,?,?,?,?,?,?)&quot;, (
+            trade_id, buy[&quot;participant&quot;], sell[&quot;participant&quot;], quantity * price,
+            inst[&quot;settlement_currency&quot;], &quot;PENDING&quot;, None, 0))
+        self._bind_trade_revenue(db,trade_id,buy[&quot;instrument_id&quot;])
+        return trade_id
+
+    def match_order_book(self, venue_id: str, instrument_id: str) -&gt; list[dict]:
+        trades = []
+        while True:
+            with self._db() as db:
+                db.execute(&quot;BEGIN IMMEDIATE&quot;)
+                buy = db.execute(&quot;SELECT * FROM orders WHERE venue_id=? AND instrument_id=? &quot;
+                                 &quot;AND side=&#x27;BUY&#x27; AND status IN (&#x27;OPEN&#x27;,&#x27;PARTIAL&#x27;) &quot;
+                                 &quot;ORDER BY limit_price DESC,received_at_ms,order_id LIMIT 1&quot;,
+                                 (venue_id, instrument_id)).fetchone()
+                sell = db.execute(&quot;SELECT * FROM orders WHERE venue_id=? AND instrument_id=? &quot;
+                                  &quot;AND side=&#x27;SELL&#x27; AND status IN (&#x27;OPEN&#x27;,&#x27;PARTIAL&#x27;) &quot;
+                                  &quot;ORDER BY limit_price ASC,received_at_ms,order_id LIMIT 1&quot;,
+                                  (venue_id, instrument_id)).fetchone()
+                if not buy or not sell or int(buy[&quot;limit_price&quot;]) &lt; int(sell[&quot;limit_price&quot;]): break
+                if buy[&quot;participant&quot;] == sell[&quot;participant&quot;]:
+                    newer = buy if (buy[&quot;received_at_ms&quot;], buy[&quot;order_id&quot;]) &gt; (sell[&quot;received_at_ms&quot;], sell[&quot;order_id&quot;]) else sell
+                    db.execute(&quot;UPDATE orders SET status=&#x27;CANCELLED&#x27; WHERE order_id=?&quot;, (newer[&quot;order_id&quot;],))
+                    self._alert(venue_id, instrument_id, newer[&quot;participant&quot;],
+                                &quot;SELF_TRADE_PREVENTED&quot;, {&quot;order_id&quot;: newer[&quot;order_id&quot;]}, db=db)
+                    continue
+                qty = min(int(buy[&quot;remaining&quot;]), int(sell[&quot;remaining&quot;]))
+                resting = buy if (buy[&quot;received_at_ms&quot;], buy[&quot;order_id&quot;]) &lt; (sell[&quot;received_at_ms&quot;], sell[&quot;order_id&quot;]) else sell
+                price = int(resting[&quot;limit_price&quot;])
+                trade_id = self._execute_trade(db, buy, sell, qty, price, &quot;ORDER_BOOK&quot;)
+                for row in (buy, sell):
+                    rem = int(row[&quot;remaining&quot;]) - qty
+                    db.execute(&quot;UPDATE orders SET remaining=?,status=? WHERE order_id=?&quot;,
+                               (rem, &quot;FILLED&quot; if rem == 0 else &quot;PARTIAL&quot;, row[&quot;order_id&quot;]))
+                trades.append({&quot;trade_id&quot;: trade_id, &quot;quantity&quot;: qty, &quot;price&quot;: price,
+                               &quot;buyer&quot;: buy[&quot;participant&quot;], &quot;seller&quot;: sell[&quot;participant&quot;]})
+        return trades
+
+    def run_call_auction(self, venue_id: str, instrument_id: str) -&gt; dict:
+        with self._db() as db:
+            buys = db.execute(&quot;SELECT * FROM orders WHERE venue_id=? AND instrument_id=? &quot;
+                              &quot;AND side=&#x27;BUY&#x27; AND status IN (&#x27;OPEN&#x27;,&#x27;PARTIAL&#x27;)&quot;,
+                              (venue_id, instrument_id)).fetchall()
+            sells = db.execute(&quot;SELECT * FROM orders WHERE venue_id=? AND instrument_id=? &quot;
+                               &quot;AND side=&#x27;SELL&#x27; AND status IN (&#x27;OPEN&#x27;,&#x27;PARTIAL&#x27;)&quot;,
+                               (venue_id, instrument_id)).fetchall()
+        prices = sorted({int(r[&quot;limit_price&quot;]) for r in list(buys) + list(sells)})
+        candidates = []
+        for p in prices:
+            demand = sum(int(r[&quot;remaining&quot;]) for r in buys if int(r[&quot;limit_price&quot;]) &gt;= p)
+            supply = sum(int(r[&quot;remaining&quot;]) for r in sells if int(r[&quot;limit_price&quot;]) &lt;= p)
+            candidates.append((min(demand, supply), abs(demand - supply), p))
+        if not candidates: return {&quot;executed&quot;: False, &quot;reason&quot;: &quot;NO_ORDERS&quot;}
+        candidates.sort(key=lambda x: (-x[0], x[1], x[2]))
+        volume, _, clearing_price = candidates[0]
+        if volume &lt;= 0: return {&quot;executed&quot;: False, &quot;reason&quot;: &quot;NO_CROSS&quot;}
+        eligible_buys = sorted([r for r in buys if int(r[&quot;limit_price&quot;]) &gt;= clearing_price],
+                               key=lambda r: (r[&quot;received_at_ms&quot;], r[&quot;order_id&quot;]))
+        eligible_sells = sorted([r for r in sells if int(r[&quot;limit_price&quot;]) &lt;= clearing_price],
+                                key=lambda r: (r[&quot;received_at_ms&quot;], r[&quot;order_id&quot;]))
+        trades, remaining = [], volume
+        bi = si = 0
+        while remaining &gt; 0 and bi &lt; len(eligible_buys) and si &lt; len(eligible_sells):
+            buy, sell = eligible_buys[bi], eligible_sells[si]
+            if buy[&quot;participant&quot;] == sell[&quot;participant&quot;]:
+                self._alert(venue_id, instrument_id, buy[&quot;participant&quot;],
+                            &quot;SELF_TRADE_PREVENTED_AUCTION&quot;, {&quot;buy&quot;: buy[&quot;order_id&quot;], &quot;sell&quot;: sell[&quot;order_id&quot;]})
+                si += 1; continue
+            qty = min(int(buy[&quot;remaining&quot;]), int(sell[&quot;remaining&quot;]), remaining)
+            with self._db() as db:
+                tid = self._execute_trade(db, buy, sell, qty, clearing_price, &quot;CALL_AUCTION&quot;)
+                for row in (buy, sell):
+                    new_rem = int(row[&quot;remaining&quot;]) - qty
+                    db.execute(&quot;UPDATE orders SET remaining=?,status=? WHERE order_id=?&quot;,
+                               (new_rem, &quot;FILLED&quot; if new_rem == 0 else &quot;PARTIAL&quot;, row[&quot;order_id&quot;]))
+            trades.append(tid); remaining -= qty
+            buy = dict(buy); sell = dict(sell); buy[&quot;remaining&quot;] -= qty; sell[&quot;remaining&quot;] -= qty
+            eligible_buys[bi], eligible_sells[si] = buy, sell
+            if buy[&quot;remaining&quot;] == 0: bi += 1
+            if sell[&quot;remaining&quot;] == 0: si += 1
+        return {&quot;executed&quot;: bool(trades), &quot;clearing_price&quot;: clearing_price,
+                &quot;target_volume&quot;: volume, &quot;executed_volume&quot;: volume - remaining, &quot;trade_ids&quot;: trades}
+
+    def _record_signed_cancellation(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;cancellation_id&quot;,&quot;order_id&quot;,&quot;participant&quot;,&quot;nonce&quot;,&quot;created_at_ms&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-order-cancel-v1&quot;:
+            raise ValueError(&quot;invalid signed cancellation shape&quot;)
+        participant=str(body[&quot;participant&quot;]); created=int(body[&quot;created_at_ms&quot;])
+        if not str(body[&quot;cancellation_id&quot;]) or not str(body[&quot;nonce&quot;]) or created&lt;0:
+            raise ValueError(&quot;invalid cancellation identity/time&quot;)
+        manifest=self.identity.load_manifest(participant)
+        if not self.identity.verify_signature(manifest, body, signature):
+            raise PermissionError(&quot;cancellation signature invalid&quot;)
+        received=now_ms()
+        try:
+            with self._db() as db:
+                row=db.execute(&quot;SELECT * FROM orders WHERE order_id=?&quot;,(body[&quot;order_id&quot;],)).fetchone()
+                if not row or row[&quot;participant&quot;]!=participant: raise PermissionError(&quot;order owner required&quot;)
+                if row[&quot;status&quot;] not in {&quot;OPEN&quot;,&quot;PARTIAL&quot;}: raise ValueError(&quot;order not cancellable&quot;)
+                db.execute(&quot;INSERT INTO order_cancellations VALUES(?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;cancellation_id&quot;],body[&quot;order_id&quot;],participant,str(body[&quot;nonce&quot;]),created,received,json.dumps(signature,sort_keys=True)))
+                db.execute(&quot;UPDATE orders SET status=&#x27;CANCELLED&#x27;,remaining=0 WHERE order_id=?&quot;,(body[&quot;order_id&quot;],))
+                total=db.execute(&quot;SELECT COUNT(*) FROM orders WHERE venue_id=? AND participant=?&quot;,(row[&quot;venue_id&quot;],participant)).fetchone()[0]
+                cancelled=db.execute(&quot;SELECT COUNT(*) FROM orders WHERE venue_id=? AND participant=? AND status=&#x27;CANCELLED&#x27;&quot;,(row[&quot;venue_id&quot;],participant)).fetchone()[0]
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&quot;duplicate/replayed cancellation&quot;) from exc
+        ratio=cancelled/total if total else 0; alert=None
+        if total&gt;=5 and ratio&gt;=0.8:
+            alert=self._alert(row[&quot;venue_id&quot;],row[&quot;instrument_id&quot;],participant,&quot;HIGH_CANCEL_RATIO&quot;,{&quot;total&quot;:total,&quot;cancelled&quot;:cancelled,&quot;ratio&quot;:ratio})
+        return dict(body,status=&quot;CANCELLED&quot;,received_at_ms=received,cancel_ratio=ratio,alert_id=alert,signature=signature)
+
+    def submit_signed_cancellation(self, cancellation: dict, signature: dict) -&gt; dict:
+        return self._record_signed_cancellation(dict(cancellation),dict(signature))
+
+    def cancel_order(self, order_id: str, participant: str, *, nonce: str | None=None) -&gt; dict:
+        body={&quot;schema&quot;:&quot;entity-eep-order-cancel-v1&quot;,&quot;cancellation_id&quot;:rid(&quot;cancel3&quot;),&quot;order_id&quot;:str(order_id),
+              &quot;participant&quot;:participant,&quot;nonce&quot;:str(nonce or rid(&quot;nonce&quot;)),&quot;created_at_ms&quot;:now_ms()}
+        sig=self.identity.sign(participant,body)
+        return self._record_signed_cancellation(body,sig)
+
+    def authorize_settlement_verifier(self, venue_id: str, operator: str, verifier_entity_id: str) -&gt; dict:
+        self.identity.load_manifest(verifier_entity_id)
+        with self._db() as db:
+            venue=db.execute(&quot;SELECT * FROM venues WHERE venue_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(venue_id,)).fetchone()
+        if not venue or venue[&quot;operator&quot;]!=operator: raise PermissionError(&quot;venue operator required&quot;)
+        body={&quot;schema&quot;:&quot;entity-eep-settlement-verifier-authorization-v1&quot;,&quot;venue_id&quot;:venue_id,&quot;operator&quot;:operator,
+              &quot;verifier_entity_id&quot;:verifier_entity_id,&quot;status&quot;:&quot;ACTIVE&quot;,&quot;created_at_ms&quot;:now_ms()}
+        sig=self.identity.sign(operator,body)
+        with self._db() as db:
+            db.execute(&quot;INSERT INTO settlement_verifiers VALUES(?,?,?,?,?) ON CONFLICT(venue_id,verifier_entity_id) DO UPDATE SET status=excluded.status,created_at_ms=excluded.created_at_ms,signature_json=excluded.signature_json&quot;,
+                       (venue_id,verifier_entity_id,&quot;ACTIVE&quot;,body[&quot;created_at_ms&quot;],json.dumps(sig,sort_keys=True)))
+        return dict(body,signature=sig)
+
+    def revoke_settlement_verifier(self, venue_id: str, operator: str, verifier_entity_id: str) -&gt; dict:
+        with self._db() as db:
+            venue=db.execute(&quot;SELECT * FROM venues WHERE venue_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(venue_id,)).fetchone()
+            if not venue or venue[&quot;operator&quot;]!=operator: raise PermissionError(&quot;venue operator required&quot;)
+            row=db.execute(&quot;SELECT 1 FROM settlement_verifiers WHERE venue_id=? AND verifier_entity_id=?&quot;,(venue_id,verifier_entity_id)).fetchone()
+            if not row: raise KeyError(&quot;settlement verifier authorization not found&quot;)
+            db.execute(&quot;UPDATE settlement_verifiers SET status=&#x27;REVOKED&#x27; WHERE venue_id=? AND verifier_entity_id=?&quot;,(venue_id,verifier_entity_id))
+        return {&quot;venue_id&quot;:venue_id,&quot;verifier_entity_id&quot;:verifier_entity_id,&quot;status&quot;:&quot;REVOKED&quot;}
+
+    def _payment_attestation_authority(self, trade, venue, verifier_entity_id: str) -&gt; str:
+        if verifier_entity_id==trade[&quot;buyer&quot;]: return &quot;PAYER_ATTESTATION&quot;
+        if verifier_entity_id==trade[&quot;seller&quot;]: return &quot;PAYEE_ATTESTATION&quot;
+        if verifier_entity_id==venue[&quot;operator&quot;]: return &quot;VENUE_OPERATOR_ATTESTATION&quot;
+        with self._db() as db:
+            row=db.execute(&quot;SELECT status FROM settlement_verifiers WHERE venue_id=? AND verifier_entity_id=?&quot;,(trade[&quot;venue_id&quot;],verifier_entity_id)).fetchone()
+        if row and row[&quot;status&quot;]==&quot;ACTIVE&quot;: return &quot;AUTHORIZED_SETTLEMENT_VERIFIER&quot;
+        raise PermissionError(&quot;verifier is not authorized for this venue trade&quot;)
+
+    def _record_signed_payment_attestation(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;attestation_id&quot;,&quot;trade_id&quot;,&quot;verifier_entity_id&quot;,&quot;settlement_ref&quot;,&quot;evidence_sha256&quot;,&quot;nonce&quot;,&quot;created_at_ms&quot;,&quot;verification_is_attestation_not_absolute_truth&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-payment-attestation-v1&quot; or body.get(&quot;verification_is_attestation_not_absolute_truth&quot;) is not True:
+            raise ValueError(&quot;invalid payment attestation shape&quot;)
+        evidence=str(body[&quot;evidence_sha256&quot;]).lower()
+        if len(evidence)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in evidence): raise ValueError(&quot;SHA-256 hex required&quot;)
+        verifier=str(body[&quot;verifier_entity_id&quot;]); created=int(body[&quot;created_at_ms&quot;])
+        if not str(body[&quot;attestation_id&quot;]) or not str(body[&quot;settlement_ref&quot;]) or not str(body[&quot;nonce&quot;]) or created&lt;0:
+            raise ValueError(&quot;invalid payment attestation identity/time&quot;)
+        manifest=self.identity.load_manifest(verifier)
+        if not self.identity.verify_signature(manifest,body,signature): raise PermissionError(&quot;payment attestation signature invalid&quot;)
+        with self._db() as db:
+            trade=db.execute(&quot;SELECT * FROM trades WHERE trade_id=?&quot;,(body[&quot;trade_id&quot;],)).fetchone()
+            venue=db.execute(&quot;SELECT * FROM venues WHERE venue_id=?&quot;,(trade[&quot;venue_id&quot;],)).fetchone() if trade else None
+        if not trade or not venue: raise KeyError(&quot;trade/venue not found&quot;)
+        authority=self._payment_attestation_authority(trade,venue,verifier); received=now_ms()
+        try:
+            with self._db() as db:
+                db.execute(&quot;INSERT INTO payment_attestations VALUES(?,?,?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;attestation_id&quot;],body[&quot;trade_id&quot;],verifier,str(body[&quot;settlement_ref&quot;]),evidence,str(body[&quot;nonce&quot;]),created,received,authority,json.dumps(signature,sort_keys=True)))
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&quot;duplicate/replayed payment attestation&quot;) from exc
+        return dict(body,evidence_sha256=evidence,received_at_ms=received,verifier_authority_basis=authority,signature=signature)
+
+    def submit_signed_payment_attestation(self, attestation: dict, signature: dict) -&gt; dict:
+        return self._record_signed_payment_attestation(dict(attestation),dict(signature))
+
+    def attest_payment(self, trade_id: str, verifier_entity_id: str, settlement_ref: str,
+                       evidence_sha256: str, *, nonce: str | None=None) -&gt; dict:
+        evidence=str(evidence_sha256).lower()
+        if len(evidence)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in evidence): raise ValueError(&quot;SHA-256 hex required&quot;)
+        body={&quot;schema&quot;:&quot;entity-eep-payment-attestation-v1&quot;,&quot;attestation_id&quot;:rid(&quot;payatt3&quot;),&quot;trade_id&quot;:str(trade_id),
+              &quot;verifier_entity_id&quot;:verifier_entity_id,&quot;settlement_ref&quot;:str(settlement_ref),&quot;evidence_sha256&quot;:evidence,
+              &quot;nonce&quot;:str(nonce or rid(&quot;nonce&quot;)),&quot;created_at_ms&quot;:now_ms(),&quot;verification_is_attestation_not_absolute_truth&quot;:True}
+        sig=self.identity.sign(verifier_entity_id,body)
+        return self._record_signed_payment_attestation(body,sig)
+
+    def settle_trade(self, trade_id: str, *, payment_ref: str | None,
+                     external_verified=False, payment_attestation_id: str | None=None) -&gt; dict:
+        with self._db() as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;)
+            trade=db.execute(&quot;SELECT * FROM trades WHERE trade_id=? AND status=&#x27;EXECUTED_UNSETTLED&#x27;&quot;,(trade_id,)).fetchone()
+            clear=db.execute(&quot;SELECT * FROM clearing WHERE trade_id=? AND status=&#x27;PENDING&#x27;&quot;,(trade_id,)).fetchone()
+            if not trade or not clear: raise KeyError(&quot;unsettled trade required&quot;)
+            inst=db.execute(&quot;SELECT * FROM instruments WHERE instrument_id=?&quot;,(trade[&quot;instrument_id&quot;],)).fetchone()
+            venue=db.execute(&quot;SELECT * FROM venues WHERE venue_id=?&quot;,(trade[&quot;venue_id&quot;],)).fetchone()
+            if not inst or not venue: raise KeyError(&quot;trade instrument/venue required&quot;)
+            if int(clear[&quot;amount_units&quot;])&gt;0 and not payment_ref: raise ValueError(&quot;payment reference required for DvP settlement&quot;)
+            if external_verified:
+                if not payment_attestation_id: raise ValueError(&quot;payment attestation required for external verification&quot;)
+                attestation=db.execute(&quot;SELECT * FROM payment_attestations WHERE attestation_id=? AND trade_id=? AND settlement_ref=?&quot;,
+                                       (str(payment_attestation_id),trade_id,str(payment_ref))).fetchone()
+                if not attestation: raise PermissionError(&quot;valid payment attestation required for external verification&quot;)
+            bal=db.execute(&quot;SELECT units FROM balances WHERE instrument_id=? AND holder=?&quot;,(trade[&quot;instrument_id&quot;],trade[&quot;seller&quot;])).fetchone()
+            if not bal or int(bal[&quot;units&quot;])&lt;int(trade[&quot;quantity&quot;]): raise PermissionError(&quot;seller entitlement unavailable at settlement&quot;)
+            for holder,delta in ((trade[&quot;seller&quot;],-int(trade[&quot;quantity&quot;])),(trade[&quot;buyer&quot;],int(trade[&quot;quantity&quot;]))):
+                old=db.execute(&quot;SELECT units FROM balances WHERE instrument_id=? AND holder=?&quot;,(trade[&quot;instrument_id&quot;],holder)).fetchone()
+                units=(int(old[&quot;units&quot;]) if old else 0)+delta
+                db.execute(&quot;INSERT INTO balances(instrument_id,holder,units) VALUES(?,?,?) ON CONFLICT(instrument_id,holder) DO UPDATE SET units=excluded.units&quot;,(trade[&quot;instrument_id&quot;],holder,units))
+            expires=now_ms()+int(inst[&quot;duration_ms&quot;]) if inst[&quot;duration_ms&quot;] is not None else None
+            receipt={&quot;schema&quot;:&quot;entity-eep-entitlement-v1&quot;,&quot;entitlement_id&quot;:rid(&quot;ent3&quot;),&quot;trade_id&quot;:trade_id,&quot;instrument_id&quot;:trade[&quot;instrument_id&quot;],
+                     &quot;holder&quot;:trade[&quot;buyer&quot;],&quot;quantity&quot;:int(trade[&quot;quantity&quot;]),&quot;rights&quot;:json.loads(inst[&quot;rights_json&quot;]),&quot;expires_at_ms&quot;:expires,
+                     &quot;created_at_ms&quot;:now_ms(),&quot;instrument_issuer&quot;:inst[&quot;issuer&quot;],&quot;venue_operator&quot;:venue[&quot;operator&quot;],
+                     &quot;ownership_of_underlying_transferred&quot;:False,&quot;venue_operator_is_not_underlying_owner&quot;:True}
+            sig=self.identity.sign(venue[&quot;operator&quot;],receipt)
+            db.execute(&quot;INSERT INTO entitlements(entitlement_id,trade_id,instrument_id,holder,quantity,rights_json,expires_at_ms,created_at_ms,signature_json) VALUES(?,?,?,?,?,?,?,?,?)&quot;,
+                       (receipt[&quot;entitlement_id&quot;],trade_id,trade[&quot;instrument_id&quot;],trade[&quot;buyer&quot;],receipt[&quot;quantity&quot;],json.dumps(receipt[&quot;rights&quot;],sort_keys=True),expires,receipt[&quot;created_at_ms&quot;],json.dumps(sig,sort_keys=True)))
+            db.execute(&quot;UPDATE trades SET status=&#x27;SETTLED&#x27; WHERE trade_id=?&quot;,(trade_id,))
+            db.execute(&quot;UPDATE clearing SET status=&#x27;SETTLED&#x27;,payment_ref=?,external_verified=? WHERE trade_id=?&quot;,(payment_ref,int(bool(external_verified)),trade_id))
+        return {&quot;trade_id&quot;:trade_id,&quot;status&quot;:&quot;SETTLED&quot;,&quot;payment_ref&quot;:payment_ref,&quot;external_money_movement_verified&quot;:bool(external_verified),
+                &quot;payment_attestation_id&quot;:str(payment_attestation_id) if payment_attestation_id else None,&quot;entitlement&quot;:dict(receipt,signature=sig)}
+
+    def _record_signed_disclosure(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;disclosure_id&quot;,&quot;venue_id&quot;,&quot;instrument_id&quot;,&quot;publisher&quot;,&quot;disclosure_type&quot;,&quot;content_sha256&quot;,&quot;created_at_ms&quot;,&quot;protected_data_included&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-disclosure-v1&quot; or body.get(&quot;protected_data_included&quot;) is not False:
+            raise ValueError(&quot;invalid signed disclosure shape&quot;)
+        publisher=str(body[&quot;publisher&quot;]); created=int(body[&quot;created_at_ms&quot;]); content=str(body[&quot;content_sha256&quot;]).lower()
+        if len(content)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in content): raise ValueError(&quot;SHA-256 hex required&quot;)
+        if created&lt;0 or not str(body[&quot;disclosure_id&quot;]): raise ValueError(&quot;invalid disclosure identity/time&quot;)
+        manifest=self.identity.load_manifest(publisher)
+        if not self.identity.verify_signature(manifest,body,signature): raise PermissionError(&quot;disclosure signature invalid&quot;)
+        with self._db() as db:
+            venue=db.execute(&quot;SELECT 1 FROM venues WHERE venue_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(body[&quot;venue_id&quot;],)).fetchone()
+            inst=db.execute(&quot;SELECT 1 FROM instruments WHERE instrument_id=? AND status=&#x27;ACTIVE&#x27;&quot;,(body[&quot;instrument_id&quot;],)).fetchone()
+        if not venue or not inst: raise KeyError(&quot;active venue/instrument required&quot;)
+        try:
+            with self._db() as db:
+                db.execute(&quot;INSERT INTO disclosures VALUES(?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;disclosure_id&quot;],body[&quot;venue_id&quot;],body[&quot;instrument_id&quot;],publisher,str(body[&quot;disclosure_type&quot;]).upper(),content,created,json.dumps(signature,sort_keys=True)))
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&quot;duplicate/replayed disclosure&quot;) from exc
+        return dict(body,disclosure_type=str(body[&quot;disclosure_type&quot;]).upper(),content_sha256=content,signature=signature)
+
+    def submit_signed_disclosure(self, disclosure: dict, signature: dict) -&gt; dict:
+        return self._record_signed_disclosure(dict(disclosure),dict(signature))
+
+    def publish_disclosure(self, venue_id: str, instrument_id: str, publisher: str,
+                           disclosure_type: str, content_sha256: str) -&gt; dict:
+        content=str(content_sha256).lower()
+        if len(content)!=64 or any(c not in &quot;0123456789abcdef&quot; for c in content): raise ValueError(&quot;SHA-256 hex required&quot;)
+        body={&quot;schema&quot;:&quot;entity-eep-disclosure-v1&quot;,&quot;disclosure_id&quot;:rid(&quot;disc3&quot;),&quot;venue_id&quot;:venue_id,&quot;instrument_id&quot;:instrument_id,
+              &quot;publisher&quot;:publisher,&quot;disclosure_type&quot;:str(disclosure_type).upper(),&quot;content_sha256&quot;:content,
+              &quot;created_at_ms&quot;:now_ms(),&quot;protected_data_included&quot;:False}
+        sig=self.identity.sign(publisher,body)
+        return self._record_signed_disclosure(body,sig)
+
+    def market_data(self, venue_id: str, instrument_id: str) -&gt; dict:
+        with self._db() as db:
+            bid = db.execute(&quot;SELECT MAX(limit_price) p FROM orders WHERE venue_id=? AND instrument_id=? &quot;
+                             &quot;AND side=&#x27;BUY&#x27; AND status IN (&#x27;OPEN&#x27;,&#x27;PARTIAL&#x27;)&quot;, (venue_id, instrument_id)).fetchone()[&quot;p&quot;]
+            ask = db.execute(&quot;SELECT MIN(limit_price) p FROM orders WHERE venue_id=? AND instrument_id=? &quot;
+                             &quot;AND side=&#x27;SELL&#x27; AND status IN (&#x27;OPEN&#x27;,&#x27;PARTIAL&#x27;)&quot;, (venue_id, instrument_id)).fetchone()[&quot;p&quot;]
+            last = db.execute(&quot;SELECT price FROM trades WHERE venue_id=? AND instrument_id=? &quot;
+                              &quot;ORDER BY created_at_ms DESC,trade_id DESC LIMIT 1&quot;, (venue_id, instrument_id)).fetchone()
+            volume = db.execute(&quot;SELECT COALESCE(SUM(quantity),0) q FROM trades WHERE venue_id=? &quot;
+                                &quot;AND instrument_id=?&quot;, (venue_id, instrument_id)).fetchone()[&quot;q&quot;]
+        return {&quot;schema&quot;: &quot;entity-eep-market-data-v1&quot;, &quot;venue_id&quot;: venue_id,
+                &quot;instrument_id&quot;: instrument_id, &quot;best_bid&quot;: bid, &quot;best_ask&quot;: ask,
+                &quot;last&quot;: int(last[&quot;price&quot;]) if last else None, &quot;volume_units&quot;: int(volume),
+                &quot;as_of_ms&quot;: now_ms()}
+
+    def _record_signed_usage(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;usage_id&quot;,&quot;instrument_id&quot;,&quot;holder&quot;,&quot;action&quot;,&quot;units&quot;,&quot;nonce&quot;,&quot;created_at_ms&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-usage-v1&quot;:
+            raise ValueError(&quot;invalid signed usage shape&quot;)
+        holder=str(body[&quot;holder&quot;]); action=str(body[&quot;action&quot;]).upper(); units=max(1,int(body[&quot;units&quot;])); created=int(body[&quot;created_at_ms&quot;])
+        if not str(body[&quot;usage_id&quot;]) or not str(body[&quot;nonce&quot;]) or created&lt;0:
+            raise ValueError(&quot;invalid usage identity/time&quot;)
+        manifest=self.identity.load_manifest(holder)
+        if not self.identity.verify_signature(manifest,body,signature):
+            raise PermissionError(&quot;usage signature invalid&quot;)
+        with self._db() as db:
+            ents=db.execute(&quot;SELECT * FROM entitlements WHERE instrument_id=? AND holder=? AND (expires_at_ms IS NULL OR expires_at_ms&gt;?) ORDER BY created_at_ms,entitlement_id&quot;,(body[&quot;instrument_id&quot;],holder,now_ms())).fetchall()
+            inst=db.execute(&quot;SELECT * FROM instruments WHERE instrument_id=?&quot;,(body[&quot;instrument_id&quot;],)).fetchone()
+        if not ents: raise PermissionError(&quot;active entitlement required&quot;)
+        rights=json.loads(ents[-1][&quot;rights_json&quot;]); allowed={str(a).upper() for a in rights.get(&quot;actions&quot;) or []}
+        if action not in allowed: raise PermissionError(&quot;instrument right does not permit action&quot;)
+        if inst[&quot;delivery_mode&quot;]==&quot;COMPUTE_TO_DATA&quot; and action in {&quot;COPY&quot;,&quot;REDISTRIBUTE&quot;}:
+            raise PermissionError(&quot;raw data delivery prohibited&quot;)
+        try:
+            with self._db() as db:
+                db.execute(&quot;INSERT INTO usage VALUES(?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;usage_id&quot;],body[&quot;instrument_id&quot;],holder,action,units,str(body[&quot;nonce&quot;]),created,json.dumps(signature,sort_keys=True)))
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&quot;duplicate/replayed usage&quot;) from exc
+        return dict(body,action=action,units=units,signature=signature)
+
+    def submit_signed_usage(self, usage: dict, signature: dict) -&gt; dict:
+        return self._record_signed_usage(dict(usage),dict(signature))
+
+    def meter_usage(self, instrument_id: str, holder: str, action: str, units: int, *, nonce: str) -&gt; dict:
+        body={&quot;schema&quot;:&quot;entity-eep-usage-v1&quot;,&quot;usage_id&quot;:rid(&quot;usage3&quot;),&quot;instrument_id&quot;:instrument_id,
+              &quot;holder&quot;:holder,&quot;action&quot;:str(action).upper(),&quot;units&quot;:max(1,int(units)),
+              &quot;nonce&quot;:str(nonce),&quot;created_at_ms&quot;:now_ms()}
+        sig=self.identity.sign(holder,body)
+        return self._record_signed_usage(body,sig)
+
+    def _record_signed_revenue_rules(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;rule_set_id&quot;,&quot;instrument_id&quot;,&quot;issuer&quot;,&quot;allocations_bps&quot;,&quot;nonce&quot;,&quot;created_at_ms&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-revenue-rule-set-v1&quot;: raise ValueError(&quot;invalid signed revenue rule shape&quot;)
+        issuer=str(body[&quot;issuer&quot;]); created=int(body[&quot;created_at_ms&quot;]); allocations={str(k):int(v) for k,v in dict(body[&quot;allocations_bps&quot;]).items()}
+        total=sum(allocations.values())
+        if created&lt;0 or not str(body[&quot;rule_set_id&quot;]) or not str(body[&quot;nonce&quot;]) or total&lt;0 or total&gt;10000 or any(v&lt;0 for v in allocations.values()):
+            raise ValueError(&quot;invalid revenue allocation&quot;)
+        canonical=dict(body,allocations_bps=dict(sorted(allocations.items())))
+        manifest=self.identity.load_manifest(issuer)
+        if not self.identity.verify_signature(manifest,canonical,signature): raise PermissionError(&quot;revenue rule signature invalid&quot;)
+        received=now_ms()
+        try:
+            with self._db() as db:
+                inst=db.execute(&quot;SELECT * FROM instruments WHERE instrument_id=?&quot;,(body[&quot;instrument_id&quot;],)).fetchone()
+                if not inst or inst[&quot;issuer&quot;]!=issuer: raise PermissionError(&quot;instrument issuer required&quot;)
+                db.execute(&quot;INSERT INTO revenue_rule_sets VALUES(?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;rule_set_id&quot;],body[&quot;instrument_id&quot;],issuer,json.dumps(dict(sorted(allocations.items())),sort_keys=True),str(body[&quot;nonce&quot;]),created,received,json.dumps(signature,sort_keys=True)))
+                db.execute(&quot;DELETE FROM revenue_rules WHERE instrument_id=?&quot;,(body[&quot;instrument_id&quot;],))
+                for recipient,bps in sorted(allocations.items()):
+                    db.execute(&quot;INSERT INTO revenue_rules VALUES(?,?,?)&quot;,(body[&quot;instrument_id&quot;],recipient,bps))
+        except sqlite3.IntegrityError as exc:
+            raise ValueError(&quot;duplicate/replayed revenue rule set&quot;) from exc
+        return dict(canonical,total_bps=total,unallocated_bps=10000-total,received_at_ms=received,signature=signature)
+
+    def submit_signed_revenue_rules(self, rule_set: dict, signature: dict) -&gt; dict:
+        return self._record_signed_revenue_rules(dict(rule_set),dict(signature))
+
+    def set_revenue_rule(self, instrument_id: str, allocations_bps: dict[str, int], *, issuer: str | None=None, nonce: str | None=None) -&gt; dict:
+        with self._db() as db:
+            inst=db.execute(&quot;SELECT * FROM instruments WHERE instrument_id=?&quot;,(instrument_id,)).fetchone()
+        if not inst: raise KeyError(&quot;instrument not found&quot;)
+        issuer=str(issuer or inst[&quot;issuer&quot;])
+        allocations={str(k):int(v) for k,v in dict(allocations_bps).items()}
+        body={&quot;schema&quot;:&quot;entity-eep-revenue-rule-set-v1&quot;,&quot;rule_set_id&quot;:rid(&quot;revrule3&quot;),&quot;instrument_id&quot;:instrument_id,
+              &quot;issuer&quot;:issuer,&quot;allocations_bps&quot;:dict(sorted(allocations.items())),&quot;nonce&quot;:str(nonce or rid(&quot;nonce&quot;)),&quot;created_at_ms&quot;:now_ms()}
+        sig=self.identity.sign(issuer,body)
+        return self._record_signed_revenue_rules(body,sig)
+
+    def distribute_revenue(self, instrument_id: str, amount_units: int) -&gt; dict:
+        with self._db() as db:
+            rows = db.execute(&quot;SELECT * FROM revenue_rules WHERE instrument_id=? ORDER BY recipient&quot;,
+                              (instrument_id,)).fetchall()
+        amount = max(0, int(amount_units)); shares = {}
+        raw = [(r[&quot;recipient&quot;], amount * int(r[&quot;bps&quot;]) // 10000) for r in rows]
+        for recipient, value in raw: shares[recipient] = value
+        allocated = sum(shares.values())
+        return {&quot;instrument_id&quot;: instrument_id, &quot;amount_units&quot;: amount,
+                &quot;distributions&quot;: shares, &quot;allocated_units&quot;: allocated,
+                &quot;unallocated_units&quot;: amount - allocated, &quot;contractual_not_market_value&quot;: True}
+
+    def _record_signed_rfq(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;rfq_id&quot;,&quot;venue_id&quot;,&quot;instrument_id&quot;,&quot;requester&quot;,&quot;side&quot;,&quot;quantity&quot;,&quot;expires_at_ms&quot;,&quot;nonce&quot;,&quot;created_at_ms&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-rfq-v1&quot;: raise ValueError(&quot;invalid signed RFQ shape&quot;)
+        requester=str(body[&quot;requester&quot;]); side=str(body[&quot;side&quot;]).upper(); qty=int(body[&quot;quantity&quot;]); expiry=int(body[&quot;expires_at_ms&quot;]); created=int(body[&quot;created_at_ms&quot;])
+        if side not in self.SIDES or qty&lt;1 or expiry&lt;=now_ms() or created&lt;0 or not str(body[&quot;nonce&quot;]): raise ValueError(&quot;invalid RFQ&quot;)
+        if not self._listing(body[&quot;venue_id&quot;],body[&quot;instrument_id&quot;]): raise KeyError(&quot;instrument not listed on venue&quot;)
+        manifest=self.identity.load_manifest(requester)
+        if not self.identity.verify_signature(manifest,body,signature): raise PermissionError(&quot;RFQ signature invalid&quot;)
+        if side==&quot;SELL&quot; and self.balance(body[&quot;instrument_id&quot;],requester)&lt;qty: raise PermissionError(&quot;RFQ seller lacks entitlement&quot;)
+        received=now_ms()
+        try:
+            with self._db() as db:
+                db.execute(&quot;INSERT INTO rfqs(rfq_id,venue_id,instrument_id,requester,side,quantity,expires_at_ms,status,created_at_ms,nonce,received_at_ms,signature_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;rfq_id&quot;],body[&quot;venue_id&quot;],body[&quot;instrument_id&quot;],requester,side,qty,expiry,&quot;OPEN&quot;,created,str(body[&quot;nonce&quot;]),received,json.dumps(signature,sort_keys=True)))
+        except sqlite3.IntegrityError as exc: raise ValueError(&quot;duplicate/replayed RFQ&quot;) from exc
+        return dict(body,side=side,quantity=qty,status=&quot;OPEN&quot;,received_at_ms=received,signature=signature)
+
+    def submit_signed_rfq(self, rfq: dict, signature: dict) -&gt; dict:
+        return self._record_signed_rfq(dict(rfq),dict(signature))
+
+    def create_rfq(self, venue_id: str, instrument_id: str, requester: str,
+                   side: str, quantity: int, *, expires_at_ms: int, nonce: str | None=None) -&gt; dict:
+        body={&quot;schema&quot;:&quot;entity-eep-rfq-v1&quot;,&quot;rfq_id&quot;:rid(&quot;rfq3&quot;),&quot;venue_id&quot;:venue_id,&quot;instrument_id&quot;:instrument_id,
+              &quot;requester&quot;:requester,&quot;side&quot;:str(side).upper(),&quot;quantity&quot;:int(quantity),&quot;expires_at_ms&quot;:int(expires_at_ms),
+              &quot;nonce&quot;:str(nonce or rid(&quot;nonce&quot;)),&quot;created_at_ms&quot;:now_ms()}
+        sig=self.identity.sign(requester,body)
+        return self._record_signed_rfq(body,sig)
+
+    def _record_signed_quote(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;quote_id&quot;,&quot;rfq_id&quot;,&quot;provider&quot;,&quot;price&quot;,&quot;expires_at_ms&quot;,&quot;nonce&quot;,&quot;created_at_ms&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-rfq-quote-v1&quot;: raise ValueError(&quot;invalid signed quote shape&quot;)
+        provider=str(body[&quot;provider&quot;]); price=int(body[&quot;price&quot;]); expiry=int(body[&quot;expires_at_ms&quot;]); created=int(body[&quot;created_at_ms&quot;])
+        if price&lt;0 or expiry&lt;=now_ms() or created&lt;0 or not str(body[&quot;nonce&quot;]): raise ValueError(&quot;invalid quote&quot;)
+        manifest=self.identity.load_manifest(provider)
+        if not self.identity.verify_signature(manifest,body,signature): raise PermissionError(&quot;quote signature invalid&quot;)
+        with self._db() as db:
+            rfq=db.execute(&quot;SELECT * FROM rfqs WHERE rfq_id=? AND status=&#x27;OPEN&#x27;&quot;,(body[&quot;rfq_id&quot;],)).fetchone()
+        if not rfq or now_ms()&gt;int(rfq[&quot;expires_at_ms&quot;]): raise KeyError(&quot;active RFQ required&quot;)
+        if rfq[&quot;side&quot;]==&quot;BUY&quot;:
+            available=self.balance(rfq[&quot;instrument_id&quot;],provider)-self._reserved_sell(rfq[&quot;instrument_id&quot;],provider)
+            if available&lt;int(rfq[&quot;quantity&quot;]): raise PermissionError(&quot;quote provider lacks unreserved sell entitlement&quot;)
+        received=now_ms()
+        try:
+            with self._db() as db:
+                db.execute(&quot;INSERT INTO quotes(quote_id,rfq_id,provider,price,expires_at_ms,status,created_at_ms,nonce,received_at_ms,signature_json) VALUES(?,?,?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;quote_id&quot;],body[&quot;rfq_id&quot;],provider,price,expiry,&quot;OPEN&quot;,created,str(body[&quot;nonce&quot;]),received,json.dumps(signature,sort_keys=True)))
+        except sqlite3.IntegrityError as exc: raise ValueError(&quot;duplicate/replayed quote&quot;) from exc
+        return dict(body,price=price,status=&quot;OPEN&quot;,received_at_ms=received,signature=signature)
+
+    def submit_signed_quote(self, quote: dict, signature: dict) -&gt; dict:
+        return self._record_signed_quote(dict(quote),dict(signature))
+
+    def quote_rfq(self, rfq_id: str, provider: str, price: int, *, expires_at_ms: int, nonce: str | None=None) -&gt; dict:
+        body={&quot;schema&quot;:&quot;entity-eep-rfq-quote-v1&quot;,&quot;quote_id&quot;:rid(&quot;quote3&quot;),&quot;rfq_id&quot;:rfq_id,&quot;provider&quot;:provider,
+              &quot;price&quot;:int(price),&quot;expires_at_ms&quot;:int(expires_at_ms),&quot;nonce&quot;:str(nonce or rid(&quot;nonce&quot;)),&quot;created_at_ms&quot;:now_ms()}
+        sig=self.identity.sign(provider,body)
+        return self._record_signed_quote(body,sig)
+
+    def _record_signed_quote_acceptance(self, body: dict, signature: dict) -&gt; dict:
+        required={&quot;schema&quot;,&quot;acceptance_id&quot;,&quot;rfq_id&quot;,&quot;quote_id&quot;,&quot;requester&quot;,&quot;nonce&quot;,&quot;created_at_ms&quot;}
+        validate_signed_wire(body)
+        if set(body)!=required or body.get(&quot;schema&quot;)!=&quot;entity-eep-rfq-acceptance-v1&quot;: raise ValueError(&quot;invalid signed RFQ acceptance shape&quot;)
+        requester=str(body[&quot;requester&quot;]); created=int(body[&quot;created_at_ms&quot;])
+        if created&lt;0 or not str(body[&quot;nonce&quot;]): raise ValueError(&quot;invalid RFQ acceptance&quot;)
+        manifest=self.identity.load_manifest(requester)
+        if not self.identity.verify_signature(manifest,body,signature): raise PermissionError(&quot;RFQ acceptance signature invalid&quot;)
+        received=now_ms()
+        try:
+            with self._db() as db:
+                db.execute(&quot;BEGIN IMMEDIATE&quot;)
+                rfq=db.execute(&quot;SELECT * FROM rfqs WHERE rfq_id=? AND status=&#x27;OPEN&#x27;&quot;,(body[&quot;rfq_id&quot;],)).fetchone()
+                quote=db.execute(&quot;SELECT * FROM quotes WHERE quote_id=? AND rfq_id=? AND status=&#x27;OPEN&#x27;&quot;,(body[&quot;quote_id&quot;],body[&quot;rfq_id&quot;])).fetchone()
+                if not rfq or not quote or rfq[&quot;requester&quot;]!=requester: raise PermissionError(&quot;valid requester/quote required&quot;)
+                if now_ms()&gt;min(int(rfq[&quot;expires_at_ms&quot;]),int(quote[&quot;expires_at_ms&quot;])): raise ValueError(&quot;RFQ/quote expired&quot;)
+                buyer=requester if rfq[&quot;side&quot;]==&quot;BUY&quot; else quote[&quot;provider&quot;]
+                seller=quote[&quot;provider&quot;] if rfq[&quot;side&quot;]==&quot;BUY&quot; else requester
+                bal=db.execute(&quot;SELECT units FROM balances WHERE instrument_id=? AND holder=?&quot;,(rfq[&quot;instrument_id&quot;],seller)).fetchone()
+                available=(int(bal[&quot;units&quot;]) if bal else 0)-self._reserved_sell_db(db,rfq[&quot;instrument_id&quot;],seller)
+                if available&lt;int(rfq[&quot;quantity&quot;]): raise PermissionError(&quot;RFQ seller lacks unreserved entitlement&quot;)
+                db.execute(&quot;INSERT INTO rfq_acceptances VALUES(?,?,?,?,?,?,?,?)&quot;,(
+                    body[&quot;acceptance_id&quot;],body[&quot;rfq_id&quot;],body[&quot;quote_id&quot;],requester,str(body[&quot;nonce&quot;]),created,received,json.dumps(signature,sort_keys=True)))
+                buy_stub={&quot;venue_id&quot;:rfq[&quot;venue_id&quot;],&quot;instrument_id&quot;:rfq[&quot;instrument_id&quot;],&quot;order_id&quot;:None,&quot;participant&quot;:buyer}
+                sell_stub={&quot;order_id&quot;:None,&quot;participant&quot;:seller}
+                trade_id=self._execute_trade(db,buy_stub,sell_stub,int(rfq[&quot;quantity&quot;]),int(quote[&quot;price&quot;]),&quot;RFQ&quot;)
+                db.execute(&quot;UPDATE rfqs SET status=&#x27;ACCEPTED&#x27; WHERE rfq_id=?&quot;,(body[&quot;rfq_id&quot;],))
+                db.execute(&quot;UPDATE quotes SET status=&#x27;ACCEPTED&#x27; WHERE quote_id=?&quot;,(body[&quot;quote_id&quot;],))
+        except sqlite3.IntegrityError as exc: raise ValueError(&quot;duplicate/replayed RFQ acceptance&quot;) from exc
+        return dict(body,status=&quot;EXECUTED_UNSETTLED&quot;,trade_id=trade_id,execution_model=&quot;RFQ&quot;,received_at_ms=received,signature=signature)
+
+    def submit_signed_quote_acceptance(self, acceptance: dict, signature: dict) -&gt; dict:
+        return self._record_signed_quote_acceptance(dict(acceptance),dict(signature))
+
+    def accept_quote(self, rfq_id: str, quote_id: str, requester: str, *, nonce: str | None=None) -&gt; dict:
+        body={&quot;schema&quot;:&quot;entity-eep-rfq-acceptance-v1&quot;,&quot;acceptance_id&quot;:rid(&quot;accept3&quot;),&quot;rfq_id&quot;:rfq_id,
+              &quot;quote_id&quot;:quote_id,&quot;requester&quot;:requester,&quot;nonce&quot;:str(nonce or rid(&quot;nonce&quot;)),&quot;created_at_ms&quot;:now_ms()}
+        sig=self.identity.sign(requester,body)
+        return self._record_signed_quote_acceptance(body,sig)
+
+    def surveillance_alerts(self, venue_id: str) -&gt; list[dict]:
+        with self._db() as db:
+            rows = db.execute(&quot;SELECT * FROM surveillance WHERE venue_id=? ORDER BY created_at_ms&quot;,
+                              (venue_id,)).fetchall()
+        return [dict(r) | {&quot;evidence&quot;: json.loads(r[&quot;evidence_json&quot;])} for r in rows]
+
+    def status(self) -&gt; dict:
+        with self._db() as db:
+            tables=(&quot;venues&quot;,&quot;instruments&quot;,&quot;listings&quot;,&quot;orders&quot;,&quot;order_cancellations&quot;,&quot;trades&quot;,&quot;clearing&quot;,&quot;payment_attestations&quot;,&quot;settlement_verifiers&quot;,&quot;entitlements&quot;,&quot;usage&quot;,&quot;surveillance&quot;,&quot;rfqs&quot;,&quot;quotes&quot;,&quot;rfq_acceptances&quot;,&quot;revenue_rule_sets&quot;,&quot;trade_revenue_bindings&quot;)
+            counts={name:int(db.execute(f&quot;SELECT COUNT(*) FROM {name}&quot;).fetchone()[0]) for name in tables}
+        return {&quot;schema&quot;:&quot;entity-eep-status-v1&quot;,&quot;profile&quot;:&quot;ENTITY_EXCHANGE_PROTOCOL&quot;,&quot;version&quot;:&quot;3.0.0&quot;,
+                &quot;rights_are_traded_not_bytes&quot;:True,&quot;venue_neutral&quot;:True,&quot;payment_versus_right_transfer&quot;:True,
+                &quot;deterministic_price_time_matching&quot;:True,&quot;market_surveillance&quot;:True,&quot;market_data&quot;:True,&quot;rfq&quot;:True,
+                &quot;revenue_distribution&quot;:True,&quot;externally_signed_orders&quot;:True,&quot;venue_receipt_time_priority&quot;:True,
+                &quot;externally_signed_participant_actions&quot;:True,&quot;externally_signed_issuer_actions&quot;:True,
+                &quot;signed_external_payment_attestations&quot;:True,&quot;listing_disclosure_binding&quot;:True,
+                &quot;issuer_authenticated_revenue_rules&quot;:True,&quot;entitlement_attested_by_venue_operator&quot;:True,
+                &quot;unsettled_sell_commitments_reserved&quot;:True,&quot;trade_time_revenue_binding&quot;:True,
+                &quot;atomic_sell_admission&quot;:True,&quot;atomic_order_book_execution&quot;:True,&quot;atomic_settlement&quot;:True,&quot;counts&quot;:counts}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

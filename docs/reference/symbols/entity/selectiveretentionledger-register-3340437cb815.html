@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SelectiveRetentionLedger.register Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>SelectiveRetentionLedger.register</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/privacy_provenance.py#L141">ENTITY/src/35_Global_Infrastructure/privacy_provenance.py#L141</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>SelectiveRetentionLedger.register(self, controller: str, subject_ref: str, payload_sha256: str, *, purpose: str, jurisdiction: str, retain_until_ms: int, destruction_mode: str, storage_ref_sha256: str | None=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def register(self, controller: str, subject_ref: str, payload_sha256: str, *,
+                 purpose: str, jurisdiction: str, retain_until_ms: int,
+                 destruction_mode: str, storage_ref_sha256: str | None = None) -&gt; dict:
+        mode = destruction_mode.upper()
+        if mode not in self.MODES:
+            raise ValueError(&quot;invalid destruction mode&quot;)
+        payload_sha256 = sha256_hex(payload_sha256)
+        storage_hash = None if storage_ref_sha256 is None else sha256_hex(storage_ref_sha256)
+        body = {&quot;schema&quot;: &quot;entity-v3-retention-record-v1&quot;, &quot;record_id&quot;: rid(&quot;retain3&quot;),
+                &quot;controller&quot;: controller, &quot;subject_ref&quot;: str(subject_ref),
+                &quot;payload_sha256&quot;: payload_sha256, &quot;storage_ref_sha256&quot;: storage_hash,
+                &quot;purpose&quot;: str(purpose).upper(), &quot;jurisdiction&quot;: str(jurisdiction).upper(),
+                &quot;retain_until_ms&quot;: int(retain_until_ms), &quot;destruction_mode&quot;: mode,
+                &quot;status&quot;: &quot;ACTIVE&quot;, &quot;created_at_ms&quot;: now_ms(),
+                &quot;raw_payload_stored_in_ledger&quot;: False}
+        sig = self.identity.sign(controller, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO records VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;record_id&quot;], controller, str(subject_ref), payload_sha256, storage_hash,
+                body[&quot;purpose&quot;], body[&quot;jurisdiction&quot;], body[&quot;retain_until_ms&quot;], mode,
+                &quot;ACTIVE&quot;, None, body[&quot;created_at_ms&quot;], None, json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / docs/INTEROPERABILITY_CHALLENGE.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / docs/INTEROPERABILITY_CHALLENGE.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>docs/INTEROPERABILITY_CHALLENGE.md</code></p><p><b>SHA-256:</b> <code>20d3a5b45d6dfecaf6009adbc889f05ea5daec55d699ac74475a7deec87f2339</code></p><p><b>Bytes:</b> 6,217</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/docs/INTEROPERABILITY_CHALLENGE.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY Interoperability Challenge
+
+ENTITY is looking for engineers who want to test the protocol, not merely endorse it.
+
+The central question is:
+
+&gt; **Can an unrelated implementation reproduce ENTITY&#x27;s authority, rights, evidence and economic-state semantics from public materials alone?**
+
+BTG already maintains controlled cross-language baselines. Those are useful engineering evidence, but they are not independent external validation. This challenge exists to cross that boundary.
+
+## You can start small
+
+A full independent implementation is a substantial systems task. It is **not** the required entry point.
+
+### Level 0 — Reproduce
+
+Typical effort: minutes to a few hours.
+
+- clone the repository or sealed conformance kit;
+- run documented verification/tests;
+- reproduce one published hash or vector outcome;
+- report environment-specific failures or documentation ambiguity.
+
+A clean reproduction report is a useful contribution.
+
+### Level 1 — Challenge one semantic boundary
+
+Typical effort: a few hours.
+
+Choose one area and try to break or clarify it:
+
+- canonicalization/signature behavior;
+- identity versus alias/account semantics;
+- provider custody versus sovereign authority;
+- rights and entitlement boundaries;
+- invalid/tampered vector rejection;
+- v3.3 truth-state transitions;
+- scoped attestation authority;
+- external-anchor non-authority;
+- dispute/supersession history;
+- causal-economic graph evidence requirements.
+
+A counterexample, missing test or ambiguous rule is a successful result if it improves the specification.
+
+### Level 2 — Build a small clean-room candidate
+
+Implement a narrow public interface in a language/runtime of your choice using only the permitted public material for the campaign.
+
+Useful ecosystems include Rust, Go, C#/.NET, TypeScript, Java/Kotlin, Swift and others. The language is less important than genuine implementation independence.
+
+Your architecture, dependencies, repository structure, testing strategy and internal design are yours.
+
+### Level 3 — Full independent conformance
+
+A candidate seeking independent qualification should ultimately:
+
+1. Pin the exact public ENTITY release / sealed kit used.
+2. Document the clean-room boundary.
+3. Implement the required public candidate interface.
+4. Accept all valid campaign vectors.
+5. Reject all invalid/tampered campaign vectors.
+6. Publish its implementation and CI evidence independently.
+7. Complete bidirectional live interoperability with BTG.
+8. Complete sovereign export/recovery survival testing.
+9. Re-verify the authoritative result after recovery.
+10. Publish an independently authored qualification report.
+
+BTG should not write the candidate or its final qualification report.
+
+---
+
+## v3.3 challenge: signed is not the same as true
+
+ENTITY v3.3 makes a specific distinction that is worth attacking independently:
+
+```text
+Cryptographic verification
+        ≠
+Protocol verification
+        ≠
+Reality/evidence verification
+```
+
+An external implementation should be able to distinguish, for example:
+
+- a correctly signed assertion from an externally verified claim;
+- a valid evidence object from a claim whose evidence is insufficient for a stronger state;
+- a scoped attestation authority from general sovereign authority;
+- an external registry snapshot from ENTITY authority;
+- a disputed claim from a deleted/rewritten claim;
+- a provenance edge from an evidence-backed causal-economic edge.
+
+The design target is not universal truth. The design target is attributable, contestable and machine-verifiable evidence about claims.
+
+---
+
+## What counts as independent?
+
+For external evidence, independence is about control and authorship, not merely programming language.
+
+A strong independent attempt should:
+
+- be authored outside BTG control;
+- live in a repository controlled by the independent implementer/organization;
+- avoid copying or porting BTG implementation code;
+- identify the exact allowed public specification/kit;
+- choose its own architecture/libraries/implementation approach;
+- publish failures as well as successes;
+- author its own final evidence/qualification report.
+
+BTG can answer questions about the public specification, expected vector intent and interoperability procedure without taking over the implementation.
+
+---
+
+## Current controlled baselines
+
+The protected v3.2 release has BTG-controlled native baselines in:
+
+**Rust · TypeScript · C# · Go · Swift · Java**
+</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

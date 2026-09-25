@@ -1,0 +1,89 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY-GITHUB-APP / src/entity_github_app/github_api.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY-GITHUB-APP / src/entity_github_app/github_api.py</h1><div class="meta"><b>Repository:</b> ENTITY-GITHUB-APP<br><b>Commit:</b> <code>7ef6b33b5d586cabd1f912491152fcff10e0ad47</code></div><p><b>Path:</b> <code>src/entity_github_app/github_api.py</code></p><p><b>SHA-256:</b> <code>5058c1bce5100085d26f03ef36abc9fbd226a434caeddf02442214fcba51dc3a</code></p><p><b>Bytes:</b> 3,431</p><p><a href="https://github.com/blackmore-technology-group/ENTITY-GITHUB-APP/blob/7ef6b33b5d586cabd1f912491152fcff10e0ad47/src/entity_github_app/github_api.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity-github-app/b64url-a188664df5cb.html">_b64url</a></li><li><a href="../../../reference/symbols/entity-github-app/openssl-path-54dcb60034e1.html">_openssl_path</a></li><li><a href="../../../reference/symbols/entity-github-app/create-app-jwt-fbb9eca527f2.html">create_app_jwt</a></li><li><a href="../../../reference/symbols/entity-github-app/api-request-4cc84ac1a6a9.html">api_request</a></li><li><a href="../../../reference/symbols/entity-github-app/installation-token-9a2f3fcd8008.html">installation_token</a></li><li><a href="../../../reference/symbols/entity-github-app/repository-snapshot-28695caf3567.html">repository_snapshot</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+
+import base64
+import json
+import os
+import subprocess
+import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+from typing import Any, Dict
+
+from .canonical import canonical_json
+
+API = &quot;https://api.github.com&quot;
+DEFAULT_OPENSSL = Path(r&quot;E:\ENTITY_ACTIVE\TOOLS\PortableGit\usr\bin\openssl.exe&quot;)
+
+
+def _b64url(data: bytes) -&gt; str:
+    return base64.urlsafe_b64encode(data).rstrip(b&quot;=&quot;).decode(&quot;ascii&quot;)
+
+
+def _openssl_path() -&gt; Path:
+    configured = os.environ.get(&quot;ENTITY_GITHUB_OPENSSL&quot;)
+    path = Path(configured) if configured else DEFAULT_OPENSSL
+    if not path.is_file():
+        raise RuntimeError(f&quot;OpenSSL not found: {path}&quot;)
+    return path
+
+
+def create_app_jwt(app_id: str, private_key_path: str | Path, lifetime_seconds: int = 540) -&gt; str:
+    now = int(time.time())
+    header = _b64url(canonical_json({&quot;alg&quot;: &quot;RS256&quot;, &quot;typ&quot;: &quot;JWT&quot;}).encode(&quot;utf-8&quot;))
+    payload = _b64url(canonical_json({&quot;iat&quot;: now - 60, &quot;exp&quot;: now + lifetime_seconds, &quot;iss&quot;: str(app_id)}).encode(&quot;utf-8&quot;))
+    signing_input = f&quot;{header}.{payload}&quot;.encode(&quot;ascii&quot;)
+    key = Path(private_key_path)
+    if not key.is_file():
+        raise RuntimeError(f&quot;GitHub App private key not found: {key}&quot;)
+    proc = subprocess.run(
+        [str(_openssl_path()), &quot;dgst&quot;, &quot;-sha256&quot;, &quot;-sign&quot;, str(key)],
+        input=signing_input,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(proc.stderr.decode(&quot;utf-8&quot;, errors=&quot;replace&quot;).strip())
+    return f&quot;{header}.{payload}.{_b64url(proc.stdout)}&quot;
+
+
+def api_request(method: str, path: str, token: str, body: Dict[str, Any] | None = None) -&gt; Dict[str, Any]:
+    data = canonical_json(body).encode(&quot;utf-8&quot;) if body is not None else None
+    req = urllib.request.Request(f&quot;{API}{path}&quot;, data=data, method=method)
+    req.add_header(&quot;Accept&quot;, &quot;application/vnd.github+json&quot;)
+    req.add_header(&quot;Authorization&quot;, f&quot;Bearer {token}&quot;)
+    req.add_header(&quot;X-GitHub-Api-Version&quot;, &quot;2022-11-28&quot;)
+    req.add_header(&quot;User-Agent&quot;, &quot;entity-github-app/0.1&quot;)
+    if data is not None:
+        req.add_header(&quot;Content-Type&quot;, &quot;application/json&quot;)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as response:
+            raw = response.read()
+            return json.loads(raw.decode(&quot;utf-8&quot;)) if raw else {}
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode(&quot;utf-8&quot;, errors=&quot;replace&quot;)
+        raise RuntimeError(f&quot;GitHub API {exc.code}: {detail}&quot;) from exc
+
+
+def installation_token(app_id: str, private_key_path: str | Path, installation_id: int) -&gt; str:
+    jwt = create_app_jwt(app_id, private_key_path)
+    result = api_request(&quot;POST&quot;, f&quot;/app/installations/{installation_id}/access_tokens&quot;, jwt, {})
+    token = result.get(&quot;token&quot;)
+    if not token:
+        raise RuntimeError(&quot;GitHub did not return an installation token&quot;)
+    return token
+
+
+def repository_snapshot(token: str, full_name: str) -&gt; Dict[str, Any]:
+    repo = api_request(&quot;GET&quot;, f&quot;/repos/{full_name}&quot;, token)
+    return {
+        &quot;id&quot;: repo.get(&quot;id&quot;),
+        &quot;full_name&quot;: repo.get(&quot;full_name&quot;),
+        &quot;default_branch&quot;: repo.get(&quot;default_branch&quot;),
+        &quot;visibility&quot;: repo.get(&quot;visibility&quot;),
+        &quot;archived&quot;: repo.get(&quot;archived&quot;),
+        &quot;disabled&quot;: repo.get(&quot;disabled&quot;),
+        &quot;pushed_at&quot;: repo.get(&quot;pushed_at&quot;),
+        &quot;updated_at&quot;: repo.get(&quot;updated_at&quot;),
+    }</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

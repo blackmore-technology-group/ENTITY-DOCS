@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>evidence_candidate Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>evidence_candidate</h1><div class="meta"><b>Repository:</b> ENTITY-GITHUB-APP<br><b>Commit:</b> <code>7ef6b33b5d586cabd1f912491152fcff10e0ad47</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY-GITHUB-APP/blob/7ef6b33b5d586cabd1f912491152fcff10e0ad47/src/entity_github_app/canonical.py#L55">ENTITY-GITHUB-APP/src/entity_github_app/canonical.py#L55</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>evidence_candidate(event: str, delivery_id: str, payload: Dict[str, Any], raw_body: bytes)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>def evidence_candidate(event: str, delivery_id: str, payload: Dict[str, Any], raw_body: bytes) -&gt; Dict[str, Any]:
+    installation = payload.get(&quot;installation&quot;) or {}
+    sender = payload.get(&quot;sender&quot;) or {}
+    action = payload.get(&quot;action&quot;)
+    observed_at = utc_now()
+    candidate = {
+        &quot;schema&quot;: SCHEMA_ID,
+        &quot;candidate_id&quot;: f&quot;github:{delivery_id}&quot;,
+        &quot;observed_at&quot;: observed_at,
+        &quot;source&quot;: {
+            &quot;system&quot;: &quot;github&quot;,
+            &quot;delivery_id&quot;: delivery_id,
+            &quot;event&quot;: event,
+            &quot;action&quot;: action,
+            &quot;repository&quot;: _repo(payload),
+            &quot;installation_id&quot;: installation.get(&quot;id&quot;),
+            &quot;sender&quot;: sender.get(&quot;login&quot;),
+        },
+        &quot;subject&quot;: _subject(event, payload),
+        &quot;integrity&quot;: {&quot;webhook_payload_sha256&quot;: sha256_bytes(raw_body)},
+        &quot;claim_boundary&quot;: {
+            &quot;asserts_github_observation_only&quot;: True,
+            &quot;does_not_assert_legal_ownership&quot;: True,
+            &quot;does_not_assert_objective_truth&quot;: True,
+            &quot;does_not_assert_independent_validation&quot;: True,
+            &quot;does_not_modify_entity_semantics&quot;: True,
+        },
+    }
+    candidate[&quot;candidate_sha256&quot;] = sha256_bytes(canonical_json(candidate).encode(&quot;utf-8&quot;))
+    return candidate</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

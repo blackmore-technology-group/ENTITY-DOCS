@@ -1,0 +1,42 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/33_Economic_Participation/btg_deployment.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/33_Economic_Participation/btg_deployment.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/33_Economic_Participation/btg_deployment.py</code></p><p><b>SHA-256:</b> <code>e6ecfe044ea3d5516f3fe3649252b0c23d3ec22a252e4cb8fc98880c98d1ff26</code></p><p><b>Bytes:</b> 2,322</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/33_Economic_Participation/btg_deployment.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/policy-hash-c06e4de04154.html">_policy_hash</a></li><li><a href="../../../reference/symbols/entity/provision-btg-treasury-ecf7127f6139.html">provision_btg_treasury</a></li><li><a href="../../../reference/symbols/entity/provision-btg-originator-policy-81bdc0d45109.html">provision_btg_originator_policy</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json
+
+BTG_TREASURY_NAME=&#x27;Blackmore Technology Group ENTITY Treasury&#x27;
+BTG_JURISDICTION=&#x27;CA&#x27;
+BTG_VALUE_CHANNELS=(
+    &#x27;RIGHTS_RESERVES&#x27;,&#x27;PRIMARY_ISSUANCE&#x27;,&#x27;SECONDARY_ROYALTIES&#x27;,
+    &#x27;DERIVATIVE_PARTICIPATION&#x27;,&#x27;MARKET_DATA&#x27;,&#x27;VENUE_SERVICES&#x27;,
+    &#x27;CERTIFICATION&#x27;,&#x27;MANAGED_INFRASTRUCTURE&#x27;,&#x27;API&#x27;,&#x27;INDEX_LICENSING&#x27;
+)
+
+def _policy_hash(policy_document):
+    raw=json.dumps(policy_document,sort_keys=True,separators=(&#x27;,&#x27;,&#x27;:&#x27;),ensure_ascii=False,default=str).encode()
+    return hashlib.sha256(raw).hexdigest()
+
+def provision_btg_treasury(profile,btg_legal_entity_id,btg_treasury_entity_id,policy_document):
+    &#x27;&#x27;&#x27;Bind the generic profile to verified BTG identities supplied by the operator.
+
+    No BTG identifier is hard-coded, and no personal/test ENTITY is accepted implicitly.
+    &#x27;&#x27;&#x27;
+    if not str(btg_legal_entity_id).startswith(&#x27;ent&#x27;) or not str(btg_treasury_entity_id).startswith(&#x27;ent&#x27;):
+        raise ValueError(&#x27;verified ENTITY identifiers required for BTG deployment&#x27;)
+    if btg_legal_entity_id==btg_treasury_entity_id:
+        raise ValueError(&#x27;BTG Treasury ENTITY must be distinct from the BTG legal ENTITY&#x27;)
+    if not isinstance(policy_document,dict) or not policy_document:
+        raise ValueError(&#x27;non-empty BTG treasury governance policy required&#x27;)
+    record=profile.create_treasury(
+        btg_legal_entity_id,btg_treasury_entity_id,BTG_TREASURY_NAME,
+        BTG_JURISDICTION,_policy_hash(policy_document))
+    return dict(record,btg_deployment=True,value_channels=list(BTG_VALUE_CHANNELS),
+                hard_coded_protocol_privilege=False,protocol_tax_bps=0)
+
+def provision_btg_originator_policy(profile,treasury_id,btg_legal_entity_id,instrument_id,
+                                    total_units,reserve_units,currency,*,
+                                    primary_treasury_bps=0,secondary_royalty_bps=0,
+                                    derivative_participation_bps=0,version=1,terms=None):
+    return profile.define_participation(
+        btg_legal_entity_id,treasury_id,instrument_id,total_units,reserve_units,currency,
+        primary_treasury_bps=primary_treasury_bps,
+        secondary_royalty_bps=secondary_royalty_bps,
+        derivative_participation_bps=derivative_participation_bps,
+        version=version,terms=dict(terms or {}))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

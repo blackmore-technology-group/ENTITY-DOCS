@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / sdk/ENTITY_REQUIREMENTS.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / sdk/ENTITY_REQUIREMENTS.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>sdk/ENTITY_REQUIREMENTS.md</code></p><p><b>SHA-256:</b> <code>fd49b88c6abf5102054f5082711d931e52badb879bb01bd3d661e3596af7b72c</code></p><p><b>Bytes:</b> 2,100</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/sdk/ENTITY_REQUIREMENTS.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY Protocols / SDK Requirements
+Source: SERS-ENTITY-003 Complete Master Engineering Design v2.2
+Status: Authoritative repository requirement mapping
+
+## Standards
+- Protocols SHOULD interoperate with W3C DID Core, Verifiable Credentials 2.x, W3C ODRL, C2PA, standard SBOM formats, standard cryptographic identifiers and secure transport protocols.
+- Current qualified standards scope SHALL use DID Core 1.0 data-model semantics, VC Data Model 2.0 Recommendation semantics, ODRL 2.2 semantics, and real C2PA validation tooling.
+- BTG-specific extensions SHALL be documented, namespaced and versioned.
+- ENTITY signature records SHALL NOT be represented as W3C Data Integrity proofs unless a separately qualified cryptosuite implementation establishes conformance.
+- External standards documents SHALL remain UNVERIFIED_EXTERNAL_STATE until the applicable verification evidence is established.
+
+## Schemas and APIs
+- Durable signed records SHALL identify schema/version and cryptographic suite.
+- Breaking changes SHALL not silently reinterpret historical signed events.
+- SDKs SHALL expose explicit scopes/capabilities rather than ambient authority.
+- Network mutations SHOULD support idempotency and replay protection.
+- Errors SHALL distinguish authentication, authorization, policy denial, invalid transition, signature failure, conflict, duplicate/replay, dependency unavailable and unverified external state.
+
+## Interoperability
+- Reference clients SHALL independently verify supported identifiers, signatures, schema semantics and policy-relevant objects without relying on NIKI state.
+- Generate -&gt; export -&gt; independently validate -&gt; import -&gt; semantic-equivalence tests SHALL exist for each declared interoperable data model.
+- C2PA support SHALL distinguish provenance validity, signer trust, factual truth and ownership.
+- Standards validity SHALL NOT manufacture legal ownership, factual truth, consent, authorization or market value.
+- Crypto interfaces SHOULD permit future hybrid/post-quantum signatures, including planned ML-DSA support, without changing sovereign identity.</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

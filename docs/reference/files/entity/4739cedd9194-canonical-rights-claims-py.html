@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/04_Entity_Registry/ownership_graphs/canonical_rights_claims.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/04_Entity_Registry/ownership_graphs/canonical_rights_claims.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/04_Entity_Registry/ownership_graphs/canonical_rights_claims.py</code></p><p><b>SHA-256:</b> <code>cf4d29d92e006bf3a423f2915a864e0b170e5ccef64fb0eba8507b7ac173afca</code></p><p><b>Bytes:</b> 15,586</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/04_Entity_Registry/ownership_graphs/canonical_rights_claims.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-91e0419ce15e.html">_now</a></li><li><a href="../../../reference/symbols/entity/id-e76c0185661e.html">_id</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-849700aac6bc.html">RightsClaimsGraph</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-init-4310c7891fc1.html">RightsClaimsGraph.__init__</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-default-local-d1f719323238.html">RightsClaimsGraph._default_local</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-require-local-9b7f5c53f0d3.html">RightsClaimsGraph._require_local</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-connect-d0ae431037d7.html">RightsClaimsGraph._connect</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-init-db-58b50aab34b4.html">RightsClaimsGraph._init_db</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-event-0458ceeea711.html">RightsClaimsGraph._event</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-assert-claim-98972aaee967.html">RightsClaimsGraph.assert_claim</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-assert-claims-batch-84eafb0d9b62.html">RightsClaimsGraph.assert_claims_batch</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-verify-claim-f5cb6b5aa581.html">RightsClaimsGraph.verify_claim</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-set-state-c741528b5768.html">RightsClaimsGraph.set_state</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-row-35c1f2ef8bfe.html">RightsClaimsGraph._row</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-claims-for-asset-15740f522384.html">RightsClaimsGraph.claims_for_asset</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-verify-record-signature-4ade95277e97.html">RightsClaimsGraph.verify_record_signature</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-can-license-40ee052faf4e.html">RightsClaimsGraph.can_license</a></li><li><a href="../../../reference/symbols/entity/rightsclaimsgraph-status-2d4f1dcde8cc.html">RightsClaimsGraph.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from contextlib import contextmanager
+from threading import RLock
+import json, re, sqlite3, time, uuid
+
+ENTITY_ID_RE=re.compile(r&quot;^(?:ent1|ent2)-[a-z2-7]{52}$&quot;)
+VERIFICATION_LEVELS=(&quot;SELF_ASSERTED&quot;,&quot;CORROBORATED&quot;,&quot;VERIFIED&quot;,&quot;AUTHORITATIVELY_VERIFIED&quot;)
+CLAIM_STATES={&quot;ACTIVE&quot;,&quot;CHALLENGED&quot;,&quot;DISPUTED&quot;,&quot;SUPERSEDED&quot;,&quot;ADJUDICATED&quot;}
+RIGHT_TYPES={&quot;AUTHOR&quot;,&quot;CREATOR&quot;,&quot;COPYRIGHT_CLAIMANT&quot;,&quot;COPYRIGHT_OWNER&quot;,&quot;CONTROLLER&quot;,&quot;CUSTODIAN&quot;,&quot;DATA_CONTROLLER&quot;,&quot;DATA_CUSTODIAN&quot;,&quot;PERSONAL_DATA_SUBJECT&quot;,&quot;DEPICTED_PERSON&quot;,&quot;TRADEMARK_INTEREST&quot;,&quot;PATENT_INTEREST&quot;,&quot;CONFIDENTIALITY_INTEREST&quot;,&quot;LICENSEE&quot;,&quot;LICENSOR&quot;,&quot;LICENSING_AUTHORITY&quot;,&quot;ROYALTY_PARTICIPANT&quot;,&quot;EMPLOYEE_EMPLOYER_INTEREST&quot;,&quot;EMPLOYER_INTEREST&quot;,&quot;EMPLOYEE_INTEREST&quot;,&quot;COLLECTIVE_OWNER&quot;,&quot;COLLECTIVE_CONTROLLER&quot;,&quot;GUARDIAN&quot;,&quot;ESTATE&quot;,&quot;ESTATE_INTEREST&quot;,&quot;PLATFORM_LICENSE_HOLDER&quot;,&quot;AUTHORIZED_AGENT&quot;,&quot;AGENT&quot;}
+LICENSING_RIGHTS={&quot;COPYRIGHT_OWNER&quot;,&quot;DATA_CONTROLLER&quot;,&quot;LICENSOR&quot;,&quot;LICENSING_AUTHORITY&quot;,&quot;COLLECTIVE_CONTROLLER&quot;,&quot;PLATFORM_LICENSE_HOLDER&quot;}
+ONTOLOGY_VERSION=&quot;entity-rights-ontology-v1&quot;
+EVIDENCE_ORIGINS={&quot;DIRECT_OBSERVATION&quot;,&quot;ENTITY_ASSERTION&quot;,&quot;COUNTERPARTY_ATTESTATION&quot;,&quot;EXTERNAL_AUTHORITATIVE_RECORD&quot;,&quot;DERIVED_INFERENCE&quot;,&quot;UNKNOWN&quot;}
+
+def _now(): return int(time.time()*1000)
+def _id(): return &quot;claim1-&quot;+uuid.uuid4().hex
+
+class RightsClaimsGraph:
+    &quot;&quot;&quot;Many-to-many signed rights claims. Registration/signature never equals legal truth.&quot;&quot;&quot;
+    def __init__(self,state_dir: str|Path,identity,local_controller_check=None):
+        self.root=Path(state_dir)/&quot;rights_claims&quot;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&quot;rights_claims.sqlite&quot;; self.identity=identity
+        self.local_controller_check=local_controller_check or self._default_local
+        self._lock=RLock(); self._init_db()
+    def _default_local(self,entity_id: str) -&gt; bool:
+        try: self.identity.load_manifest(entity_id); return True
+        except Exception: return False
+    def _require_local(self,entity_id: str):
+        if not ENTITY_ID_RE.fullmatch(str(entity_id or &quot;&quot;)): raise ValueError(&quot;invalid Entity ID&quot;)
+        if not self.local_controller_check(entity_id): raise PermissionError(&quot;operation requires a locally controlled Entity&quot;)
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS claims(claim_id TEXT PRIMARY KEY,asset_id TEXT NOT NULL,claimant_entity_id TEXT NOT NULL,right_type TEXT NOT NULL,share_num INTEGER NOT NULL,share_den INTEGER NOT NULL,territory TEXT NOT NULL,jurisdiction TEXT NOT NULL,legal_basis TEXT NOT NULL,scope_json TEXT NOT NULL,evidence_json TEXT NOT NULL,evidence_origin TEXT NOT NULL,effective_at_ms INTEGER NOT NULL,expires_at_ms INTEGER,verification_level TEXT NOT NULL,lifecycle_status TEXT NOT NULL,supersedes_claim_id TEXT,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE INDEX IF NOT EXISTS idx_rights_asset ON claims(asset_id)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS claim_events(sequence INTEGER PRIMARY KEY AUTOINCREMENT,event_id TEXT UNIQUE NOT NULL,claim_id TEXT NOT NULL,event_type TEXT NOT NULL,actor_entity_id TEXT NOT NULL,payload_json TEXT NOT NULL,signature_json TEXT NOT NULL,timestamp_ms INTEGER NOT NULL)&quot;)
+    def _event(self,db,claim_id,event_type,actor,payload):
+        ts=_now(); body={&quot;claim_id&quot;:claim_id,&quot;event_type&quot;:event_type,&quot;actor_entity_id&quot;:actor,&quot;payload&quot;:payload,&quot;timestamp_ms&quot;:ts}
+        sig=self.identity.sign(actor,body); eid=&quot;evt1-&quot;+uuid.uuid4().hex
+        db.execute(&quot;INSERT INTO claim_events(event_id,claim_id,event_type,actor_entity_id,payload_json,signature_json,timestamp_ms) VALUES(?,?,?,?,?,?,?)&quot;,(eid,claim_id,event_type,actor,json.dumps(payload,sort_keys=True),json.dumps(sig,sort_keys=True),ts))
+        return {&quot;event_id&quot;:eid,&quot;timestamp_ms&quot;:ts,&quot;signature&quot;:sig}
+    def assert_claim(self,claimant_entity_id: str,*,asset_id: str,right_type: str,share_num: int=1,share_den: int=1,territory: str=&quot;unspecified&quot;,jurisdiction: str=&quot;unspecified&quot;,legal_basis: str=&quot;self_asserted&quot;,scope: dict|None=None,evidence: dict|None=None,evidence_origin: str=&quot;ENTITY_ASSERTION&quot;,effective_at_ms: int|None=None,expires_at_ms: int|None=None,supersedes_claim_id: str|None=None) -&gt; dict:
+        self._require_local(claimant_entity_id); rtype=str(right_type or &quot;&quot;).upper(); origin=str(evidence_origin or &quot;UNKNOWN&quot;).upper()
+        if rtype not in RIGHT_TYPES: raise ValueError(&quot;unsupported right_type&quot;)
+        if origin not in EVIDENCE_ORIGINS: raise ValueError(&quot;unsupported evidence_origin&quot;)
+        share_num=int(share_num); share_den=int(share_den)
+        if share_den&lt;1 or share_num&lt;1 or share_num&gt;share_den: raise ValueError(&quot;invalid fractional share&quot;)
+        now=_now(); claim_id=_id()
+        body={&quot;schema&quot;:&quot;entity-rights-claim-v2&quot;,&quot;claim_id&quot;:claim_id,&quot;asset_id&quot;:str(asset_id),&quot;claimant_entity_id&quot;:claimant_entity_id,&quot;right_type&quot;:rtype,&quot;share&quot;:{&quot;numerator&quot;:share_num,&quot;denominator&quot;:share_den},&quot;territory&quot;:str(territory),&quot;jurisdiction&quot;:str(jurisdiction),&quot;legal_basis&quot;:str(legal_basis),&quot;scope&quot;:dict(scope or {}),&quot;evidence&quot;:dict(evidence or {}),&quot;evidence_origin&quot;:origin,&quot;effective_at_ms&quot;:int(effective_at_ms or now),&quot;expires_at_ms&quot;:expires_at_ms,&quot;verification_level&quot;:&quot;SELF_ASSERTED&quot;,&quot;lifecycle_status&quot;:&quot;ACTIVE&quot;,&quot;supersedes_claim_id&quot;:supersedes_claim_id}
+        sig=self.identity.sign(claimant_entity_id,body)
+        with self._lock,self._connect() as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;)
+            db.execute(&quot;INSERT INTO claims VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,(claim_id,str(asset_id),claimant_entity_id,rtype,share_num,share_den,body[&quot;territory&quot;],body[&quot;jurisdiction&quot;],body[&quot;legal_basis&quot;],json.dumps(body[&quot;scope&quot;],sort_keys=True),json.dumps(body[&quot;evidence&quot;],sort_keys=True),origin,body[&quot;effective_at_ms&quot;],expires_at_ms,&quot;SELF_ASSERTED&quot;,&quot;ACTIVE&quot;,supersedes_claim_id,json.dumps(sig,sort_keys=True),now,now))
+            event=self._event(db,claim_id,&quot;claim.asserted&quot;,claimant_entity_id,{&quot;right_type&quot;:rtype,&quot;verification_level&quot;:&quot;SELF_ASSERTED&quot;,&quot;evidence_origin&quot;:origin})
+        return dict(body,signature=sig,event=event)
+    def assert_claims_batch(self,claimant_entity_id:str,claims:list[dict])-&gt;list[dict]:
+        &quot;&quot;&quot;Assert many individually signed rights claims and signed claim events in one transaction.&quot;&quot;&quot;
+        self._require_local(claimant_entity_id); items=list(claims or [])
+        if not items: return []
+        sign=self.identity.open_signing_session(claimant_entity_id); claim_rows=[]; event_rows=[]; out=[]
+        for item in items:
+            rtype=str(item.get(&quot;right_type&quot;) or &quot;DATA_CONTROLLER&quot;).upper(); origin=str(item.get(&quot;evidence_origin&quot;) or &quot;ENTITY_ASSERTION&quot;).upper()
+            if rtype not in RIGHT_TYPES: raise ValueError(&quot;unsupported right_type&quot;)
+            if origin not in EVIDENCE_ORIGINS: raise ValueError(&quot;unsupported evidence_origin&quot;)
+            now=_now(); claim_id=_id(); scope=dict(item.get(&quot;scope&quot;) or {}); evidence=dict(item.get(&quot;evidence&quot;) or {})
+            body={&quot;schema&quot;:&quot;entity-rights-claim-v2&quot;,&quot;claim_id&quot;:claim_id,&quot;asset_id&quot;:str(item[&quot;asset_id&quot;]),&quot;claimant_entity_id&quot;:claimant_entity_id,&quot;right_type&quot;:rtype,&quot;share&quot;:{&quot;numerator&quot;:1,&quot;denominator&quot;:1},&quot;territory&quot;:str(item.get(&quot;territory&quot;) or &quot;unspecified&quot;),&quot;jurisdiction&quot;:str(item.get(&quot;jurisdiction&quot;) or &quot;unspecified&quot;),&quot;legal_basis&quot;:str(item.get(&quot;legal_basis&quot;) or &quot;entity_asset_registration&quot;),&quot;scope&quot;:scope,&quot;evidence&quot;:evidence,&quot;evidence_origin&quot;:origin,&quot;effective_at_ms&quot;:int(item.get(&quot;effective_at_ms&quot;) or now),&quot;expires_at_ms&quot;:item.get(&quot;expires_at_ms&quot;),&quot;verification_level&quot;:&quot;SELF_ASSERTED&quot;,&quot;lifecycle_status&quot;:&quot;ACTIVE&quot;,&quot;supersedes_claim_id&quot;:None}
+            sig=sign(body); claim_rows.append((claim_id,body[&quot;asset_id&quot;],claimant_entity_id,rtype,1,1,body[&quot;territory&quot;],body[&quot;jurisdiction&quot;],body[&quot;legal_basis&quot;],json.dumps(scope,sort_keys=True),json.dumps(evidence,sort_keys=True),origin,body[&quot;effective_at_ms&quot;],body[&quot;expires_at_ms&quot;],&quot;SELF_ASSERTED&quot;,&quot;ACTIVE&quot;,None,json.dumps(sig,sort_keys=True),now,now))
+            ep={&quot;right_type&quot;:rtype,&quot;verification_level&quot;:&quot;SELF_ASSERTED&quot;,&quot;evidence_origin&quot;:origin}; eb={&quot;claim_id&quot;:claim_id,&quot;event_type&quot;:&quot;claim.asserted&quot;,&quot;actor_entity_id&quot;:claimant_entity_id,&quot;payload&quot;:ep,&quot;timestamp_ms&quot;:now}; es=sign(eb); eid=&quot;evt1-&quot;+uuid.uuid4().hex
+            event_rows.append((eid,claim_id,&quot;claim.asserted&quot;,claimant_entity_id,json.dumps(ep,sort_keys=True),json.dumps(es,sort_keys=True),now)); out.append(dict(body,signature=sig,event={&quot;event_id&quot;:eid,&quot;timestamp_ms&quot;:now,&quot;signature&quot;:es}))
+        with self._lock,self._connect() as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;); db.executemany(&quot;INSERT INTO claims VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;,claim_rows); db.executemany(&quot;INSERT INTO claim_events(event_id,claim_id,event_type,actor_entity_id,payload_json,signature_json,timestamp_ms) VALUES(?,?,?,?,?,?,?)&quot;,event_rows)
+        return out
+
+    def verify_claim(self,verifier_entity_id: str,claim_id: str,level: str,evidence: dict) -&gt; dict:
+        self._require_local(verifier_entity_id); target=str(level or &quot;&quot;).upper(); evidence=dict(evidence or {})
+        if target not in VERIFICATION_LEVELS or target==&quot;SELF_ASSERTED&quot;: raise ValueError(&quot;verification level must be CORROBORATED or stronger&quot;)
+        if not evidence: raise ValueError(&quot;verification evidence is required&quot;)
+        with self._lock,self._connect() as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;); row=db.execute(&quot;SELECT * FROM claims WHERE claim_id=?&quot;,(claim_id,)).fetchone()
+            if not row: raise KeyError(&quot;claim not found&quot;)
+            if row[&quot;claimant_entity_id&quot;]==verifier_entity_id: raise PermissionError(&quot;claimant cannot independently verify own claim&quot;)
+            if row[&quot;lifecycle_status&quot;] in {&quot;SUPERSEDED&quot;,&quot;ADJUDICATED&quot;}: raise ValueError(&quot;claim is closed&quot;)
+            if target==&quot;AUTHORITATIVELY_VERIFIED&quot;:
+                manifest=self.identity.load_manifest(verifier_entity_id); roles={str(x).upper() for x in (manifest.get(&quot;metadata&quot;) or {}).get(&quot;authority_roles&quot;,[])}
+                if &quot;RIGHTS_AUTHORITY&quot; not in roles: raise PermissionError(&quot;RIGHTS_AUTHORITY role required&quot;)
+                if not str(evidence.get(&quot;authority_reference&quot;) or &quot;&quot;).strip(): raise ValueError(&quot;authority_reference required&quot;)
+            db.execute(&quot;UPDATE claims SET verification_level=?,updated_at_ms=? WHERE claim_id=?&quot;,(target,_now(),claim_id))
+            event=self._event(db,claim_id,&quot;claim.verification_added&quot;,verifier_entity_id,{&quot;verification_level&quot;:target,&quot;evidence&quot;:evidence})
+        return {&quot;claim_id&quot;:claim_id,&quot;verification_level&quot;:target,&quot;event&quot;:event}
+
+    def set_state(self,actor_entity_id: str,claim_id: str,state: str,reason: str=&quot;&quot;,evidence: dict|None=None) -&gt; dict:
+        self._require_local(actor_entity_id); target=str(state or &quot;&quot;).upper()
+        if target not in CLAIM_STATES or target==&quot;ACTIVE&quot;: raise ValueError(&quot;unsupported claim transition&quot;)
+        with self._lock,self._connect() as db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;); row=db.execute(&quot;SELECT * FROM claims WHERE claim_id=?&quot;,(claim_id,)).fetchone()
+            if not row: raise KeyError(&quot;claim not found&quot;)
+            if row[&quot;lifecycle_status&quot;] in {&quot;SUPERSEDED&quot;,&quot;ADJUDICATED&quot;}: raise ValueError(&quot;closed claim cannot transition&quot;)
+            if target==&quot;SUPERSEDED&quot; and actor_entity_id!=row[&quot;claimant_entity_id&quot;]: raise PermissionError(&quot;only claimant may supersede its claim&quot;)
+            db.execute(&quot;UPDATE claims SET lifecycle_status=?,updated_at_ms=? WHERE claim_id=?&quot;,(target,_now(),claim_id))
+            event=self._event(db,claim_id,&quot;claim.&quot;+target.lower(),actor_entity_id,{&quot;reason&quot;:str(reason),&quot;evidence&quot;:dict(evidence or {})})
+        return {&quot;claim_id&quot;:claim_id,&quot;lifecycle_status&quot;:target,&quot;event&quot;:event}
+    @staticmethod
+    def _row(row) -&gt; dict:
+        return {&quot;claim_id&quot;:row[&quot;claim_id&quot;],&quot;asset_id&quot;:row[&quot;asset_id&quot;],&quot;claimant_entity_id&quot;:row[&quot;claimant_entity_id&quot;],&quot;right_type&quot;:row[&quot;right_type&quot;],&quot;share&quot;:{&quot;numerator&quot;:row[&quot;share_num&quot;],&quot;denominator&quot;:row[&quot;share_den&quot;]},&quot;territory&quot;:row[&quot;territory&quot;],&quot;jurisdiction&quot;:row[&quot;jurisdiction&quot;],&quot;legal_basis&quot;:row[&quot;legal_basis&quot;],&quot;scope&quot;:json.loads(row[&quot;scope_json&quot;]),&quot;evidence&quot;:json.loads(row[&quot;evidence_json&quot;]),&quot;evidence_origin&quot;:row[&quot;evidence_origin&quot;],&quot;effective_at_ms&quot;:row[&quot;effective_at_ms&quot;],&quot;expires_at_ms&quot;:row[&quot;expires_at_ms&quot;],&quot;verification_level&quot;:row[&quot;verification_level&quot;],&quot;lifecycle_status&quot;:row[&quot;lifecycle_status&quot;],&quot;supersedes_claim_id&quot;:row[&quot;supersedes_claim_id&quot;],&quot;created_at_ms&quot;:row[&quot;created_at_ms&quot;],&quot;updated_at_ms&quot;:row[&quot;updated_at_ms&quot;]}
+
+    def claims_for_asset(self,asset_id: str) -&gt; list[dict]:
+        with self._connect() as db: rows=db.execute(&quot;SELECT * FROM claims WHERE asset_id=? ORDER BY created_at_ms,claim_id&quot;,(str(asset_id),)).fetchall()
+        return [self._row(r) for r in rows]
+
+    def verify_record_signature(self,claim_id: str) -&gt; bool:
+        with self._connect() as db: row=db.execute(&quot;SELECT * FROM claims WHERE claim_id=?&quot;,(claim_id,)).fetchone()
+        if not row: return False
+        item=self._row(row)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

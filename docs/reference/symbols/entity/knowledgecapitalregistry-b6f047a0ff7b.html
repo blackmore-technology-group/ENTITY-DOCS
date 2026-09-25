@@ -1,0 +1,34 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>KnowledgeCapitalRegistry Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>KnowledgeCapitalRegistry</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/04_Entity_Registry/canonical_knowledge_capital.py#L10">ENTITY/src/04_Entity_Registry/canonical_knowledge_capital.py#L10</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Signed knowledge/engineering receipts; contribution evidence is not automatic ownership or value.</p><h2>Source excerpt</h2><pre><code>class KnowledgeCapitalRegistry:
+    &quot;&quot;&quot;Signed knowledge/engineering receipts; contribution evidence is not automatic ownership or value.&quot;&quot;&quot;
+    def __init__(self,state_dir:str|Path,identity):
+        self.root=Path(state_dir)/&#x27;knowledge_capital&#x27;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&#x27;knowledge.sqlite&#x27;; self.identity=identity; self._init_db()
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&#x27;CREATE TABLE IF NOT EXISTS receipts(receipt_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,kind TEXT NOT NULL,title TEXT NOT NULL,contributors_json TEXT NOT NULL,artifact_sha256 TEXT NOT NULL,evidence_origin TEXT NOT NULL,metadata_json TEXT NOT NULL,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&#x27;)
+    def record(self,controller_entity_id:str,*,kind:str,title:str,contributors:list[dict],artifact_sha256:str,metadata:dict|None=None,evidence_origin:str=&#x27;ENTITY_ASSERTION&#x27;)-&gt;dict:
+        digest=str(artifact_sha256).lower()
+        if len(digest)!=64 or any(c not in &#x27;0123456789abcdef&#x27; for c in digest): raise ValueError(&#x27;artifact_sha256 required&#x27;)
+        rid=_id(); now=_now(); people=[dict(x) for x in contributors]
+        body={&#x27;schema&#x27;:&#x27;entity-knowledge-capital-receipt-v1&#x27;,&#x27;receipt_id&#x27;:rid,&#x27;controller_entity_id&#x27;:controller_entity_id,&#x27;kind&#x27;:str(kind).upper(),&#x27;title&#x27;:str(title)[:512],&#x27;contributors&#x27;:people,&#x27;artifact_sha256&#x27;:digest,&#x27;evidence_origin&#x27;:str(evidence_origin).upper(),&#x27;metadata&#x27;:dict(metadata or {}),&#x27;created_at_ms&#x27;:now,&#x27;ownership_not_inferred&#x27;:True,&#x27;economic_value_not_inferred&#x27;:True}
+        sig=self.identity.sign(controller_entity_id,body)
+        with self._connect() as db: db.execute(&#x27;INSERT INTO receipts VALUES(?,?,?,?,?,?,?,?,?,?)&#x27;,(rid,controller_entity_id,body[&#x27;kind&#x27;],body[&#x27;title&#x27;],json.dumps(people,sort_keys=True),digest,body[&#x27;evidence_origin&#x27;],json.dumps(body[&#x27;metadata&#x27;],sort_keys=True),json.dumps(sig,sort_keys=True),now))
+        return {**body,&#x27;signature&#x27;:sig}
+    def get(self,receipt_id:str)-&gt;dict:
+        with self._connect() as db: row=db.execute(&#x27;SELECT * FROM receipts WHERE receipt_id=?&#x27;,(receipt_id,)).fetchone()
+        if not row: raise KeyError(&#x27;knowledge receipt not found&#x27;)
+        out=dict(row); out[&#x27;contributors&#x27;]=json.loads(out.pop(&#x27;contributors_json&#x27;)); out[&#x27;metadata&#x27;]=json.loads(out.pop(&#x27;metadata_json&#x27;)); out[&#x27;signature&#x27;]=json.loads(out.pop(&#x27;signature_json&#x27;)); out[&#x27;schema&#x27;]=&#x27;entity-knowledge-capital-receipt-v1&#x27;; out[&#x27;ownership_not_inferred&#x27;]=True; out[&#x27;economic_value_not_inferred&#x27;]=True
+        return out
+    def verify(self,receipt_id:str)-&gt;bool:
+        item=self.get(receipt_id); sig=item.pop(&#x27;signature&#x27;); body={k:v for k,v in item.items() if k not in {&#x27;ownership_not_inferred&#x27;,&#x27;economic_value_not_inferred&#x27;}}
+        body[&#x27;ownership_not_inferred&#x27;]=True; body[&#x27;economic_value_not_inferred&#x27;]=True
+        manifest=self.identity.load_manifest(body[&#x27;controller_entity_id&#x27;]); return bool(self.identity.verify_signature(manifest,body,sig))
+    def status(self)-&gt;dict:
+        with self._connect() as db: count=int(db.execute(&#x27;SELECT COUNT(*) FROM receipts&#x27;).fetchone()[0])
+        return {&#x27;ready&#x27;:True,&#x27;receipts&#x27;:count,&#x27;human_and_ai_contributors_supported&#x27;:True,&#x27;ownership_not_inferred&#x27;:True,&#x27;value_not_inferred&#x27;:True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

@@ -1,0 +1,73 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / docs/architecture/ADR_PROCESS.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / docs/architecture/ADR_PROCESS.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>docs/architecture/ADR_PROCESS.md</code></p><p><b>SHA-256:</b> <code>775635275dea0f0126486985865aa66a9577c5a9bd2cbffc11c173006c03ec52</code></p><p><b>Bytes:</b> 2,580</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/docs/architecture/ADR_PROCESS.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># ENTITY Architecture Decision Record Process
+
+Architecture Decision Records (ADRs) document decisions that affect ENTITY&#x27;s durable architecture, protocol boundaries or security/governance invariants.
+
+## When an ADR is required
+
+An ADR should be considered when a change affects one or more of:
+
+- root identity semantics;
+- authority, delegation or revocation;
+- signature/canonicalization meaning;
+- provider independence;
+- custody versus sovereignty boundaries;
+- recovery, migration or portability;
+- evidence and attestation semantics;
+- external reality anchors;
+- historical signed-state interpretation;
+- rights, entitlement, usage or economic consequence semantics;
+- compatibility or public protocol behavior.
+
+Routine implementation detail that preserves existing architecture does not require an ADR.
+
+## ADR states
+
+Use one of these states:
+
+- **PROPOSED** — under discussion; not yet authoritative.
+- **ACCEPTED** — approved architecture decision.
+- **SUPERSEDED** — replaced by a later ADR; retained for historical traceability.
+- **REJECTED** — considered but not adopted.
+- **DEPRECATED** — retained for historical reference but no longer recommended for new implementation.
+
+## Required sections
+
+A new ADR should include:
+
+1. **Title and identifier**
+2. **Status**
+3. **Date**
+4. **Context**
+5. **Decision**
+6. **Security/sovereignty implications**
+7. **Compatibility implications**
+8. **Alternatives considered**
+9. **Consequences**
+10. **Evidence / references**
+11. **Supersedes / superseded by**, if applicable
+
+## Review expectations
+
+ADRs touching security- or sovereignty-critical boundaries should be reviewed against:
+
+- [GOVERNANCE.md](../../GOVERNANCE.md)
+- [SECURITY.md](../../SECURITY.md)
+- [Release Policy](../governance/RELEASE_POLICY.md)
+- applicable protocol governance/freeze documents
+- the project&#x27;s public engineering evidence and current claim boundaries.
+
+An ADR cannot silently rewrite a frozen protocol target or historical signed semantics. If a decision changes published protocol meaning, the change must use an explicit version/governance mechanism.
+
+## Numbering
+
+ADRs use a stable numeric identifier, for example:
+
+`ADR-0004-SOVEREIGN-AUTHORITY-DOCTRINE.md`
+
+Numbers are never reused, even if an ADR is rejected or superseded.
+
+## Relationship to technical papers
+
+ADRs record a decision. Technical papers explain concepts, threat boundaries or analysis. A paper may motivate an ADR, but it does not become normative merely because it exists in the public repository.
+
+See [docs/papers/README.md](../papers/README.md).</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

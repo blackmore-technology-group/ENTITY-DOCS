@@ -1,0 +1,76 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/36_Adoption_Layer/custody_connectors.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/36_Adoption_Layer/custody_connectors.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/36_Adoption_Layer/custody_connectors.py</code></p><p><b>SHA-256:</b> <code>8a5dfa7d6f3873f694de2177ef75314cc2cd1d85f443516be7febc5318f9aea5</code></p><p><b>Bytes:</b> 3,407</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/36_Adoption_Layer/custody_connectors.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-ms-7d8ec9c0c638.html">now_ms</a></li><li><a href="../../../reference/symbols/entity/canon-be1a79b1439b.html">canon</a></li><li><a href="../../../reference/symbols/entity/digest-82d078040204.html">digest</a></li><li><a href="../../../reference/symbols/entity/sha256-hex-c068223db008.html">sha256_hex</a></li><li><a href="../../../reference/symbols/entity/custodyconnectorregistry-c06e6831149e.html">CustodyConnectorRegistry</a></li><li><a href="../../../reference/symbols/entity/custodyconnectorregistry-locator-dd3507618f9f.html">CustodyConnectorRegistry.locator</a></li><li><a href="../../../reference/symbols/entity/custodyconnectorregistry-migration-0ecbc2d6f0da.html">CustodyConnectorRegistry.migration</a></li><li><a href="../../../reference/symbols/entity/custodyconnectorregistry-supported-633a4742b64d.html">CustodyConnectorRegistry.supported</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from typing import Any
+import hashlib, json, time
+
+PROVIDERS = {
+    &quot;AWS_S3&quot;, &quot;AZURE_BLOB&quot;, &quot;GOOGLE_CLOUD_STORAGE&quot;, &quot;SNOWFLAKE&quot;, &quot;DATABRICKS&quot;,
+    &quot;POSTGRESQL&quot;, &quot;SQL_SERVER&quot;, &quot;LOCAL_FILESYSTEM&quot;, &quot;HTTP_API&quot;,
+}
+
+def now_ms() -&gt; int:
+    return int(time.time() * 1000)
+
+def canon(value: Any) -&gt; bytes:
+    return json.dumps(value, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False, default=str).encode()
+
+def digest(value: Any) -&gt; str:
+    raw = value if isinstance(value, (bytes, bytearray)) else canon(value)
+    return hashlib.sha256(raw).hexdigest()
+
+def sha256_hex(value: str) -&gt; str:
+    value = str(value).lower()
+    if len(value) != 64 or any(c not in &quot;0123456789abcdef&quot; for c in value):
+        raise ValueError(&quot;content_sha256 must be lowercase SHA-256&quot;)
+    return value
+
+class CustodyConnectorRegistry:
+    &quot;&quot;&quot;Provider-neutral locators. Connectors identify custody; they never confer authority.&quot;&quot;&quot;
+    @staticmethod
+    def locator(entity_object_id: str, provider: str, locator: str, content_sha256: str, *,
+                account_scope_ref: str | None = None, region: str | None = None,
+                version_ref: str | None = None, metadata: dict | None = None) -&gt; dict:
+        provider = str(provider).upper()
+        if provider not in PROVIDERS:
+            raise ValueError(&quot;unsupported custody provider&quot;)
+        if not str(entity_object_id) or not str(locator):
+            raise ValueError(&quot;entity object id and locator required&quot;)
+        body = {
+            &quot;schema&quot;: &quot;entity-v3-custody-locator-v1&quot;,
+            &quot;entity_object_id&quot;: str(entity_object_id),
+            &quot;provider&quot;: provider,
+            &quot;locator&quot;: str(locator),
+            &quot;content_sha256&quot;: sha256_hex(content_sha256),
+            &quot;account_scope_ref&quot;: account_scope_ref,
+            &quot;region&quot;: str(region).upper() if region else None,
+            &quot;version_ref&quot;: version_ref,
+            &quot;metadata&quot;: dict(metadata or {}),
+            &quot;provider_is_authority&quot;: False,
+            &quot;credentials_included&quot;: False,
+            &quot;entity_identity_changes_with_provider&quot;: False,
+        }
+        body[&quot;locator_sha256&quot;] = digest(body)
+        return body
+
+    @staticmethod
+    def migration(old_locator: dict, new_locator: dict, *, evidence_sha256: str,
+                  actor_entity_id: str) -&gt; dict:
+        if old_locator.get(&quot;entity_object_id&quot;) != new_locator.get(&quot;entity_object_id&quot;):
+            raise ValueError(&quot;provider migration must preserve ENTITY object id&quot;)
+        if old_locator.get(&quot;provider_is_authority&quot;) is not False or new_locator.get(&quot;provider_is_authority&quot;) is not False:
+            raise ValueError(&quot;custody cannot become authority during migration&quot;)
+        evidence_sha256 = sha256_hex(evidence_sha256)
+        return {
+            &quot;schema&quot;: &quot;entity-v3-custody-migration-v1&quot;,
+            &quot;entity_object_id&quot;: old_locator[&quot;entity_object_id&quot;],
+            &quot;from_locator_sha256&quot;: old_locator.get(&quot;locator_sha256&quot;) or digest(old_locator),
+            &quot;to_locator_sha256&quot;: new_locator.get(&quot;locator_sha256&quot;) or digest(new_locator),
+            &quot;actor_entity_id&quot;: str(actor_entity_id),
+            &quot;evidence_sha256&quot;: evidence_sha256,
+            &quot;created_at_ms&quot;: now_ms(),
+            &quot;entity_identity_preserved&quot;: True,
+            &quot;authority_transfer_implied&quot;: False,
+        }
+
+    @staticmethod
+    def supported() -&gt; list[str]:
+        return sorted(PROVIDERS)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

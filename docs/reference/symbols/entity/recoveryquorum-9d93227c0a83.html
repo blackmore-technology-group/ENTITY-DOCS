@@ -1,0 +1,33 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RecoveryQuorum Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>RecoveryQuorum</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/32_V3_Hardening/hardening_profiles.py#L169">ENTITY/src/32_V3_Hardening/hardening_profiles.py#L169</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class RecoveryQuorum:
+    def __init__(self,root,identity):
+        self.path=Path(root)/&#x27;entity_v3_recovery_quorum.sqlite&#x27;; self.identity=identity
+        with dbctx(self.path) as db:
+            db.execute(&#x27;CREATE TABLE IF NOT EXISTS policies(entity_id TEXT PRIMARY KEY,approvers_json TEXT,threshold INTEGER)&#x27;); db.execute(&#x27;CREATE TABLE IF NOT EXISTS requests(request_id TEXT PRIMARY KEY,entity_id TEXT,reason_sha256 TEXT,status TEXT,created_at_ms INTEGER)&#x27;); db.execute(&#x27;CREATE TABLE IF NOT EXISTS approvals(request_id TEXT,approver TEXT,created_at_ms INTEGER,signature_json TEXT,PRIMARY KEY(request_id,approver))&#x27;)
+    def set_policy(self,entity_id,approvers,threshold):
+        unique=sorted(set(approvers)); threshold=int(threshold)
+        if threshold&lt;1 or threshold&gt;len(unique): raise ValueError(&#x27;invalid threshold&#x27;)
+        for a in unique: self.identity.load_manifest(a)
+        with dbctx(self.path) as db: db.execute(&#x27;INSERT OR REPLACE INTO policies VALUES(?,?,?)&#x27;,(entity_id,json.dumps(unique),threshold))
+        return {&#x27;entity_id&#x27;:entity_id,&#x27;approvers&#x27;:unique,&#x27;threshold&#x27;:threshold}
+    def request(self,entity_id,reason):
+        request_id=rid(&#x27;recovery3&#x27;)
+        with dbctx(self.path) as db:
+            if not db.execute(&#x27;SELECT 1 FROM policies WHERE entity_id=?&#x27;,(entity_id,)).fetchone(): raise KeyError(&#x27;policy missing&#x27;)
+            db.execute(&#x27;INSERT INTO requests VALUES(?,?,?,?,?)&#x27;,(request_id,entity_id,sha(reason),&#x27;OPEN&#x27;,now_ms()))
+        return {&#x27;request_id&#x27;:request_id,&#x27;entity_id&#x27;:entity_id,&#x27;status&#x27;:&#x27;OPEN&#x27;}
+    def approve(self,request_id,approver):
+        with dbctx(self.path) as db:
+            db.row_factory=sqlite3.Row; req=db.execute(&quot;SELECT * FROM requests WHERE request_id=? AND status=&#x27;OPEN&#x27;&quot;,(request_id,)).fetchone();
+            if not req: raise KeyError(&#x27;open request missing&#x27;)
+            pol=db.execute(&#x27;SELECT * FROM policies WHERE entity_id=?&#x27;,(req[&#x27;entity_id&#x27;],)).fetchone()
+        if approver not in set(json.loads(pol[&#x27;approvers_json&#x27;])): raise PermissionError(&#x27;not approver&#x27;)
+        body={&#x27;schema&#x27;:&#x27;entity-v3-recovery-approval-v1&#x27;,&#x27;request_id&#x27;:request_id,&#x27;entity_id&#x27;:req[&#x27;entity_id&#x27;],&#x27;approver&#x27;:approver,&#x27;created_at_ms&#x27;:now_ms()}; sig=self.identity.sign(approver,body)
+        with dbctx(self.path) as db:
+            db.execute(&#x27;INSERT OR REPLACE INTO approvals VALUES(?,?,?,?)&#x27;,(request_id,approver,body[&#x27;created_at_ms&#x27;],json.dumps(sig,sort_keys=True))); count=db.execute(&#x27;SELECT COUNT(*) FROM approvals WHERE request_id=?&#x27;,(request_id,)).fetchone()[0]
+        return dict(body,signature=sig,approval_count=count,threshold=int(pol[&#x27;threshold&#x27;]))
+    def ready(self,request_id):
+        with dbctx(self.path) as db:
+            db.row_factory=sqlite3.Row; req=db.execute(&quot;SELECT * FROM requests WHERE request_id=? AND status=&#x27;OPEN&#x27;&quot;,(request_id,)).fetchone();
+            if not req: raise KeyError(&#x27;open request missing&#x27;)
+            pol=db.execute(&#x27;SELECT * FROM policies WHERE entity_id=?&#x27;,(req[&#x27;entity_id&#x27;],)).fetchone(); approvals=db.execute(&#x27;SELECT COUNT(*) FROM approvals WHERE request_id=?&#x27;,(request_id,)).fetchone()[0]
+        return {&#x27;request_id&#x27;:request_id,&#x27;ready&#x27;:approvals&gt;=int(pol[&#x27;threshold&#x27;]),&#x27;approval_count&#x27;:approvals,&#x27;threshold&#x27;:int(pol[&#x27;threshold&#x27;])}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

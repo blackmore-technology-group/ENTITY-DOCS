@@ -1,0 +1,180 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>main Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>main</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/qualify_v3_4_post_release_recursive_closure.py#L125">ENTITY/tools/qualify_v3_4_post_release_recursive_closure.py#L125</a></p><p><b>Kind:</b> function/method</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>def main():
+    capture=json.loads(CAPTURE.read_text(encoding=&quot;utf-8&quot;)); validate_capture(capture)
+    for p in (STATE,ART):
+        if p.exists(): shutil.rmtree(p)
+    STATE.mkdir(parents=True); ART.mkdir(parents=True)
+    rt=build_runtime(STATE,create=True); controller=rt[&quot;controller&quot;]
+    cached=rt[&quot;identity&quot;].open_signing_session(controller); original_sign=rt[&quot;identity&quot;].sign
+    rt[&quot;identity&quot;].sign=lambda entity_id,payload: cached(payload) if entity_id==controller else original_sign(entity_id,payload)
+    anchor=rt[&quot;ingestion&quot;].ingest_file(CAPTURE,controller,PROFILES,
+        logical_path=&quot;closure/POST_RELEASE_CAPTURE_MANIFEST_2026-09-24.json&quot;,version=&quot;3.4.0-post-release-closure&quot;)
+    if not rt[&quot;passports&quot;].verify(anchor[&quot;global_passport&quot;])[&quot;valid&quot;]: raise RuntimeError(&quot;anchor passport invalid&quot;)
+    records=[]
+    for i,row in enumerate(capture[&quot;records&quot;],1):
+        item=rt[&quot;ingestion&quot;].ingest_file(row[&quot;source_path&quot;],controller,PROFILES,
+            logical_path=row[&quot;logical_path&quot;],version=&quot;3.4.0-post-release-closure&quot;)
+        if item[&quot;object&quot;][&quot;content_sha256&quot;]!=row[&quot;sha256&quot;]: raise RuntimeError(&quot;ingest hash mismatch: &quot;+row[&quot;logical_path&quot;])
+        if not rt[&quot;passports&quot;].verify(item[&quot;global_passport&quot;])[&quot;valid&quot;]: raise RuntimeError(&quot;global passport invalid: &quot;+row[&quot;logical_path&quot;])
+        edge=rt[&quot;fabric&quot;].add_provenance(controller,anchor[&quot;object&quot;][&quot;object_id&quot;],item[&quot;object&quot;][&quot;object_id&quot;],
+            &quot;POST_RELEASE_CLOSURE_CONSTITUENT&quot;,contribution_bps=0,evidence={&quot;evidence_id&quot;:item[&quot;evidence&quot;][&quot;evidence_id&quot;],&quot;content_sha256&quot;:row[&quot;sha256&quot;]})
+        records.append({&quot;logical_path&quot;:row[&quot;logical_path&quot;],&quot;category&quot;:row[&quot;category&quot;],&quot;bytes&quot;:row[&quot;bytes&quot;],
+            &quot;content_sha256&quot;:row[&quot;sha256&quot;],&quot;object_id&quot;:item[&quot;object&quot;][&quot;object_id&quot;],&quot;evidence_id&quot;:item[&quot;evidence&quot;][&quot;evidence_id&quot;],
+            &quot;right_id&quot;:item[&quot;right&quot;][&quot;right_id&quot;],&quot;rights_passport_id&quot;:item[&quot;rights_passport&quot;][&quot;passport_id&quot;],
+            &quot;global_passport_id&quot;:item[&quot;global_passport&quot;][&quot;passport_id&quot;],&quot;global_passport_sha256&quot;:item[&quot;global_passport&quot;][&quot;body_sha256&quot;],
+            &quot;value_id&quot;:item[&quot;value&quot;][&quot;value_id&quot;],&quot;provenance_edge_id&quot;:edge[&quot;edge_id&quot;]})
+        if i%100==0 or i==len(capture[&quot;records&quot;]): print(json.dumps({&quot;ingested&quot;:i,&quot;total&quot;:len(capture[&quot;records&quot;])}),flush=True)
+    material=&quot;\n&quot;.join(f&quot;{r[&#x27;content_sha256&#x27;]}  {r[&#x27;logical_path&#x27;]}&quot; for r in records).encode()
+    ingested_root=sha_bytes(material)
+    if ingested_root!=capture[&quot;constituent_root_sha256&quot;]: raise RuntimeError(&quot;ENTITY-ingested constituent root differs from frozen capture&quot;)
+    counts_before=db_counts(STATE)
+    expected=len(records)+1
+    for key in (&quot;objects&quot;,&quot;rights&quot;,&quot;values&quot;,&quot;evidence_objects&quot;,&quot;rights_passports&quot;,&quot;global_passports&quot;):
+        if counts_before[key]!=expected: raise RuntimeError(f&quot;count mismatch {key}: {counts_before[key]} != {expected}&quot;)
+    if counts_before[&quot;provenance_edges&quot;]!=len(records): raise RuntimeError(&quot;provenance edge count mismatch&quot;)
+    export_dir=ART/&quot;sovereign_export&quot;
+    export=rt[&quot;portable&quot;].export_entity(controller,export_dir)
+    export_root=tree_root(export_dir,exclude_portability=False)
+    checkpoint(STATE)
+    state_before=tree_root(STATE)
+    semantic_before=sqlite_semantic_root(STATE)
+    vault_before=vault_root(STATE)
+    backup_path=ART/&quot;ENTITY_V3_4_POST_RELEASE_CLOSURE_STATE.aes256gcm&quot;
+    backup=rt[&quot;portable&quot;].create_encrypted_backup(backup_path)
+    recovery_material=base64.urlsafe_b64decode(backup[&quot;key_b64&quot;])
+    backup_public={&quot;sha256&quot;:backup[&quot;sha256&quot;],&quot;bytes&quot;:backup[&quot;bytes&quot;],&quot;encrypted&quot;:backup[&quot;encrypted&quot;],&quot;cipher&quot;:backup[&quot;cipher&quot;]}
+    shutil.rmtree(STATE)
+    if STATE.exists(): raise RuntimeError(&quot;destructive state deletion failed&quot;)
+    rt[&quot;portable&quot;].restore_encrypted_backup(backup_path,recovery_material,STATE)
+    checkpoint(STATE)
+    state_after=tree_root(STATE)
+    semantic_after=sqlite_semantic_root(STATE)
+    vault_after=vault_root(STATE)
+    if state_before!=state_after: raise RuntimeError(&quot;exact state tree changed across destructive recovery&quot;)
+    if semantic_before!=semantic_after: raise RuntimeError(&quot;semantic database root changed across destructive recovery&quot;)
+    if vault_before!=vault_after: raise RuntimeError(&quot;content vault root changed across destructive recovery&quot;)
+    restored=build_runtime(STATE,create=False)
+    manifest=restored[&quot;identity&quot;].load_manifest(controller)
+    if not restored[&quot;identity&quot;].verify_manifest(manifest): raise RuntimeError(&quot;controller identity failed after recovery&quot;)
+    verification_rows=[{&quot;logical_path&quot;:&quot;closure/POST_RELEASE_CAPTURE_MANIFEST_2026-09-24.json&quot;,&quot;category&quot;:&quot;closure_anchor&quot;,
+        &quot;bytes&quot;:CAPTURE.stat().st_size,&quot;content_sha256&quot;:anchor[&quot;object&quot;][&quot;content_sha256&quot;],&quot;object_id&quot;:anchor[&quot;object&quot;][&quot;object_id&quot;],
+        &quot;evidence_id&quot;:anchor[&quot;evidence&quot;][&quot;evidence_id&quot;],&quot;rights_passport_id&quot;:anchor[&quot;rights_passport&quot;][&quot;passport_id&quot;],
+        &quot;global_passport_id&quot;:anchor[&quot;global_passport&quot;][&quot;passport_id&quot;],&quot;global_passport_sha256&quot;:anchor[&quot;global_passport&quot;][&quot;body_sha256&quot;]}]+records
+    failures=[]
+    for i,row in enumerate(verification_rows,1):
+        try:
+            obj=restored[&quot;fabric&quot;].get_object(row[&quot;object_id&quot;])
+            if obj.get(&quot;content_sha256&quot;)!=row[&quot;content_sha256&quot;]: raise RuntimeError(&quot;object content hash&quot;)
+            if obj.get(&quot;descriptor&quot;,{}).get(&quot;logical_path&quot;)!=row[&quot;logical_path&quot;]: raise RuntimeError(&quot;logical path&quot;)
+            ev=evidence_get(restored[&quot;evidence&quot;],row[&quot;evidence_id&quot;])
+            if not restored[&quot;evidence&quot;].verify_evidence(ev)[&quot;valid&quot;]: raise RuntimeError(&quot;evidence&quot;)
+            rp=restored[&quot;rights&quot;].get(row[&quot;rights_passport_id&quot;])
+            if not restored[&quot;rights&quot;].verify(rp)[&quot;valid&quot;]: raise RuntimeError(&quot;rights passport&quot;)
+            gp=restored[&quot;passports&quot;].get(row[&quot;global_passport_id&quot;])
+            if gp.get(&quot;body_sha256&quot;)!=row[&quot;global_passport_sha256&quot;] or not restored[&quot;passports&quot;].verify(gp)[&quot;valid&quot;]: raise RuntimeError(&quot;global passport&quot;)
+            vp=STATE/&quot;content_vault&quot;/&quot;sha256&quot;/row[&quot;content_sha256&quot;][:2]/row[&quot;content_sha256&quot;]
+            if not vp.is_file() or sha_file(vp)!=row[&quot;content_sha256&quot;]: raise RuntimeError(&quot;vault content&quot;)
+        except Exception as exc: failures.append({&quot;logical_path&quot;:row[&quot;logical_path&quot;],&quot;reason&quot;:str(exc)})
+        if i%200==0 or i==len(verification_rows): print(json.dumps({&quot;reverified&quot;:i,&quot;total&quot;:len(verification_rows),&quot;failures&quot;:len(failures)}),flush=True)
+    if failures: raise RuntimeError(&quot;post-recovery verification failures: &quot;+json.dumps(failures[:5]))
+    counts_after=db_counts(STATE)
+    if counts_after!=counts_before: raise RuntimeError(&quot;record counts changed across recovery&quot;)
+    catalog={&quot;schema&quot;:&quot;entity-v3-4-post-release-recursive-closure-catalog-v1&quot;,&quot;date&quot;:&quot;2026-09-24&quot;,
+        &quot;target_release&quot;:&quot;v3.4.0&quot;,&quot;target_release_commit&quot;:capture[&quot;release&quot;][&quot;commit&quot;],&quot;controller_entity_id&quot;:controller,
+        &quot;capture_constituent_root_sha256&quot;:capture[&quot;constituent_root_sha256&quot;],&quot;records&quot;:verification_rows,
+        &quot;claim_boundary&quot;:&quot;BTG-controlled provenance evidence; not independent third-party validation, objective external truth, legal/regulatory approval, market adoption, or accounting fair value.&quot;}
+    CATALOG.parent.mkdir(parents=True,exist_ok=True)
+    CATALOG.write_text(json.dumps(catalog,indent=2,sort_keys=True)+&quot;\n&quot;,encoding=&quot;utf-8&quot;)
+    category_counts={}
+    for row in capture[&quot;records&quot;]: category_counts[row[&quot;category&quot;]]=category_counts.get(row[&quot;category&quot;],0)+1
+    report={&quot;schema&quot;:&quot;entity-v3-4-post-release-recursive-closure-v1&quot;,&quot;version&quot;:&quot;3.4.0&quot;,&quot;date&quot;:&quot;2026-09-24&quot;,&quot;status&quot;:&quot;PASS&quot;,
+        &quot;campaign&quot;:&quot;ENTITY v3.4.0 complete post-publication recursive closure&quot;,&quot;controller_entity_id&quot;:controller,
+        &quot;target&quot;:{&quot;repository&quot;:&quot;blackmore-technology-group/ENTITY&quot;,&quot;tag&quot;:&quot;v3.4.0&quot;,&quot;commit&quot;:capture[&quot;release&quot;][&quot;commit&quot;],&quot;pull_request&quot;:41,&quot;release_id&quot;:396162815,
+                  &quot;captured_repository_heads&quot;:capture[&quot;repo_heads&quot;]},
+        &quot;coverage&quot;:{&quot;constituents&quot;:capture[&quot;constituents&quot;],&quot;constituent_bytes&quot;:capture[&quot;constituent_bytes&quot;],&quot;closure_anchor_objects&quot;:1,
+                    &quot;total_ingested_objects&quot;:len(verification_rows),&quot;category_counts&quot;:category_counts,&quot;git_tracked_files&quot;:984,
+                    &quot;github_api_evidence_records&quot;:45,&quot;release_evidence_artifacts&quot;:11},
+        &quot;roots&quot;:{&quot;git_blob_inventory_sha256&quot;:capture[&quot;git_blob_root_sha256&quot;],&quot;frozen_constituent_root_sha256&quot;:capture[&quot;constituent_root_sha256&quot;],
+                 &quot;entity_ingested_constituent_root_sha256&quot;:ingested_root,&quot;capture_manifest_sha256&quot;:sha_file(CAPTURE),
+                 &quot;state_tree_before_destruction&quot;:state_before,&quot;state_tree_after_recovery&quot;:state_after,
+                 &quot;sqlite_semantic_before_destruction&quot;:semantic_before,&quot;sqlite_semantic_after_recovery&quot;:semantic_after,
+                 &quot;content_vault_before_destruction&quot;:vault_before,&quot;content_vault_after_recovery&quot;:vault_after,
+                 &quot;sovereign_export_tree&quot;:export_root,&quot;sovereign_export_manifest_sha256&quot;:sha_file(export_dir/&quot;EXPORT_MANIFEST.json&quot;)},
+        &quot;entity_native_records&quot;:counts_after,&quot;destructive_recovery&quot;:{&quot;performed&quot;:True,&quot;identical_state_tree&quot;:state_before==state_after,
+                 &quot;identical_sqlite_semantics&quot;:semantic_before==semantic_after,&quot;identical_content_vault&quot;:vault_before==vault_after,
+                 &quot;all_objects_evidence_rights_passports_global_passports_and_vault_bytes_reverified&quot;:True,&quot;encrypted_backup&quot;:backup_public},
+        &quot;release_evidence&quot;:{&quot;final_public_conformance_run&quot;:36074202905,&quot;final_codeql_run&quot;:36074203138,&quot;publisher_run&quot;:36074265814,
+                 &quot;cleanroom_v3_4_result_sha256&quot;:&quot;ac7504cce70576008cff069607619660a4b9bf0cad43b3f3de81078f1e80d9ba&quot;},
+        &quot;closure_definition&quot;:{&quot;immutable_target_is_v3_4_0_release_and_captured_external_repository_heads&quot;:True,
+                 &quot;later_publication_of_this_closure_report_is_not_part_of_the_frozen_target&quot;:True,
+                 &quot;reason&quot;:&quot;Requiring a closure record to ingest the event that publishes that same record would create non-terminating self-reference.&quot;},
+        &quot;claim_boundary&quot;:{&quot;btg_controlled_evidence_is_not_independent_third_party_validation&quot;:True,&quot;objective_external_truth_claimed&quot;:False,
+                 &quot;legal_or_regulatory_compliance_claimed&quot;:False,&quot;independent_security_review_claimed&quot;:False,&quot;market_adoption_or_liquidity_claimed&quot;:False,
+                 &quot;accounting_fair_value_claimed&quot;:False,&quot;custody_is_authority&quot;:False,&quot;economic_value_invented&quot;:False}}
+    PUB_JSON.write_text(json.dumps(report,indent=2,sort_keys=True)+&quot;\n&quot;,encoding=&quot;utf-8&quot;)
+    md=f&quot;&quot;&quot;# ENTITY v3.4.0 Post-Release Recursive Closure — 2026-09-24
+
+**Status: PASS**
+
+This campaign closes the post-publication recursive provenance gap for the immutable ENTITY `v3.4.0` release at `{capture[&#x27;release&#x27;][&#x27;commit&#x27;]}`.
+
+## Frozen target
+
+- ENTITY `v3.4.0` exact Git tree plus its final release/PR/CI/publisher evidence.
+- Six BTG-controlled v3.4 clean-room repositories at captured `main` commits.
+- `ENTITY-GITHUB-APP` at its captured qualified `main` commit plus installation/webhook evidence.
+- Six published v3.4 domain repositories and their sealed archive evidence.
+- Exact Git blob bytes were used; Windows checkout line-ending transformations were not trusted.
+
+## Coverage
+
+- Git-tracked source/repository files: **984**
+- GitHub API evidence records: **45**
+- Additional release evidence artifacts: **11**
+- Frozen constituents: **{capture[&#x27;constituents&#x27;]}**
+- Frozen constituent bytes: **{capture[&#x27;constituent_bytes&#x27;]:,}**
+- ENTITY-native ingested objects including closure anchor: **{len(verification_rows)}**
+
+## Canonical roots
+
+- Git blob inventory: `{capture[&#x27;git_blob_root_sha256&#x27;]}`
+- Frozen constituent root: `{capture[&#x27;constituent_root_sha256&#x27;]}`
+- ENTITY-ingested constituent root: `{ingested_root}`
+&quot;&quot;&quot;
+    md+=f&quot;&quot;&quot;
+## ENTITY-native governed state
+
+- ENTITY objects: **{counts_after[&#x27;objects&#x27;]}**
+- signed Evidence Objects: **{counts_after[&#x27;evidence_objects&#x27;]}**
+- rights records: **{counts_after[&#x27;rights&#x27;]}**
+- Rights Passports: **{counts_after[&#x27;rights_passports&#x27;]}**
+- Global Passports: **{counts_after[&#x27;global_passports&#x27;]}**
+- explicit zero-value records: **{counts_after[&#x27;values&#x27;]}**
+- zero-weight provenance edges from closure anchor: **{counts_after[&#x27;provenance_edges&#x27;]}**
+
+Each constituent is recoverable from the content-addressed ENTITY vault and is bound to an ENTITY object, signed evidence, rights record, Rights Passport, Global Passport and zero-value economic baseline. The zero-weight provenance edges describe membership in the closure corpus; they do not invent contribution percentages or ownership.
+
+## Destructive recovery proof
+
+The generated closure state was encrypted using AES-256-GCM, deleted, restored, and re-opened. The exact state tree, canonical SQLite semantic root and content-vault root were identical before destruction and after recovery.
+
+- state tree: `{state_before[&#x27;sha256&#x27;]}`
+- SQLite semantic root: `{semantic_before[&#x27;sha256&#x27;]}`
+- content vault root: `{vault_before[&#x27;sha256&#x27;]}`
+- sovereign export tree: `{export_root[&#x27;sha256&#x27;]}`
+
+All **{len(verification_rows)}** registered objects were rechecked after recovery; their vault bytes, Evidence Objects, Rights Passports and Global Passports all verified.
+&quot;&quot;&quot;
+    md+=&quot;&quot;&quot;
+## Closure boundary
+
+The frozen closure target is the immutable `v3.4.0` release plus the external BTG-controlled repositories/evidence captured for this campaign. This report and its later publication commit are intentionally outside that frozen target: requiring a record to ingest the event that publishes that same record would create non-terminating self-reference rather than a meaningful finite closure.
+
+## Claim boundary
+
+This is a BTG-controlled recursive qualification. It proves content integrity, attributable provenance, governed rights/passport registration, release-evidence capture and destructive recovery for the named frozen corpus. It does **not** establish objective external truth, unrelated third-party interoperability, independent security review, legal or regulatory compliance, market adoption/liquidity, legal ownership, or accounting fair value. Provider custody remains non-authoritative, and no monetary value or historical contribution percentage was invented.
+&quot;&quot;&quot;
+    PUB_MD.write_text(md,encoding=&quot;utf-8&quot;)
+    print(json.dumps({&quot;status&quot;:&quot;PASS&quot;,&quot;constituents&quot;:capture[&quot;constituents&quot;],&quot;ingested_objects&quot;:len(verification_rows),
+        &quot;constituent_root_sha256&quot;:capture[&quot;constituent_root_sha256&quot;],&quot;state_root_sha256&quot;:state_after[&quot;sha256&quot;],
+        &quot;semantic_root_sha256&quot;:semantic_after[&quot;sha256&quot;],&quot;vault_root_sha256&quot;:vault_after[&quot;sha256&quot;],
+        &quot;sovereign_export_root_sha256&quot;:export_root[&quot;sha256&quot;],&quot;public_json&quot;:str(PUB_JSON),&quot;public_md&quot;:str(PUB_MD),&quot;catalog&quot;:str(CATALOG)},indent=2))</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

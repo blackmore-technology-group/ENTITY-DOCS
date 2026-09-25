@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/32_V3_Hardening/hardening_profiles.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/32_V3_Hardening/hardening_profiles.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/32_V3_Hardening/hardening_profiles.py</code></p><p><b>SHA-256:</b> <code>c11198451947a557cd3fd0090c26629a60e7e84bc20c09768dc2bf37c123b2a7</code></p><p><b>Bytes:</b> 35,505</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/32_V3_Hardening/hardening_profiles.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-ms-fabcb0c61048.html">now_ms</a></li><li><a href="../../../reference/symbols/entity/canon-8d91be37f715.html">canon</a></li><li><a href="../../../reference/symbols/entity/sha-164651a6627a.html">sha</a></li><li><a href="../../../reference/symbols/entity/rid-dd1024a1d18b.html">rid</a></li><li><a href="../../../reference/symbols/entity/require-sha256-e5cac6021b7f.html">require_sha256</a></li><li><a href="../../../reference/symbols/entity/dbctx-337170bd4046.html">dbctx</a></li><li><a href="../../../reference/symbols/entity/profileregistry-a66edadc211a.html">ProfileRegistry</a></li><li><a href="../../../reference/symbols/entity/rightsontology-05cad1f83708.html">RightsOntology</a></li><li><a href="../../../reference/symbols/entity/selectivedisclosure-c787d5b92060.html">SelectiveDisclosure</a></li><li><a href="../../../reference/symbols/entity/disputeledger-6a5366d91b3c.html">DisputeLedger</a></li><li><a href="../../../reference/symbols/entity/statustimeprofile-95e847bb9e31.html">StatusTimeProfile</a></li><li><a href="../../../reference/symbols/entity/recoveryquorum-9d93227c0a83.html">RecoveryQuorum</a></li><li><a href="../../../reference/symbols/entity/federatedresolution-dac16140ee56.html">FederatedResolution</a></li><li><a href="../../../reference/symbols/entity/agentdelegation-91e13432b8b0.html">AgentDelegation</a></li><li><a href="../../../reference/symbols/entity/physicalbinding-66aa1f1da94f.html">PhysicalBinding</a></li><li><a href="../../../reference/symbols/entity/settlementadapters-6777aa9fae8e.html">SettlementAdapters</a></li><li><a href="../../../reference/symbols/entity/admissioncontroller-08f0b50f3813.html">AdmissionController</a></li><li><a href="../../../reference/symbols/entity/degradationstatemachine-b24b585bf2c1.html">DegradationStateMachine</a></li><li><a href="../../../reference/symbols/entity/merklebatcher-f48ff51ed0ff.html">MerkleBatcher</a></li><li><a href="../../../reference/symbols/entity/legacybridge-35a94148048c.html">LegacyBridge</a></li><li><a href="../../../reference/symbols/entity/capability-status-bcd0e18f4669.html">capability_status</a></li><li><a href="../../../reference/symbols/entity/privacyenvelope-dffb82cb5248.html">PrivacyEnvelope</a></li><li><a href="../../../reference/symbols/entity/successionregistry-b8a8996aae49.html">SuccessionRegistry</a></li><li><a href="../../../reference/symbols/entity/attributionmethodology-ebe4bb815ffc.html">AttributionMethodology</a></li><li><a href="../../../reference/symbols/entity/physicalcustody-77e7edc2da20.html">PhysicalCustody</a></li><li><a href="../../../reference/symbols/entity/standardsgovernance-e36bced8b604.html">StandardsGovernance</a></li><li><a href="../../../reference/symbols/entity/archivalsnapshot-29522e7f7607.html">ArchivalSnapshot</a></li><li><a href="../../../reference/symbols/entity/profileregistry-init-ca5e596d7c5c.html">ProfileRegistry.__init__</a></li><li><a href="../../../reference/symbols/entity/profileregistry-register-profile-211858bb9160.html">ProfileRegistry.register_profile</a></li><li><a href="../../../reference/symbols/entity/profileregistry-register-schema-ca8dc7fdd3e1.html">ProfileRegistry.register_schema</a></li><li><a href="../../../reference/symbols/entity/profileregistry-negotiate-f6c9d772e427.html">ProfileRegistry.negotiate</a></li><li><a href="../../../reference/symbols/entity/rightsontology-closure-1836bc45c95b.html">RightsOntology.closure</a></li><li><a href="../../../reference/symbols/entity/rightsontology-evaluate-233d118b9f99.html">RightsOntology.evaluate</a></li><li><a href="../../../reference/symbols/entity/selectivedisclosure-commit-9d51d659b10f.html">SelectiveDisclosure.commit</a></li><li><a href="../../../reference/symbols/entity/selectivedisclosure-disclose-a2ffc9ce7bc9.html">SelectiveDisclosure.disclose</a></li><li><a href="../../../reference/symbols/entity/selectivedisclosure-verify-6a924db5a40d.html">SelectiveDisclosure.verify</a></li><li><a href="../../../reference/symbols/entity/disputeledger-init-59386dfd7203.html">DisputeLedger.__init__</a></li><li><a href="../../../reference/symbols/entity/disputeledger-record-7e7cbf47f446.html">DisputeLedger.record</a></li><li><a href="../../../reference/symbols/entity/disputeledger-state-c23224232d19.html">DisputeLedger.state</a></li><li><a href="../../../reference/symbols/entity/statustimeprofile-init-4af58a03a864.html">StatusTimeProfile.__init__</a></li><li><a href="../../../reference/symbols/entity/statustimeprofile-timestamp-87b1158def5e.html">StatusTimeProfile.timestamp</a></li><li><a href="../../../reference/symbols/entity/statustimeprofile-publish-82e3661580d0.html">StatusTimeProfile.publish</a></li><li><a href="../../../reference/symbols/entity/statustimeprofile-evaluate-5c9e915856c0.html">StatusTimeProfile.evaluate</a></li><li><a href="../../../reference/symbols/entity/recoveryquorum-init-5d929a89134f.html">RecoveryQuorum.__init__</a></li><li><a href="../../../reference/symbols/entity/recoveryquorum-set-policy-619deda3a275.html">RecoveryQuorum.set_policy</a></li><li><a href="../../../reference/symbols/entity/recoveryquorum-request-708631c408cd.html">RecoveryQuorum.request</a></li><li><a href="../../../reference/symbols/entity/recoveryquorum-approve-267156a042ad.html">RecoveryQuorum.approve</a></li><li><a href="../../../reference/symbols/entity/recoveryquorum-ready-45070e399242.html">RecoveryQuorum.ready</a></li><li><a href="../../../reference/symbols/entity/federatedresolution-init-7c500e305eaa.html">FederatedResolution.__init__</a></li><li><a href="../../../reference/symbols/entity/federatedresolution-observe-f46beaeee311.html">FederatedResolution.observe</a></li><li><a href="../../../reference/symbols/entity/federatedresolution-quorum-03253762c0c4.html">FederatedResolution.quorum</a></li><li><a href="../../../reference/symbols/entity/agentdelegation-init-dfa423aa2f1a.html">AgentDelegation.__init__</a></li><li><a href="../../../reference/symbols/entity/agentdelegation-grant-c9f52fca3d41.html">AgentDelegation.grant</a></li><li><a href="../../../reference/symbols/entity/agentdelegation-consume-e3728159a0b0.html">AgentDelegation.consume</a></li><li><a href="../../../reference/symbols/entity/agentdelegation-kill-b2d4c6b70153.html">AgentDelegation.kill</a></li><li><a href="../../../reference/symbols/entity/physicalbinding-init-20b2498c5486.html">PhysicalBinding.__init__</a></li><li><a href="../../../reference/symbols/entity/physicalbinding-bind-f08b8d228e1d.html">PhysicalBinding.bind</a></li><li><a href="../../../reference/symbols/entity/settlementadapters-init-dd967aa679c9.html">SettlementAdapters.__init__</a></li><li><a href="../../../reference/symbols/entity/settlementadapters-register-bdaef9810dae.html">SettlementAdapters.register</a></li><li><a href="../../../reference/symbols/entity/settlementadapters-route-220ef6a4d562.html">SettlementAdapters.route</a></li><li><a href="../../../reference/symbols/entity/admissioncontroller-init-2e552ed3efdf.html">AdmissionController.__init__</a></li><li><a href="../../../reference/symbols/entity/admissioncontroller-admit-de841d820cb1.html">AdmissionController.admit</a></li><li><a href="../../../reference/symbols/entity/degradationstatemachine-init-002f185a944a.html">DegradationStateMachine.__init__</a></li><li><a href="../../../reference/symbols/entity/degradationstatemachine-transition-48cbdd03c88f.html">DegradationStateMachine.transition</a></li><li><a href="../../../reference/symbols/entity/degradationstatemachine-permits-3c7aadf99003.html">DegradationStateMachine.permits</a></li><li><a href="../../../reference/symbols/entity/merklebatcher-leaf-f86435adda8e.html">MerkleBatcher.leaf</a></li><li><a href="../../../reference/symbols/entity/merklebatcher-root-92ad0540b2f1.html">MerkleBatcher.root</a></li><li><a href="../../../reference/symbols/entity/merklebatcher-proof-5e91891eb084.html">MerkleBatcher.proof</a></li><li><a href="../../../reference/symbols/entity/merklebatcher-verify-03adb0e916c4.html">MerkleBatcher.verify</a></li><li><a href="../../../reference/symbols/entity/legacybridge-map-86a6b794c1e4.html">LegacyBridge.map</a></li><li><a href="../../../reference/symbols/entity/privacyenvelope-pseudonym-0f2fd0583786.html">PrivacyEnvelope.pseudonym</a></li><li><a href="../../../reference/symbols/entity/privacyenvelope-encrypt-fe7ebae8a6e8.html">PrivacyEnvelope.encrypt</a></li><li><a href="../../../reference/symbols/entity/privacyenvelope-decrypt-a105c69ef777.html">PrivacyEnvelope.decrypt</a></li><li><a href="../../../reference/symbols/entity/successionregistry-init-79ad3a65562b.html">SuccessionRegistry.__init__</a></li><li><a href="../../../reference/symbols/entity/successionregistry-designate-1a9f04e8e434.html">SuccessionRegistry.designate</a></li><li><a href="../../../reference/symbols/entity/attributionmethodology-receipt-f275b047c9e5.html">AttributionMethodology.receipt</a></li><li><a href="../../../reference/symbols/entity/physicalcustody-init-2ed65ae34075.html">PhysicalCustody.__init__</a></li><li><a href="../../../reference/symbols/entity/physicalcustody-record-2f374d8d4aff.html">PhysicalCustody.record</a></li><li><a href="../../../reference/symbols/entity/standardsgovernance-init-426ef9607fd0.html">StandardsGovernance.__init__</a></li><li><a href="../../../reference/symbols/entity/standardsgovernance-propose-08f004eeb7e6.html">StandardsGovernance.propose</a></li><li><a href="../../../reference/symbols/entity/standardsgovernance-vote-5a39a8232abb.html">StandardsGovernance.vote</a></li><li><a href="../../../reference/symbols/entity/archivalsnapshot-create-b1766f9cc7d5.html">ArchivalSnapshot.create</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from contextlib import contextmanager
+from typing import Any
+import hashlib, json, secrets, sqlite3, time
+
+CORE_VERSION=&#x27;3.0.0&#x27;
+CORE_PRIMITIVES=(&#x27;ENTITY&#x27;,&#x27;AUTHORITY&#x27;,&#x27;RIGHT&#x27;,&#x27;EVENT&#x27;,&#x27;VALUE&#x27;)
+RIGHT_TERMS={&#x27;INSPECT&#x27;:(), &#x27;READ&#x27;:(&#x27;INSPECT&#x27;,), &#x27;QUERY&#x27;:(&#x27;INSPECT&#x27;,), &#x27;COPY&#x27;:(&#x27;READ&#x27;,), &#x27;DERIVE&#x27;:(&#x27;READ&#x27;,), &#x27;TRAIN&#x27;:(&#x27;READ&#x27;,), &#x27;INFER&#x27;:(&#x27;QUERY&#x27;,), &#x27;EXECUTE&#x27;:(), &#x27;MODIFY&#x27;:(&#x27;READ&#x27;,), &#x27;REDISTRIBUTE&#x27;:(&#x27;COPY&#x27;,), &#x27;COMMERCIALIZE&#x27;:(), &#x27;SUBLICENSE&#x27;:(), &#x27;CONTROL&#x27;:(), &#x27;TRANSFER&#x27;:()}
+
+def now_ms(): return int(time.time()*1000)
+def canon(v): return json.dumps(v,sort_keys=True,separators=(&#x27;,&#x27;,&#x27;:&#x27;),ensure_ascii=False,default=str).encode()
+def sha(v): return hashlib.sha256(v if isinstance(v,(bytes,bytearray)) else canon(v)).hexdigest()
+def rid(prefix): return prefix+&#x27;-&#x27;+secrets.token_hex(12)
+def require_sha256(value):
+    s=str(value or &#x27;&#x27;).lower()
+    if len(s)!=64 or any(c not in &#x27;0123456789abcdef&#x27; for c in s): raise ValueError(&#x27;SHA-256 hex required&#x27;)
+    return s
+
+@contextmanager
+def dbctx(path):
+    db=sqlite3.connect(path); db.row_factory=sqlite3.Row
+    try:
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback(); raise
+    finally:
+        db.close()
+
+class ProfileRegistry:
+    def __init__(self,root):
+        self.path=Path(root)/&#x27;entity_v3_profiles.sqlite&#x27;; self.path.parent.mkdir(parents=True,exist_ok=True)
+        with dbctx(self.path) as db:
+            db.execute(&#x27;CREATE TABLE IF NOT EXISTS profiles(profile_id TEXT,version TEXT,schema_sha256 TEXT,dependencies_json TEXT,mandatory INTEGER,status TEXT,created_at_ms INTEGER,PRIMARY KEY(profile_id,version))&#x27;)
+            db.execute(&#x27;CREATE TABLE IF NOT EXISTS schemas(schema_id TEXT,version TEXT,document_sha256 TEXT,compatibility TEXT,created_at_ms INTEGER,PRIMARY KEY(schema_id,version))&#x27;)
+    def register_profile(self,profile_id,version,schema_sha256,dependencies=(),mandatory=False):
+        digest=require_sha256(schema_sha256); deps=sorted(set(map(str,dependencies)))
+        with dbctx(self.path) as db:
+            db.row_factory=sqlite3.Row; old=db.execute(&#x27;SELECT * FROM profiles WHERE profile_id=? AND version=?&#x27;,(profile_id,version)).fetchone()
+            if old:
+                if old[&#x27;schema_sha256&#x27;]!=digest: raise ValueError(&#x27;immutable profile version changed&#x27;)
+                return dict(old)
+            for dep in deps:
+                pid,sep,ver=dep.partition(&#x27;@&#x27;)
+                if not sep or not db.execute(&quot;SELECT 1 FROM profiles WHERE profile_id=? AND version=? AND status=&#x27;ACTIVE&#x27;&quot;,(pid,ver)).fetchone(): raise ValueError(&#x27;missing profile dependency: &#x27;+dep)
+            db.execute(&#x27;INSERT INTO profiles VALUES(?,?,?,?,?,?,?)&#x27;,(profile_id,version,digest,json.dumps(deps),int(bool(mandatory)),&#x27;ACTIVE&#x27;,now_ms()))
+        return {&#x27;profile_id&#x27;:profile_id,&#x27;version&#x27;:version,&#x27;schema_sha256&#x27;:digest,&#x27;dependencies&#x27;:deps,&#x27;mandatory&#x27;:bool(mandatory),&#x27;status&#x27;:&#x27;ACTIVE&#x27;}
+    def register_schema(self,schema_id,version,document,compatibility=&#x27;IMMUTABLE&#x27;):
+        compatibility=str(compatibility).upper()
+        if compatibility not in {&#x27;IMMUTABLE&#x27;,&#x27;BACKWARD&#x27;,&#x27;FORWARD&#x27;,&#x27;BIDIRECTIONAL&#x27;}: raise ValueError(&#x27;invalid compatibility&#x27;)
+        digest=sha(document)
+        with dbctx(self.path) as db:
+            db.row_factory=sqlite3.Row; old=db.execute(&#x27;SELECT * FROM schemas WHERE schema_id=? AND version=?&#x27;,(schema_id,version)).fetchone()
+            if old:
+                if old[&#x27;document_sha256&#x27;]!=digest: raise ValueError(&#x27;immutable historical schema changed&#x27;)
+                return dict(old)
+            db.execute(&#x27;INSERT INTO schemas VALUES(?,?,?,?,?)&#x27;,(schema_id,version,digest,compatibility,now_ms()))
+        return {&#x27;schema_id&#x27;:schema_id,&#x27;version&#x27;:version,&#x27;document_sha256&#x27;:digest,&#x27;compatibility&#x27;:compatibility}
+    def negotiate(self,local,remote):
+        selected={}; incompatible=[]
+        for pid in sorted(set(local)|set(remote)):
+            common=sorted(set(local.get(pid,()))&amp;set(remote.get(pid,())))
+            if common: selected[pid]=common[-1]
+            elif pid in local and pid in remote: incompatible.append(pid)
+        return {&#x27;core_version&#x27;:CORE_VERSION,&#x27;selected_profiles&#x27;:selected,&#x27;incompatible_profiles&#x27;:incompatible,&#x27;core_interop_preserved&#x27;:True}
+
+class RightsOntology:
+    @classmethod
+    def closure(cls,actions):
+        out={str(a).upper() for a in actions}; unknown=out-set(RIGHT_TERMS)
+        if unknown: raise ValueError(&#x27;unknown rights terms: &#x27;+&#x27;,&#x27;.join(sorted(unknown)))
+        changed=True
+        while changed:
+            changed=False
+            for action in list(out):
+                for implied in RIGHT_TERMS[action]:
+                    if implied not in out: out.add(implied); changed=True
+        return out
+    @classmethod
+    def evaluate(cls,rules,action,context=None):
+        action=str(action).upper(); context=dict(context or {})
+        if action not in RIGHT_TERMS: raise ValueError(&#x27;unknown right action&#x27;)
+        applicable=[]; requested_closure=cls.closure([action])
+        for rule in rules:
+            effect=str(rule.get(&#x27;effect&#x27;) or &#x27;&#x27;).upper()
+            if effect not in {&#x27;ALLOW&#x27;,&#x27;REQUIRE&#x27;,&#x27;PROHIBIT&#x27;}: raise ValueError(&#x27;invalid effect&#x27;)
+            rule_actions={str(a).upper() for a in (rule.get(&#x27;actions&#x27;) or [])}; rule_closure=cls.closure(rule_actions)
+            if effect==&#x27;PROHIBIT&#x27;:
+                if not (rule_actions &amp; requested_closure): continue
+            elif action not in rule_closure: continue
+            if any(context.get(k)!=v for k,v in dict(rule.get(&#x27;conditions&#x27;) or {}).items()): continue
+            applicable.append(rule)
+        effects={str(x[&#x27;effect&#x27;]).upper() for x in applicable}
+        decision=&#x27;DENY&#x27; if &#x27;PROHIBIT&#x27; in effects else &#x27;CONDITIONAL&#x27; if &#x27;REQUIRE&#x27; in effects else &#x27;ALLOW&#x27; if &#x27;ALLOW&#x27; in effects else &#x27;DENY&#x27;
+        return {&#x27;action&#x27;:action,&#x27;decision&#x27;:decision,&#x27;obligations&#x27;:[o for r in applicable for o in r.get(&#x27;obligations&#x27;,[])],&#x27;deny_by_default&#x27;:True}
+
+class SelectiveDisclosure:
+    @staticmethod
+    def commit(claims):
+        commitments={}; openings={}
+        for key in sorted(claims):
+            salt=secrets.token_hex(24); commitments[key]=sha({&#x27;key&#x27;:key,&#x27;value&#x27;:claims[key],&#x27;salt&#x27;:salt}); openings[key]={&#x27;value&#x27;:claims[key],&#x27;salt&#x27;:salt}
+        return {&#x27;schema&#x27;:&#x27;entity-v3-private-claims-v1&#x27;,&#x27;root&#x27;:sha({&#x27;claims&#x27;:commitments}),&#x27;commitments&#x27;:commitments,&#x27;private_openings&#x27;:openings}
+    @staticmethod
+    def disclose(package,keys):
+        openings=package.get(&#x27;private_openings&#x27;) or {}; revealed={}
+        for key in sorted(set(keys)):
+            if key not in openings: raise KeyError(key)
+            revealed[key]=openings[key]
+        return {&#x27;schema&#x27;:&#x27;entity-v3-selective-disclosure-v1&#x27;,&#x27;root&#x27;:package[&#x27;root&#x27;],&#x27;commitments&#x27;:dict(package[&#x27;commitments&#x27;]),&#x27;revealed&#x27;:revealed}
+    @staticmethod
+    def verify(proof):
+        commitments=dict(proof.get(&#x27;commitments&#x27;) or {}); bad=[]
+        root_ok=sha({&#x27;claims&#x27;:commitments})==proof.get(&#x27;root&#x27;)
+        for key,opening in dict(proof.get(&#x27;revealed&#x27;) or {}).items():
+            if commitments.get(key)!=sha({&#x27;key&#x27;:key,&#x27;value&#x27;:opening.get(&#x27;value&#x27;),&#x27;salt&#x27;:opening.get(&#x27;salt&#x27;)}): bad.append(key)
+        return {&#x27;valid&#x27;:root_ok and not bad,&#x27;root_valid&#x27;:root_ok,&#x27;invalid_reveals&#x27;:bad,&#x27;revealed_keys&#x27;:sorted((proof.get(&#x27;revealed&#x27;) or {}).keys())}
+
+class DisputeLedger:</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

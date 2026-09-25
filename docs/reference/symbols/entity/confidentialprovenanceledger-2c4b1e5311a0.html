@@ -1,0 +1,63 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ConfidentialProvenanceLedger Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ConfidentialProvenanceLedger</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/privacy_provenance.py#L202">ENTITY/src/35_Global_Infrastructure/privacy_provenance.py#L202</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Commitment-first provenance with optional AES-GCM protected metadata.</p><h2>Source excerpt</h2><pre><code>class ConfidentialProvenanceLedger:
+    &quot;&quot;&quot;Commitment-first provenance with optional AES-GCM protected metadata.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_confidential_provenance.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS edges(
+                edge_id TEXT PRIMARY KEY, actor TEXT NOT NULL,
+                parent_ref TEXT NOT NULL, child_ref TEXT NOT NULL,
+                relationship TEXT NOT NULL, evidence_sha256 TEXT NOT NULL,
+                metadata_commitment_sha256 TEXT NOT NULL,
+                encrypted_metadata_json TEXT, created_at_ms INTEGER NOT NULL,
+                signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+
+    def add_edge(self, actor: str, parent_ref: str, child_ref: str, relationship: str,
+                 evidence_sha256: str, *, metadata: dict | None = None,
+                 encryption_key: bytes | None = None) -&gt; dict:
+        evidence_sha256 = sha256_hex(evidence_sha256)
+        metadata = dict(metadata or {})
+        commitment = digest(metadata)
+        encrypted = None
+        if metadata:
+            if encryption_key is None or len(encryption_key) not in {16, 24, 32}:
+                raise ValueError(&quot;AES key required for confidential provenance metadata&quot;)
+            nonce = os.urandom(12)
+            aad = canon({&quot;parent_ref&quot;: parent_ref, &quot;child_ref&quot;: child_ref,
+                         &quot;relationship&quot;: relationship, &quot;commitment&quot;: commitment})
+            ciphertext = AESGCM(encryption_key).encrypt(nonce, canon(metadata), aad)
+            encrypted = {&quot;suite&quot;: &quot;AES-GCM&quot;, &quot;nonce&quot;: b64(nonce), &quot;ciphertext&quot;: b64(ciphertext),
+                         &quot;aad_sha256&quot;: hashlib.sha256(aad).hexdigest()}
+        body = {&quot;schema&quot;: &quot;entity-v3-confidential-provenance-v1&quot;, &quot;edge_id&quot;: rid(&quot;cpedge3&quot;),
+                &quot;actor&quot;: actor, &quot;parent_ref&quot;: str(parent_ref), &quot;child_ref&quot;: str(child_ref),
+                &quot;relationship&quot;: str(relationship).upper(), &quot;evidence_sha256&quot;: evidence_sha256,
+                &quot;metadata_commitment_sha256&quot;: commitment, &quot;encrypted_metadata&quot;: encrypted,
+                &quot;created_at_ms&quot;: now_ms(), &quot;confidential_metadata_not_public_provenance&quot;: True}
+        sig = self.identity.sign(actor, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO edges VALUES(?,?,?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;edge_id&quot;], actor, str(parent_ref), str(child_ref),
+                body[&quot;relationship&quot;], evidence_sha256, commitment,
+                json.dumps(encrypted, sort_keys=True) if encrypted else None,
+                body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)
+
+    def reveal_metadata(self, edge_id: str, encryption_key: bytes) -&gt; dict:
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            row = db.execute(&quot;SELECT * FROM edges WHERE edge_id=?&quot;, (edge_id,)).fetchone()
+        if not row:
+            raise KeyError(&quot;confidential provenance edge missing&quot;)
+        if not row[&quot;encrypted_metadata_json&quot;]:
+            return {&quot;edge_id&quot;: edge_id, &quot;metadata&quot;: {}, &quot;commitment_valid&quot;: True}
+        env = json.loads(row[&quot;encrypted_metadata_json&quot;])
+        aad = canon({&quot;parent_ref&quot;: row[&quot;parent_ref&quot;], &quot;child_ref&quot;: row[&quot;child_ref&quot;],
+                     &quot;relationship&quot;: row[&quot;relationship&quot;],
+                     &quot;commitment&quot;: row[&quot;metadata_commitment_sha256&quot;]})
+        plaintext = AESGCM(encryption_key).decrypt(unb64(env[&quot;nonce&quot;]), unb64(env[&quot;ciphertext&quot;]), aad)
+        metadata = json.loads(plaintext.decode(&quot;utf-8&quot;))
+        valid = digest(metadata) == row[&quot;metadata_commitment_sha256&quot;]
+        if not valid:
+            raise PermissionError(&quot;confidential provenance commitment mismatch&quot;)
+        return {&quot;edge_id&quot;: edge_id, &quot;metadata&quot;: metadata, &quot;commitment_valid&quot;: True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

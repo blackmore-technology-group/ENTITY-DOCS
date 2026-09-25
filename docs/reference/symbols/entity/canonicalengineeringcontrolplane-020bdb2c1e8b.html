@@ -1,0 +1,228 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CanonicalEngineeringControlPlane Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>CanonicalEngineeringControlPlane</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/engineering_controls/canonical_engineering_controls.py#L25">ENTITY/src/01_Core_Runtime/engineering_controls/canonical_engineering_controls.py#L25</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Cross-cutting fail-closed controls for SERS-ENTITY-003 production engineering.</p><h2>Source excerpt</h2><pre><code>class CanonicalEngineeringControlPlane:
+    &quot;&quot;&quot;Cross-cutting fail-closed controls for SERS-ENTITY-003 production engineering.&quot;&quot;&quot;
+    def __init__(self,state_dir:str|Path):
+        self.root=Path(state_dir)/&#x27;engineering_controls&#x27;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&#x27;controls.sqlite&#x27;; self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&#x27;CREATE TABLE IF NOT EXISTS objects(kind TEXT NOT NULL,key TEXT NOT NULL,state TEXT NOT NULL,payload_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL,PRIMARY KEY(kind,key))&#x27;)
+            db.execute(&#x27;CREATE TABLE IF NOT EXISTS audit(seq INTEGER PRIMARY KEY AUTOINCREMENT,event_id TEXT UNIQUE NOT NULL,kind TEXT NOT NULL,subject TEXT NOT NULL,payload_json TEXT NOT NULL,prev_hash TEXT,event_hash TEXT UNIQUE NOT NULL,created_at_ms INTEGER NOT NULL)&#x27;)
+            db.execute(&#x27;CREATE TABLE IF NOT EXISTS nonces(namespace TEXT NOT NULL,nonce TEXT NOT NULL,result_json TEXT NOT NULL,PRIMARY KEY(namespace,nonce))&#x27;)
+
+    def _audit(self,kind:str,subject:str,payload:dict)-&gt;dict:
+        now=_now(); eid=&#x27;eng1-&#x27;+secrets.token_hex(16)
+        with self._connect() as db:
+            prior=db.execute(&#x27;SELECT event_hash FROM audit ORDER BY seq DESC LIMIT 1&#x27;).fetchone(); prev=prior[&#x27;event_hash&#x27;] if prior else None
+            body={&#x27;event_id&#x27;:eid,&#x27;kind&#x27;:str(kind).upper(),&#x27;subject&#x27;:str(subject),&#x27;payload&#x27;:dict(payload),&#x27;prev_hash&#x27;:prev,&#x27;created_at_ms&#x27;:now}
+            digest=_hash(body); db.execute(&#x27;INSERT INTO audit(event_id,kind,subject,payload_json,prev_hash,event_hash,created_at_ms) VALUES(?,?,?,?,?,?,?)&#x27;,(eid,body[&#x27;kind&#x27;],body[&#x27;subject&#x27;],json.dumps(body[&#x27;payload&#x27;],sort_keys=True),prev,digest,now))
+        return {**body,&#x27;event_hash&#x27;:digest}
+    def _put(self,kind:str,key:str,payload:dict,state:str=&#x27;ACTIVE&#x27;)-&gt;dict:
+        now=_now(); kind=str(kind).upper(); key=str(key); state=str(state).upper()
+        with self._connect() as db:
+            existing=db.execute(&#x27;SELECT created_at_ms FROM objects WHERE kind=? AND key=?&#x27;,(kind,key)).fetchone(); created=existing[&#x27;created_at_ms&#x27;] if existing else now
+            db.execute(&#x27;INSERT OR REPLACE INTO objects(kind,key,state,payload_json,created_at_ms,updated_at_ms) VALUES(?,?,?,?,?,?)&#x27;,(kind,key,state,json.dumps(dict(payload),sort_keys=True),created,now))
+        self._audit(kind,key,{&#x27;state&#x27;:state,&#x27;payload_sha256&#x27;:_hash(payload)})
+        return {&#x27;kind&#x27;:kind,&#x27;key&#x27;:key,&#x27;state&#x27;:state,&#x27;payload&#x27;:dict(payload),&#x27;created_at_ms&#x27;:created,&#x27;updated_at_ms&#x27;:now}
+
+    def _get(self,kind:str,key:str)-&gt;dict:
+        with self._connect() as db: row=db.execute(&#x27;SELECT * FROM objects WHERE kind=? AND key=?&#x27;,(str(kind).upper(),str(key))).fetchone()
+        if not row: raise KeyError(f&#x27;{kind}:{key} not found&#x27;)
+        return {&#x27;kind&#x27;:row[&#x27;kind&#x27;],&#x27;key&#x27;:row[&#x27;key&#x27;],&#x27;state&#x27;:row[&#x27;state&#x27;],&#x27;payload&#x27;:json.loads(row[&#x27;payload_json&#x27;]),&#x27;created_at_ms&#x27;:row[&#x27;created_at_ms&#x27;],&#x27;updated_at_ms&#x27;:row[&#x27;updated_at_ms&#x27;]}
+
+    def idempotent(self,namespace:str,nonce:str,producer)-&gt;dict:
+        ns=str(namespace); nonce=str(nonce)
+        with self._connect() as db:
+            row=db.execute(&#x27;SELECT result_json FROM nonces WHERE namespace=? AND nonce=?&#x27;,(ns,nonce)).fetchone()
+            if row: return json.loads(row[&#x27;result_json&#x27;])
+        result=dict(producer())
+        with self._connect() as db: db.execute(&#x27;INSERT INTO nonces(namespace,nonce,result_json) VALUES(?,?,?)&#x27;,(ns,nonce,json.dumps(result,sort_keys=True)))
+        return result
+
+    def verify_audit(self)-&gt;dict:
+        with self._connect() as db: rows=db.execute(&#x27;SELECT * FROM audit ORDER BY seq&#x27;).fetchall()
+        prev=None
+        for row in rows:
+            body={&#x27;event_id&#x27;:row[&#x27;event_id&#x27;],&#x27;kind&#x27;:row[&#x27;kind&#x27;],&#x27;subject&#x27;:row[&#x27;subject&#x27;],&#x27;payload&#x27;:json.loads(row[&#x27;payload_json&#x27;]),&#x27;prev_hash&#x27;:row[&#x27;prev_hash&#x27;],&#x27;created_at_ms&#x27;:row[&#x27;created_at_ms&#x27;]}
+            if row[&#x27;prev_hash&#x27;]!=prev or _hash(body)!=row[&#x27;event_hash&#x27;]: return {&#x27;pass&#x27;:False,&#x27;events&#x27;:len(rows)}
+            prev=row[&#x27;event_hash&#x27;]
+        return {&#x27;pass&#x27;:True,&#x27;events&#x27;:len(rows),&#x27;head_hash&#x27;:prev}
+    # Governance / authority
+    def register_jurisdiction_profile(self,profile_id:str,version:int,rules:dict)-&gt;dict:
+        if int(version)&lt;1: raise ValueError(&#x27;version must be &gt;=1&#x27;)
+        return self._put(&#x27;JURISDICTION&#x27;,profile_id,{&#x27;version&#x27;:int(version),&#x27;rules&#x27;:dict(rules),&#x27;engineering_not_legal_advice&#x27;:True})
+
+    def authorize(self,context:dict)-&gt;dict:
+        c=dict(context or {}); required={&#x27;actor&#x27;,&#x27;capability&#x27;,&#x27;action&#x27;,&#x27;purpose&#x27;,&#x27;policy&#x27;,&#x27;jurisdiction&#x27;,&#x27;time_ms&#x27;}
+        missing=sorted(required-set(c))
+        if missing: return {&#x27;allowed&#x27;:False,&#x27;reason&#x27;:&#x27;missing_authorization_context&#x27;,&#x27;missing&#x27;:missing}
+        if c.get(&#x27;policy&#x27;) not in {&#x27;ALLOW&#x27;,&#x27;PERMIT&#x27;}: return {&#x27;allowed&#x27;:False,&#x27;reason&#x27;:&#x27;policy_denied&#x27;}
+        if c.get(&#x27;capability_active&#x27;) is not True: return {&#x27;allowed&#x27;:False,&#x27;reason&#x27;:&#x27;capability_inactive&#x27;}
+        action=str(c.get(&#x27;action&#x27;)).upper()
+        if action in HIGH_IMPACT and not c.get(&#x27;approval_ref&#x27;): return {&#x27;allowed&#x27;:False,&#x27;reason&#x27;:&#x27;approval_required&#x27;}
+        if c.get(&#x27;counterparty_required&#x27;) and not c.get(&#x27;counterparty&#x27;): return {&#x27;allowed&#x27;:False,&#x27;reason&#x27;:&#x27;counterparty_required&#x27;}
+        decision={&#x27;allowed&#x27;:True,&#x27;actor&#x27;:c[&#x27;actor&#x27;],&#x27;action&#x27;:action,&#x27;purpose&#x27;:c[&#x27;purpose&#x27;],&#x27;jurisdiction&#x27;:c[&#x27;jurisdiction&#x27;],&#x27;approval_ref&#x27;:c.get(&#x27;approval_ref&#x27;)}
+        self._audit(&#x27;AUTHORIZATION&#x27;,str(c[&#x27;actor&#x27;]),decision); return decision
+
+    def transition_claim(self,claim_id:str,current_origin:str,target_status:str,*,evidence:dict|None=None)-&gt;dict:
+        origin=str(current_origin).upper(); target=str(target_status).upper()
+        if origin in {&#x27;UNKNOWN&#x27;,&#x27;DERIVED_INFERENCE&#x27;} and target in {&#x27;VERIFIED&#x27;,&#x27;AUTHORITATIVELY_VERIFIED&#x27;} and not evidence:
+            raise PermissionError(&#x27;unknown/inferred claim cannot become verified without qualifying evidence&#x27;)
+        return self._put(&#x27;CLAIM_STATE&#x27;,claim_id,{&#x27;evidence_origin&#x27;:origin,&#x27;status&#x27;:target,&#x27;evidence&#x27;:dict(evidence or {})})
+
+    # Node/device authority
+    def authorize_node(self,entity_root:str,node_id:str,public_key:str,scopes:list[str],*,protocol_version:str,schema_version:str,crypto_suite:str)-&gt;dict:
+        payload={&#x27;entity_root&#x27;:entity_root,&#x27;node_id&#x27;:node_id,&#x27;public_key&#x27;:public_key,&#x27;scopes&#x27;:sorted(set(scopes)),&#x27;protocol_version&#x27;:protocol_version,&#x27;schema_version&#x27;:schema_version,&#x27;crypto_suite&#x27;:crypto_suite,&#x27;root_identity_replaced&#x27;:False}
+        return self._put(&#x27;NODE&#x27;,node_id,payload,&#x27;ACTIVE&#x27;)
+    def revoke_node(self,node_id:str)-&gt;dict:
+        row=self._get(&#x27;NODE&#x27;,node_id); return self._put(&#x27;NODE&#x27;,node_id,row[&#x27;payload&#x27;],&#x27;REVOKED&#x27;)
+
+    def reconcile_node_event(self,node_id:str,nonce:str,*,exclusive:bool=False,conflicting_state:bool=False,payload:dict|None=None)-&gt;dict:
+        node=self._get(&#x27;NODE&#x27;,node_id)
+        if node[&#x27;state&#x27;]!=&#x27;ACTIVE&#x27;: raise PermissionError(&#x27;revoked/inactive node&#x27;)
+        if exclusive and conflicting_state: raise PermissionError(&#x27;exclusive operation conflicts; fail closed until reconciliation&#x27;)
+        def produce():
+            event={&#x27;node_id&#x27;:node_id,&#x27;nonce&#x27;:nonce,&#x27;exclusive&#x27;:bool(exclusive),&#x27;conflicting_state&#x27;:False,&#x27;payload_sha256&#x27;:_hash(payload or {}),&#x27;signed_locally&#x27;:True,&#x27;reconciled&#x27;:True}
+            self._audit(&#x27;NODE_RECONCILIATION&#x27;,node_id,event); return event
+        return self.idempotent(&#x27;node-event:&#x27;+node_id,nonce,produce)
+
+    def export_node_state(self,node_id:str)-&gt;dict:
+        row=self._get(&#x27;NODE&#x27;,node_id)
+        return {&#x27;schema&#x27;:&#x27;entity-node-export-v1&#x27;,&#x27;node_id&#x27;:node_id,&#x27;entity_root&#x27;:row[&#x27;payload&#x27;][&#x27;entity_root&#x27;],&#x27;authorization_state&#x27;:row[&#x27;state&#x27;],&#x27;protocol_version&#x27;:row[&#x27;payload&#x27;][&#x27;protocol_version&#x27;],&#x27;schema_version&#x27;:row[&#x27;payload&#x27;][&#x27;schema_version&#x27;],&#x27;crypto_suite&#x27;:row[&#x27;payload&#x27;][&#x27;crypto_suite&#x27;],&#x27;historical_evidence_preserved&#x27;:True}
+
+    # Hosted sites
+    def register_site(self,entity_root:str,site_id:str,asset_id:str,*,classification:str,rights_state:str,policy_ref:str,provenance_ref:str)-&gt;dict:
+        payload={&#x27;entity_root&#x27;:entity_root,&#x27;asset_id&#x27;:asset_id,&#x27;classification&#x27;:classification.upper(),&#x27;rights_state&#x27;:rights_state.upper(),&#x27;policy_ref&#x27;:policy_ref,&#x27;provenance_ref&#x27;:provenance_ref,&#x27;publication_history&#x27;:[]}
+        return self._put(&#x27;SITE&#x27;,site_id,payload,&#x27;PRIVATE&#x27;)
+
+    def publish_site(self,site_id:str,destination:str,*,terms_state:str,approval_ref:str|None,external_content_id:str|None=None)-&gt;dict:
+        row=self._get(&#x27;SITE&#x27;,site_id); p=dict(row[&#x27;payload&#x27;]); terms=str(terms_state).upper()
+        if p[&#x27;classification&#x27;] in {&#x27;PRIVATE&#x27;,&#x27;RESTRICTED&#x27;}: raise PermissionError(&#x27;sensitive site content is not publishable by default&#x27;)
+        if p[&#x27;rights_state&#x27;] not in {&#x27;VERIFIED&#x27;,&#x27;LICENSABLE&#x27;,&#x27;PUBLIC&#x27;}: raise PermissionError(&#x27;rights unresolved; review required&#x27;)
+        if terms not in {&#x27;VERIFIED&#x27;,&#x27;REVIEW_REQUIRED&#x27;}: raise PermissionError(&#x27;platform terms unresolved&#x27;)
+        if terms==&#x27;REVIEW_REQUIRED&#x27; and not approval_ref: raise PermissionError(&#x27;explicit approval required for review-required terms&#x27;)
+        event={&#x27;destination&#x27;:destination,&#x27;terms_state&#x27;:terms,&#x27;approval_ref&#x27;:approval_ref,&#x27;external_content_id&#x27;:external_content_id,&#x27;source_rights_mutated&#x27;:False,&#x27;source_provenance_mutated&#x27;:False,&#x27;published_at_ms&#x27;:_now()}
+        p[&#x27;publication_history&#x27;]=list(p.get(&#x27;publication_history&#x27;) or [])+[event]; self._put(&#x27;SITE&#x27;,site_id,p,&#x27;PUBLISHED&#x27;); self._audit(&#x27;SITE_EXPORT&#x27;,site_id,event); return event
+    # Hosted applications
+    def install_app(self,entity_root:str,app_id:str,version:str,scopes:list[str],*,package_sha256:str,sbom_sha256:str,rbom_sha256:str,data_classification:str=&#x27;INTERNAL&#x27;)-&gt;dict:
+        if len(package_sha256)!=64 or len(sbom_sha256)!=64 or len(rbom_sha256)!=64: raise ValueError(&#x27;package/SBOM/RBOM hashes required&#x27;)
+        payload={&#x27;entity_root&#x27;:entity_root,&#x27;version&#x27;:version,&#x27;scopes&#x27;:sorted(set(scopes)),&#x27;package_sha256&#x27;:package_sha256,&#x27;sbom_sha256&#x27;:sbom_sha256,&#x27;rbom_sha256&#x27;:rbom_sha256,&#x27;data_classification&#x27;:data_classification.upper(),&#x27;history&#x27;:[version]}
+        return self._put(&#x27;APP&#x27;,app_id,payload,&#x27;ACTIVE&#x27;)
+
+    def update_app(self,app_id:str,new_version:str,new_scopes:list[str],*,approved_scope_expansion:bool=False)-&gt;dict:
+        row=self._get(&#x27;APP&#x27;,app_id); p=dict(row[&#x27;payload&#x27;]); old=set(p[&#x27;scopes&#x27;]); new=set(new_scopes)
+        if not new.issubset(old) and not approved_scope_expansion: raise PermissionError(&#x27;material scope expansion requires permission review&#x27;)
+        p[&#x27;version&#x27;]=new_version; p[&#x27;scopes&#x27;]=sorted(new); p[&#x27;history&#x27;]=list(p[&#x27;history&#x27;])+[new_version]
+        return self._put(&#x27;APP&#x27;,app_id,p,&#x27;ACTIVE&#x27;)
+
+    def authorize_app_action(self,app_id:str,scope:str,*,policy_allowed:bool,instruction_origin:str,nonce:str)-&gt;dict:
+        app=self._get(&#x27;APP&#x27;,app_id)
+        if app[&#x27;state&#x27;]!=&#x27;ACTIVE&#x27; or scope not in app[&#x27;payload&#x27;][&#x27;scopes&#x27;]: raise PermissionError(&#x27;application scope denied&#x27;)
+        if not policy_allowed: raise PermissionError(&#x27;authoritative policy denied application action&#x27;)
+        if str(instruction_origin).upper()!=&#x27;AUTHORIZED_REQUEST&#x27;: raise PermissionError(&#x27;untrusted app content cannot determine Entity authority&#x27;)
+        def produce():
+            result={&#x27;app_id&#x27;:app_id,&#x27;scope&#x27;:scope,&#x27;authorized&#x27;:True,&#x27;commercialization_rights_inferred&#x27;:False,&#x27;nonce&#x27;:nonce}
+            self._audit(&#x27;APP_ACTION&#x27;,app_id,result); return result
+        return self.idempotent(&#x27;app-action:&#x27;+app_id,nonce,produce)
+
+    # Privacy / security
+    def minimum_projection(self,data:dict,allowed_fields:list[str],*,classification:str,permission:bool,provider:str,purpose:str)-&gt;dict:
+        if not permission: raise PermissionError(&#x27;AI/external read permission denied&#x27;)
+        if str(classification).upper() in {&#x27;SECRET&#x27;,&#x27;RESTRICTED&#x27;} and str(provider).upper()!=&#x27;LOCAL&#x27;: raise PermissionError(&#x27;external disclosure prohibited for sensitive classification&#x27;)
+        out={}
+        for k in allowed_fields:
+            if k in data and not any(secret in k.lower() for secret in SECRET_KEYS): out[k]=data[k]
+        self._audit(&#x27;DISCLOSURE_PROJECTION&#x27;,provider,{&#x27;purpose&#x27;:purpose,&#x27;classification&#x27;:classification.upper(),&#x27;fields&#x27;:sorted(out)})
+        return {&#x27;projection&#x27;:out,&#x27;minimum_disclosure&#x27;:True,&#x27;purpose&#x27;:purpose,&#x27;provider&#x27;:provider}
+    def register_crypto_profile(self,profile_id:str,*,signing:str,hashing:str,key_agreement:str|None=None)-&gt;dict:
+        payload={&#x27;signing&#x27;:signing,&#x27;hashing&#x27;:hashing,&#x27;key_agreement&#x27;:key_agreement,&#x27;algorithm_identified&#x27;:True,&#x27;schema_crypto_agile&#x27;:True}
+        return self._put(&#x27;CRYPTO_PROFILE&#x27;,profile_id,payload)
+
+    def device_session(self,device_id:str,*,authorized:bool,secure_transport:bool,expires_at_ms:int,step_up:bool=False,high_impact:bool=False)-&gt;dict:
+        if not authorized or not secure_transport or int(expires_at_ms)&lt;=_now(): return {&#x27;allowed&#x27;:False,&#x27;reason&#x27;:&#x27;authentication_or_session_invalid&#x27;}
+        if high_impact and not step_up: return {&#x27;allowed&#x27;:False,&#x27;reason&#x27;:&#x27;step_up_authentication_required&#x27;}
+        result={&#x27;allowed&#x27;:True,&#x27;device_id&#x27;:device_id,&#x27;expires_at_ms&#x27;:int(expires_at_ms),&#x27;step_up&#x27;:bool(step_up)}
+        self._audit(&#x27;DEVICE_SESSION&#x27;,device_id,result); return result
+
+    # Operations / observability
+    def register_slo(self,service_id:str,*,availability_target:float,latency_target_ms:int,error_budget:float,rpo_seconds:int,rto_seconds:int,max_sync_lag_seconds:int,alert_thresholds:dict,owner:str,runbook:str)-&gt;dict:
+        if not (0&lt;float(availability_target)&lt;=1): raise ValueError(&#x27;availability target invalid&#x27;)
+        payload={&#x27;availability_target&#x27;:float(availability_target),&#x27;latency_target_ms&#x27;:int(latency_target_ms),&#x27;error_budget&#x27;:float(error_budget),&#x27;rpo_seconds&#x27;:int(rpo_seconds),&#x27;rto_seconds&#x27;:int(rto_seconds),&#x27;max_sync_lag_seconds&#x27;:int(max_sync_lag_seconds),&#x27;alert_thresholds&#x27;:dict(alert_thresholds),&#x27;owner&#x27;:owner,&#x27;runbook&#x27;:runbook}
+        return self._put(&#x27;SLO&#x27;,service_id,payload)
+
+    def telemetry(self,metric:str,value:float|int,*,tags:dict|None=None)-&gt;dict:
+        name=str(metric).lower()
+        if name not in TELEMETRY_METRICS: raise ValueError(&#x27;metric not approved&#x27;)
+        clean={}
+        for k,v in dict(tags or {}).items():
+            lk=str(k).lower()
+            if any(secret in lk for secret in SECRET_KEYS) or lk in {&#x27;entity_id&#x27;,&#x27;asset_id&#x27;,&#x27;path&#x27;,&#x27;filename&#x27;,&#x27;content&#x27;}: continue
+            clean[str(k)]=v
+        event={&#x27;metric&#x27;:name,&#x27;value&#x27;:value,&#x27;tags&#x27;:clean,&#x27;sensitive_content_stored&#x27;:False}; self._audit(&#x27;TELEMETRY&#x27;,name,event); return event
+
+    def record_incident(self,incident_id:str,*,category:str,containment:str,evidence_ref:str,recovery:str,root_cause:str,remediation:str)-&gt;dict:
+        payload={&#x27;category&#x27;:category,&#x27;containment&#x27;:containment,&#x27;evidence_ref&#x27;:evidence_ref,&#x27;recovery&#x27;:recovery,&#x27;root_cause&#x27;:root_cause,&#x27;remediation&#x27;:remediation,&#x27;preserves_evidence&#x27;:True}
+        return self._put(&#x27;INCIDENT&#x27;,incident_id,payload,&#x27;CLOSED&#x27;)
+    def record_migration(self,migration_id:str,*,entity_root_before:str,entity_root_after:str,semantic_root_before:str,semantic_root_after:str,source_provider:str,destination_provider:str,source_schema:str,target_schema:str,tool_version:str)-&gt;dict:
+        if entity_root_before!=entity_root_after: raise ValueError(&#x27;sovereign Entity root changed during migration&#x27;)
+        if semantic_root_before!=semantic_root_after: raise ValueError(&#x27;sovereign semantic commitment changed during migration&#x27;)
+        payload={&#x27;entity_root&#x27;:entity_root_after,&#x27;semantic_root&#x27;:semantic_root_after,&#x27;source_provider&#x27;:source_provider,&#x27;destination_provider&#x27;:destination_provider,&#x27;source_schema&#x27;:source_schema,&#x27;target_schema&#x27;:target_schema,&#x27;tool_version&#x27;:tool_version,&#x27;former_provider_authority_retained&#x27;:False,&#x27;historical_meaning_preserved&#x27;:True}
+        return self._put(&#x27;MIGRATION&#x27;,migration_id,payload,&#x27;VERIFIED&#x27;)
+
+    # Protocol / SDK profiles
+    def register_sdk(self,platform:str,version:str,*,schema_version:str,crypto_suite:str,scopes:list[str],extensions:list[str]|None=None)-&gt;dict:
+        p=str(platform).upper()
+        if p not in {&#x27;ANDROID&#x27;,&#x27;APPLE&#x27;,&#x27;WEB&#x27;,&#x27;WINDOWS&#x27;}: raise ValueError(&#x27;unsupported SDK platform&#x27;)
+        if not version or not schema_version or not crypto_suite: raise ValueError(&#x27;versioned schema/crypto profile required&#x27;)
+        payload={&#x27;platform&#x27;:p,&#x27;version&#x27;:version,&#x27;schema_version&#x27;:schema_version,&#x27;crypto_suite&#x27;:crypto_suite,&#x27;scopes&#x27;:sorted(set(scopes)),&#x27;extensions&#x27;:sorted(set(extensions or [])),&#x27;ambient_authority&#x27;:False,&#x27;error_taxonomy&#x27;:[&#x27;AUTHENTICATION&#x27;,&#x27;AUTHORIZATION&#x27;,&#x27;POLICY_DENIAL&#x27;,&#x27;INVALID_TRANSITION&#x27;,&#x27;SIGNATURE_FAILURE&#x27;,&#x27;CONFLICT&#x27;,&#x27;DUPLICATE_REPLAY&#x27;,&#x27;DEPENDENCY_UNAVAILABLE&#x27;,&#x27;UNVERIFIED_EXTERNAL_STATE&#x27;]}
+        return self._put(&#x27;SDK&#x27;,p,payload,&#x27;READY&#x27;)
+
+    def sdk_mutation(self,platform:str,nonce:str,*,scope:str,policy_allowed:bool)-&gt;dict:
+        sdk=self._get(&#x27;SDK&#x27;,str(platform).upper())
+        if scope not in sdk[&#x27;payload&#x27;][&#x27;scopes&#x27;] or not policy_allowed: raise PermissionError(&#x27;SDK mutation denied&#x27;)
+        def produce():
+            result={&#x27;platform&#x27;:sdk[&#x27;payload&#x27;][&#x27;platform&#x27;],&#x27;scope&#x27;:scope,&#x27;nonce&#x27;:nonce,&#x27;accepted&#x27;:True,&#x27;replay_safe&#x27;:True}; self._audit(&#x27;SDK_MUTATION&#x27;,platform,result); return result
+        return self.idempotent(&#x27;sdk:&#x27;+str(platform).upper(),nonce,produce)
+
+    # ADAM / BSIE authority boundaries
+    def authorize_adam(self,capability:dict,proposal:dict)-&gt;dict:
+        cap=dict(capability or {}); p=dict(proposal or {})
+        if cap.get(&#x27;active&#x27;) is not True: raise PermissionError(&#x27;ADAM capability inactive&#x27;)
+        if str(p.get(&#x27;operation&#x27;)).upper() not in {str(x).upper() for x in cap.get(&#x27;operations&#x27;,[])}: raise PermissionError(&#x27;ADAM operation outside capability&#x27;)
+        if p.get(&#x27;instruction_origin&#x27;)!=&#x27;AUTHORIZED_REQUEST&#x27;: raise PermissionError(&#x27;untrusted content is not an instruction&#x27;)
+        if p.get(&#x27;amount&#x27;,0)&gt;cap.get(&#x27;financial_limit&#x27;,0): raise PermissionError(&#x27;ADAM financial limit exceeded&#x27;)
+        return {&#x27;allowed&#x27;:True,&#x27;agent_id&#x27;:cap.get(&#x27;agent_id&#x27;),&#x27;operation&#x27;:str(p.get(&#x27;operation&#x27;)).upper(),&#x27;entity_root_authority_inherited&#x27;:False}
+
+    def bsie_projection(self,world_object:dict,allowed_fields:list[str])-&gt;dict:
+        obj=dict(world_object or {}); origin=str(obj.get(&#x27;evidence_origin&#x27;) or &#x27;UNKNOWN&#x27;).upper()
+        state=dict(obj.get(&#x27;state&#x27;) or {}); projected={k:state[k] for k in allowed_fields if k in state}
+        return {&#x27;world_id&#x27;:obj.get(&#x27;world_id&#x27;),&#x27;state&#x27;:projected,&#x27;evidence_origin&#x27;:origin,&#x27;read_only&#x27;:True,&#x27;legal_ownership_inferred&#x27;:False,&#x27;commercialization_rights_inferred&#x27;:False,&#x27;verified_truth_inferred&#x27;:False}
+    # Release engineering
+    def evaluate_release(self,defects:list[dict],evidence_package:dict)-&gt;dict:
+        blocking=[]
+        for defect in list(defects or []):
+            if str(defect.get(&#x27;class&#x27;) or &#x27;&#x27;).upper() in CRITICAL_DEFECT_CLASSES and str(defect.get(&#x27;status&#x27;) or &#x27;&#x27;).upper() not in {&#x27;CLOSED&#x27;,&#x27;FIXED&#x27;,&#x27;NOT_APPLICABLE&#x27;}:
+                blocking.append(defect)
+        required={&#x27;source_revision&#x27;,&#x27;build_hashes&#x27;,&#x27;sbom&#x27;,&#x27;rbom&#x27;,&#x27;pbom&#x27;,&#x27;test_results&#x27;,&#x27;qualification_result&#x27;,&#x27;schema_versions&#x27;,&#x27;crypto_versions&#x27;,&#x27;migration_versions&#x27;,&#x27;artifact_hashes&#x27;,&#x27;release_signer&#x27;,&#x27;timestamp&#x27;,&#x27;rtm_snapshot&#x27;,&#x27;release_gates&#x27;}
+        missing=sorted(k for k in required if not evidence_package.get(k))
+        passed=not blocking and not missing
+        result={&#x27;pass&#x27;:passed,&#x27;blocking_critical_defects&#x27;:blocking,&#x27;missing_evidence&#x27;:missing,&#x27;claims_bounded_to_evidence&#x27;:True,&#x27;trl9_claim_allowed&#x27;:bool(passed and evidence_package.get(&#x27;representative_operational_evidence&#x27;))}
+        self._audit(&#x27;RELEASE_GATE&#x27;,&#x27;ENTITY&#x27;,result); return result
+
+    def classify_public_claim(self,state:str)-&gt;dict:
+        s=str(state).upper(); allowed={&#x27;REGISTERED&#x27;,&#x27;CLAIMED&#x27;,&#x27;PROVENANCE_VERIFIED&#x27;,&#x27;RIGHTS_VERIFIED&#x27;,&#x27;EXTERNALLY_ATTESTED&#x27;,&#x27;DISPUTED&#x27;}
+        if s not in allowed: raise ValueError(&#x27;unsupported claim state&#x27;)
+        return {&#x27;state&#x27;:s,&#x27;ownership_implied&#x27;:False,&#x27;truth_implied&#x27;:False,&#x27;market_value_implied&#x27;:False}
+
+    def status(self)-&gt;dict:
+        with self._connect() as db:
+            objects=int(db.execute(&#x27;SELECT COUNT(*) FROM objects&#x27;).fetchone()[0]); events=int(db.execute(&#x27;SELECT COUNT(*) FROM audit&#x27;).fetchone()[0]); nonces=int(db.execute(&#x27;SELECT COUNT(*) FROM nonces&#x27;).fetchone()[0])
+        chain=self.verify_audit()
+        return {&#x27;ready&#x27;:chain[&#x27;pass&#x27;],&#x27;objects&#x27;:objects,&#x27;events&#x27;:events,&#x27;idempotency_records&#x27;:nonces,&#x27;audit_chain&#x27;:chain,&#x27;default_deny&#x27;:True,&#x27;private_by_default&#x27;:True,&#x27;authority_custody_separated&#x27;:True,&#x27;untrusted_content_is_authority&#x27;:False}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

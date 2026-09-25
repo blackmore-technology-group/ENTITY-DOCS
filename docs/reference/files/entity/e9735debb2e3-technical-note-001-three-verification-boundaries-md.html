@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / docs/papers/TECHNICAL_NOTE_001_THREE_VERIFICATION_BOUNDARIES.md Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / docs/papers/TECHNICAL_NOTE_001_THREE_VERIFICATION_BOUNDARIES.md</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>docs/papers/TECHNICAL_NOTE_001_THREE_VERIFICATION_BOUNDARIES.md</code></p><p><b>SHA-256:</b> <code>648f5519076fc4060f4591fc3090ab0148ed6854efa2b2c69357166df69a040f</code></p><p><b>Bytes:</b> 8,730</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/docs/papers/TECHNICAL_NOTE_001_THREE_VERIFICATION_BOUNDARIES.md">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code># Technical Note 001 — Three Verification Boundaries
+
+**Status:** Informative  
+**Applies to:** ENTITY v3.3.0  
+**Steward:** Blackmore Technology Group Limited  
+**Normative effect:** None. This note explains existing public design boundaries; it does not replace protocol or requirements documents.
+
+## Abstract
+
+ENTITY v3.3 separates three questions that are often collapsed in identity, provenance and evidence systems:
+
+1. **Cryptographic verification** — was a specific record signed by the expected key over the expected bytes?
+2. **Protocol verification** — is the signed record structurally and semantically valid under the applicable ENTITY rules?
+3. **Reality/evidence verification** — what evidence supports an assertion about the external world, who supplied that evidence, under what authority, and what is the current contestable state of the claim?
+
+The separation is intentional. A successful answer at one layer must not silently imply success at another.
+
+## 1. Why the distinction matters
+
+A signature can prove attribution to a key without proving that the signed statement is factually correct.
+
+A protocol verifier can prove that a state transition obeys ENTITY rules without proving that a legal, physical, scientific, financial or other external-world assertion embedded in that state is true.
+
+An external institution can provide evidence or an attestation without thereby becoming sovereign authority over an Entity&#x27;s complete identity, rights or state.
+
+ENTITY v3.3 therefore treats these as separate verification domains.
+
+## 2. Cryptographic verification
+
+Cryptographic verification asks questions such as:
+
+- does the signature validate against the referenced public key?
+- were the exact canonical bytes signed?
+- is the expected signature algorithm/profile in use?
+- is the key valid for the relevant signing operation under the protocol&#x27;s key/authority state?
+
+A positive cryptographic result means that the signature relationship has been verified within the stated cryptographic/profile assumptions.
+
+It does **not** by itself establish:
+
+- ownership;
+- legal title;
+- truth of a factual claim;
+- authorization outside the key&#x27;s granted scope;
+- regulatory recognition;
+- current validity if the signing authority has been revoked or otherwise constrained by applicable protocol rules.
+
+## 3. Protocol verification
+
+Protocol verification asks whether the record or transition obeys ENTITY semantics.
+
+Typical questions include:
+
+- is the record/schema valid?
+- is the signer authorized for this transition?
+- does delegation stay within its permitted scope?
+- are revocation and historical-state rules respected?
+- does a transition preserve identity continuity?
+- are provider-independence and portability invariants maintained?
+- are rights, usage or economic consequence transitions supported by the required protocol evidence?
+
+Protocol validity therefore sits above raw signature validity.
+
+A correctly signed transition can still be invalid if the signer lacks authority, the transition violates state-machine rules, or required prerequisites are absent.
+
+## 4. Reality and evidence verification
+
+ENTITY v3.3 introduces explicit structures for claims about the external world.
+
+The relevant model can be summarized as:
+
+```text
+REALITY
+  ↓
+OBSERVATION
+  ↓
+CLAIM
+  ↓
+EVIDENCE
+  ↓
+ATTESTATION
+  ↓
+VERIFICATION
+  ↓
+AUTHORITATIVE ENTITY STATE
+```
+
+The purpose is not to make an external-world claim indisputable. The purpose is to make the basis of the claim attributable, typed, contestable and machine-verifiable.
+
+Relevant questions include:
+
+- who observed or asserted the fact?
+- what evidence object supports it?
+- what kind of claim is it?
+- what authority did the attester have for this class of fact?
+- is that authority still valid?
+- does the evidence depend on an external registry, sensor, laboratory, receipt, document or API?
+- has the claim been disputed, superseded, revoked or adjudicated?
+- which downstream rights or economic consequences depend on it?
+
+## 5. Typed claim states
+
+ENTITY v3.3 defines typed states including:
+
+- `OBSERVED`
+- `ASSERTED`
+- `INFERRED`
+- `ATTESTED`
+- `EXTERNALLY_VERIFIED`
+- `ADJUDICATED`
+- `DISPUTED`
+- `REVOKED`
+- `UNKNOWN`
+
+These states are deliberately not interchangeable.
+
+For example, `ATTESTED` indicates that an authorized attester has made or supported the claim within a stated authority scope. It does not mean the protocol has transformed the claim into universal truth.
+
+`EXTERNALLY_VERIFIED` indicates that an external verification process or source supports the claim under the recorded evidence conditions. It does not make the external source sovereign authority over unrelated ENTITY state.
+</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

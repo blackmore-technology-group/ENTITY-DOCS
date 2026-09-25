@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PartitionSync.publish Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>PartitionSync.publish</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/topology_crypto.py#L102">ENTITY/src/35_Global_Infrastructure/topology_crypto.py#L102</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>PartitionSync.publish(self, node_id: str, operator: str, partition_id: str, *, sequence: int, epoch: int, state_root_sha256: str, vector_clock: dict[str, int], previous_checkpoint_sha256: str | None=None)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def publish(self, node_id: str, operator: str, partition_id: str, *,
+                sequence: int, epoch: int, state_root_sha256: str,
+                vector_clock: dict[str, int], previous_checkpoint_sha256: str | None = None) -&gt; dict:
+        state_root_sha256 = sha256_hex(state_root_sha256)
+        clock = _clock(vector_clock)
+        sequence = int(sequence); epoch = int(epoch)
+        if sequence &lt; 1 or epoch &lt; 0:
+            raise ValueError(&quot;invalid checkpoint sequence/epoch&quot;)
+        if clock.get(node_id) != sequence:
+            raise ValueError(&quot;node vector-clock component must equal checkpoint sequence&quot;)
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            last = db.execute(&quot;SELECT * FROM checkpoints WHERE node_id=? AND partition_id=? ORDER BY sequence DESC LIMIT 1&quot;,
+                              (node_id, partition_id)).fetchone()
+            if last:
+                if sequence != int(last[&quot;sequence&quot;]) + 1:
+                    raise ValueError(&quot;checkpoint sequence must increase by one&quot;)
+                if previous_checkpoint_sha256 != last[&quot;checkpoint_sha256&quot;]:
+                    raise ValueError(&quot;checkpoint chain mismatch&quot;)
+            elif sequence != 1 or previous_checkpoint_sha256 is not None:
+                raise ValueError(&quot;first checkpoint must be sequence 1 without previous hash&quot;)
+        body = {&quot;schema&quot;: &quot;entity-v3-partition-checkpoint-v1&quot;, &quot;checkpoint_id&quot;: rid(&quot;checkpoint3&quot;),
+                &quot;node_id&quot;: node_id, &quot;operator_entity_id&quot;: operator, &quot;partition_id&quot;: partition_id,
+                &quot;sequence&quot;: sequence, &quot;epoch&quot;: epoch,
+                &quot;previous_checkpoint_sha256&quot;: previous_checkpoint_sha256,
+                &quot;state_root_sha256&quot;: state_root_sha256, &quot;vector_clock&quot;: clock,
+                &quot;created_at_ms&quot;: now_ms()}
+        checkpoint_hash = digest(body)
+        sig = self.identity.sign(operator, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO checkpoints VALUES(?,?,?,?,?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;checkpoint_id&quot;], node_id, operator, partition_id, sequence, epoch,
+                previous_checkpoint_sha256, state_root_sha256, json.dumps(clock, sort_keys=True),
+                checkpoint_hash, body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+        return dict(body, checkpoint_sha256=checkpoint_hash, signature=sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

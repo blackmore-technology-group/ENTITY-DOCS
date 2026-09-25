@@ -1,0 +1,42 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/22_Sovereign_Domain/failure_states/canonical_domain_states.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/22_Sovereign_Domain/failure_states/canonical_domain_states.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/22_Sovereign_Domain/failure_states/canonical_domain_states.py</code></p><p><b>SHA-256:</b> <code>ab85594a7f49a290748b26ae388cd81fb961c1473b665996a8c5b6c7f5877e13</code></p><p><b>Bytes:</b> 2,714</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/22_Sovereign_Domain/failure_states/canonical_domain_states.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/domainfailurestatemachine-66805570b680.html">DomainFailureStateMachine</a></li><li><a href="../../../reference/symbols/entity/domainfailurestatemachine-init-231fca08cd7d.html">DomainFailureStateMachine.__init__</a></li><li><a href="../../../reference/symbols/entity/domainfailurestatemachine-read-51877d891d0b.html">DomainFailureStateMachine._read</a></li><li><a href="../../../reference/symbols/entity/domainfailurestatemachine-write-c135a0ab44cb.html">DomainFailureStateMachine._write</a></li><li><a href="../../../reference/symbols/entity/domainfailurestatemachine-transition-7f6f3f01ec87.html">DomainFailureStateMachine.transition</a></li><li><a href="../../../reference/symbols/entity/domainfailurestatemachine-current-9d2dafc8a111.html">DomainFailureStateMachine.current</a></li><li><a href="../../../reference/symbols/entity/domainfailurestatemachine-history-ae1bf9cfdacd.html">DomainFailureStateMachine.history</a></li><li><a href="../../../reference/symbols/entity/domainfailurestatemachine-status-f1d4deefe314.html">DomainFailureStateMachine.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+import json, time
+
+STATES={&#x27;NORMAL&#x27;,&#x27;LOCAL_ONLY&#x27;,&#x27;PARTIALLY_REACHABLE&#x27;,&#x27;RELAY_REQUIRED&#x27;,&#x27;DEGRADED&#x27;,&#x27;OFFLINE&#x27;,
+        &#x27;RESOLUTION_CONFLICT&#x27;,&#x27;STALE_STATE&#x27;,&#x27;PROVIDER_UNAVAILABLE&#x27;,&#x27;RECOVERY&#x27;,&#x27;COMPROMISED_NODE&#x27;}
+
+ALLOWED={
+ &#x27;NORMAL&#x27;:STATES-{&#x27;NORMAL&#x27;},
+ &#x27;LOCAL_ONLY&#x27;:{&#x27;NORMAL&#x27;,&#x27;PARTIALLY_REACHABLE&#x27;,&#x27;OFFLINE&#x27;,&#x27;PROVIDER_UNAVAILABLE&#x27;,&#x27;RECOVERY&#x27;},
+ &#x27;PARTIALLY_REACHABLE&#x27;:{&#x27;NORMAL&#x27;,&#x27;LOCAL_ONLY&#x27;,&#x27;RELAY_REQUIRED&#x27;,&#x27;DEGRADED&#x27;,&#x27;OFFLINE&#x27;,&#x27;PROVIDER_UNAVAILABLE&#x27;},
+ &#x27;RELAY_REQUIRED&#x27;:{&#x27;NORMAL&#x27;,&#x27;PARTIALLY_REACHABLE&#x27;,&#x27;DEGRADED&#x27;,&#x27;OFFLINE&#x27;,&#x27;PROVIDER_UNAVAILABLE&#x27;},
+ &#x27;DEGRADED&#x27;:{&#x27;NORMAL&#x27;,&#x27;PARTIALLY_REACHABLE&#x27;,&#x27;RELAY_REQUIRED&#x27;,&#x27;OFFLINE&#x27;,&#x27;RECOVERY&#x27;,&#x27;COMPROMISED_NODE&#x27;},
+ &#x27;OFFLINE&#x27;:{&#x27;LOCAL_ONLY&#x27;,&#x27;PARTIALLY_REACHABLE&#x27;,&#x27;NORMAL&#x27;,&#x27;RECOVERY&#x27;,&#x27;PROVIDER_UNAVAILABLE&#x27;},
+ &#x27;RESOLUTION_CONFLICT&#x27;:{&#x27;NORMAL&#x27;,&#x27;STALE_STATE&#x27;,&#x27;DEGRADED&#x27;},
+ &#x27;STALE_STATE&#x27;:{&#x27;NORMAL&#x27;,&#x27;RESOLUTION_CONFLICT&#x27;,&#x27;RECOVERY&#x27;},
+ &#x27;PROVIDER_UNAVAILABLE&#x27;:{&#x27;LOCAL_ONLY&#x27;,&#x27;PARTIALLY_REACHABLE&#x27;,&#x27;OFFLINE&#x27;,&#x27;RECOVERY&#x27;,&#x27;NORMAL&#x27;},
+ &#x27;RECOVERY&#x27;:{&#x27;NORMAL&#x27;,&#x27;LOCAL_ONLY&#x27;,&#x27;DEGRADED&#x27;},
+ &#x27;COMPROMISED_NODE&#x27;:{&#x27;RECOVERY&#x27;,&#x27;DEGRADED&#x27;,&#x27;NORMAL&#x27;},
+}
+
+class DomainFailureStateMachine:
+    def __init__(self,state_dir,domain_id):
+        self.path=Path(state_dir)/&#x27;sovereign_domain&#x27;/f&#x27;{domain_id}.failure_state.json&#x27;
+        self.path.parent.mkdir(parents=True,exist_ok=True); self.domain_id=str(domain_id)
+        if not self.path.exists(): self._write({&#x27;domain_id&#x27;:self.domain_id,&#x27;state&#x27;:&#x27;NORMAL&#x27;,&#x27;history&#x27;:[]})
+    def _read(self): return json.loads(self.path.read_text(encoding=&#x27;utf-8&#x27;))
+    def _write(self,data): self.path.write_text(json.dumps(data,indent=2,sort_keys=True)+&#x27;\n&#x27;,encoding=&#x27;utf-8&#x27;)
+    def transition(self,new_state,reason,*,evidence=None):
+        new=str(new_state).upper()
+        if new not in STATES: raise ValueError(&#x27;unknown domain failure state&#x27;)
+        data=self._read(); old=data[&#x27;state&#x27;]
+        if new!=old and new not in ALLOWED.get(old,set()): raise RuntimeError(f&#x27;illegal transition {old}-&gt;{new}&#x27;)
+        event={&#x27;from&#x27;:old,&#x27;to&#x27;:new,&#x27;reason&#x27;:str(reason),&#x27;evidence&#x27;:dict(evidence or {}),
+               &#x27;at_ms&#x27;:int(time.time()*1000),&#x27;entity_or_name_reassigned&#x27;:False,&#x27;economic_state_mutated&#x27;:False}
+        data[&#x27;state&#x27;]=new; data[&#x27;history&#x27;].append(event); self._write(data); return event
+    def current(self): return self._read()[&#x27;state&#x27;]
+    def history(self): return list(self._read().get(&#x27;history&#x27;) or [])
+    def status(self):
+        data=self._read(); return {&#x27;ready&#x27;:True,&#x27;domain_id&#x27;:self.domain_id,&#x27;state&#x27;:data[&#x27;state&#x27;],
+            &#x27;events&#x27;:len(data.get(&#x27;history&#x27;) or []),&#x27;outage_reassigns_identity&#x27;:False,
+            &#x27;infrastructure_failure_mutates_economic_rights&#x27;:False,&#x27;states&#x27;:sorted(STATES)}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

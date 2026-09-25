@@ -1,0 +1,31 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PartitionSync.merge Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>PartitionSync.merge</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/topology_crypto.py#L152">ENTITY/src/35_Global_Infrastructure/topology_crypto.py#L152</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>PartitionSync.merge(self, partition_id: str)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def merge(self, partition_id: str) -&gt; dict:
+        latest = self._latest(partition_id)
+        if not latest:
+            return {&quot;partition_id&quot;: partition_id, &quot;resolved&quot;: False, &quot;reason&quot;: &quot;NO_CHECKPOINTS&quot;}
+        roots = {x[&quot;state_root_sha256&quot;] for x in latest}
+        if len(roots) == 1:
+            chosen = max(latest, key=lambda x: (x[&quot;epoch&quot;], x[&quot;sequence&quot;], x[&quot;checkpoint_id&quot;]))
+            return {&quot;partition_id&quot;: partition_id, &quot;resolved&quot;: True,
+                    &quot;reason&quot;: &quot;CONVERGED_STATE&quot;, &quot;state_root_sha256&quot;: chosen[&quot;state_root_sha256&quot;],
+                    &quot;checkpoint_ids&quot;: sorted(x[&quot;checkpoint_id&quot;] for x in latest),
+                    &quot;partition_conflict&quot;: False}
+        dominant = []
+        for candidate in latest:
+            others = [x for x in latest if x[&quot;checkpoint_id&quot;] != candidate[&quot;checkpoint_id&quot;]]
+            if all(self.dominates(candidate[&quot;vector_clock&quot;], x[&quot;vector_clock&quot;]) for x in others):
+                dominant.append(candidate)
+        if len(dominant) == 1:
+            chosen = dominant[0]
+            return {&quot;partition_id&quot;: partition_id, &quot;resolved&quot;: True,
+                    &quot;reason&quot;: &quot;CAUSALLY_DOMINANT_CHECKPOINT&quot;,
+                    &quot;state_root_sha256&quot;: chosen[&quot;state_root_sha256&quot;],
+                    &quot;checkpoint_id&quot;: chosen[&quot;checkpoint_id&quot;], &quot;partition_conflict&quot;: False}
+        conflict_ids = sorted(x[&quot;checkpoint_id&quot;] for x in latest)
+        conflict_id = &quot;partitionconflict3-&quot; + digest({&quot;partition&quot;: partition_id, &quot;ids&quot;: conflict_ids})[:24]
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT OR IGNORE INTO conflicts VALUES(?,?,?,?,?)&quot;, (
+                conflict_id, partition_id, json.dumps(conflict_ids), &quot;CONCURRENT_DIVERGENT_STATE&quot;, now_ms()))
+        return {&quot;partition_id&quot;: partition_id, &quot;resolved&quot;: False,
+                &quot;reason&quot;: &quot;CONCURRENT_DIVERGENT_STATE&quot;, &quot;conflict_id&quot;: conflict_id,
+                &quot;checkpoint_ids&quot;: conflict_ids, &quot;partition_conflict&quot;: True,
+                &quot;automatic_last_writer_wins_prohibited&quot;: True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

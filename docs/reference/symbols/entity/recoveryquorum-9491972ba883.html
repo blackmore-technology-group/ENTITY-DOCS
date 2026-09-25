@@ -1,0 +1,73 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RecoveryQuorum Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>RecoveryQuorum</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/31_Profiles/governance_privacy.py#L153">ENTITY/src/31_Profiles/governance_privacy.py#L153</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>Multi-party approval gate wrapped around the existing cryptographic recovery mechanism.</p><h2>Source excerpt</h2><pre><code>class RecoveryQuorum:
+    &quot;&quot;&quot;Multi-party approval gate wrapped around the existing cryptographic recovery mechanism.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_recovery_quorum.sqlite&quot;; self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS policies(
+                entity_id TEXT PRIMARY KEY, approvers_json TEXT NOT NULL, threshold INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS requests(
+                request_id TEXT PRIMARY KEY, entity_id TEXT NOT NULL, reason_sha256 TEXT NOT NULL,
+                status TEXT NOT NULL, created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS approvals(
+                request_id TEXT NOT NULL, approver TEXT NOT NULL, created_at_ms INTEGER NOT NULL,
+                signature_json TEXT NOT NULL, PRIMARY KEY(request_id,approver))&quot;&quot;&quot;)
+
+    def set_policy(self, entity_id: str, approvers: list[str], threshold: int) -&gt; dict:
+        unique = sorted(set(approvers)); threshold = int(threshold)
+        if threshold &lt; 1 or threshold &gt; len(unique): raise ValueError(&quot;invalid recovery threshold&quot;)
+        for a in unique: self.identity.load_manifest(a)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT OR REPLACE INTO policies VALUES(?,?,?)&quot;,
+                       (entity_id, json.dumps(unique), threshold))
+        return {&quot;entity_id&quot;: entity_id, &quot;approvers&quot;: unique, &quot;threshold&quot;: threshold}
+
+    def request(self, entity_id: str, reason: Any) -&gt; dict:
+        request_id = rid(&quot;recovery3&quot;)
+        with sqlite3.connect(self.path) as db:
+            if not db.execute(&quot;SELECT 1 FROM policies WHERE entity_id=?&quot;, (entity_id,)).fetchone():
+                raise KeyError(&quot;recovery quorum policy missing&quot;)
+            db.execute(&quot;INSERT INTO requests VALUES(?,?,?,?,?)&quot;,
+                       (request_id, entity_id, digest(reason), &quot;OPEN&quot;, now_ms()))
+        return {&quot;request_id&quot;: request_id, &quot;entity_id&quot;: entity_id, &quot;status&quot;: &quot;OPEN&quot;}
+
+    def approve(self, request_id: str, approver: str) -&gt; dict:
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            req = db.execute(&quot;SELECT * FROM requests WHERE request_id=? AND status=&#x27;OPEN&#x27;&quot;,
+                             (request_id,)).fetchone()
+            if not req: raise KeyError(&quot;open recovery request missing&quot;)
+            policy = db.execute(&quot;SELECT * FROM policies WHERE entity_id=?&quot;, (req[&quot;entity_id&quot;],)).fetchone()
+        if approver not in set(json.loads(policy[&quot;approvers_json&quot;])):
+            raise PermissionError(&quot;not a recovery approver&quot;)
+        body = {&quot;schema&quot;: &quot;entity-v3-recovery-approval-v1&quot;, &quot;request_id&quot;: request_id,
+                &quot;entity_id&quot;: req[&quot;entity_id&quot;], &quot;approver&quot;: approver, &quot;created_at_ms&quot;: now_ms()}
+        sig = self.identity.sign(approver, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT OR REPLACE INTO approvals VALUES(?,?,?,?)&quot;,
+                       (request_id, approver, body[&quot;created_at_ms&quot;], json.dumps(sig, sort_keys=True)))
+            count = db.execute(&quot;SELECT COUNT(*) FROM approvals WHERE request_id=?&quot;, (request_id,)).fetchone()[0]
+        return dict(body, signature=sig, approval_count=count, threshold=int(policy[&quot;threshold&quot;]))
+
+    def execute(self, request_id: str) -&gt; dict:
+        with sqlite3.connect(self.path) as db:
+            db.row_factory = sqlite3.Row
+            req = db.execute(&quot;SELECT * FROM requests WHERE request_id=? AND status=&#x27;OPEN&#x27;&quot;,
+                             (request_id,)).fetchone()
+            if not req: raise KeyError(&quot;open recovery request missing&quot;)
+            policy = db.execute(&quot;SELECT * FROM policies WHERE entity_id=?&quot;, (req[&quot;entity_id&quot;],)).fetchone()
+            approvals = db.execute(&quot;SELECT * FROM approvals WHERE request_id=?&quot;, (request_id,)).fetchall()
+        if len(approvals) &lt; int(policy[&quot;threshold&quot;]):
+            raise PermissionError(&quot;recovery quorum not met&quot;)
+        for row in approvals:
+            body = {&quot;schema&quot;: &quot;entity-v3-recovery-approval-v1&quot;, &quot;request_id&quot;: request_id,
+                    &quot;entity_id&quot;: req[&quot;entity_id&quot;], &quot;approver&quot;: row[&quot;approver&quot;],
+                    &quot;created_at_ms&quot;: row[&quot;created_at_ms&quot;]}
+            manifest = self.identity.load_manifest(row[&quot;approver&quot;])
+            if not self.identity.verify_signature(manifest, body, json.loads(row[&quot;signature_json&quot;])):
+                raise PermissionError(&quot;invalid recovery approval&quot;)
+        result = self.identity.recover_signing_key(req[&quot;entity_id&quot;])
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;UPDATE requests SET status=&#x27;EXECUTED&#x27; WHERE request_id=?&quot;, (request_id,))
+        return {&quot;request_id&quot;: request_id, &quot;entity_id&quot;: req[&quot;entity_id&quot;],
+                &quot;status&quot;: &quot;EXECUTED&quot;, &quot;manifest_revision&quot;: result[&quot;manifest_revision&quot;],
+                &quot;quorum_verified&quot;: True}</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

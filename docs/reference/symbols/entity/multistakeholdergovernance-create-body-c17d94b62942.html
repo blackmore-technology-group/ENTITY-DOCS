@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MultiStakeholderGovernance.create_body Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>MultiStakeholderGovernance.create_body</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/institutional_semantics.py#L378">ENTITY/src/35_Global_Infrastructure/institutional_semantics.py#L378</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>MultiStakeholderGovernance.create_body(self, steward: str, name: str, charter_sha256: str, stakeholder_classes: list[str], *, approval_threshold: int, min_approval_classes: int)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def create_body(self, steward: str, name: str, charter_sha256: str,
+                    stakeholder_classes: list[str], *, approval_threshold: int,
+                    min_approval_classes: int) -&gt; dict:
+        classes = sorted({str(x).upper() for x in stakeholder_classes})
+        if len(classes) &lt; 2:
+            raise ValueError(&quot;at least two stakeholder classes required&quot;)
+        approval_threshold = int(approval_threshold)
+        min_approval_classes = int(min_approval_classes)
+        if approval_threshold &lt; 1 or min_approval_classes &lt; 2 or min_approval_classes &gt; len(classes):
+            raise ValueError(&quot;invalid governance thresholds&quot;)
+        charter_sha256 = _sha256(charter_sha256)
+        self.identity.load_manifest(steward)
+        body_id = &quot;gov3-&quot; + digest({&quot;name&quot;: name, &quot;charter&quot;: charter_sha256, &quot;classes&quot;: classes})[:24]
+        body = {&quot;schema&quot;: &quot;entity-v3-governance-body-v1&quot;, &quot;body_id&quot;: body_id,
+                &quot;steward_entity_id&quot;: steward, &quot;name&quot;: str(name), &quot;charter_sha256&quot;: charter_sha256,
+                &quot;stakeholder_classes&quot;: classes, &quot;approval_threshold&quot;: approval_threshold,
+                &quot;min_approval_classes&quot;: min_approval_classes, &quot;status&quot;: &quot;ACTIVE&quot;,
+                &quot;created_at_ms&quot;: now_ms(), &quot;single_implementation_is_not_standard_authority&quot;: True}
+        sig = self.identity.sign(steward, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO bodies VALUES(?,?,?,?,?,?,?,?,?,?)&quot;, (
+                body_id, steward, str(name), charter_sha256, json.dumps(classes),
+                approval_threshold, min_approval_classes, &quot;ACTIVE&quot;, body[&quot;created_at_ms&quot;],
+                json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

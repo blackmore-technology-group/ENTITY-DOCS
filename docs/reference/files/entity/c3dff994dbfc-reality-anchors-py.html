@@ -1,0 +1,91 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/37_Verifiable_Reality/reality_anchors.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/37_Verifiable_Reality/reality_anchors.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/37_Verifiable_Reality/reality_anchors.py</code></p><p><b>SHA-256:</b> <code>009cd170a3df58aff3c7811220777315edeeefc248a025f859d45a0afd8347b1</code></p><p><b>Bytes:</b> 4,653</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/37_Verifiable_Reality/reality_anchors.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-ms-a062e430eda9.html">now_ms</a></li><li><a href="../../../reference/symbols/entity/canon-12ebb689a5dd.html">canon</a></li><li><a href="../../../reference/symbols/entity/digest-31c48550f33d.html">digest</a></li><li><a href="../../../reference/symbols/entity/rid-7951fb603988.html">rid</a></li><li><a href="../../../reference/symbols/entity/sha256-hex-409171f348aa.html">sha256_hex</a></li><li><a href="../../../reference/symbols/entity/externalrealityanchorregistry-7747408395a5.html">ExternalRealityAnchorRegistry</a></li><li><a href="../../../reference/symbols/entity/externalrealityanchorregistry-init-8dfa43918438.html">ExternalRealityAnchorRegistry.__init__</a></li><li><a href="../../../reference/symbols/entity/externalrealityanchorregistry-register-7d87d38e9b6c.html">ExternalRealityAnchorRegistry.register</a></li><li><a href="../../../reference/symbols/entity/externalrealityanchorregistry-snapshot-d0ee9d7595ff.html">ExternalRealityAnchorRegistry.snapshot</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from typing import Any
+import hashlib, json, secrets, sqlite3, time
+
+from reality_profile import ANCHOR_TYPES
+
+def now_ms() -&gt; int:
+    return int(time.time() * 1000)
+
+def canon(value: Any) -&gt; bytes:
+    return json.dumps(value, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False, default=str).encode()
+
+def digest(value: Any) -&gt; str:
+    return hashlib.sha256(canon(value)).hexdigest()
+
+def rid(prefix: str) -&gt; str:
+    return prefix + &quot;-&quot; + secrets.token_hex(12)
+
+def sha256_hex(value: str) -&gt; str:
+    value = str(value).lower()
+    if len(value) != 64 or any(c not in &quot;0123456789abcdef&quot; for c in value):
+        raise ValueError(&quot;SHA-256 required&quot;)
+    return value
+
+class ExternalRealityAnchorRegistry:
+    &quot;&quot;&quot;References external authoritative systems without importing their authority into ENTITY.&quot;&quot;&quot;
+    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_3_reality_anchors.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS anchors(
+                anchor_id TEXT PRIMARY KEY, operator_entity_id TEXT NOT NULL, anchor_type TEXT NOT NULL,
+                body_json TEXT NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS snapshots(
+                snapshot_id TEXT PRIMARY KEY, anchor_id TEXT NOT NULL, external_record_id TEXT NOT NULL,
+                record_sha256 TEXT NOT NULL, body_sha256 TEXT NOT NULL, body_json TEXT NOT NULL,
+                signature_json TEXT NOT NULL, created_at_ms INTEGER NOT NULL)&quot;&quot;&quot;)
+
+    def register(self, operator_entity_id: str, anchor_type: str, endpoint_descriptor_sha256: str,
+                 *, jurisdiction: str = &quot;&quot;, trust_profile_ref: str = &quot;&quot;) -&gt; dict:
+        self.identity.load_manifest(operator_entity_id)
+        anchor_type = str(anchor_type).upper()
+        if anchor_type not in ANCHOR_TYPES:
+            raise ValueError(&quot;unsupported anchor type&quot;)
+        body = {
+            &quot;schema&quot;: &quot;entity-v3-external-reality-anchor-v1&quot;,
+            &quot;anchor_id&quot;: rid(&quot;anchor3&quot;),
+            &quot;operator_entity_id&quot;: operator_entity_id,
+            &quot;anchor_type&quot;: anchor_type,
+            &quot;endpoint_descriptor_sha256&quot;: sha256_hex(endpoint_descriptor_sha256),
+            &quot;jurisdiction&quot;: str(jurisdiction),
+            &quot;trust_profile_ref&quot;: str(trust_profile_ref),
+            &quot;credentials_included&quot;: False,
+            &quot;external_system_is_not_automatic_entity_authority&quot;: True,
+            &quot;created_at_ms&quot;: now_ms(),
+        }
+        sig = self.identity.sign(operator_entity_id, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO anchors VALUES(?,?,?,?,?)&quot;, (
+                body[&quot;anchor_id&quot;], operator_entity_id, anchor_type,
+                json.dumps(body, sort_keys=True), json.dumps(sig, sort_keys=True)))
+        return dict(body, signature=sig)
+
+    def snapshot(self, operator_entity_id: str, anchor_id: str, external_record_id: str,
+                 record_sha256: str, *, retrieval_method: str = &quot;API&quot;,
+                 verifier_evidence_refs: list[str] | None = None) -&gt; dict:
+        with sqlite3.connect(self.path) as db:
+            row = db.execute(&quot;SELECT operator_entity_id FROM anchors WHERE anchor_id=?&quot;, (anchor_id,)).fetchone()
+        if not row or row[0] != operator_entity_id:
+            raise PermissionError(&quot;anchor operator required&quot;)
+        body = {
+            &quot;schema&quot;: &quot;entity-v3-external-reality-snapshot-v1&quot;,
+            &quot;snapshot_id&quot;: rid(&quot;snapshot3&quot;),
+            &quot;anchor_id&quot;: anchor_id,
+            &quot;external_record_id&quot;: str(external_record_id),
+            &quot;record_sha256&quot;: sha256_hex(record_sha256),
+            &quot;retrieval_method&quot;: str(retrieval_method).upper(),
+            &quot;verifier_evidence_refs&quot;: sorted({str(x) for x in (verifier_evidence_refs or [])}),
+            &quot;external_record_is_evidence_not_protocol_truth&quot;: True,
+            &quot;record_may_be_contested_or_superseded&quot;: True,
+            &quot;created_at_ms&quot;: now_ms(),
+        }
+        body_sha = digest(body)
+        sig = self.identity.sign(operator_entity_id, body)
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;INSERT INTO snapshots VALUES(?,?,?,?,?,?,?,?)&quot;, (
+                body[&quot;snapshot_id&quot;], anchor_id, body[&quot;external_record_id&quot;], body[&quot;record_sha256&quot;],
+                body_sha, json.dumps(body, sort_keys=True), json.dumps(sig, sort_keys=True), body[&quot;created_at_ms&quot;]))
+        return dict(body, body_sha256=body_sha, signature=sig)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

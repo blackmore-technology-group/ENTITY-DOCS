@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GlobalInfrastructureTests.test_crypto_migration_requires_dual_signatures_and_rejects_downgrade Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>GlobalInfrastructureTests.test_crypto_migration_requires_dual_signatures_and_rejects_downgrade</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_global_infrastructure.py#L216">ENTITY/tests/test_v3_global_infrastructure.py#L216</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>GlobalInfrastructureTests.test_crypto_migration_requires_dual_signatures_and_rejects_downgrade(self)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def test_crypto_migration_requires_dual_signatures_and_rejects_downgrade(self):
+        reg = topology.CryptoSuiteMigration(self.root, self.vault)
+        base = int(time.time() * 1000)
+        old_hash = hashlib.sha256(b&quot;old-verifier&quot;).hexdigest()
+        new_hash = hashlib.sha256(b&quot;new-verifier&quot;).hexdigest()
+        reg.register_suite(self.steward, &quot;OLD&quot;, &quot;Old Algorithm&quot;, 128, old_hash,
+                           not_before_ms=base - 10000,
+                           deprecate_at_ms=base + 1000,
+                           retire_at_ms=base + 3000)
+        reg.register_suite(self.steward, &quot;NEW&quot;, &quot;New Algorithm&quot;, 192, new_hash,
+                           not_before_ms=base - 10000)
+        reg.register_transition(self.steward, &quot;OLD&quot;, &quot;NEW&quot;,
+                                dual_sign_from_ms=base + 1000,
+                                old_retire_at_ms=base + 3000)
+        reg.bind_verifier(&quot;OLD&quot;, old_hash,
+                          lambda sig, raw: sig == hashlib.sha256(b&quot;OLD&quot; + raw).digest())
+        reg.bind_verifier(&quot;NEW&quot;, new_hash,
+                          lambda sig, raw: sig == hashlib.sha256(b&quot;NEW&quot; + raw).digest())
+        payload = {&quot;entity&quot;: &quot;example&quot;, &quot;state&quot;: 7}
+        raw = topology.canon(payload)
+        old_sig = hashlib.sha256(b&quot;OLD&quot; + raw).digest()
+        new_sig = hashlib.sha256(b&quot;NEW&quot; + raw).digest()
+        pre = reg.verify_transition_payload(payload, {&quot;OLD&quot;: old_sig}, &quot;OLD&quot;, &quot;NEW&quot;, at_ms=base)
+        self.assertTrue(pre[&quot;valid&quot;])
+        missing_new = reg.verify_transition_payload(payload, {&quot;OLD&quot;: old_sig}, &quot;OLD&quot;, &quot;NEW&quot;,
+                                                    at_ms=base + 1500)
+        self.assertFalse(missing_new[&quot;valid&quot;])
+        self.assertEqual(missing_new[&quot;reason&quot;], &quot;MISSING_REQUIRED_SUITE&quot;)
+        dual = reg.verify_transition_payload(payload, {&quot;OLD&quot;: old_sig, &quot;NEW&quot;: new_sig},
+                                             &quot;OLD&quot;, &quot;NEW&quot;, at_ms=base + 1500)
+        self.assertTrue(dual[&quot;valid&quot;])
+        self.assertEqual(dual[&quot;required_suites&quot;], [&quot;OLD&quot;, &quot;NEW&quot;])
+        downgraded = reg.verify_transition_payload(payload, {&quot;OLD&quot;: old_sig}, &quot;OLD&quot;, &quot;NEW&quot;,
+                                                   at_ms=base + 4000)
+        self.assertFalse(downgraded[&quot;valid&quot;])
+        self.assertEqual(downgraded[&quot;missing&quot;], [&quot;NEW&quot;])
+        post = reg.verify_transition_payload(payload, {&quot;NEW&quot;: new_sig}, &quot;OLD&quot;, &quot;NEW&quot;,
+                                             at_ms=base + 4000)
+        self.assertTrue(post[&quot;valid&quot;])
+        self.assertEqual(post[&quot;required_suites&quot;], [&quot;NEW&quot;])</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

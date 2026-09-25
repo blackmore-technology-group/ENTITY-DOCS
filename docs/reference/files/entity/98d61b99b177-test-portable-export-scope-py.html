@@ -1,0 +1,45 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tests/test_portable_export_scope.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tests/test_portable_export_scope.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tests/test_portable_export_scope.py</code></p><p><b>SHA-256:</b> <code>474b95816ef166333841426b30d6a1b59b6dc7a4c447a36de1ca2c0d86c41cdb</code></p><p><b>Bytes:</b> 3,009</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_portable_export_scope.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-d9381baf0e82.html">load</a></li><li><a href="../../../reference/symbols/entity/make-db-c2f0b24a3b22.html">make_db</a></li><li><a href="../../../reference/symbols/entity/test-portable-export-is-strict-and-alias-resolves-d154c1be1c60.html">test_portable_export_is_strict_and_alias_resolves</a></li></ul><h2>Preview</h2><pre><code>from pathlib import Path
+import importlib.util, json, sqlite3
+
+REPO=Path(__file__).resolve().parents[1]
+SRC=REPO/&quot;src&quot;
+
+def load(name,path):
+    spec=importlib.util.spec_from_file_location(name,path)
+    mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+
+I=load(&quot;public_scope_identity&quot;,SRC/&quot;01_Core_Runtime&quot;/&quot;identity&quot;/&quot;canonical_identity.py&quot;)
+B=load(&quot;public_scope_backup&quot;,SRC/&quot;15_Operations&quot;/&quot;backups&quot;/&quot;canonical_portable_state.py&quot;)
+
+def make_db(path,ddl,rows):
+    path.parent.mkdir(parents=True,exist_ok=True)
+    table=ddl.split()[2].split(&#x27;(&#x27;)[0]
+    with sqlite3.connect(path) as db:
+        db.execute(ddl)
+        placeholders=&quot;,&quot;.join(&quot;?&quot; for _ in rows[0])
+        db.executemany(f&quot;INSERT INTO {table} VALUES({placeholders})&quot;,rows)
+
+def test_portable_export_is_strict_and_alias_resolves(tmp_path):
+    state=tmp_path/&quot;state&quot;; identity=I.EntityIdentityVault(state)
+    owner=identity.create(&quot;Owner Person&quot;,&quot;person&quot;,aliases=[&quot;owner.person.entity&quot;])[&quot;entity_id&quot;]
+    company=identity.create(&quot;Example Company&quot;,&quot;business&quot;,aliases=[&quot;company.entity&quot;])[&quot;entity_id&quot;]
+    foreign=identity.create(&quot;Foreign Person&quot;,&quot;person&quot;,aliases=[&quot;foreign.person.entity&quot;])[&quot;entity_id&quot;]
+    make_db(state/&quot;a&quot;/&quot;assets.sqlite&quot;,&quot;CREATE TABLE assets(asset_id TEXT PRIMARY KEY,controller_entity_id TEXT,note TEXT)&quot;,
+        [(&quot;asset1-owner-record&quot;,owner,&quot;owner asset&quot;),(&quot;asset1-foreign-record&quot;,foreign,&quot;foreign asset&quot;)])
+    make_db(state/&quot;b&quot;/&quot;usage.sqlite&quot;,&quot;CREATE TABLE usage(usage_id TEXT PRIMARY KEY,asset_id TEXT,note TEXT)&quot;,
+        [(&quot;usage1-owner-record&quot;,&quot;asset1-owner-record&quot;,&quot;owner usage&quot;),(&quot;usage1-foreign-record&quot;,&quot;asset1-foreign-record&quot;,&quot;foreign usage&quot;)])
+    make_db(state/&quot;c&quot;/&quot;authority.sqlite&quot;,&quot;CREATE TABLE relationships(relationship_id TEXT PRIMARY KEY,entity_id TEXT,party_ref TEXT,relationship_type TEXT)&quot;,
+        [(&quot;srel1-owner-direct&quot;,company,owner,&quot;GOVERNANCE_AUTHORITY&quot;),(&quot;srel1-foreign-only&quot;,company,foreign,&quot;OTHER&quot;)])
+    make_db(state/&quot;d&quot;/&quot;domain.sqlite&quot;,&quot;CREATE TABLE domains(domain_id TEXT PRIMARY KEY,entity_id TEXT,current_name TEXT)&quot;,
+        [(&quot;domain1-owner-record&quot;,owner,&quot;owner.person.entity&quot;),(&quot;domain1-company-record&quot;,company,&quot;company.entity&quot;),(&quot;domain1-foreign-record&quot;,foreign,&quot;foreign.person.entity&quot;)])
+
+    dest=tmp_path/&quot;export&quot;
+    evidence=B.PortableStateManager(state,identity).export_entity(&quot;owner.person.entity&quot;,dest)
+    assert evidence[&quot;entity_id&quot;]==owner
+    assert evidence[&quot;foreign_entity_traversal&quot;] is False
+    usage=json.loads((dest/&quot;b__usage.sqlite.json&quot;).read_text(encoding=&quot;utf-8&quot;))[&quot;tables&quot;][&quot;usage&quot;]
+    assert [row[&quot;usage_id&quot;] for row in usage]==[&quot;usage1-owner-record&quot;]
+    rels=json.loads((dest/&quot;c__authority.sqlite.json&quot;).read_text(encoding=&quot;utf-8&quot;))[&quot;tables&quot;][&quot;relationships&quot;]
+    assert [row[&quot;relationship_id&quot;] for row in rels]==[&quot;srel1-owner-direct&quot;]
+    domains=json.loads((dest/&quot;d__domain.sqlite.json&quot;).read_text(encoding=&quot;utf-8&quot;))[&quot;tables&quot;][&quot;domains&quot;]
+    assert [row[&quot;current_name&quot;] for row in domains]==[&quot;owner.person.entity&quot;]</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

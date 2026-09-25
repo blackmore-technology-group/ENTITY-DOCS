@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/01_Core_Runtime/engineering_controls/canonical_engineering_controls.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/01_Core_Runtime/engineering_controls/canonical_engineering_controls.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/01_Core_Runtime/engineering_controls/canonical_engineering_controls.py</code></p><p><b>SHA-256:</b> <code>0979718dcba33b2a4be4442c529b5438ee2435a252f12aa0599b576133e11d5c</code></p><p><b>Bytes:</b> 23,934</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/01_Core_Runtime/engineering_controls/canonical_engineering_controls.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-015af583f11c.html">_now</a></li><li><a href="../../../reference/symbols/entity/canon-46e110d32375.html">_canon</a></li><li><a href="../../../reference/symbols/entity/hash-b366f86e7ccf.html">_hash</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-020bdb2c1e8b.html">CanonicalEngineeringControlPlane</a></li><li><a href="../../../reference/symbols/entity/classify-artifact-16b8c5cfd2c0.html">_classify_artifact</a></li><li><a href="../../../reference/symbols/entity/promote-artifact-ccc65cd021e9.html">_promote_artifact</a></li><li><a href="../../../reference/symbols/entity/archive-state-01eec9ba5f2f.html">_archive_state</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-init-fb5f98a0347d.html">CanonicalEngineeringControlPlane.__init__</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-connect-ae1d786414d5.html">CanonicalEngineeringControlPlane._connect</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-init-db-55d589116384.html">CanonicalEngineeringControlPlane._init_db</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-audit-90f6e4b20e7f.html">CanonicalEngineeringControlPlane._audit</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-put-ffdb97845919.html">CanonicalEngineeringControlPlane._put</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-get-4b24b3bf8239.html">CanonicalEngineeringControlPlane._get</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-idempotent-657171a5e1c3.html">CanonicalEngineeringControlPlane.idempotent</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-verify-audit-ed7d85f29623.html">CanonicalEngineeringControlPlane.verify_audit</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-register-jurisdiction-profile-10f62dfd8fe2.html">CanonicalEngineeringControlPlane.register_jurisdiction_profile</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-authorize-dd1a3814a295.html">CanonicalEngineeringControlPlane.authorize</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-transition-claim-63106b92363d.html">CanonicalEngineeringControlPlane.transition_claim</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-authorize-node-10779f891cfb.html">CanonicalEngineeringControlPlane.authorize_node</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-revoke-node-385421beb7f9.html">CanonicalEngineeringControlPlane.revoke_node</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-reconcile-node-event-e23530d0c8df.html">CanonicalEngineeringControlPlane.reconcile_node_event</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-export-node-state-8160176de6cd.html">CanonicalEngineeringControlPlane.export_node_state</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-register-site-8a59b93664e3.html">CanonicalEngineeringControlPlane.register_site</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-publish-site-cf21c939df17.html">CanonicalEngineeringControlPlane.publish_site</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-install-app-ad737cefc033.html">CanonicalEngineeringControlPlane.install_app</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-update-app-84e8c8c1decb.html">CanonicalEngineeringControlPlane.update_app</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-authorize-app-action-664e2f09639b.html">CanonicalEngineeringControlPlane.authorize_app_action</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-minimum-projection-b20b57033a7c.html">CanonicalEngineeringControlPlane.minimum_projection</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-register-crypto-profile-a9f84d32e5b5.html">CanonicalEngineeringControlPlane.register_crypto_profile</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-device-session-115c559c97ca.html">CanonicalEngineeringControlPlane.device_session</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-register-slo-e1db9407d4fe.html">CanonicalEngineeringControlPlane.register_slo</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-telemetry-eef899606711.html">CanonicalEngineeringControlPlane.telemetry</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-record-incident-eede1986f0a7.html">CanonicalEngineeringControlPlane.record_incident</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-record-migration-3a12d88a1dd5.html">CanonicalEngineeringControlPlane.record_migration</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-register-sdk-338339832dac.html">CanonicalEngineeringControlPlane.register_sdk</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-sdk-mutation-ca5dee8fc60c.html">CanonicalEngineeringControlPlane.sdk_mutation</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-authorize-adam-43c3bfb97f10.html">CanonicalEngineeringControlPlane.authorize_adam</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-bsie-projection-a9aed992e104.html">CanonicalEngineeringControlPlane.bsie_projection</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-evaluate-release-a497a2a01651.html">CanonicalEngineeringControlPlane.evaluate_release</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-classify-public-claim-cee09c890aa5.html">CanonicalEngineeringControlPlane.classify_public_claim</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-status-d936e300a997.html">CanonicalEngineeringControlPlane.status</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-produce-63432668031e.html">CanonicalEngineeringControlPlane.produce</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-produce-b9694a88cde7.html">CanonicalEngineeringControlPlane.produce</a></li><li><a href="../../../reference/symbols/entity/canonicalengineeringcontrolplane-produce-a9d9c4c6539f.html">CanonicalEngineeringControlPlane.produce</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from contextlib import contextmanager
+from pathlib import Path
+import hashlib, json, secrets, sqlite3, time
+
+HIGH_IMPACT={
+    &#x27;ROOT_AUTHORITY_CHANGE&#x27;,&#x27;IP_ASSIGNMENT&#x27;,&#x27;EXCLUSIVE_LICENCE&#x27;,&#x27;HIGH_VALUE_CONTRACT&#x27;,
+    &#x27;SENSITIVE_EXPORT&#x27;,&#x27;LARGE_SETTLEMENT&#x27;,&#x27;IRREVERSIBLE_PUBLICATION&#x27;,&#x27;RESTRICTED_AI_TRAINING&#x27;,
+    &#x27;SHARE_ISSUANCE&#x27;,&#x27;SHARE_TRANSFER&#x27;
+}
+SECRET_KEYS={&#x27;password&#x27;,&#x27;secret&#x27;,&#x27;private_key&#x27;,&#x27;recovery_key&#x27;,&#x27;token&#x27;,&#x27;cookie&#x27;,&#x27;api_key&#x27;,&#x27;credential&#x27;}
+TELEMETRY_METRICS={
+    &#x27;availability&#x27;,&#x27;latency_ms&#x27;,&#x27;authorization_denial&#x27;,&#x27;signature_failure&#x27;,&#x27;ledger_conflict&#x27;,
+    &#x27;sync_delay_ms&#x27;,&#x27;vault_error&#x27;,&#x27;connector_failure&#x27;,&#x27;usage_meter_error&#x27;,&#x27;settlement_reconciliation_error&#x27;
+}
+CRITICAL_DEFECT_CLASSES={
+    &#x27;UNAUTHORIZED_RIGHTS_MUTATION&#x27;,&#x27;UNAUTHORIZED_ASSET_DISCLOSURE&#x27;,&#x27;ROOT_TAKEOVER&#x27;,
+    &#x27;UNAUTHORIZED_SETTLEMENT&#x27;,&#x27;SIGNATURE_BYPASS&#x27;,&#x27;UNDETECTED_LEDGER_TAMPERING&#x27;,
+    &#x27;AGENT_ESCALATION&#x27;,&#x27;CONNECTOR_ESCALATION&#x27;
+}
+
+def _now(): return int(time.time()*1000)
+def _canon(v): return json.dumps(v,sort_keys=True,separators=(&#x27;,&#x27;,&#x27;:&#x27;),ensure_ascii=False,default=str).encode()
+def _hash(v): return hashlib.sha256(_canon(v)).hexdigest()
+class CanonicalEngineeringControlPlane:
+    &quot;&quot;&quot;Cross-cutting fail-closed controls for SERS-ENTITY-003 production engineering.&quot;&quot;&quot;
+    def __init__(self,state_dir:str|Path):
+        self.root=Path(state_dir)/&#x27;engineering_controls&#x27;; self.root.mkdir(parents=True,exist_ok=True)
+        self.path=self.root/&#x27;controls.sqlite&#x27;; self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db=sqlite3.connect(self.path,timeout=30); db.row_factory=sqlite3.Row
+        try: yield db; db.commit()
+        except Exception: db.rollback(); raise
+        finally: db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&#x27;CREATE TABLE IF NOT EXISTS objects(kind TEXT NOT NULL,key TEXT NOT NULL,state TEXT NOT NULL,payload_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL,PRIMARY KEY(kind,key))&#x27;)
+            db.execute(&#x27;CREATE TABLE IF NOT EXISTS audit(seq INTEGER PRIMARY KEY AUTOINCREMENT,event_id TEXT UNIQUE NOT NULL,kind TEXT NOT NULL,subject TEXT NOT NULL,payload_json TEXT NOT NULL,prev_hash TEXT,event_hash TEXT UNIQUE NOT NULL,created_at_ms INTEGER NOT NULL)&#x27;)
+            db.execute(&#x27;CREATE TABLE IF NOT EXISTS nonces(namespace TEXT NOT NULL,nonce TEXT NOT NULL,result_json TEXT NOT NULL,PRIMARY KEY(namespace,nonce))&#x27;)
+
+    def _audit(self,kind:str,subject:str,payload:dict)-&gt;dict:
+        now=_now(); eid=&#x27;eng1-&#x27;+secrets.token_hex(16)
+        with self._connect() as db:
+            prior=db.execute(&#x27;SELECT event_hash FROM audit ORDER BY seq DESC LIMIT 1&#x27;).fetchone(); prev=prior[&#x27;event_hash&#x27;] if prior else None
+            body={&#x27;event_id&#x27;:eid,&#x27;kind&#x27;:str(kind).upper(),&#x27;subject&#x27;:str(subject),&#x27;payload&#x27;:dict(payload),&#x27;prev_hash&#x27;:prev,&#x27;created_at_ms&#x27;:now}
+            digest=_hash(body); db.execute(&#x27;INSERT INTO audit(event_id,kind,subject,payload_json,prev_hash,event_hash,created_at_ms) VALUES(?,?,?,?,?,?,?)&#x27;,(eid,body[&#x27;kind&#x27;],body[&#x27;subject&#x27;],json.dumps(body[&#x27;payload&#x27;],sort_keys=True),prev,digest,now))
+        return {**body,&#x27;event_hash&#x27;:digest}
+    def _put(self,kind:str,key:str,payload:dict,state:str=&#x27;ACTIVE&#x27;)-&gt;dict:
+        now=_now(); kind=str(kind).upper(); key=str(key); state=str(state).upper()
+        with self._connect() as db:
+            existing=db.execute(&#x27;SELECT created_at_ms FROM objects WHERE kind=? AND key=?&#x27;,(kind,key)).fetchone(); created=existing[&#x27;created_at_ms&#x27;] if existing else now
+            db.execute(&#x27;INSERT OR REPLACE INTO objects(kind,key,state,payload_json,created_at_ms,updated_at_ms) VALUES(?,?,?,?,?,?)&#x27;,(kind,key,state,json.dumps(dict(payload),sort_keys=True),created,now))
+        self._audit(kind,key,{&#x27;state&#x27;:state,&#x27;payload_sha256&#x27;:_hash(payload)})
+        return {&#x27;kind&#x27;:kind,&#x27;key&#x27;:key,&#x27;state&#x27;:state,&#x27;payload&#x27;:dict(payload),&#x27;created_at_ms&#x27;:created,&#x27;updated_at_ms&#x27;:now}
+
+    def _get(self,kind:str,key:str)-&gt;dict:
+        with self._connect() as db: row=db.execute(&#x27;SELECT * FROM objects WHERE kind=? AND key=?&#x27;,(str(kind).upper(),str(key))).fetchone()
+        if not row: raise KeyError(f&#x27;{kind}:{key} not found&#x27;)
+        return {&#x27;kind&#x27;:row[&#x27;kind&#x27;],&#x27;key&#x27;:row[&#x27;key&#x27;],&#x27;state&#x27;:row[&#x27;state&#x27;],&#x27;payload&#x27;:json.loads(row[&#x27;payload_json&#x27;]),&#x27;created_at_ms&#x27;:row[&#x27;created_at_ms&#x27;],&#x27;updated_at_ms&#x27;:row[&#x27;updated_at_ms&#x27;]}
+
+    def idempotent(self,namespace:str,nonce:str,producer)-&gt;dict:
+        ns=str(namespace); nonce=str(nonce)
+        with self._connect() as db:
+            row=db.execute(&#x27;SELECT result_json FROM nonces WHERE namespace=? AND nonce=?&#x27;,(ns,nonce)).fetchone()
+            if row: return json.loads(row[&#x27;result_json&#x27;])
+        result=dict(producer())
+        with self._connect() as db: db.execute(&#x27;INSERT INTO nonces(namespace,nonce,result_json) VALUES(?,?,?)&#x27;,(ns,nonce,json.dumps(result,sort_keys=True)))
+        return result
+
+    def verify_audit(self)-&gt;dict:
+        with self._connect() as db: rows=db.execute(&#x27;SELECT * FROM audit ORDER BY seq&#x27;).fetchall()
+        prev=None
+        for row in rows:
+            body={&#x27;event_id&#x27;:row[&#x27;event_id&#x27;],&#x27;kind&#x27;:row[&#x27;kind&#x27;],&#x27;subject&#x27;:row[&#x27;subject&#x27;],&#x27;payload&#x27;:json.loads(row[&#x27;payload_json&#x27;]),&#x27;prev_hash&#x27;:row[&#x27;prev_hash&#x27;],&#x27;created_at_ms&#x27;:row[&#x27;created_at_ms&#x27;]}
+            if row[&#x27;prev_hash&#x27;]!=prev or _hash(body)!=row[&#x27;event_hash&#x27;]: return {&#x27;pass&#x27;:False,&#x27;events&#x27;:len(rows)}
+            prev=row[&#x27;event_hash&#x27;]
+        return {&#x27;pass&#x27;:True,&#x27;events&#x27;:len(rows),&#x27;head_hash&#x27;:prev}
+    # Governance / authority
+    def register_jurisdiction_profile(self,profile_id:str,version:int,rules:dict)-&gt;dict:
+        if int(version)&lt;1: raise ValueError(&#x27;version must be &gt;=1&#x27;)
+        return self._put(&#x27;JURISDICTION&#x27;,profile_id,{&#x27;version&#x27;:int(version),&#x27;rules&#x27;:dict(rules),&#x27;engineering_not_legal_advice&#x27;:True})
+
+    def authorize(self,context:dict)-&gt;dict:
+        c=dict(context or {}); required={&#x27;actor&#x27;,&#x27;capability&#x27;,&#x27;action&#x27;,&#x27;purpose&#x27;,&#x27;policy&#x27;,&#x27;jurisdiction&#x27;,&#x27;time_ms&#x27;}
+        missing=sorted(required-set(c))
+        if missing: return {&#x27;allowed&#x27;:False,&#x27;reason&#x27;:&#x27;missing_authorization_context&#x27;,&#x27;missing&#x27;:missing}
+        if c.get(&#x27;policy&#x27;) not in {&#x27;ALLOW&#x27;,&#x27;PERMIT&#x27;}: return {&#x27;allowed&#x27;:False,&#x27;reason&#x27;:&#x27;policy_denied&#x27;}
+        if c.get(&#x27;capability_active&#x27;) is not True: return {&#x27;allowed&#x27;:False,&#x27;reason&#x27;:&#x27;capability_inactive&#x27;}
+        action=str(c.get(&#x27;action&#x27;)).upper()
+        if action in HIGH_IMPACT and not c.get(&#x27;approval_ref&#x27;): return {&#x27;allowed&#x27;:False,&#x27;reason&#x27;:&#x27;approval_required&#x27;}
+        if c.get(&#x27;counterparty_required&#x27;) and not c.get(&#x27;counterparty&#x27;): return {&#x27;allowed&#x27;:False,&#x27;reason&#x27;:&#x27;counterparty_required&#x27;}
+        decision={&#x27;allowed&#x27;:True,&#x27;actor&#x27;:c[&#x27;actor&#x27;],&#x27;action&#x27;:action,&#x27;purpose&#x27;:c[&#x27;purpose&#x27;],&#x27;jurisdiction&#x27;:c[&#x27;jurisdiction&#x27;],&#x27;approval_ref&#x27;:c.get(&#x27;approval_ref&#x27;)}
+        self._audit(&#x27;AUTHORIZATION&#x27;,str(c[&#x27;actor&#x27;]),decision); return decision
+
+    def transition_claim(self,claim_id:str,current_origin:str,target_status:str,*,evidence:dict|None=None)-&gt;dict:
+        origin=str(current_origin).upper(); target=str(target_status).upper()
+        if origin in {&#x27;UNKNOWN&#x27;,&#x27;DERIVED_INFERENCE&#x27;} and target in {&#x27;VERIFIED&#x27;,&#x27;AUTHORITATIVELY_VERIFIED&#x27;} and not evidence:
+            raise PermissionError(&#x27;unknown/inferred claim cannot become verified without qualifying evidence&#x27;)
+        return self._put(&#x27;CLAIM_STATE&#x27;,claim_id,{&#x27;evidence_origin&#x27;:origin,&#x27;status&#x27;:target,&#x27;evidence&#x27;:dict(evidence or {})})
+
+    # Node/device authority
+    def authorize_node(self,entity_root:str,node_id:str,public_key:str,scopes:list[str],*,protocol_version:str,schema_version:str,crypto_suite:str)-&gt;dict:
+        payload={&#x27;entity_root&#x27;:entity_root,&#x27;node_id&#x27;:node_id,&#x27;public_key&#x27;:public_key,&#x27;scopes&#x27;:sorted(set(scopes)),&#x27;protocol_version&#x27;:protocol_version,&#x27;schema_version&#x27;:schema_version,&#x27;crypto_suite&#x27;:crypto_suite,&#x27;root_identity_replaced&#x27;:False}
+        return self._put(&#x27;NODE&#x27;,node_id,payload,&#x27;ACTIVE&#x27;)
+    def revoke_node(self,node_id:str)-&gt;dict:
+        row=self._get(&#x27;NODE&#x27;,node_id); return self._put(&#x27;NODE&#x27;,node_id,row[&#x27;payload&#x27;],&#x27;REVOKED&#x27;)
+
+    def reconcile_node_event(self,node_id:str,nonce:str,*,exclusive:bool=False,conflicting_state:bool=False,payload:dict|None=None)-&gt;dict:
+        node=self._get(&#x27;NODE&#x27;,node_id)
+        if node[&#x27;state&#x27;]!=&#x27;ACTIVE&#x27;: raise PermissionError(&#x27;revoked/inactive node&#x27;)
+        if exclusive and conflicting_state: raise PermissionError(&#x27;exclusive operation conflicts; fail closed until reconciliation&#x27;)
+        def produce():
+            event={&#x27;node_id&#x27;:node_id,&#x27;nonce&#x27;:nonce,&#x27;exclusive&#x27;:bool(exclusive),&#x27;conflicting_state&#x27;:False,&#x27;payload_sha256&#x27;:_hash(payload or {}),&#x27;signed_locally&#x27;:True,&#x27;reconciled&#x27;:True}
+            self._audit(&#x27;NODE_RECONCILIATION&#x27;,node_id,event); return event
+        return self.idempotent(&#x27;node-event:&#x27;+node_id,nonce,produce)
+
+    def export_node_state(self,node_id:str)-&gt;dict:</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

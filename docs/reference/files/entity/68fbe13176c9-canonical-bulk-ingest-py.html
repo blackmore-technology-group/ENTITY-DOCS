@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / src/04_Entity_Registry/bulk_ingest/canonical_bulk_ingest.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / src/04_Entity_Registry/bulk_ingest/canonical_bulk_ingest.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>src/04_Entity_Registry/bulk_ingest/canonical_bulk_ingest.py</code></p><p><b>SHA-256:</b> <code>a1897f0b304800a03d6faf4cb7450a7934c90b313850fa7bb4698c97d5a684d8</code></p><p><b>Bytes:</b> 14,732</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/04_Entity_Registry/bulk_ingest/canonical_bulk_ingest.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/now-93130095f9a3.html">_now</a></li><li><a href="../../../reference/symbols/entity/canon-8fadc61a2222.html">_canon</a></li><li><a href="../../../reference/symbols/entity/sha-c38683efa85f.html">_sha</a></li><li><a href="../../../reference/symbols/entity/merkle-4f2fd18f6eac.html">_merkle</a></li><li><a href="../../../reference/symbols/entity/canonicalbulkingeststore-d48547946b3c.html">CanonicalBulkIngestStore</a></li><li><a href="../../../reference/symbols/entity/canonicalbulkingeststore-init-5cef290dc1e6.html">CanonicalBulkIngestStore.__init__</a></li><li><a href="../../../reference/symbols/entity/canonicalbulkingeststore-connect-69e55a627ab7.html">CanonicalBulkIngestStore._connect</a></li><li><a href="../../../reference/symbols/entity/canonicalbulkingeststore-init-db-6be76752e456.html">CanonicalBulkIngestStore._init_db</a></li><li><a href="../../../reference/symbols/entity/canonicalbulkingeststore-validate-digest-89fb3786acb4.html">CanonicalBulkIngestStore._validate_digest</a></li><li><a href="../../../reference/symbols/entity/canonicalbulkingeststore-asset-row-930489a26af8.html">CanonicalBulkIngestStore._asset_row</a></li><li><a href="../../../reference/symbols/entity/canonicalbulkingeststore-event-body-1b878535c863.html">CanonicalBulkIngestStore._event_body</a></li><li><a href="../../../reference/symbols/entity/canonicalbulkingeststore-ingest-assets-497247832440.html">CanonicalBulkIngestStore.ingest_assets</a></li><li><a href="../../../reference/symbols/entity/canonicalbulkingeststore-verify-batch-828040de09b2.html">CanonicalBulkIngestStore.verify_batch</a></li><li><a href="../../../reference/symbols/entity/canonicalbulkingeststore-verify-all-batches-7e378100dc43.html">CanonicalBulkIngestStore.verify_all_batches</a></li><li><a href="../../../reference/symbols/entity/canonicalbulkingeststore-finalize-indexes-f6b515b5057c.html">CanonicalBulkIngestStore.finalize_indexes</a></li><li><a href="../../../reference/symbols/entity/canonicalbulkingeststore-status-2bed582f5f04.html">CanonicalBulkIngestStore.status</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+from pathlib import Path
+from contextlib import contextmanager
+from typing import Iterable
+import hashlib, json, sqlite3, time
+
+ZERO_HASH = &quot;0&quot; * 64
+SCHEMA = &quot;entity-bulk-ingest-v1&quot;
+
+
+def _now() -&gt; int:
+    return int(time.time() * 1000)
+
+
+def _canon(value) -&gt; bytes:
+    return json.dumps(value, sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=False).encode(&quot;utf-8&quot;)
+
+
+def _sha(value) -&gt; str:
+    return hashlib.sha256(value if isinstance(value, (bytes, bytearray)) else _canon(value)).hexdigest()
+
+
+def _merkle(leaves: list[str]) -&gt; str:
+    if not leaves:
+        return ZERO_HASH
+    layer = [bytes.fromhex(x) for x in leaves]
+    while len(layer) &gt; 1:
+        if len(layer) % 2:
+            layer.append(layer[-1])
+        layer = [hashlib.sha256(layer[i] + layer[i + 1]).digest() for i in range(0, len(layer), 2)]
+    return layer[0].hex()
+
+
+class CanonicalBulkIngestStore:
+    &quot;&quot;&quot;High-volume asset/event ingestion with signed batch attestations.
+
+    This is additive to the ordinary per-record registries. A batch proves the
+    integrity and controller attestation of the ingested records; it does not
+    manufacture legal ownership, verified rights, or external truth.
+    &quot;&quot;&quot;
+
+    def __init__(self, root: str | Path, identity, controller_entity_id: str):
+        self.root = Path(root)
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.path = self.root / &quot;bulk_ingest.sqlite&quot;
+        self.identity = identity
+        self.controller_entity_id = str(controller_entity_id)
+        self.identity.load_manifest(self.controller_entity_id)
+        self.sign = self.identity.open_signing_session(self.controller_entity_id)
+        self._init_db()
+
+    @contextmanager
+    def _connect(self):
+        db = sqlite3.connect(self.path, timeout=120)
+        db.row_factory = sqlite3.Row
+        try:
+            yield db
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        finally:
+            db.close()
+
+    def _init_db(self):
+        with self._connect() as db:
+            db.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+            db.execute(&quot;PRAGMA synchronous=FULL&quot;)
+            db.execute(&quot;PRAGMA temp_store=MEMORY&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS assets(asset_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,content_sha256 TEXT NOT NULL,size_bytes INTEGER NOT NULL,media_type TEXT NOT NULL,title TEXT NOT NULL,classification TEXT NOT NULL,metadata_sha256 TEXT NOT NULL,record_sha256 TEXT NOT NULL,batch_id TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS events(sequence INTEGER PRIMARY KEY AUTOINCREMENT,event_id TEXT UNIQUE NOT NULL,event_type TEXT NOT NULL,actor_entity_id TEXT NOT NULL,asset_id TEXT NOT NULL,payload_sha256 TEXT NOT NULL,prior_hash TEXT NOT NULL,event_hash TEXT NOT NULL,batch_id TEXT NOT NULL,timestamp_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS batches(batch_id TEXT PRIMARY KEY,controller_entity_id TEXT NOT NULL,asset_count INTEGER NOT NULL,event_count INTEGER NOT NULL,asset_merkle_root TEXT NOT NULL,start_prior_event_hash TEXT NOT NULL,end_event_hash TEXT NOT NULL,prior_batch_hash TEXT NOT NULL,batch_hash TEXT NOT NULL,signature_json TEXT NOT NULL,created_at_ms INTEGER NOT NULL)&quot;)
+            db.execute(&quot;CREATE TABLE IF NOT EXISTS meta(k TEXT PRIMARY KEY,v TEXT NOT NULL)&quot;)
+            db.execute(&quot;INSERT OR IGNORE INTO meta(k,v) VALUES(&#x27;event_head&#x27;,?)&quot;, (ZERO_HASH,))
+            db.execute(&quot;INSERT OR IGNORE INTO meta(k,v) VALUES(&#x27;batch_head&#x27;,?)&quot;, (ZERO_HASH,))
+            db.execute(&quot;INSERT OR IGNORE INTO meta(k,v) VALUES(&#x27;asset_total&#x27;,&#x27;0&#x27;)&quot;)
+            db.execute(&quot;INSERT OR IGNORE INTO meta(k,v) VALUES(&#x27;event_total&#x27;,&#x27;0&#x27;)&quot;)
+
+    @staticmethod
+    def _validate_digest(value: str) -&gt; str:
+        digest = str(value or &quot;&quot;).lower()
+        if len(digest) != 64 or any(c not in &quot;0123456789abcdef&quot; for c in digest):
+            raise ValueError(&quot;content_sha256 must be SHA-256 hex&quot;)
+        return digest
+
+    def _asset_row(self, ordinal: int, batch_id: str, item: dict, now: int):
+        digest = self._validate_digest(item.get(&quot;content_sha256&quot;))
+        metadata = dict(item.get(&quot;metadata&quot;) or {})
+        metadata_sha = _sha(metadata)
+        asset_id = &quot;assetb1-&quot; + hashlib.sha256(f&quot;{self.controller_entity_id}|{batch_id}|{ordinal}|{digest}&quot;.encode()).hexdigest()
+        body = {
+            &quot;schema&quot;: &quot;entity-bulk-asset-v1&quot;,
+            &quot;asset_id&quot;: asset_id,
+            &quot;controller_entity_id&quot;: self.controller_entity_id,
+            &quot;content_sha256&quot;: digest,
+            &quot;size_bytes&quot;: max(0, int(item.get(&quot;size_bytes&quot;) or 0)),
+            &quot;media_type&quot;: str(item.get(&quot;media_type&quot;) or &quot;application/octet-stream&quot;)[:128],
+            &quot;title&quot;: str(item.get(&quot;title&quot;) or &quot;&quot;)[:512],
+            &quot;classification&quot;: str(item.get(&quot;classification&quot;) or &quot;PRIVATE&quot;).upper()[:32],
+            &quot;metadata_sha256&quot;: metadata_sha,
+            &quot;batch_id&quot;: batch_id,
+            &quot;created_at_ms&quot;: now,
+            &quot;registration_not_ownership&quot;: True,
+        }
+        record_sha = _sha(body)
+        row = (asset_id, self.controller_entity_id, digest, body[&quot;size_bytes&quot;], body[&quot;media_type&quot;], body[&quot;title&quot;], body[&quot;classification&quot;], metadata_sha, record_sha, batch_id, now)
+        return body, row, record_sha
+
+    @staticmethod
+    def _event_body(event_id: str, event_type: str, actor: str, asset_id: str, payload_sha: str, prior_hash: str, batch_id: str, now: int):
+        return {&quot;schema&quot;: &quot;ENTITY-BULK-EVENT-v1&quot;, &quot;event_id&quot;: event_id, &quot;event_type&quot;: event_type, &quot;actor_entity_id&quot;: actor, &quot;asset_id&quot;: asset_id, &quot;payload_sha256&quot;: payload_sha, &quot;prior_hash&quot;: prior_hash, &quot;batch_id&quot;: batch_id, &quot;timestamp_ms&quot;: now}
+
+    def ingest_assets(self, records: Iterable[dict], *, batch_id: str) -&gt; dict:
+        batch_id = str(batch_id or &quot;&quot;).strip()
+        if not batch_id:
+            raise ValueError(&quot;batch_id required&quot;)
+        now = _now(); asset_rows=[]; event_rows=[]; leaves=[]
+        with self._connect() as db:
+            if db.execute(&quot;SELECT 1 FROM batches WHERE batch_id=?&quot;, (batch_id,)).fetchone():
+                raise ValueError(&quot;batch_id already exists&quot;)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

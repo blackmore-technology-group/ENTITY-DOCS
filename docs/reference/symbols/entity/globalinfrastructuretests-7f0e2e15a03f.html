@@ -1,0 +1,238 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GlobalInfrastructureTests Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>GlobalInfrastructureTests</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_global_infrastructure.py#L18">ENTITY/tests/test_v3_global_infrastructure.py#L18</a></p><p><b>Kind:</b> class</p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>class GlobalInfrastructureTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = pathlib.Path(self.tmp.name)
+        self.vault = identity_mod.EntityIdentityVault(self.root / &quot;vault&quot;)
+        self.steward = self.vault.create(&quot;Steward&quot;, &quot;organization&quot;)[&quot;entity_id&quot;]
+        self.gov = self.vault.create(&quot;Government&quot;, &quot;organization&quot;)[&quot;entity_id&quot;]
+        self.academia = self.vault.create(&quot;University&quot;, &quot;organization&quot;)[&quot;entity_id&quot;]
+        self.vendor = self.vault.create(&quot;Vendor&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        self.user = self.vault.create(&quot;User&quot;, &quot;person&quot;)[&quot;entity_id&quot;]
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_jurisdiction_profiles_are_immutable_and_fail_closed_on_conflict(self):
+        reg = inst.JurisdictionProfileRegistry(self.root, self.vault)
+        schema = hashlib.sha256(b&quot;jurisdiction-schema&quot;).hexdigest()
+        ca = reg.register(self.gov, &quot;CA-BC&quot;, &quot;DATA&quot;, &quot;1.0&quot;, schema,
+                          [{&quot;effect&quot;: &quot;ALLOW&quot;, &quot;actions&quot;: [&quot;TRAIN&quot;],
+                            &quot;conditions&quot;: {&quot;classification&quot;: &quot;NON_PERSONAL&quot;},
+                            &quot;obligations&quot;: [&quot;DISCLOSURE&quot;]}], effective_from_ms=1)
+        eu = reg.register(self.gov, &quot;EU&quot;, &quot;DATA&quot;, &quot;1.0&quot;, schema,
+                          [{&quot;effect&quot;: &quot;PROHIBIT&quot;, &quot;actions&quot;: [&quot;TRAIN&quot;],
+                            &quot;conditions&quot;: {&quot;classification&quot;: &quot;NON_PERSONAL&quot;}}],
+                          effective_from_ms=1)
+        decision = reg.evaluate([&quot;CA-BC&quot;, &quot;EU&quot;], &quot;DATA&quot;, &quot;TRAIN&quot;,
+                                {&quot;classification&quot;: &quot;NON_PERSONAL&quot;})
+        self.assertEqual(decision[&quot;decision&quot;], &quot;DENY&quot;)
+        self.assertTrue(decision[&quot;conflict_detected&quot;])
+        self.assertTrue(decision[&quot;legal_determination_not_made&quot;])
+        with self.assertRaises(ValueError):
+            reg.register(self.gov, &quot;CA-BC&quot;, &quot;DATA&quot;, &quot;1.0&quot;, schema,
+                         [{&quot;effect&quot;: &quot;ALLOW&quot;, &quot;actions&quot;: [&quot;COPY&quot;]}], effective_from_ms=1)
+        ca2 = reg.register(self.gov, &quot;CA-BC&quot;, &quot;DATA&quot;, &quot;2.0&quot;, schema,
+                           [{&quot;effect&quot;: &quot;REQUIRE&quot;, &quot;actions&quot;: [&quot;TRAIN&quot;],
+                             &quot;obligations&quot;: [&quot;NEW_DISCLOSURE&quot;]}], effective_from_ms=2)
+        sup = reg.supersede(self.gov, ca[&quot;profile_id&quot;], ca2[&quot;profile_id&quot;])
+        self.assertTrue(sup[&quot;history_rewrite_prohibited&quot;])
+        self.assertNotEqual(ca[&quot;profile_id&quot;], eu[&quot;profile_id&quot;])
+
+    def test_semantic_registry_never_silently_equates_terms(self):
+        reg = inst.SemanticRegistry(self.root, self.vault)
+        reg.register_namespace(self.steward, &quot;btg&quot;, &quot;BTG canonical semantics&quot;)
+        reg.register_namespace(self.gov, &quot;gov&quot;, &quot;Government semantics&quot;)
+        a = reg.register_term(self.steward, &quot;btg&quot;, &quot;RIGHT&quot;, &quot;TRAIN&quot;, &quot;1.0&quot;,
+                              {&quot;meaning&quot;: &quot;model training use&quot;})
+        b = reg.register_term(self.gov, &quot;gov&quot;, &quot;RIGHT&quot;, &quot;MODEL_TRAINING&quot;, &quot;1.0&quot;,
+                              {&quot;meaning&quot;: &quot;regulated model-training use&quot;})
+        aref = reg.term_ref(&quot;btg&quot;, &quot;RIGHT&quot;, &quot;TRAIN&quot;, &quot;1.0&quot;)
+        bref = reg.term_ref(&quot;gov&quot;, &quot;RIGHT&quot;, &quot;MODEL_TRAINING&quot;, &quot;1.0&quot;)
+        reg.map_terms(self.steward, aref, bref, &quot;EXACT&quot;, hashlib.sha256(b&quot;evidence&quot;).hexdigest(),
+                      jurisdiction_scope=[&quot;CA&quot;], confidence_bps=10000)
+        result = reg.mappings(aref, target_namespace=&quot;gov&quot;)
+        self.assertEqual(result[&quot;unambiguous_exact_candidate&quot;], bref)
+        self.assertFalse(result[&quot;automatic_translation_permitted&quot;])
+        self.assertTrue(result[&quot;profile_or_human_semantic_decision_required&quot;])
+        with self.assertRaises(ValueError):
+            reg.register_term(self.steward, &quot;btg&quot;, &quot;RIGHT&quot;, &quot;TRAIN&quot;, &quot;1.0&quot;,
+                              {&quot;meaning&quot;: &quot;different meaning&quot;})
+        self.assertEqual(a[&quot;status&quot;], &quot;ACTIVE&quot;)
+        self.assertEqual(b[&quot;status&quot;], &quot;ACTIVE&quot;)
+
+    def test_multistakeholder_governance_requires_class_diversity(self):
+        gov = inst.MultiStakeholderGovernance(self.root, self.vault)
+        body = gov.create_body(self.steward, &quot;ENTITY Standards Council&quot;,
+                               hashlib.sha256(b&quot;charter&quot;).hexdigest(),
+                               [&quot;INDUSTRY&quot;, &quot;GOVERNMENT&quot;, &quot;ACADEMIA&quot;],
+                               approval_threshold=3, min_approval_classes=3)
+        industry2 = self.vault.create(&quot;Industry Two&quot;, &quot;business&quot;)[&quot;entity_id&quot;]
+        gov.add_member(body[&quot;body_id&quot;], self.steward, self.steward, &quot;INDUSTRY&quot;)
+        gov.add_member(body[&quot;body_id&quot;], self.steward, industry2, &quot;INDUSTRY&quot;)
+        gov.add_member(body[&quot;body_id&quot;], self.steward, self.gov, &quot;GOVERNMENT&quot;)
+        gov.add_member(body[&quot;body_id&quot;], self.steward, self.academia, &quot;ACADEMIA&quot;)
+        proposal = gov.propose(body[&quot;body_id&quot;], self.steward, &quot;PROFILE&quot;, &quot;profile:jurisdiction&quot;,
+                               {&quot;version&quot;: &quot;1.0&quot;, &quot;change&quot;: &quot;add jurisdiction layer&quot;})
+        gov.vote(proposal[&quot;proposal_id&quot;], self.steward, &quot;APPROVE&quot;)
+        gov.vote(proposal[&quot;proposal_id&quot;], industry2, &quot;APPROVE&quot;)
+        interim = gov.vote(proposal[&quot;proposal_id&quot;], self.gov, &quot;APPROVE&quot;)
+        self.assertEqual(interim[&quot;proposal_status&quot;], &quot;OPEN&quot;)
+        final = gov.vote(proposal[&quot;proposal_id&quot;], self.academia, &quot;APPROVE&quot;)
+        self.assertEqual(final[&quot;proposal_status&quot;], &quot;ACCEPTED&quot;)
+        tally = gov.tally(proposal[&quot;proposal_id&quot;])
+        self.assertTrue(tally[&quot;diversity_requirement_met&quot;])
+        self.assertEqual(tally[&quot;approval_classes&quot;], [&quot;ACADEMIA&quot;, &quot;GOVERNMENT&quot;, &quot;INDUSTRY&quot;])
+
+    def test_governance_recusal_blocks_vote(self):
+        gov = inst.MultiStakeholderGovernance(self.root, self.vault)
+        body = gov.create_body(self.steward, &quot;Council&quot;, hashlib.sha256(b&quot;c&quot;).hexdigest(),
+                               [&quot;INDUSTRY&quot;, &quot;PUBLIC&quot;], approval_threshold=2, min_approval_classes=2)
+        gov.add_member(body[&quot;body_id&quot;], self.steward, self.steward, &quot;INDUSTRY&quot;)
+        gov.add_member(body[&quot;body_id&quot;], self.steward, self.gov, &quot;PUBLIC&quot;)
+        proposal = gov.propose(body[&quot;body_id&quot;], self.steward, &quot;GOVERNANCE&quot;, &quot;charter&quot;, {&quot;x&quot;: 1})
+        gov.declare_conflict(proposal[&quot;proposal_id&quot;], self.gov, {&quot;reason&quot;: &quot;direct interest&quot;}, recuse=True)
+        with self.assertRaises(PermissionError):
+            gov.vote(proposal[&quot;proposal_id&quot;], self.gov, &quot;APPROVE&quot;)
+
+    def test_purpose_bound_access_revocation_and_use_caps(self):
+        access = privacy.PurposeBoundAccessRegistry(self.root, self.vault)
+        grant = access.grant(self.steward, self.user, &quot;dataset:alpha&quot;, [&quot;RESEARCH&quot;], [&quot;TRAIN&quot;],
+                             expires_at_ms=int(time.time() * 1000) + 60000, max_uses=1)
+        use = access.authorize_use(grant[&quot;grant_id&quot;], self.user, &quot;RESEARCH&quot;, &quot;TRAIN&quot;,
+                                   hashlib.sha256(b&quot;use&quot;).hexdigest())
+        self.assertTrue(use[&quot;authorized&quot;])
+        self.assertEqual(use[&quot;remaining_uses&quot;], 0)
+        with self.assertRaises(PermissionError):
+            access.authorize_use(grant[&quot;grant_id&quot;], self.user, &quot;RESEARCH&quot;, &quot;TRAIN&quot;,
+                                 hashlib.sha256(b&quot;again&quot;).hexdigest())
+        rev = access.revoke(self.steward, grant[&quot;grant_id&quot;])
+        self.assertEqual(rev[&quot;status&quot;], &quot;REVOKED&quot;)
+
+    def test_selective_retention_preserves_commitment_after_destruction(self):
+        ledger = privacy.SelectiveRetentionLedger(self.root, self.vault)
+        payload_hash = hashlib.sha256(b&quot;personal payload&quot;).hexdigest()
+        rec = ledger.register(self.steward, &quot;subject:1&quot;, payload_hash, purpose=&quot;RESEARCH&quot;,
+                              jurisdiction=&quot;CA-BC&quot;, retain_until_ms=1,
+                              destruction_mode=&quot;DELETE_PAYLOAD&quot;)
+        destroyed = ledger.destroy(self.steward, rec[&quot;record_id&quot;], hashlib.sha256(b&quot;destroyed&quot;).hexdigest())
+        self.assertEqual(destroyed[&quot;status&quot;], &quot;DESTROYED&quot;)
+        status = ledger.status(rec[&quot;record_id&quot;])
+        self.assertEqual(status[&quot;payload_sha256&quot;], payload_hash)
+        self.assertTrue(status[&quot;commitment_preserved&quot;])
+        hold = ledger.register(self.steward, &quot;subject:2&quot;, payload_hash, purpose=&quot;LEGAL&quot;,
+                               jurisdiction=&quot;CA&quot;, retain_until_ms=1, destruction_mode=&quot;LEGAL_HOLD&quot;)
+        with self.assertRaises(PermissionError):
+            ledger.destroy(self.steward, hold[&quot;record_id&quot;], hashlib.sha256(b&quot;x&quot;).hexdigest())
+
+    def test_confidential_provenance_encrypts_metadata_and_detects_wrong_key(self):
+        ledger = privacy.ConfidentialProvenanceLedger(self.root, self.vault)
+        key = hashlib.sha256(b&quot;confidential-key&quot;).digest()
+        edge = ledger.add_edge(self.steward, &quot;dataset:A&quot;, &quot;model:B&quot;, &quot;DERIVED_FROM&quot;,
+                               hashlib.sha256(b&quot;evidence&quot;).hexdigest(),
+                               metadata={&quot;private_detail&quot;: &quot;sensitive lineage&quot;}, encryption_key=key)
+        revealed = ledger.reveal_metadata(edge[&quot;edge_id&quot;], key)
+        self.assertTrue(revealed[&quot;commitment_valid&quot;])
+        self.assertEqual(revealed[&quot;metadata&quot;][&quot;private_detail&quot;], &quot;sensitive lineage&quot;)
+        with self.assertRaises(Exception):
+            ledger.reveal_metadata(edge[&quot;edge_id&quot;], hashlib.sha256(b&quot;wrong&quot;).digest())
+
+    def test_proof_verifier_registry_fails_closed_without_bound_verifier(self):
+        reg = privacy.ProofVerifierRegistry(self.root, self.vault)
+        verifier_hash = hashlib.sha256(b&quot;zk-verifier-binary&quot;).hexdigest()
+        reg.register_suite(self.steward, &quot;ZK-SUITE-1&quot;, &quot;Example external ZK verifier&quot;,
+                           verifier_hash, &quot;External suite; security review required&quot;)
+        with self.assertRaises(RuntimeError):
+            reg.verify(&quot;ZK-SUITE-1&quot;, self.steward, b&quot;valid-proof&quot;, {&quot;claim&quot;: 1})
+        reg.bind_runtime_verifier(&quot;ZK-SUITE-1&quot;, verifier_hash,
+                                  lambda proof, public: proof == b&quot;valid-proof&quot; and public == {&quot;claim&quot;: 1})
+        accepted = reg.verify(&quot;ZK-SUITE-1&quot;, self.steward, b&quot;valid-proof&quot;, {&quot;claim&quot;: 1})
+        rejected = reg.verify(&quot;ZK-SUITE-1&quot;, self.steward, b&quot;bad-proof&quot;, {&quot;claim&quot;: 1})
+        self.assertTrue(accepted[&quot;accepted&quot;])
+        self.assertFalse(rejected[&quot;accepted&quot;])
+        self.assertTrue(accepted[&quot;proof_acceptance_is_suite_specific_not_universal_truth&quot;])
+
+    def test_partition_merge_converges_or_fails_closed(self):
+        sync = topology.PartitionSync(self.root, self.vault)
+        a = self.vault.create(&quot;Node A Operator&quot;, &quot;organization&quot;)[&quot;entity_id&quot;]
+        b = self.vault.create(&quot;Node B Operator&quot;, &quot;organization&quot;)[&quot;entity_id&quot;]
+        root1 = hashlib.sha256(b&quot;root-1&quot;).hexdigest()
+        root2 = hashlib.sha256(b&quot;root-2&quot;).hexdigest()
+        ca1 = sync.publish(&quot;A&quot;, a, &quot;P1&quot;, sequence=1, epoch=1, state_root_sha256=root1,
+                           vector_clock={&quot;A&quot;: 1})
+        cb1 = sync.publish(&quot;B&quot;, b, &quot;P1&quot;, sequence=1, epoch=1, state_root_sha256=root2,
+                           vector_clock={&quot;B&quot;: 1})
+        conflict = sync.merge(&quot;P1&quot;)
+        self.assertFalse(conflict[&quot;resolved&quot;])
+        self.assertTrue(conflict[&quot;partition_conflict&quot;])
+        ca2 = sync.publish(&quot;A&quot;, a, &quot;P1&quot;, sequence=2, epoch=2, state_root_sha256=root1,
+                           vector_clock={&quot;A&quot;: 2, &quot;B&quot;: 1},
+                           previous_checkpoint_sha256=ca1[&quot;checkpoint_sha256&quot;])
+        resolved = sync.merge(&quot;P1&quot;)
+        self.assertTrue(resolved[&quot;resolved&quot;])
+        self.assertEqual(resolved[&quot;checkpoint_id&quot;], ca2[&quot;checkpoint_id&quot;])
+        self.assertEqual(resolved[&quot;reason&quot;], &quot;CAUSALLY_DOMINANT_CHECKPOINT&quot;)
+        self.assertNotEqual(ca1[&quot;checkpoint_id&quot;], cb1[&quot;checkpoint_id&quot;])
+
+    def test_offline_envelope_is_signed_expiry_bounded_and_tamper_evident(self):
+        payload = {&quot;events&quot;: [{&quot;id&quot;: 1, &quot;action&quot;: &quot;OBSERVE&quot;}]}
+        env = topology.OfflineEnvelope.create(self.vault, self.steward, &quot;edge-1&quot;, &quot;P-OFF&quot;, 1,
+                                              payload, expires_at_ms=int(time.time() * 1000) + 60000)
+        self.assertTrue(topology.OfflineEnvelope.verify(self.vault, env)[&quot;valid&quot;])
+        tampered = dict(env); tampered[&quot;payload&quot;] = {&quot;events&quot;: [{&quot;id&quot;: 2}]}
+        result = topology.OfflineEnvelope.verify(self.vault, tampered)
+        self.assertFalse(result[&quot;valid&quot;])
+        self.assertEqual(result[&quot;reason&quot;], &quot;PAYLOAD_HASH&quot;)
+
+    def test_topology_nodes_do_not_gain_authority_by_membership(self):
+        reg = topology.TopologyRegistry(self.root, self.vault)
+        node = reg.register_node(self.steward, &quot;node-edge-ca-1&quot;, &quot;EDGE&quot;, &quot;CA-BC&quot;,
+                                 &quot;btg-edge&quot;, [&quot;VERIFY&quot;, &quot;SYNC&quot;])
+        self.assertEqual(node[&quot;topology_class&quot;], &quot;EDGE&quot;)
+        self.assertTrue(node[&quot;infrastructure_membership_is_not_sovereign_authority&quot;])
+        duplicate = reg.register_node(self.steward, &quot;node-edge-ca-1&quot;, &quot;EDGE&quot;, &quot;CA-BC&quot;,
+                                      &quot;btg-edge&quot;, [&quot;SYNC&quot;, &quot;VERIFY&quot;])
+        self.assertTrue(duplicate[&quot;existing&quot;])
+        with self.assertRaises(ValueError):
+            reg.register_node(self.steward, &quot;node-edge-ca-1&quot;, &quot;CORE&quot;, &quot;CA-BC&quot;,
+                              &quot;btg-edge&quot;, [&quot;VERIFY&quot;])
+
+    def test_crypto_migration_requires_dual_signatures_and_rejects_downgrade(self):
+        reg = topology.CryptoSuiteMigration(self.root, self.vault)
+        base = int(time.time() * 1000)
+        old_hash = hashlib.sha256(b&quot;old-verifier&quot;).hexdigest()
+        new_hash = hashlib.sha256(b&quot;new-verifier&quot;).hexdigest()
+        reg.register_suite(self.steward, &quot;OLD&quot;, &quot;Old Algorithm&quot;, 128, old_hash,
+                           not_before_ms=base - 10000,
+                           deprecate_at_ms=base + 1000,
+                           retire_at_ms=base + 3000)
+        reg.register_suite(self.steward, &quot;NEW&quot;, &quot;New Algorithm&quot;, 192, new_hash,
+                           not_before_ms=base - 10000)
+        reg.register_transition(self.steward, &quot;OLD&quot;, &quot;NEW&quot;,
+                                dual_sign_from_ms=base + 1000,
+                                old_retire_at_ms=base + 3000)
+        reg.bind_verifier(&quot;OLD&quot;, old_hash,
+                          lambda sig, raw: sig == hashlib.sha256(b&quot;OLD&quot; + raw).digest())
+        reg.bind_verifier(&quot;NEW&quot;, new_hash,
+                          lambda sig, raw: sig == hashlib.sha256(b&quot;NEW&quot; + raw).digest())
+        payload = {&quot;entity&quot;: &quot;example&quot;, &quot;state&quot;: 7}
+        raw = topology.canon(payload)
+        old_sig = hashlib.sha256(b&quot;OLD&quot; + raw).digest()
+        new_sig = hashlib.sha256(b&quot;NEW&quot; + raw).digest()
+        pre = reg.verify_transition_payload(payload, {&quot;OLD&quot;: old_sig}, &quot;OLD&quot;, &quot;NEW&quot;, at_ms=base)
+        self.assertTrue(pre[&quot;valid&quot;])
+        missing_new = reg.verify_transition_payload(payload, {&quot;OLD&quot;: old_sig}, &quot;OLD&quot;, &quot;NEW&quot;,
+                                                    at_ms=base + 1500)
+        self.assertFalse(missing_new[&quot;valid&quot;])
+        self.assertEqual(missing_new[&quot;reason&quot;], &quot;MISSING_REQUIRED_SUITE&quot;)
+        dual = reg.verify_transition_payload(payload, {&quot;OLD&quot;: old_sig, &quot;NEW&quot;: new_sig},
+                                             &quot;OLD&quot;, &quot;NEW&quot;, at_ms=base + 1500)
+        self.assertTrue(dual[&quot;valid&quot;])
+        self.assertEqual(dual[&quot;required_suites&quot;], [&quot;OLD&quot;, &quot;NEW&quot;])
+        downgraded = reg.verify_transition_payload(payload, {&quot;OLD&quot;: old_sig}, &quot;OLD&quot;, &quot;NEW&quot;,
+                                                   at_ms=base + 4000)
+        self.assertFalse(downgraded[&quot;valid&quot;])
+        self.assertEqual(downgraded[&quot;missing&quot;], [&quot;NEW&quot;])
+        post = reg.verify_transition_payload(payload, {&quot;NEW&quot;: new_sig}, &quot;OLD&quot;, &quot;NEW&quot;,
+                                             at_ms=base + 4000)
+        self.assertTrue(post[&quot;valid&quot;])
+        self.assertEqual(post[&quot;required_suites&quot;], [&quot;NEW&quot;])</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

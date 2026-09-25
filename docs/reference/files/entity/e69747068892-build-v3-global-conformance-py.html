@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tools/build_v3_global_conformance.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tools/build_v3_global_conformance.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tools/build_v3_global_conformance.py</code></p><p><b>SHA-256:</b> <code>b17eab64691e3bc4526d548e53eaabbc9f7c4db5e1a995918f6b8389b8d69d26</code></p><p><b>Bytes:</b> 17,944</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tools/build_v3_global_conformance.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/obj-41c600d32c34.html">obj</a></li><li><a href="../../../reference/symbols/entity/s-46df0ff4117c.html">s</a></li><li><a href="../../../reference/symbols/entity/i-671c96059fea.html">i</a></li><li><a href="../../../reference/symbols/entity/sha-afd703cd7a10.html">sha</a></li><li><a href="../../../reference/symbols/entity/nullable-4310eee20e4a.html">nullable</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import hashlib, json, pathlib
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+PROTO = ROOT / &quot;protocol&quot; / &quot;v3&quot;
+VECTORS = PROTO / &quot;global_vectors&quot;
+SCHEMA_PATH = PROTO / &quot;ENTITY_GLOBAL_INFRASTRUCTURE.schema.json&quot;
+HEX64 = &quot;^[0-9a-f]{64}$&quot;
+
+def obj(schema_name: str, required: list[str], properties: dict) -&gt; dict:
+    props = {&quot;schema&quot;: {&quot;const&quot;: schema_name}, **properties}
+    return {&quot;type&quot;: &quot;object&quot;, &quot;additionalProperties&quot;: False,
+            &quot;required&quot;: [&quot;schema&quot;, *required], &quot;properties&quot;: props}
+
+def s(min_len=1):
+    return {&quot;type&quot;: &quot;string&quot;, &quot;minLength&quot;: min_len}
+
+def i(minimum=0):
+    return {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: minimum}
+
+def sha():
+    return {&quot;type&quot;: &quot;string&quot;, &quot;pattern&quot;: HEX64}
+
+def nullable(inner: dict) -&gt; dict:
+    return {&quot;anyOf&quot;: [inner, {&quot;type&quot;: &quot;null&quot;}]}
+
+rule = {&quot;type&quot;: &quot;object&quot;, &quot;additionalProperties&quot;: False,
+        &quot;required&quot;: [&quot;effect&quot;, &quot;actions&quot;, &quot;conditions&quot;, &quot;obligations&quot;, &quot;authority_basis&quot;],
+        &quot;properties&quot;: {&quot;effect&quot;: {&quot;enum&quot;: [&quot;ALLOW&quot;, &quot;REQUIRE&quot;, &quot;PROHIBIT&quot;]},
+                       &quot;actions&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;minItems&quot;: 1, &quot;uniqueItems&quot;: True, &quot;items&quot;: s()},
+                       &quot;conditions&quot;: {&quot;type&quot;: &quot;object&quot;},
+                       &quot;obligations&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;uniqueItems&quot;: True, &quot;items&quot;: s()},
+                       &quot;authority_basis&quot;: nullable(s())}}
+defs = {}
+defs[&quot;jurisdiction_profile&quot;] = obj(&quot;entity-v3-jurisdiction-profile-v1&quot;,
+    [&quot;profile_id&quot;, &quot;jurisdiction_code&quot;, &quot;domain&quot;, &quot;version&quot;, &quot;authority_entity_id&quot;,
+     &quot;schema_sha256&quot;, &quot;rules&quot;, &quot;effective_from_ms&quot;, &quot;effective_to_ms&quot;, &quot;precedence&quot;,
+     &quot;parent_profile_id&quot;, &quot;status&quot;, &quot;created_at_ms&quot;, &quot;legal_effect_is_deployment_specific&quot;],
+    {&quot;profile_id&quot;: s(), &quot;jurisdiction_code&quot;: s(), &quot;domain&quot;: s(), &quot;version&quot;: s(),
+     &quot;authority_entity_id&quot;: s(), &quot;schema_sha256&quot;: sha(),
+     &quot;rules&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;items&quot;: rule}, &quot;effective_from_ms&quot;: i(),
+     &quot;effective_to_ms&quot;: nullable(i()), &quot;precedence&quot;: {&quot;type&quot;: &quot;integer&quot;},
+     &quot;parent_profile_id&quot;: nullable(s()), &quot;status&quot;: {&quot;const&quot;: &quot;ACTIVE&quot;},
+     &quot;created_at_ms&quot;: i(), &quot;legal_effect_is_deployment_specific&quot;: {&quot;const&quot;: True}})
+
+defs[&quot;semantic_term&quot;] = obj(&quot;entity-v3-semantic-term-v1&quot;,
+    [&quot;namespace_id&quot;, &quot;kind&quot;, &quot;term_id&quot;, &quot;version&quot;, &quot;definition_sha256&quot;, &quot;definition&quot;,
+     &quot;status&quot;, &quot;supersedes_ref&quot;, &quot;created_at_ms&quot;],
+    {&quot;namespace_id&quot;: s(), &quot;kind&quot;: {&quot;enum&quot;: [&quot;SCHEMA&quot;, &quot;RIGHT&quot;, &quot;EVENT&quot;, &quot;CAPABILITY&quot;,
+      &quot;ASSET_CLASS&quot;, &quot;TRUST_FRAMEWORK&quot;, &quot;DISPUTE_AUTHORITY&quot;, &quot;ATTESTATION_CLASS&quot;]},
+     &quot;term_id&quot;: s(), &quot;version&quot;: s(), &quot;definition_sha256&quot;: sha(), &quot;definition&quot;: {&quot;type&quot;: &quot;object&quot;},
+     &quot;status&quot;: {&quot;const&quot;: &quot;ACTIVE&quot;}, &quot;supersedes_ref&quot;: nullable(s()), &quot;created_at_ms&quot;: i()})
+
+defs[&quot;semantic_crosswalk&quot;] = obj(&quot;entity-v3-semantic-crosswalk-v1&quot;,
+    [&quot;crosswalk_id&quot;, &quot;actor_entity_id&quot;, &quot;source_ref&quot;, &quot;target_ref&quot;, &quot;relation&quot;,
+     &quot;evidence_sha256&quot;, &quot;jurisdiction_scope&quot;, &quot;confidence_bps&quot;, &quot;created_at_ms&quot;,
+     &quot;mapping_is_attestation_not_identity&quot;, &quot;silent_semantic_coercion_prohibited&quot;],
+    {&quot;crosswalk_id&quot;: s(), &quot;actor_entity_id&quot;: s(), &quot;source_ref&quot;: s(), &quot;target_ref&quot;: s(),
+     &quot;relation&quot;: {&quot;enum&quot;: [&quot;EXACT&quot;, &quot;BROADER&quot;, &quot;NARROWER&quot;, &quot;RELATED&quot;, &quot;INCOMPATIBLE&quot;]},
+     &quot;evidence_sha256&quot;: sha(), &quot;jurisdiction_scope&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;uniqueItems&quot;: True, &quot;items&quot;: s()},
+     &quot;confidence_bps&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0, &quot;maximum&quot;: 10000},
+     &quot;created_at_ms&quot;: i(), &quot;mapping_is_attestation_not_identity&quot;: {&quot;const&quot;: True},
+     &quot;silent_semantic_coercion_prohibited&quot;: {&quot;const&quot;: True}})
+defs[&quot;governance_body&quot;] = obj(&quot;entity-v3-governance-body-v1&quot;,
+    [&quot;body_id&quot;, &quot;steward_entity_id&quot;, &quot;name&quot;, &quot;charter_sha256&quot;, &quot;stakeholder_classes&quot;,
+     &quot;approval_threshold&quot;, &quot;min_approval_classes&quot;, &quot;status&quot;, &quot;created_at_ms&quot;,
+     &quot;single_implementation_is_not_standard_authority&quot;],
+    {&quot;body_id&quot;: s(), &quot;steward_entity_id&quot;: s(), &quot;name&quot;: s(), &quot;charter_sha256&quot;: sha(),
+     &quot;stakeholder_classes&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;minItems&quot;: 2, &quot;uniqueItems&quot;: True, &quot;items&quot;: s()},
+     &quot;approval_threshold&quot;: i(1), &quot;min_approval_classes&quot;: i(2), &quot;status&quot;: {&quot;const&quot;: &quot;ACTIVE&quot;},
+     &quot;created_at_ms&quot;: i(), &quot;single_implementation_is_not_standard_authority&quot;: {&quot;const&quot;: True}})
+
+defs[&quot;purpose_grant&quot;] = obj(&quot;entity-v3-purpose-bound-access-v1&quot;,
+    [&quot;grant_id&quot;, &quot;controller&quot;, &quot;grantee&quot;, &quot;resource_ref&quot;, &quot;purposes&quot;, &quot;actions&quot;,
+     &quot;max_uses&quot;, &quot;expires_at_ms&quot;, &quot;status&quot;, &quot;created_at_ms&quot;],
+    {&quot;grant_id&quot;: s(), &quot;controller&quot;: s(), &quot;grantee&quot;: s(), &quot;resource_ref&quot;: s(),
+     &quot;purposes&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;minItems&quot;: 1, &quot;uniqueItems&quot;: True, &quot;items&quot;: s()},
+     &quot;actions&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;minItems&quot;: 1, &quot;uniqueItems&quot;: True, &quot;items&quot;: s()},
+     &quot;max_uses&quot;: i(), &quot;expires_at_ms&quot;: i(), &quot;status&quot;: {&quot;const&quot;: &quot;ACTIVE&quot;},
+     &quot;created_at_ms&quot;: i()})
+
+defs[&quot;retention_record&quot;] = obj(&quot;entity-v3-retention-record-v1&quot;,
+    [&quot;record_id&quot;, &quot;controller&quot;, &quot;subject_ref&quot;, &quot;payload_sha256&quot;, &quot;storage_ref_sha256&quot;,
+     &quot;purpose&quot;, &quot;jurisdiction&quot;, &quot;retain_until_ms&quot;, &quot;destruction_mode&quot;, &quot;status&quot;,
+     &quot;created_at_ms&quot;, &quot;raw_payload_stored_in_ledger&quot;],
+    {&quot;record_id&quot;: s(), &quot;controller&quot;: s(), &quot;subject_ref&quot;: s(), &quot;payload_sha256&quot;: sha(),
+     &quot;storage_ref_sha256&quot;: nullable(sha()), &quot;purpose&quot;: s(), &quot;jurisdiction&quot;: s(),
+     &quot;retain_until_ms&quot;: i(), &quot;destruction_mode&quot;: {&quot;enum&quot;: [&quot;DELETE_PAYLOAD&quot;, &quot;REDACT_SOURCE&quot;,
+      &quot;DESTROY_EXTERNAL_COPY&quot;, &quot;LEGAL_HOLD&quot;]}, &quot;status&quot;: {&quot;const&quot;: &quot;ACTIVE&quot;},
+     &quot;created_at_ms&quot;: i(), &quot;raw_payload_stored_in_ledger&quot;: {&quot;const&quot;: False}})
+defs[&quot;confidential_provenance&quot;] = obj(&quot;entity-v3-confidential-provenance-v1&quot;,
+    [&quot;edge_id&quot;, &quot;actor&quot;, &quot;parent_ref&quot;, &quot;child_ref&quot;, &quot;relationship&quot;, &quot;evidence_sha256&quot;,
+     &quot;metadata_commitment_sha256&quot;, &quot;encrypted_metadata&quot;, &quot;created_at_ms&quot;,
+     &quot;confidential_metadata_not_public_provenance&quot;],
+    {&quot;edge_id&quot;: s(), &quot;actor&quot;: s(), &quot;parent_ref&quot;: s(), &quot;child_ref&quot;: s(), &quot;relationship&quot;: s(),
+     &quot;evidence_sha256&quot;: sha(), &quot;metadata_commitment_sha256&quot;: sha(),
+     &quot;encrypted_metadata&quot;: nullable({&quot;type&quot;: &quot;object&quot;}), &quot;created_at_ms&quot;: i(),
+     &quot;confidential_metadata_not_public_provenance&quot;: {&quot;const&quot;: True}})
+
+defs[&quot;topology_node&quot;] = obj(&quot;entity-v3-topology-node-v1&quot;,
+    [&quot;node_id&quot;, &quot;operator_entity_id&quot;, &quot;topology_class&quot;, &quot;jurisdiction&quot;, &quot;trust_domain&quot;,
+     &quot;capabilities&quot;, &quot;status&quot;, &quot;created_at_ms&quot;, &quot;infrastructure_membership_is_not_sovereign_authority&quot;],
+    {&quot;node_id&quot;: s(), &quot;operator_entity_id&quot;: s(),
+     &quot;topology_class&quot;: {&quot;enum&quot;: [&quot;CORE&quot;, &quot;REGIONAL&quot;, &quot;EDGE&quot;, &quot;SATELLITE&quot;, &quot;OFFLINE&quot;]},
+     &quot;jurisdiction&quot;: s(), &quot;trust_domain&quot;: s(),
+     &quot;capabilities&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;uniqueItems&quot;: True, &quot;items&quot;: s()},
+     &quot;status&quot;: {&quot;const&quot;: &quot;ACTIVE&quot;}, &quot;created_at_ms&quot;: i(),
+     &quot;infrastructure_membership_is_not_sovereign_authority&quot;: {&quot;const&quot;: True}})
+
+defs[&quot;partition_checkpoint&quot;] = obj(&quot;entity-v3-partition-checkpoint-v1&quot;,
+    [&quot;checkpoint_id&quot;, &quot;node_id&quot;, &quot;operator_entity_id&quot;, &quot;partition_id&quot;, &quot;sequence&quot;, &quot;epoch&quot;,
+     &quot;previous_checkpoint_sha256&quot;, &quot;state_root_sha256&quot;, &quot;vector_clock&quot;, &quot;created_at_ms&quot;],
+    {&quot;checkpoint_id&quot;: s(), &quot;node_id&quot;: s(), &quot;operator_entity_id&quot;: s(), &quot;partition_id&quot;: s(),
+     &quot;sequence&quot;: i(1), &quot;epoch&quot;: i(), &quot;previous_checkpoint_sha256&quot;: nullable(sha()),
+     &quot;state_root_sha256&quot;: sha(), &quot;vector_clock&quot;: {&quot;type&quot;: &quot;object&quot;, &quot;additionalProperties&quot;: i()},
+     &quot;created_at_ms&quot;: i()})
+defs[&quot;offline_envelope&quot;] = obj(&quot;entity-v3-offline-envelope-v1&quot;,
+    [&quot;envelope_id&quot;, &quot;actor_entity_id&quot;, &quot;node_id&quot;, &quot;partition_id&quot;, &quot;sequence&quot;,
+     &quot;payload_sha256&quot;, &quot;created_at_ms&quot;, &quot;expires_at_ms&quot;],
+    {&quot;envelope_id&quot;: s(), &quot;actor_entity_id&quot;: s(), &quot;node_id&quot;: s(), &quot;partition_id&quot;: s(),</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

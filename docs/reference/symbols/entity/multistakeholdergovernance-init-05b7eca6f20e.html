@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MultiStakeholderGovernance.__init__ Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>MultiStakeholderGovernance.__init__</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Defined in:</b> <a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/src/35_Global_Infrastructure/institutional_semantics.py#L351">ENTITY/src/35_Global_Infrastructure/institutional_semantics.py#L351</a></p><p><b>Kind:</b> function/method</p><p><b>Signature:</b> <code>MultiStakeholderGovernance.__init__(self, root: str | Path, identity)</code></p><h2>Documentation</h2><p>No docstring is present. Use the exact source and tests for behavior.</p><h2>Source excerpt</h2><pre><code>    def __init__(self, root: str | Path, identity):
+        self.path = Path(root) / &quot;entity_v3_multistakeholder_governance.sqlite&quot;
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.identity = identity
+        with sqlite3.connect(self.path) as db:
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS bodies(
+                body_id TEXT PRIMARY KEY, steward_entity_id TEXT NOT NULL, name TEXT NOT NULL,
+                charter_sha256 TEXT NOT NULL, classes_json TEXT NOT NULL,
+                approval_threshold INTEGER NOT NULL, min_approval_classes INTEGER NOT NULL,
+                status TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS members(
+                body_id TEXT NOT NULL, member_entity_id TEXT NOT NULL, stakeholder_class TEXT NOT NULL,
+                status TEXT NOT NULL, admitted_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL,
+                PRIMARY KEY(body_id,member_entity_id))&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS proposals(
+                proposal_id TEXT PRIMARY KEY, body_id TEXT NOT NULL, proposer_entity_id TEXT NOT NULL,
+                change_class TEXT NOT NULL, target_ref TEXT NOT NULL, body_sha256 TEXT NOT NULL,
+                status TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL)&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS ballots(
+                proposal_id TEXT NOT NULL, voter_entity_id TEXT NOT NULL, stakeholder_class TEXT NOT NULL,
+                decision TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL,
+                PRIMARY KEY(proposal_id,voter_entity_id))&quot;&quot;&quot;)
+            db.execute(&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS conflicts(
+                proposal_id TEXT NOT NULL, member_entity_id TEXT NOT NULL, recuse INTEGER NOT NULL,
+                basis_sha256 TEXT NOT NULL, created_at_ms INTEGER NOT NULL, signature_json TEXT NOT NULL,
+                PRIMARY KEY(proposal_id,member_entity_id))&quot;&quot;&quot;)</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

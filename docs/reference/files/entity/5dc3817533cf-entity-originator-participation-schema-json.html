@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / protocol/v3/ENTITY_ORIGINATOR_PARTICIPATION.schema.json Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / protocol/v3/ENTITY_ORIGINATOR_PARTICIPATION.schema.json</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>protocol/v3/ENTITY_ORIGINATOR_PARTICIPATION.schema.json</code></p><p><b>SHA-256:</b> <code>4a8d4341e86f3d41eb41e16255d10cac8c0505ef216a6286ffbf76ac94b5a832</code></p><p><b>Bytes:</b> 14,604</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/protocol/v3/ENTITY_ORIGINATOR_PARTICIPATION.schema.json">Open exact source on GitHub</a></p><h2>Preview</h2><pre><code>{
+  &quot;$defs&quot;: {
+    &quot;economic_event&quot;: {
+      &quot;additionalProperties&quot;: true,
+      &quot;properties&quot;: {
+        &quot;actor_entity_id&quot;: {
+          &quot;type&quot;: &quot;string&quot;
+        },
+        &quot;created_at_ms&quot;: {
+          &quot;minimum&quot;: 0,
+          &quot;type&quot;: &quot;integer&quot;
+        },
+        &quot;currency&quot;: {
+          &quot;minLength&quot;: 1,
+          &quot;type&quot;: &quot;string&quot;
+        },
+        &quot;dedupe_key&quot;: {
+          &quot;type&quot;: &quot;string&quot;
+        },
+        &quot;details&quot;: {
+          &quot;type&quot;: &quot;object&quot;
+        },
+        &quot;economic_event_is_evidence_not_market_value&quot;: {
+          &quot;const&quot;: true
+        },
+        &quot;event_id&quot;: {
+          &quot;type&quot;: &quot;string&quot;
+        },
+        &quot;event_type&quot;: {
+          &quot;type&quot;: &quot;string&quot;
+        },
+        &quot;evidence_sha256&quot;: {
+          &quot;anyOf&quot;: [
+            {
+              &quot;type&quot;: &quot;null&quot;
+            },
+            {
+              &quot;pattern&quot;: &quot;^[0-9a-f]{64}$&quot;,
+              &quot;type&quot;: &quot;string&quot;
+            }
+          ]
+        },
+        &quot;gross_amount_units&quot;: {
+          &quot;minimum&quot;: 0,
+          &quot;type&quot;: &quot;integer&quot;
+        },
+        &quot;instrument_id&quot;: {
+          &quot;anyOf&quot;: [
+            {
+              &quot;type&quot;: &quot;string&quot;
+            },
+            {
+              &quot;type&quot;: &quot;null&quot;
+            }
+          ]
+        },
+        &quot;policy_id&quot;: {
+          &quot;anyOf&quot;: [
+            {
+              &quot;type&quot;: &quot;string&quot;
+            },
+            {
+              &quot;type&quot;: &quot;null&quot;
+            }
+          ]
+        },
+        &quot;schema&quot;: {
+          &quot;const&quot;: &quot;entity-v3-economic-event-v1&quot;
+        },
+        &quot;subject_ref&quot;: {
+          &quot;type&quot;: &quot;string&quot;
+        },
+        &quot;treasury_id&quot;: {
+          &quot;type&quot;: &quot;string&quot;
+        }
+      },
+      &quot;required&quot;: [
+        &quot;schema&quot;,
+        &quot;event_id&quot;,
+        &quot;dedupe_key&quot;,
+        &quot;event_type&quot;,
+        &quot;treasury_id&quot;,
+        &quot;actor_entity_id&quot;,
+        &quot;subject_ref&quot;,
+        &quot;gross_amount_units&quot;,
+        &quot;currency&quot;,
+        &quot;details&quot;,
+        &quot;created_at_ms&quot;,
+        &quot;economic_event_is_evidence_not_market_value&quot;
+      ],
+      &quot;type&quot;: &quot;object&quot;
+    },
+    &quot;indicative_mark&quot;: {
+      &quot;additionalProperties&quot;: true,
+      &quot;properties&quot;: {
+        &quot;indicative_only&quot;: {
+          &quot;const&quot;: true
+        },
+        &quot;marks&quot;: {
+          &quot;type&quot;: &quot;array&quot;
+        },
+        &quot;not_accounting_fair_value&quot;: {
+          &quot;const&quot;: true
+        },
+        &quot;not_protocol_generated_value&quot;: {
+          &quot;const&quot;: true
+        },
+        &quot;schema&quot;: {
+          &quot;const&quot;: &quot;entity-v3-treasury-indicative-mark-v1&quot;
+        },
+        &quot;treasury_id&quot;: {
+          &quot;type&quot;: &quot;string&quot;
+        }
+      },
+      &quot;required&quot;: [
+        &quot;schema&quot;,
+        &quot;treasury_id&quot;,
+        &quot;marks&quot;,
+        &quot;indicative_only&quot;,
+        &quot;not_accounting_fair_value&quot;,</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>

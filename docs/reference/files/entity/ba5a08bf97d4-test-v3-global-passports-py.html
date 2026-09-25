@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY / tests/test_v3_global_passports.py Â· ENTITY Docs</title><link rel="stylesheet" href="../../../assets/style.css"></head><body><header><b>ENTITY v3.4.0 Documentation</b><input id="search" placeholder="Search 2,000+ pagesâ€¦"></header><div id="results"></div><div class="layout"><nav><h3>Documentation</h3><a href="../../../index.html">Home</a><a href="../../../operator/index.html">Operator</a><a href="../../../developer/index.html">Developer</a><a href="../../../protocol/index.html">Protocol</a><a href="../../../economy/index.html">Economy</a><a href="../../../security/index.html">Security</a><a href="../../../domains/index.html">Domains</a><a href="../../../versions/index.html">Versions</a><a href="../../../reference/index.html">Reference</a><h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY GitHub</a><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.0">v3.4.0 Release</a></nav><main><h1>ENTITY / tests/test_v3_global_passports.py</h1><div class="meta"><b>Repository:</b> ENTITY<br><b>Commit:</b> <code>e05d33beeee2a7885bd395553942fd907d870b46</code></div><p><b>Path:</b> <code>tests/test_v3_global_passports.py</code></p><p><b>SHA-256:</b> <code>922f11f692a5992b1211632a0b625ba51c2d30a4d71dc49e91ae323b109dbe6b</code></p><p><b>Bytes:</b> 17,378</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/e05d33beeee2a7885bd395553942fd907d870b46/tests/test_v3_global_passports.py">Open exact source on GitHub</a></p><h2>Defined symbols</h2><ul><li><a href="../../../reference/symbols/entity/load-fd8f965f8abe.html">load</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-6d6cebe226c3.html">V34GlobalPassportTests</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-setup-55e6a39ad374.html">V34GlobalPassportTests.setUp</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-teardown-6c0c73fe9f7b.html">V34GlobalPassportTests.tearDown</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-rights-passport-bf0ff8e02567.html">V34GlobalPassportTests._rights_passport</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-01-core-market-and-truth-boundaries-preserved-8881d4c08e0d.html">V34GlobalPassportTests.test_01_core_market_and_truth_boundaries_preserved</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-02-builtin-global-and-six-industry-profiles-install-e86b42b56ba5.html">V34GlobalPassportTests.test_02_builtin_global_and_six_industry_profiles_install</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-03-profile-stack-requires-global-profile-82e03e9baac5.html">V34GlobalPassportTests.test_03_profile_stack_requires_global_profile</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-04-profile-stack-requires-declared-parents-f913d782c262.html">V34GlobalPassportTests.test_04_profile_stack_requires_declared_parents</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-05-global-passport-binds-existing-rights-and-profile-stack-9024824e18c5.html">V34GlobalPassportTests.test_05_global_passport_binds_existing_rights_and_profile_stack</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-06-standards-mapping-cannot-claim-equivalence-2b6dc7bbb244.html">V34GlobalPassportTests.test_06_standards_mapping_cannot_claim_equivalence</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-07-healthcare-and-ai-profiles-compose-078e48aecb48.html">V34GlobalPassportTests.test_07_healthcare_and_ai_profiles_compose</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-08-defence-robotics-ai-profiles-compose-and-remain-public-f5e8f1fad02b.html">V34GlobalPassportTests.test_08_defence_robotics_ai_profiles_compose_and_remain_public</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-09-healthcare-profile-maps-not-redefines-standards-835fcfd6fade.html">V34GlobalPassportTests.test_09_healthcare_profile_maps_not_redefines_standards</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-10-finance-profile-contains-iso20022-fix-lei-081c223d744a.html">V34GlobalPassportTests.test_10_finance_profile_contains_iso20022_fix_lei</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-11-manufacturing-profile-contains-opcua-aas-a38e49390ffd.html">V34GlobalPassportTests.test_11_manufacturing_profile_contains_opcua_aas</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-12-ai-profile-contains-risk-and-supply-chain-mappings-b16227d276bb.html">V34GlobalPassportTests.test_12_ai_profile_contains_risk_and_supply_chain_mappings</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-13-robotics-profile-contains-ros-and-openrmf-1544bfa4df50.html">V34GlobalPassportTests.test_13_robotics_profile_contains_ros_and_openrmf</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-14-continuous-ingest-registers-bytes-evidence-rights-and-global-passport-7378c678148d.html">V34GlobalPassportTests.test_14_continuous_ingest_registers_bytes_evidence_rights_and_global_passport</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-15-version-ingest-creates-zero-weight-provenance-not-fake-economics-6d2e38c886a5.html">V34GlobalPassportTests.test_15_version_ingest_creates_zero_weight_provenance_not_fake_economics</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-16-directory-ingest-excludes-machine-noise-7903ee6bac7f.html">V34GlobalPassportTests.test_16_directory_ingest_excludes_machine_noise</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-17-tampered-global-passport-fails-3728a499c646.html">V34GlobalPassportTests.test_17_tampered_global_passport_fails</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-18-v33-evidence-truth-boundary-composes-24bd626c7bf3.html">V34GlobalPassportTests.test_18_v33_evidence_truth_boundary_composes</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-19-existing-exchange-lifecycle-survives-v34-1cb6db7d3a38.html">V34GlobalPassportTests.test_19_existing_exchange_lifecycle_survives_v34</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-20-conformance-validator-accepts-release-semantics-fcb2b0e865e7.html">V34GlobalPassportTests.test_20_conformance_validator_accepts_release_semantics</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-21-defence-profile-cannot-be-registered-as-nonpublic-b5db05d6bdcc.html">V34GlobalPassportTests.test_21_defence_profile_cannot_be_registered_as_nonpublic</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-22-sdk-composes-industry-profiles-and-registers-file-fa644f96ddff.html">V34GlobalPassportTests.test_22_sdk_composes_industry_profiles_and_registers_file</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-23-sdk-status-preserves-authority-and-compliance-boundaries-ef94cb1a48cc.html">V34GlobalPassportTests.test_23_sdk_status_preserves_authority_and_compliance_boundaries</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-24-industry-package-registry-contains-six-deployable-families-a5969f2573b8.html">V34GlobalPassportTests.test_24_industry_package_registry_contains_six_deployable_families</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-25-healthcare-fhir-mapping-is-versioned-and-non-normative-a7f4e8721e79.html">V34GlobalPassportTests.test_25_healthcare_fhir_mapping_is_versioned_and_non_normative</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-26-manufacturing-opcua-mapping-is-executable-b96a7b93db05.html">V34GlobalPassportTests.test_26_manufacturing_opcua_mapping_is_executable</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-27-package-configuration-requires-organization-facts-3de37d883105.html">V34GlobalPassportTests.test_27_package_configuration_requires_organization_facts</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-28-public-defence-package-rejects-classified-material-3f89766f6290.html">V34GlobalPassportTests.test_28_public_defence_package_rejects_classified_material</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-29-ai-package-template-pre-engineers-model-semantics-0f683d2ac1b6.html">V34GlobalPassportTests.test_29_ai_package_template_pre_engineers_model_semantics</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-30-package-deployment-plan-does-not-modify-core-3a401ae90892.html">V34GlobalPassportTests.test_30_package_deployment_plan_does_not_modify_core</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-31-sdk-package-plan-and-external-mapping-7072238976f4.html">V34GlobalPassportTests.test_31_sdk_package_plan_and_external_mapping</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-32-sdk-ingests-preengineered-industry-package-ba723b2a74c6.html">V34GlobalPassportTests.test_32_sdk_ingests_preengineered_industry_package</a></li><li><a href="../../../reference/symbols/entity/v34globalpassporttests-test-33-generated-profile-package-registry-exists-6a97b9698ab3.html">V34GlobalPassportTests.test_33_generated_profile_package_registry_exists</a></li></ul><h2>Preview</h2><pre><code>from __future__ import annotations
+import gc, hashlib, importlib.util, pathlib, sys, tempfile, unittest
+
+ROOT=pathlib.Path(__file__).resolve().parents[1]
+def load(name,rel):
+    spec=importlib.util.spec_from_file_location(name,ROOT/rel); mod=importlib.util.module_from_spec(spec)
+    sys.modules[name]=mod; spec.loader.exec_module(mod); return mod
+
+identity_mod=load(&quot;v34_identity&quot;,&quot;src/01_Core_Runtime/identity/canonical_identity.py&quot;)
+fabric_mod=load(&quot;v34_fabric&quot;,&quot;src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py&quot;)
+eep_mod=load(&quot;v34_eep&quot;,&quot;src/31_Profiles/exchange_protocol.py&quot;)
+rights_mod=load(&quot;v34_rights&quot;,&quot;src/36_Adoption_Layer/rights_passport.py&quot;)
+reality_profile=load(&quot;reality_profile&quot;,&quot;src/37_Verifiable_Reality/reality_profile.py&quot;)
+evidence_mod=load(&quot;v34_evidence&quot;,&quot;src/37_Verifiable_Reality/evidence_objects.py&quot;)
+profile_mod=load(&quot;v34_profiles&quot;,&quot;src/38_Global_Passports/profile_registry.py&quot;)
+industry_mod=load(&quot;v34_industry&quot;,&quot;src/38_Global_Passports/industry_profiles.py&quot;)
+global_mod=load(&quot;v34_global&quot;,&quot;src/38_Global_Passports/global_passport.py&quot;)
+ingest_mod=load(&quot;v34_ingest&quot;,&quot;src/38_Global_Passports/continuous_ingestion.py&quot;)
+status_mod=load(&quot;v34_status&quot;,&quot;src/38_Global_Passports/global_passport_profile.py&quot;)
+conf_mod=load(&quot;v34_conf&quot;,&quot;src/38_Global_Passports/passport_conformance.py&quot;)
+package_mod=load(&quot;v34_packages&quot;,&quot;src/39_Implementation_Packages/industry_packages.py&quot;)
+sdk_mod=load(&quot;v34_sdk&quot;,&quot;sdk/global_passport_sdk/canonical_global_passport_sdk.py&quot;)
+
+class V34GlobalPassportTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory(); self.base=pathlib.Path(self.tmp.name); self.state=self.base/&quot;state&quot;; self.source=self.base/&quot;source&quot;; self.source.mkdir()
+        self.identity=identity_mod.EntityIdentityVault(self.state); self.fabric=fabric_mod.UniversalTransactionFabric(self.state,self.identity)
+        self.owner=self.identity.create(&quot;BTG Owner&quot;,&quot;business&quot;)[&quot;entity_id&quot;]; self.buyer=self.identity.create(&quot;Buyer&quot;,&quot;business&quot;)[&quot;entity_id&quot;]
+        self.evidence=evidence_mod.EvidenceRegistry(self.state,self.identity); self.rights=rights_mod.RightsPassportRegistry(self.state,self.identity,self.fabric)
+        self.profiles=profile_mod.GlobalProfileRegistry(self.state,self.identity); self.installed=industry_mod.install_builtin_profiles(self.profiles,self.owner)
+        self.globals=global_mod.GlobalPassportRegistry(self.state,self.identity,self.fabric,self.rights,self.profiles)
+        self.ingest=ingest_mod.ContinuousProvenanceEngine(self.state,self.identity,self.fabric,self.evidence,self.rights,self.globals)
+        self.dco=self.fabric.register_digital_commodity(self.owner,&quot;AI Corpus&quot;,hashlib.sha256(b&quot;corpus&quot;).hexdigest())
+    def tearDown(self):
+        self.ingest=self.globals=self.profiles=self.rights=self.evidence=None; gc.collect(); self.tmp.cleanup()
+
+    def _rights_passport(self,version=&quot;1.0&quot;):
+        return self.rights.issue(self.owner,self.dco[&quot;object_id&quot;],[{&quot;effect&quot;:&quot;ALLOW&quot;,&quot;actions&quot;:[&quot;READ&quot;,&quot;TRAIN&quot;,&quot;DERIVE&quot;]}],version=version)
+
+    def test_01_core_market_and_truth_boundaries_preserved(self):
+        s=status_mod.passport_status(); self.assertEqual(s[&quot;core_primitives&quot;],[&quot;ENTITY&quot;,&quot;AUTHORITY&quot;,&quot;RIGHT&quot;,&quot;EVENT&quot;,&quot;VALUE&quot;])
+        self.assertFalse(s[&quot;core_semantics_changed&quot;]); self.assertTrue(s[&quot;market_engine_preserved&quot;]); self.assertTrue(s[&quot;evidence_truth_boundary_preserved&quot;])
+
+    def test_02_builtin_global_and_six_industry_profiles_install(self):
+        self.assertEqual(len(self.installed),7); self.assertIn(&quot;entity-profile:global@1.0&quot;,self.installed)
+        self.assertTrue(all(self.profiles.verify(p)[&quot;valid&quot;] for p in self.installed.values()))
+
+    def test_03_profile_stack_requires_global_profile(self):
+        with self.assertRaises(ValueError): self.profiles.resolve_stack([&quot;entity-profile:ai@1.0&quot;])
+
+    def test_04_profile_stack_requires_declared_parents(self):
+        p=self.installed[&quot;entity-profile:healthcare@1.0&quot;]
+        self.assertIn(&quot;entity-profile:global@1.0&quot;,p[&quot;parent_refs&quot;])
+        with self.assertRaises(ValueError): self.profiles.resolve_stack([p[&quot;profile_ref&quot;]])
+    def test_05_global_passport_binds_existing_rights_and_profile_stack(self):
+        rp=self._rights_passport(); gp=self.globals.issue(self.owner,self.dco[&quot;object_id&quot;],rp[&quot;passport_id&quot;],[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],evidence_refs=[&quot;evidence:origin&quot;])
+        checked=self.globals.verify(gp); self.assertTrue(checked[&quot;valid&quot;]); self.assertFalse(checked[&quot;objective_truth_claimed&quot;]); self.assertFalse(checked[&quot;legal_compliance_claimed&quot;])
+
+    def test_06_standards_mapping_cannot_claim_equivalence(self):
+        rp=self._rights_passport()
+        with self.assertRaises(ValueError): self.globals.issue(self.owner,self.dco[&quot;object_id&quot;],rp[&quot;passport_id&quot;],[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],standards_mappings=[{&quot;standard&quot;:&quot;SPDX-3&quot;,&quot;normative_equivalence_claimed&quot;:True}])
+
+    def test_07_healthcare_and_ai_profiles_compose(self):
+        stack=self.profiles.resolve_stack([&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:healthcare@1.0&quot;,&quot;entity-profile:ai@1.0&quot;])
+        self.assertEqual(len(stack[&quot;profile_refs&quot;]),3); self.assertTrue(stack[&quot;fail_closed&quot;]); self.assertTrue(stack[&quot;profile_composition_does_not_create_authority&quot;])
+
+    def test_08_defence_robotics_ai_profiles_compose_and_remain_public(self):
+        stack=self.profiles.resolve_stack([&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:defence-public@1.0&quot;,&quot;entity-profile:robotics@1.0&quot;,&quot;entity-profile:ai@1.0&quot;])
+        defence=self.profiles.get(&quot;entity-profile:defence-public@1.0&quot;); self.assertTrue(defence[&quot;public_unclassified&quot;]); self.assertEqual(len(stack[&quot;profile_refs&quot;]),4)
+
+    def test_09_healthcare_profile_maps_not_redefines_standards(self):
+        p=self.profiles.get(&quot;entity-profile:healthcare@1.0&quot;); names={x[&quot;standard&quot;] for x in p[&quot;standards&quot;]}
+        self.assertEqual(names,{&quot;HL7-FHIR&quot;,&quot;DICOM&quot;}); self.assertTrue(p[&quot;policy&quot;][&quot;technical_interoperability_not_regulatory_compliance&quot;])
+
+    def test_10_finance_profile_contains_iso20022_fix_lei(self):
+        names={x[&quot;standard&quot;] for x in self.profiles.get(&quot;entity-profile:finance@1.0&quot;)[&quot;standards&quot;]}; self.assertEqual(names,{&quot;ISO-20022&quot;,&quot;FIX&quot;,&quot;LEI&quot;})
+    def test_11_manufacturing_profile_contains_opcua_aas(self):
+        names={x[&quot;standard&quot;] for x in self.profiles.get(&quot;entity-profile:manufacturing@1.0&quot;)[&quot;standards&quot;]}; self.assertEqual(names,{&quot;OPC-UA&quot;,&quot;ASSET-ADMINISTRATION-SHELL&quot;})
+
+    def test_12_ai_profile_contains_risk_and_supply_chain_mappings(self):
+        names={x[&quot;standard&quot;] for x in self.profiles.get(&quot;entity-profile:ai@1.0&quot;)[&quot;standards&quot;]}; self.assertEqual(names,{&quot;NIST-AI-RMF&quot;,&quot;SPDX-3&quot;,&quot;CYCLONEDX&quot;})
+
+    def test_13_robotics_profile_contains_ros_and_openrmf(self):
+        names={x[&quot;standard&quot;] for x in self.profiles.get(&quot;entity-profile:robotics@1.0&quot;)[&quot;standards&quot;]}; self.assertEqual(names,{&quot;ROS-2&quot;,&quot;OPEN-RMF&quot;})
+
+    def test_14_continuous_ingest_registers_bytes_evidence_rights_and_global_passport(self):
+        f=self.source/&quot;model.py&quot;; f.write_text(&quot;print(&#x27;entity&#x27;)\n&quot;,encoding=&quot;utf-8&quot;)
+        r=self.ingest.ingest_file(f,self.owner,[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],logical_path=&quot;models/model.py&quot;)
+        self.assertEqual(r[&quot;object&quot;][&quot;object_type&quot;],&quot;SOFTWARE&quot;); self.assertTrue(pathlib.Path(r[&quot;vault_path&quot;]).is_file())
+        self.assertTrue(self.evidence.verify_evidence(r[&quot;evidence&quot;])[&quot;valid&quot;]); self.assertTrue(self.rights.verify(r[&quot;rights_passport&quot;])[&quot;valid&quot;]); self.assertTrue(self.globals.verify(r[&quot;global_passport&quot;])[&quot;valid&quot;])
+        self.assertEqual(r[&quot;value&quot;][&quot;amount_units&quot;],0); self.assertTrue(r[&quot;custody_is_not_authority&quot;])
+
+    def test_15_version_ingest_creates_zero_weight_provenance_not_fake_economics(self):
+        f1=self.source/&quot;v1.py&quot;; f2=self.source/&quot;v2.py&quot;; f1.write_text(&quot;a=1\n&quot;); f2.write_text(&quot;a=2\n&quot;)
+        a=self.ingest.ingest_file(f1,self.owner,[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],version=&quot;1&quot;)
+        b=self.ingest.ingest_file(f2,self.owner,[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],version=&quot;2&quot;,previous_object_id=a[&quot;object&quot;][&quot;object_id&quot;])
+        self.assertEqual(len(b[&quot;provenance&quot;]),1); self.assertEqual(b[&quot;provenance&quot;][0][&quot;contribution_bps&quot;],0); self.assertTrue(b[&quot;provenance&quot;][0][&quot;provenance_is_not_ownership&quot;])
+    def test_16_directory_ingest_excludes_machine_noise(self):
+        (self.source/&quot;a.py&quot;).write_text(&quot;x=1\n&quot;); cache=self.source/&quot;__pycache__&quot;; cache.mkdir(); (cache/&quot;a.pyc&quot;).write_bytes(b&quot;noise&quot;)
+        r=self.ingest.ingest_directory(self.source,self.owner,[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],prefix=&quot;repo&quot;)
+        self.assertEqual(r[&quot;files&quot;],1); self.assertTrue(r[&quot;content_addressed&quot;]); self.assertFalse(r[&quot;economic_value_invented&quot;]); self.assertTrue(conf_mod.validate_global_passport_record(r))
+
+    def test_17_tampered_global_passport_fails(self):
+        rp=self._rights_passport(); gp=self.globals.issue(self.owner,self.dco[&quot;object_id&quot;],rp[&quot;passport_id&quot;],[&quot;entity-profile:global@1.0&quot;])
+        gp[&quot;industry_context&quot;]={&quot;tampered&quot;:True}; self.assertFalse(self.globals.verify(gp)[&quot;valid&quot;])
+
+    def test_18_v33_evidence_truth_boundary_composes(self):
+        ev=self.evidence.issue_evidence(self.owner,&quot;DOCUMENT&quot;,self.dco[&quot;object_id&quot;],hashlib.sha256(b&quot;source&quot;).hexdigest())
+        rp=self._rights_passport(); gp=self.globals.issue(self.owner,self.dco[&quot;object_id&quot;],rp[&quot;passport_id&quot;],[&quot;entity-profile:global@1.0&quot;,&quot;entity-profile:ai@1.0&quot;],evidence_refs=[ev[&quot;evidence_id&quot;]])
+        self.assertTrue(ev[&quot;signature_proves_attribution_not_objective_truth&quot;]); self.assertTrue(gp[&quot;evidence_does_not_establish_objective_truth&quot;])
+
+    def test_19_existing_exchange_lifecycle_survives_v34(self):
+        eep=eep_mod.ExchangeProtocol(self.state,self.identity,self.fabric); venue=eep.create_venue(self.owner,&quot;Global Rights Venue&quot;,&quot;CA&quot;,[&quot;ORDER_BOOK&quot;],hashlib.sha256(b&quot;venue&quot;).hexdigest())
+        inst=eep.define_instrument(self.owner,self.dco[&quot;object_id&quot;],&quot;SPOT_LICENSE&quot;,{&quot;actions&quot;:[&quot;TRAIN&quot;]},100,&quot;CAD&quot;,transferable=True)
+        disc=eep.publish_disclosure(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;LISTING&quot;,hashlib.sha256(b&quot;disc&quot;).hexdigest())
+        eep.list_instrument(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,min_lot=1,tick_size=1,disclosure_sha256=disc[&quot;content_sha256&quot;])
+        eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.owner,&quot;SELL&quot;,1,10,nonce=&quot;v34-sell&quot;); eep.submit_order(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;],self.buyer,&quot;BUY&quot;,1,10,nonce=&quot;v34-buy&quot;)
+        settled=eep.settle_trade(eep.match_order_book(venue[&quot;venue_id&quot;],inst[&quot;instrument_id&quot;])[0][&quot;trade_id&quot;],payment_ref=&quot;external:receipt&quot;,external_verified=False)
+        self.assertFalse(settled[&quot;entitlement&quot;][&quot;ownership_of_underlying_transferred&quot;])
+    def test_20_conformance_validator_accepts_release_semantics(self):</code></pre></main></div><script>window.B="../../../";</script><script src="../../../assets/app.js"></script></body></html>
