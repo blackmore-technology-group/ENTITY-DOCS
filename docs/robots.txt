@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap.xml
