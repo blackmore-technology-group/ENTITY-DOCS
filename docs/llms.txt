@@ -6,6 +6,7 @@ Current supported canonical release: v3.4.2
 Source: https://github.com/blackmore-technology-group/ENTITY
 Release: https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.2
 Documentation: https://blackmore-technology-group.github.io/ENTITY-DOCS/
+Updates feed: https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml
 External verification challenge: https://github.com/blackmore-technology-group/ENTITY/issues/55
 External qualification: https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/
 

@@ -1,4 +1,5 @@
 # ENTITY v3.4.2 documentation discovery
+# Updates feed: https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml
 User-agent: *
 Allow: /
 Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap.xml

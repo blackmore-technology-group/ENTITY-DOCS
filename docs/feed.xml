@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>ENTITY Project Updates</title>
+  <subtitle>Release, qualification and technical documentation updates for ENTITY by Blackmore Technology Group Limited.</subtitle>
+  <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
+  <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/" rel="alternate" type="text/html"/>
+  <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/</id>
+  <updated>2026-09-26T23:08:00Z</updated>
+  <author><name>Blackmore Technology Group Limited</name></author>
+
+  <entry>
+    <title>ENTITY v3.4.2 — Canonical BTDU Release</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.2"/>
+    <id>https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.2</id>
+    <updated>2026-09-26T16:08:00Z</updated>
+    <summary>ENTITY v3.4.2 is the current supported canonical release, introducing BTDU while preserving ENTITY authority, rights, provenance, recovery and economic semantics.</summary>
+  </entry>
+
+  <entry>
+    <title>ENTITY v3.4.2 External Qualification Program</title>
+    <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/"/>
+    <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/</id>
+    <updated>2026-09-26T18:20:00Z</updated>
+    <summary>Open external qualification calls cover hardware-backed key custody, physical multi-host operation, certified-device testing, independent security audit and independent assessor review.</summary>
+  </entry>
+
+  <entry>
+    <title>External Verification Challenge — reproduce it, break it, or implement one part independently</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY/issues/55"/>
+    <id>https://github.com/blackmore-technology-group/ENTITY/issues/55</id>
+    <updated>2026-09-26T17:02:35Z</updated>
+    <summary>A public entry point for outside engineers to audit onboarding, reproduce sealed campaigns, test domain packages, review BTDU boundaries or implement a protocol component independently.</summary>
+  </entry>
+
+  <entry>
+    <title>AI Governance and Provenance Guide</title>
+    <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/ai-governance-provenance.html"/>
+    <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/ai-governance-provenance.html</id>
+    <updated>2026-09-26T23:00:48Z</updated>
+    <summary>A technical guide to explicit delegated authority, data/model lineage, evidence boundaries, training/derivation rights and independent scrutiny for governed AI systems.</summary>
+  </entry>
+
+  <entry>
+    <title>ENTITY Technical Guides</title>
+    <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/"/>
+    <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/</id>
+    <updated>2026-09-26T23:00:48Z</updated>
+    <summary>Problem-focused guides for data provenance, sovereign data rights, BTDU versus knowledge graphs/vector indexes, portable digital authority/recovery, and AI governance/provenance.</summary>
+  </entry>
+</feed>
