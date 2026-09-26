@@ -7,6 +7,7 @@ Source: https://github.com/blackmore-technology-group/ENTITY
 Release: https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.2
 Documentation: https://blackmore-technology-group.github.io/ENTITY-DOCS/
 External verification challenge: https://github.com/blackmore-technology-group/ENTITY/issues/55
+External qualification: https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/
 
 ## Core primitives
 
@@ -27,6 +28,7 @@ ENTITY → AUTHORITY → RIGHT → EVENT → VALUE
 
 - v3.4.2 + BTDU: https://blackmore-technology-group.github.io/ENTITY-DOCS/v342/
 - Technical guides: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/
+- External qualification: https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/
 - Developer manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/
 - Operator manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/
 - Protocol manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/protocol/
@@ -39,6 +41,15 @@ ENTITY → AUTHORITY → RIGHT → EVENT → VALUE
 - Sovereign data rights: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/sovereign-data-rights.html
 - BTDU vs knowledge graphs and vector indexes: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/btdu-knowledge-graphs-vector-indexes.html
 - Portable digital authority and recovery: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/portable-digital-authority-recovery.html
+- AI governance and provenance: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/ai-governance-provenance.html
+
+## Independent qualification calls
+
+- Hardware-backed key custody: https://github.com/blackmore-technology-group/ENTITY/issues/58
+- Physical multi-host qualification: https://github.com/blackmore-technology-group/ENTITY/issues/59
+- Certified-device pilot: https://github.com/blackmore-technology-group/ENTITY/issues/60
+- Independent security audit RFP: https://github.com/blackmore-technology-group/ENTITY/issues/61
+- Independent assessor review: https://github.com/blackmore-technology-group/ENTITY/issues/62
 
 ## Evidence boundary
 
