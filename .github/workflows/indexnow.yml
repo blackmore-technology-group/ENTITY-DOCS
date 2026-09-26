@@ -1,0 +1,77 @@
+name: Notify IndexNow
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: entity-docs-indexnow
+  cancel-in-progress: true
+
+jobs:
+  notify:
+    name: Notify participating search engines
+    runs-on: ubuntu-latest
+    steps:
+      - name: Allow GitHub Pages time to publish
+        run: sleep 90
+
+      - name: Submit current ENTITY documentation URLs to IndexNow
+        env:
+          INDEXNOW_KEY: c85c1cc55ba5df3c66f6441c2f702d6f
+          HOST: blackmore-technology-group.github.io
+          KEY_LOCATION: https://blackmore-technology-group.github.io/ENTITY-DOCS/c85c1cc55ba5df3c66f6441c2f702d6f.txt
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > payload.json <<EOF
+          {
+            "host": "${HOST}",
+            "key": "${INDEXNOW_KEY}",
+            "keyLocation": "${KEY_LOCATION}",
+            "urlList": [
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/v342/",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/data-provenance-protocol.html",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/sovereign-data-rights.html",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/btdu-knowledge-graphs-vector-indexes.html",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/portable-digital-authority-recovery.html",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/ai-governance-provenance.html",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/protocol/",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/economy/",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/security/"
+            ]
+          }
+          EOF
+
+          http_code=$(curl --retry 3 --retry-delay 5 --connect-timeout 15 --max-time 60 \
+            -sS -o indexnow-response.txt -w '%{http_code}' \
+            -X POST 'https://api.indexnow.org/indexnow' \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            --data-binary @payload.json)
+
+          echo "IndexNow HTTP status: ${http_code}"
+          cat indexnow-response.txt || true
+
+          case "${http_code}" in
+            200|202)
+              echo 'IndexNow submission accepted.'
+              ;;
+            429)
+              echo 'IndexNow rate-limited this run; a future documentation push can retry.'
+              ;;
+            *)
+              echo 'IndexNow submission failed.' >&2
+              exit 1
+              ;;
+          esac
