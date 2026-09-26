@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ENTITY v3.4.2 · Blackmore Technology Data Universe · Developer Preview</title>
+  <meta name="description" content="Explore the ENTITY v3.4.2 release candidate: Blackmore Technology Data Universe (BTDU), canonical protocol protection, sovereign data rights, DCO economics and reproducible verification paths.">
+  <meta name="keywords" content="ENTITY v3.4.2,BTDU,Blackmore Technology Data Universe,data provenance,data rights,canonical protocol,knowledge graph,data governance,sovereign data,DCO,EOPP">
+  <link rel="canonical" href="https://blackmore-technology-group.github.io/ENTITY-DOCS/v342/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="ENTITY v3.4.2 · Data Universe + Canonical Protocol Protection">
+  <meta property="og:description" content="An open protocol for sovereign digital authority, provenance and data rights, now integrating the Blackmore Technology Data Universe. Run it, verify it, break it or implement it independently.">
+  <meta property="og:url" content="https://blackmore-technology-group.github.io/ENTITY-DOCS/v342/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="ENTITY v3.4.2 · BTDU Developer Preview">
+  <meta name="twitter:description" content="Run it. Verify it. Break it. Implement it independently.">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header>
+  <b>ENTITY v3.4.2 · Developer Preview</b>
+  <input id="search" placeholder="Search ENTITY documentation…" aria-label="Search ENTITY documentation">
+</header>
+<div id="results"></div>
+<div class="layout">
+<nav>
+  <h3>v3.4.2</h3>
+  <a href="#overview">Overview</a>
+  <a href="#btdu">BTDU</a>
+  <a href="#canonical">Canonical status</a>
+  <a href="#economy">Data-rights economy</a>
+  <a href="#verify">Verify it</a>
+  <a href="#challenge">Challenge it</a>
+  <h3>Portal</h3>
+  <a href="../index.html">Documentation home</a>
+  <a href="../developer/index.html">Developer</a>
+  <a href="../protocol/index.html">Protocol</a>
+  <a href="../economy/index.html">Economy</a>
+  <a href="https://github.com/blackmore-technology-group/ENTITY">GitHub repository</a>
+</nav>
+<main>
+  <section class="hero" id="overview">
+    <div class="eyebrow">ENTITY v3.4.2 · Release Candidate</div>
+    <h1>Data Universe + Canonical Protocol Protection</h1>
+    <p class="lede">ENTITY v3.4.2 combines Blackmore Technology Group's sovereign identity, authority, rights, provenance and data-economic protocol with the <strong>Blackmore Technology Data Universe (BTDU)</strong>: an atomic/bonded architecture for representing and relating information while preserving governance boundaries.</p>
+    <p class="quote"><strong>Open enough to fork. Verifiable enough that a fork cannot silently rewrite canonical ENTITY ancestry.</strong></p>
+    <div class="actions">
+      <a class="button" href="https://github.com/blackmore-technology-group/ENTITY/pull/52">Inspect release PR #52</a>
+      <a class="button secondary" href="https://github.com/blackmore-technology-group/ENTITY/tree/feature/btdu-v3.4.2">Browse the candidate branch</a>
+      <a class="button secondary" href="https://github.com/blackmore-technology-group/ENTITY/issues">Find a contributor task</a>
+    </div>
+  </section>
+
+  <div class="callout"><span class="status">NOT YET THE PUBLISHED RELEASE</span> The protected canonical release remains v3.4.1 until PR #52 is merged and the exact resulting release is signed/tagged. This page describes the public v3.4.2 candidate and its review evidence.</div>
+
+  <h2>Candidate snapshot</h2>
+  <div class="metrics">
+    <div class="metric"><strong>e8ba17a…</strong><span>signed candidate commit</span></div>
+    <div class="metric"><strong>f90bf74…</strong><span>candidate Git tree</span></div>
+    <div class="metric"><strong>1,812</strong><span>tracked files in latest BTDU repo ingest</span></div>
+    <div class="metric"><strong>0 bps</strong><span>automatic protocol royalty</span></div>
+  </div>
+  <p class="muted">Candidate snapshot at page publication. Current branch/PR evidence is authoritative if the candidate advances.</p>
+
+  <h2 id="btdu">Blackmore Technology Data Universe</h2>
+  <p>BTDU changes how ENTITY can represent a large knowledge/data environment. Rather than requiring every higher-order concept to exist as an isolated representation, BTDU uses reusable <strong>atoms</strong>, <strong>bonds</strong> and <strong>compounds</strong>.</p>
+  <div class="flow">Atoms → Bonds → Compounds → Governed objects → Provenance / Rights / Economic lineage</div>
+  <div class="grid">
+    <div class="card"><h3>Reusable information primitives</h3><p>Language, numbers, symbols, code and other data structures can be decomposed into smaller reusable elements and reconstructed through relationships.</p></div>
+    <div class="card"><h3>Governed relationships</h3><p>ENTITY can bind materially important relationships to authority, provenance, rights and evidence instead of treating graph membership itself as ownership or authority.</p></div>
+    <div class="card"><h3>Temporary vs persistent bonds</h3><p>Not every computational relationship must become permanent protocol history. Relationships with evidentiary, rights or economic significance can be preserved where required.</p></div>
+    <div class="card"><h3>Exact reconstruction</h3><p>The public BTDU contract includes exact-byte reconstruction and restart/recovery tests in addition to semantic and economic-lineage boundaries.</p></div>
+  </div>
+  <p>The latest candidate repository ingest reported atomic root <code>f9178133cf1c1f1ace27a8a91c0197bdeb6e9f851c90a71976f48fc7485c1119</code> for the security-remediated candidate snapshot.</p>
+
+  <h2 id="canonical">Canonical ENTITY without closing the protocol</h2>
+  <p>v3.4.2 makes canonical protocol ancestry a verification property:</p>
+  <div class="flow">Shawn Blackmore → Blackmore Technology Group → ENTITY → canonical release lineage</div>
+  <p>A third party may fork and operate the software independently. But an implementation that removes the canonical origin lineage, substitutes another root originator or replaces BTG as canonical steward does not pass ENTITY's canonical-status rules as canonical ENTITY.</p>
+  <p>That protection is deliberately separate from downstream ownership. Protocol origin does not automatically transfer authority over user assets, does not make BTG owner of downstream data, and does not create an automatic protocol royalty.</p>
+
+  <h2 id="economy">A data-rights economy rather than a token requirement</h2>
+  <p>ENTITY's economic model treats the scarce object as the legitimate <strong>right</strong> to do something with data, not artificial scarcity in the bytes themselves.</p>
+  <div class="flow">DCO → Instrument → Listing → Disclosure → Order / RFQ / Auction → Price Discovery → Trade → Clearing → Settlement → Entitlement → Usage → Derived Output → Economic Consequence</div>
+  <p>Originator participation can be expressed through explicit terms such as issuance participation, retained rights, secondary participation or derivative participation. The protocol itself does not require a cryptocurrency, gas token or automatic BTG tax.</p>
+
+  <h2 id="verify">Verify it instead of taking our word for it</h2>
+  <p>Use the public candidate branch:</p>
+  <pre>git clone https://github.com/blackmore-technology-group/ENTITY.git
+cd ENTITY
+git checkout feature/btdu-v3.4.2
+python -m pip install -r requirements.txt
+python -m compileall -q src sdk protocol
+python -m unittest discover -s tests -v</pre>
+  <p>Then inspect the release review, tests and conformance material rather than relying on marketing claims:</p>
+  <ul>
+    <li><a href="https://github.com/blackmore-technology-group/ENTITY/pull/52">v3.4.2 canonical release review</a></li>
+    <li><a href="https://github.com/blackmore-technology-group/ENTITY-Protocol-1.0-Conformance-Kit">Protocol 1.0 Conformance Kit</a></li>
+    <li><a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/ENGINEERING_EVIDENCE.md">Engineering evidence hierarchy</a></li>
+    <li><a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/INTEROPERABILITY_CHALLENGE.md">Independent interoperability challenge</a></li>
+  </ul>
+
+  <h2 id="challenge">Pick a narrow challenge</h2>
+  <p>You do not need to understand the entire architecture before contributing. A reproducible failure is useful evidence.</p>
+  <div class="grid">
+    <div class="card"><h3>Reproduce on Linux</h3><p>Run the published Rust or Python vector campaign and report the exact result, environment and any portability issue.</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/issues/48">Rust/Linux task →</a></p></div>
+    <div class="card"><h3>Audit onboarding</h3><p>Start from a clean clone and tell us what is confusing, missing or unnecessarily hard.</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/issues/26">Start Here audit →</a></p></div>
+    <div class="card"><h3>Try a domain package</h3><p>Evaluate Healthcare, Finance, Manufacturing, AI, Robotics or Defence/Public-Unclassified without production data.</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/issues/46">Domain package task →</a></p></div>
+    <div class="card"><h3>Implement independently</h3><p>Use the sealed protocol material and produce external implementation evidence that BTG does not control.</p><p><a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/INTEROPERABILITY_CHALLENGE.md">Challenge specification →</a></p></div>
+  </div>
+
+  <h2>Six public language baselines</h2>
+  <p>BTG also publishes controlled reproducibility baselines in <a href="https://github.com/blackmore-technology-group/ENTITY-RUST-CLEANROOM">Rust</a>, <a href="https://github.com/blackmore-technology-group/ENTITY-TYPESCRIPT-CLEANROOM">TypeScript</a>, <a href="https://github.com/blackmore-technology-group/ENTITY-CSHARP-CLEANROOM">C#</a>, <a href="https://github.com/blackmore-technology-group/ENTITY-GO-CLEANROOM">Go</a>, <a href="https://github.com/blackmore-technology-group/ENTITY-SWIFT-CLEANROOM">Swift</a> and <a href="https://github.com/blackmore-technology-group/ENTITY-JAVA-CLEANROOM">Java</a>. These are BTG-controlled reproducibility evidence, not unrelated third-party validation.</p>
+
+  <div class="callout"><strong>Claim boundary:</strong> ENTITY distinguishes protocol verification from external-world truth. A valid signature proves integrity/attribution within its scope; it does not automatically prove legal title, regulatory compliance, accounting fair value or the objective truth of an external claim.</div>
+</main>
+</div>
+<script>window.B="../";</script><script src="../assets/app.js"></script>
+</body>
+</html>
