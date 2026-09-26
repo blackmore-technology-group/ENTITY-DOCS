@@ -1,0 +1,45 @@
+# ENTITY v3.4.2
+
+ENTITY is an Apache-2.0 open-source protocol and reference implementation from Blackmore Technology Group Limited for sovereign digital authority, delegated rights, provenance/evidence, portable recovery, interoperable economic state, and the Blackmore Technology Data Universe (BTDU).
+
+Current supported canonical release: v3.4.2
+Source: https://github.com/blackmore-technology-group/ENTITY
+Release: https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.2
+Documentation: https://blackmore-technology-group.github.io/ENTITY-DOCS/
+External verification challenge: https://github.com/blackmore-technology-group/ENTITY/issues/55
+
+## Core primitives
+
+ENTITY → AUTHORITY → RIGHT → EVENT → VALUE
+
+## Architecture boundaries
+
+- ENTITY governs authority, rights, provenance, economic state and recovery.
+- ADAM is the deterministic atom/bond state engine.
+- BTDU provides governed information topology, reusable atoms/bonds/compounds, indexes and repository manifests.
+- NIKI provides bounded reasoning/projection and is not the authority root.
+- Infrastructure possession does not automatically create sovereign authority.
+- Provenance does not automatically establish objective truth or legal ownership.
+- Protocol origin does not transfer downstream user asset ownership to Blackmore Technology Group.
+- Canonical protocol origin creates no automatic protocol royalty; economic participation requires explicit terms.
+
+## Start here
+
+- v3.4.2 + BTDU: https://blackmore-technology-group.github.io/ENTITY-DOCS/v342/
+- Technical guides: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/
+- Developer manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/
+- Operator manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/
+- Protocol manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/protocol/
+- Economy manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/economy/
+- Security manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/security/
+
+## Problem-focused guides
+
+- Data provenance protocol: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/data-provenance-protocol.html
+- Sovereign data rights: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/sovereign-data-rights.html
+- BTDU vs knowledge graphs and vector indexes: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/btdu-knowledge-graphs-vector-indexes.html
+- Portable digital authority and recovery: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/portable-digital-authority-recovery.html
+
+## Evidence boundary
+
+The v3.4.2 release records BTG-controlled regression, dependency review, public conformance smoke and protected-state recovery evidence. BTG-controlled testing is not presented as unrelated third-party validation. Independent external reproduction, security assessment and additional post-release promotion gates remain separate evidence layers.
