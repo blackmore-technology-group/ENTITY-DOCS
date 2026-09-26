@@ -1,3 +1,4 @@
+# ENTITY v3.4.2 documentation discovery
 User-agent: *
 Allow: /
 Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap.xml
