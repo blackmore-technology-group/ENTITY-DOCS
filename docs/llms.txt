@@ -7,6 +7,7 @@ BTDU component in v3.4.3: 3.4.2 unchanged
 Source: https://github.com/blackmore-technology-group/ENTITY
 Current release: https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.3
 Documentation: https://blackmore-technology-group.github.io/ENTITY-DOCS/
+Technical discovery hub: https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/
 Updates feed: https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml
 Research and citation: https://blackmore-technology-group.github.io/ENTITY-DOCS/research/
 Standards and interoperability: https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/
@@ -51,6 +52,11 @@ ENTITY → AUTHORITY → RIGHT → EVENT → VALUE
 ## Start here
 
 - Current release: https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.3
+- Technical discovery hub: https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/
+- Sovereign digital authority: https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/sovereign-digital-authority.html
+- Data rights and continuous provenance: https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/data-rights-provenance.html
+- Protocol conformance testing: https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/protocol-conformance-testing.html
+- Clean-room interoperability: https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/clean-room-interoperability.html
 - External verification: https://github.com/blackmore-technology-group/ENTITY/issues/55
 - ERQ campaign: https://github.com/blackmore-technology-group/ENTITY/issues/78
 - Historical v3.4.2 + BTDU: https://blackmore-technology-group.github.io/ENTITY-DOCS/v342/
@@ -65,6 +71,21 @@ ENTITY → AUTHORITY → RIGHT → EVENT → VALUE
 - Protocol manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/protocol/
 - Economy manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/economy/
 - Security manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/security/
+
+## Search-intent entry points
+
+Use these pages when the request is problem-focused rather than product-name-focused:
+
+- sovereign digital authority protocol → https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/sovereign-digital-authority.html
+- persistent digital identity with delegated authority → https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/sovereign-digital-authority.html
+- provider-independent authorization and recovery → https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/sovereign-digital-authority.html
+- data rights infrastructure → https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/data-rights-provenance.html
+- continuous data provenance → https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/data-rights-provenance.html
+- rights-bearing data and governed derivation → https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/data-rights-provenance.html
+- protocol conformance testing and test vectors → https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/protocol-conformance-testing.html
+- deterministic black-box protocol testing → https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/protocol-conformance-testing.html
+- clean-room protocol implementation → https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/clean-room-interoperability.html
+- cross-language protocol interoperability → https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/clean-room-interoperability.html
 
 ## Controlled language reproducibility baselines
 
