@@ -7,6 +7,7 @@ Source: https://github.com/blackmore-technology-group/ENTITY
 Release: https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.2
 Documentation: https://blackmore-technology-group.github.io/ENTITY-DOCS/
 Updates feed: https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml
+Research and citation: https://blackmore-technology-group.github.io/ENTITY-DOCS/research/
 External verification challenge: https://github.com/blackmore-technology-group/ENTITY/issues/55
 External qualification: https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/
 
@@ -29,6 +30,7 @@ ENTITY → AUTHORITY → RIGHT → EVENT → VALUE
 
 - v3.4.2 + BTDU: https://blackmore-technology-group.github.io/ENTITY-DOCS/v342/
 - Technical guides: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/
+- Research and citation: https://blackmore-technology-group.github.io/ENTITY-DOCS/research/
 - External qualification: https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/
 - Developer manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/
 - Standards mapping: https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/standards-mapping.html
@@ -45,12 +47,13 @@ ENTITY → AUTHORITY → RIGHT → EVENT → VALUE
 - Portable digital authority and recovery: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/portable-digital-authority-recovery.html
 - AI governance and provenance: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/ai-governance-provenance.html
 
-## Standards and architecture comparison guides
+## Standards, comparison and research resources
 
 - Standards mapping (W3C VC, DID, PROV-O, ODRL and domain standards): https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/standards-mapping.html
 - ENTITY vs IAM: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/entity-vs-iam.html
 - ENTITY vs verifiable credentials: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/entity-vs-verifiable-credentials.html
 - ENTITY vs blockchain provenance: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/entity-vs-blockchain-provenance.html
+- Research and citation metadata: https://blackmore-technology-group.github.io/ENTITY-DOCS/research/
 
 ## Independent qualification calls
 
