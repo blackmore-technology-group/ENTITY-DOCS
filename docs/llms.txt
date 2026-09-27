@@ -42,10 +42,12 @@ ENTITY → AUTHORITY → RIGHT → EVENT → VALUE
 ## Problem-focused guides
 
 - Data provenance protocol: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/data-provenance-protocol.html
+- Data lineage vs provenance vs rights: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/data-lineage-vs-provenance-rights.html
 - Sovereign data rights: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/sovereign-data-rights.html
+- AI agent authorization and governance: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/ai-agent-authorization-governance.html
+- AI governance and provenance: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/ai-governance-provenance.html
 - BTDU vs knowledge graphs and vector indexes: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/btdu-knowledge-graphs-vector-indexes.html
 - Portable digital authority and recovery: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/portable-digital-authority-recovery.html
-- AI governance and provenance: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/ai-governance-provenance.html
 
 ## Standards, comparison and research resources
 
