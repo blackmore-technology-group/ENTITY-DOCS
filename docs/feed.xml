@@ -5,8 +5,24 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/</id>
-  <updated>2026-09-26T23:08:00Z</updated>
+  <updated>2026-09-27T04:05:00Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+
+  <entry>
+    <title>ENTITY standards and interoperability pre-submission working draft</title>
+    <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/entity-authority-provenance.html"/>
+    <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/entity-authority-provenance.html</id>
+    <updated>2026-09-27T04:00:00Z</updated>
+    <summary>Open technical material for review of provider-neutral authority, provenance, rights, portable state and conformance boundaries. The material is pre-submission and carries no IETF, W3C, DIF or other standards-body endorsement.</summary>
+  </entry>
+
+  <entry>
+    <title>External v3.4.2 economic counterexample accepted for follow-up qualification</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY/issues/28"/>
+    <id>https://github.com/blackmore-technology-group/ENTITY/issues/28#evidence-substitution-replay</id>
+    <updated>2026-09-27T03:55:00Z</updated>
+    <summary>An outside reviewer identified a source-level evidence-substitution replay counterexample in derivative-revenue deduplication. BTG confirmed the source boundary and recorded the contribution while preserving the immutable v3.4.2 release and distinguishing source analysis from runtime reproduction.</summary>
+  </entry>
 
   <entry>
     <title>ENTITY v3.4.2 — Canonical BTDU Release</title>
