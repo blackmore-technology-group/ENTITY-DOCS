@@ -1,0 +1,7 @@
+Contact: https://github.com/blackmore-technology-group/ENTITY/security/advisories/new
+Contact: mailto:blackmore.technology.group@gmail.com
+Expires: 2027-09-27T00:00:00Z
+Preferred-Languages: en
+Canonical: https://blackmore-technology-group.github.io/ENTITY-DOCS/.well-known/security.txt
+Policy: https://github.com/blackmore-technology-group/ENTITY/security/policy
+Acknowledgments: https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/community/EXTERNAL_CONTRIBUTIONS.md
