@@ -44,6 +44,12 @@ ENTITY → AUTHORITY → RIGHT → EVENT → VALUE
 - Portable digital authority and recovery: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/portable-digital-authority-recovery.html
 - AI governance and provenance: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/ai-governance-provenance.html
 
+## Comparison guides
+
+- ENTITY vs IAM: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/entity-vs-iam.html
+- ENTITY vs verifiable credentials: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/entity-vs-verifiable-credentials.html
+- ENTITY vs blockchain provenance: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/entity-vs-blockchain-provenance.html
+
 ## Independent qualification calls
 
 - Hardware-backed key custody: https://github.com/blackmore-technology-group/ENTITY/issues/58
