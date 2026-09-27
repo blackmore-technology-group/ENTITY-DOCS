@@ -5,23 +5,31 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/</id>
-  <updated>2026-09-27T15:47:00Z</updated>
+  <updated>2026-09-27T19:38:00Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+
+  <entry>
+    <title>ENTITY v3.4.3 — current supported remediation release</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.3"/>
+    <id>https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.3</id>
+    <updated>2026-09-27T19:38:00Z</updated>
+    <summary>ENTITY v3.4.3 is the current supported runtime. The bounded remediation records 76/76 PASS for the Issue #28 remediation module and 279/279 PASS for the full source suite. BTDU remains component version 3.4.2 unchanged; v3.4.2 remains immutable historical evidence.</summary>
+  </entry>
 
   <entry>
     <title>Evaluate ENTITY for your organization — new operator and adopter path</title>
     <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/evaluate-entity.html"/>
     <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/evaluate-entity.html</id>
     <updated>2026-09-27T15:47:00Z</updated>
-    <summary>A plain-language evaluation path is now available for enterprise architects, security teams, data and AI governance teams, identity architects, research-data infrastructure teams and operators assessing authority, provenance, rights, evidence, recovery and provider portability.</summary>
+    <summary>A plain-language evaluation path is available for enterprise architects, security teams, data and AI governance teams, identity architects, research-data infrastructure teams and operators assessing authority, provenance, rights, evidence, recovery and provider portability.</summary>
   </entry>
 
   <entry>
-    <title>Six bounded ENTITY v3.4.2 reproduction tasks open for language-native contributors</title>
+    <title>Six frozen ENTITY v3.4.2 reproduction tasks open for language-native contributors</title>
     <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/"/>
     <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/#language-reproduction-2026-09-27</id>
     <updated>2026-09-27T15:00:00Z</updated>
-    <summary>Small reproducibility tasks are now open in Rust, TypeScript, C#/.NET, Go, Swift and Java. Each task provides a native run command and exact 26-vector v3.4.2 expected result. No full ENTITY implementation is required, and reproducible failures or portability problems are useful evidence.</summary>
+    <summary>Small reproducibility tasks remain open in Rust, TypeScript, C#/.NET, Go, Swift and Java against the exact frozen v3.4.2 26-vector baseline. Each task provides a native run command and exact expected result. These historical target labels do not mean v3.4.2 remains the current runtime.</summary>
   </entry>
 
   <entry>
@@ -37,7 +45,7 @@
     <link href="https://github.com/blackmore-technology-group/ENTITY/issues/28"/>
     <id>https://github.com/blackmore-technology-group/ENTITY/issues/28#evidence-substitution-replay</id>
     <updated>2026-09-27T03:55:00Z</updated>
-    <summary>An outside reviewer identified a source-level evidence-substitution replay counterexample in derivative-revenue deduplication. BTG confirmed the source boundary and recorded the contribution while preserving the immutable v3.4.2 release and distinguishing source analysis from runtime reproduction.</summary>
+    <summary>An outside reviewer identified a source-level evidence-substitution replay counterexample against the then-current v3.4.2 derivative-revenue behavior. BTG reproduced the boundary and v3.4.3 subsequently shipped the bounded remediation while preserving the immutable v3.4.2 evidence trail.</summary>
   </entry>
 
   <entry>
@@ -45,23 +53,23 @@
     <link href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.2"/>
     <id>https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.2</id>
     <updated>2026-09-26T16:08:00Z</updated>
-    <summary>ENTITY v3.4.2 is the current supported canonical release, introducing BTDU while preserving ENTITY authority, rights, provenance, recovery and economic semantics.</summary>
+    <summary>ENTITY v3.4.2 introduced the BTDU release line and remains immutable historical evidence. It is superseded for current deployment by ENTITY v3.4.3; the BTDU component itself remains version 3.4.2 unchanged.</summary>
   </entry>
 
   <entry>
-    <title>ENTITY v3.4.2 External Qualification Program</title>
+    <title>ENTITY v3.4.2 Frozen External Qualification Program</title>
     <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/"/>
     <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/</id>
     <updated>2026-09-26T18:20:00Z</updated>
-    <summary>Open external qualification calls cover hardware-backed key custody, physical multi-host operation, certified-device testing, independent security audit and independent assessor review.</summary>
+    <summary>Historical frozen-v3.4.2 qualification calls cover hardware-backed key custody, physical multi-host operation, certified-device testing, independent security audit and independent assessor review. The exact frozen target remains unchanged even though v3.4.3 is now the current runtime.</summary>
   </entry>
 
   <entry>
     <title>External Verification Challenge — reproduce it, break it, or implement one part independently</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY/issues/55"/>
     <id>https://github.com/blackmore-technology-group/ENTITY/issues/55</id>
-    <updated>2026-09-26T17:02:35Z</updated>
-    <summary>A public entry point for outside engineers to audit onboarding, reproduce sealed campaigns, test domain packages, review BTDU boundaries or implement a protocol component independently.</summary>
+    <updated>2026-09-27T19:20:00Z</updated>
+    <summary>The current umbrella challenge now identifies ENTITY v3.4.3 as the supported runtime while preserving exact frozen v3.4.2 campaigns as historical test targets where appropriate.</summary>
   </entry>
 
   <entry>
