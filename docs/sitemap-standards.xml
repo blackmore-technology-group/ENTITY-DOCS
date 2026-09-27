@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/entity-authority-provenance.html</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/draft-blackmore-entity-authority-provenance-00.xml</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/standards-mapping.html</loc>
+  </url>
+  <url>
+    <loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/entity-vs-verifiable-credentials.html</loc>
+  </url>
+</urlset>
