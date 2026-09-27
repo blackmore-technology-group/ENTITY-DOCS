@@ -37,6 +37,7 @@ jobs:
               "https://blackmore-technology-group.github.io/ENTITY-DOCS/",
               "https://blackmore-technology-group.github.io/ENTITY-DOCS/v342/",
               "https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/partners/",
               "https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/",
               "https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/entity-authority-provenance.html",
               "https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/",
@@ -51,6 +52,7 @@ jobs:
           sitemap_urls = [
               "https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-guides.xml",
               "https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-discovery.xml",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-partners.xml",
           ]
 
           ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
