@@ -31,6 +31,7 @@ ENTITY → AUTHORITY → RIGHT → EVENT → VALUE
 - Technical guides: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/
 - External qualification: https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/
 - Developer manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/
+- Standards mapping: https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/standards-mapping.html
 - Operator manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/
 - Protocol manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/protocol/
 - Economy manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/economy/
@@ -44,8 +45,9 @@ ENTITY → AUTHORITY → RIGHT → EVENT → VALUE
 - Portable digital authority and recovery: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/portable-digital-authority-recovery.html
 - AI governance and provenance: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/ai-governance-provenance.html
 
-## Comparison guides
+## Standards and architecture comparison guides
 
+- Standards mapping (W3C VC, DID, PROV-O, ODRL and domain standards): https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/standards-mapping.html
 - ENTITY vs IAM: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/entity-vs-iam.html
 - ENTITY vs verifiable credentials: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/entity-vs-verifiable-credentials.html
 - ENTITY vs blockchain provenance: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/entity-vs-blockchain-provenance.html
