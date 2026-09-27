@@ -33,11 +33,26 @@ ENTITY → AUTHORITY → RIGHT → EVENT → VALUE
 - Research and citation: https://blackmore-technology-group.github.io/ENTITY-DOCS/research/
 - External qualification: https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/
 - Developer manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/
+- Clean-room implementation guide: https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/clean-room-implementation.html
 - Standards mapping: https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/standards-mapping.html
 - Operator manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/
 - Protocol manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/protocol/
 - Economy manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/economy/
 - Security manual: https://blackmore-technology-group.github.io/ENTITY-DOCS/security/
+
+## Controlled language reproducibility baselines
+
+These repositories are maintained by Blackmore Technology Group and are reproducibility evidence, not unrelated independent validation:
+
+- Rust: https://github.com/blackmore-technology-group/ENTITY-RUST-CLEANROOM
+- TypeScript: https://github.com/blackmore-technology-group/ENTITY-TYPESCRIPT-CLEANROOM
+- C#/.NET: https://github.com/blackmore-technology-group/ENTITY-CSHARP-CLEANROOM
+- Go: https://github.com/blackmore-technology-group/ENTITY-GO-CLEANROOM
+- Swift: https://github.com/blackmore-technology-group/ENTITY-SWIFT-CLEANROOM
+- Java: https://github.com/blackmore-technology-group/ENTITY-JAVA-CLEANROOM
+
+Independent classifier challenge: https://github.com/blackmore-technology-group/ENTITY/issues/27
+Rust external reproduction task: https://github.com/blackmore-technology-group/ENTITY/issues/48
 
 ## Problem-focused guides
 
