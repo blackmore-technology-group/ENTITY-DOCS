@@ -24,7 +24,7 @@ jobs:
       - name: Allow GitHub Pages time to publish
         run: sleep 90
 
-      - name: Build current URL list from the published guide sitemap
+      - name: Build current URL list from published sitemaps
         shell: bash
         run: |
           set -euo pipefail
@@ -48,18 +48,23 @@ jobs:
               "https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml",
           ]
 
-          sitemap = "https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-guides.xml"
-          with urllib.request.urlopen(sitemap, timeout=30) as response:
-              root = ET.fromstring(response.read())
-
-          ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
-          guide_urls = [
-              node.text.strip()
-              for node in root.findall("sm:url/sm:loc", ns)
-              if node.text and node.text.strip()
+          sitemap_urls = [
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-guides.xml",
+              "https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-discovery.xml",
           ]
 
-          urls = list(dict.fromkeys(core + guide_urls))
+          ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+          discovered_urls = []
+          for sitemap in sitemap_urls:
+              with urllib.request.urlopen(sitemap, timeout=30) as response:
+                  root = ET.fromstring(response.read())
+              discovered_urls.extend(
+                  node.text.strip()
+                  for node in root.findall("sm:url/sm:loc", ns)
+                  if node.text and node.text.strip()
+              )
+
+          urls = list(dict.fromkeys(core + discovered_urls))
           with open("urls.json", "w", encoding="utf-8") as f:
               json.dump(urls, f, ensure_ascii=False, indent=2)
           print(f"Prepared {len(urls)} URLs for IndexNow")
