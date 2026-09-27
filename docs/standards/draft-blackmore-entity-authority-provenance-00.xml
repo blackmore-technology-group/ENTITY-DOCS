@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PRE-SUBMISSION WORKING SOURCE.
+  This file has not been submitted to the IETF and is not an Internet-Draft.
+  Submission metadata, IPR terms, author details and final normative language
+  must be reviewed before any Datatracker upload.
+-->
+<rfc xmlns:xi="http://www.w3.org/2001/XInclude"
+     category="info"
+     ipr="trust200902"
+     docName="draft-blackmore-entity-authority-provenance-00"
+     submissionType="IETF"
+     version="3"
+     xml:lang="en">
+  <front>
+    <title abbrev="ENTITY Authority">Provider-Neutral Authority, Provenance, Rights and Portable State</title>
+    <seriesInfo name="Internet-Draft" value="draft-blackmore-entity-authority-provenance-00"/>
+    <author initials="S." surname="Blackmore" fullname="Shawn Blackmore">
+      <organization>Blackmore Technology Group Limited</organization>
+      <address>
+        <email>blackmore.technology.group@gmail.com</email>
+        <uri>https://github.com/blackmore-technology-group/ENTITY</uri>
+      </address>
+    </author>
+    <date year="2026" month="September"/>
+    <area>Applications and Real-Time</area>
+    <keyword>authority</keyword><keyword>provenance</keyword><keyword>identity</keyword><keyword>rights</keyword><keyword>recovery</keyword><keyword>interoperability</keyword>
+    <abstract>
+      <t>Modern systems can verify signatures, credentials and provenance while still leaving authority, rights, portable state and causal consequence implicit. This document describes a provider-neutral model that separates persistent identity, delegated authority, governed rights, signed events and explicit value consequences. It is derived from the open-source ENTITY v3.4.2 implementation and is published as pre-submission material for interoperability discussion.</t>
+    </abstract>
+  </front>
+  <middle>
+    <section anchor="problem"><name>Problem Statement</name>
+      <t>A valid signature proves attribution to a signing key. A valid credential can prove that an issuer made a claim. A provenance relationship can prove that one recorded artifact references another. None of these facts alone establishes sovereign authority over the subject matter, a legal or economic right, or objective truth.</t>
+      <t>Interoperable systems therefore need explicit boundaries among identity, authority, rights, evidence-bearing events and any economic consequence.</t>
+    </section>
+    <section anchor="primitives"><name>Core Primitives</name>
+      <dl>
+        <dt>ENTITY:</dt><dd>Persistent subject or actor identity across providers, applications and recovery events.</dd>
+        <dt>AUTHORITY:</dt><dd>Permission to perform, delegate, attest to or revoke a governed action.</dd>
+        <dt>RIGHT:</dt><dd>Governed permission, entitlement, ownership condition or usage condition.</dd>
+        <dt>EVENT:</dt><dd>Signed state transition with actor, subject, prior state, authority and evidence.</dd>
+        <dt>VALUE:</dt><dd>Explicit economic consequence where a deployment elects to model one.</dd>
+      </dl>
+    </section>
+    <section anchor="authority"><name>Authority and External Credentials</name>
+      <t>An externally valid credential or identity-provider assertion MAY be accepted as evidence according to a deployment profile. Successful cryptographic verification MUST NOT silently expand that evidence into broader protocol authority. Any authority mapping or delegation requires an explicit, independently verifiable scope.</t>
+    </section>
+    <section anchor="provenance"><name>Provenance, Ownership and Truth</name>
+      <t>Provenance describes recorded relationships among artifacts, actors and events. Provenance alone MUST NOT be interpreted as ownership, a licence, an economic entitlement or objective truth. Those claims require their own authority, rights and evidence semantics.</t>
+    </section>
+    <section anchor="rights"><name>Rights and Governed Actions</name>
+      <t>Rights evaluation is separate from identity and provenance. Implementations SHOULD fail closed when no applicable authorization exists. Rights MUST NOT be inferred solely from possession of data, knowledge of an identifier or the presence of a provenance edge.</t>
+    </section>
+    <section anchor="events"><name>Events and Evidence</name>
+      <t>Events bind actors, subjects, prior state, authority, evidence and resulting state. Multiple evidence objects MAY enrich one occurrence. Evidence multiplicity MUST NOT by itself manufacture additional causal events, rights or obligations.</t>
+    </section>
+    <section anchor="recovery"><name>Portability and Recovery</name>
+      <t>A provider-neutral implementation SHOULD support export and recovery without replacing the persistent identity root. Recovery evidence MUST distinguish restoration of the same identity from creation of a new identity with similar state.</t>
+    </section>
+    <section anchor="conformance"><name>Canonicalization and Conformance</name>
+      <t>Independent implementations require deterministic serialization and verification rules plus public test vectors. Controlled multi-language reproductions can demonstrate implementation reproducibility but MUST be distinguished from unrelated independent interoperability evidence.</t>
+    </section>
+    <section anchor="standards"><name>Relationship to Existing Standards</name>
+      <t>External standards can provide authentication, credential, identifier, evidence or transport surfaces. Conceptual mapping does not itself establish conformance, and an external standard does not automatically confer protocol authority.</t>
+    </section>
+    <section anchor="security"><name>Security Considerations</name>
+      <ul>
+        <li>Authority-scope escape through externally valid credentials.</li>
+        <li>Evidence replay or substitution that duplicates one event or obligation.</li>
+        <li>Stale delegated authority after revocation or key rotation.</li>
+        <li>Provider capture that prevents portable recovery.</li>
+        <li>Confusion between signer-provided time and independently anchored time.</li>
+        <li>Provenance being mistaken for ownership or economic causality.</li>
+      </ul>
+    </section>
+    <section anchor="privacy"><name>Privacy Considerations</name>
+      <t>Persistent identity and provenance can create correlation risk. Implementations SHOULD minimize unnecessary disclosure and separate public verification material from protected operational state.</t>
+    </section>
+    <section anchor="iana"><name>IANA Considerations</name><t>This document requests no IANA actions.</t></section>
+    <section anchor="status"><name>Implementation and Discussion Status</name>
+      <t>The source discussion target is ENTITY v3.4.2, released by Blackmore Technology Group Limited. This working source has not been submitted to or endorsed by the IETF or any other standards body.</t>
+    </section>
+  </middle>
+  <back>
+    <section numbered="false" anchor="ack"><name>Acknowledgements</name><t>External reviewers who provide bounded public counterexamples, reproducible conformance results or interoperability evidence are acknowledged in the ENTITY public contribution ledger according to the evidence actually supplied.</t></section>
+  </back>
+</rfc>
