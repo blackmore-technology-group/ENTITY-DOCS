@@ -4,29 +4,43 @@ Public operator, developer, protocol, economic, security, domain, version and ge
 
 ## Current release
 
-**ENTITY v3.4.2 — Canonical BTDU Release** is the sole current supported canonical ENTITY release.
+**ENTITY v3.4.3** is the current supported ENTITY runtime.
 
 - **Documentation portal:** https://blackmore-technology-group.github.io/ENTITY-DOCS/
-- **ENTITY v3.4.2 + BTDU:** https://blackmore-technology-group.github.io/ENTITY-DOCS/v342/
-- **Release:** https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.2
+- **Current release:** https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.3
 - **Source:** https://github.com/blackmore-technology-group/ENTITY
+- **External verification challenge:** https://github.com/blackmore-technology-group/ENTITY/issues/55
+- **ERQ campaign:** https://github.com/blackmore-technology-group/ENTITY/issues/78
 - **Protocol 1.0 Conformance Kit:** https://github.com/blackmore-technology-group/ENTITY-Protocol-1.0-Conformance-Kit
 - **Contributor tasks:** https://github.com/blackmore-technology-group/ENTITY/issues
 
 > **Run it. Verify it. Break it. Implement it independently.**
 
-v3.4.2 introduces the **Blackmore Technology Data Universe (BTDU)** while preserving ENTITY authority, rights, provenance and economic semantics; ADAM deterministic state; NIKI bounded reasoning; BSIE world-state boundaries; BECP governance boundaries; and the Genesis primitives `ENTITY → AUTHORITY → RIGHT → EVENT → VALUE`.
+ENTITY v3.4.3 is a bounded remediation release based on immutable v3.4.2. The **BTDU component remains 3.4.2 unchanged**.
 
-Published release qualification includes **203/203 regression PASS**, repository safety **3/3 PASS**, GitHub dependency review PASS, public conformance smoke PASS, protected-state recovery PASS, exact restore true, restored sovereign signing true and v3.4.1 origin continuity true.
+Published v3.4.3 qualification includes:
 
-Protected release commit: `6dfa3d6cc738d9369cf092d2782676bf4f2a46e4`  
-Release tree: `f90bf74e29899f82d0a4ee321604346241bba4de`  
-Release-origin attestation SHA-256: `0ba4b0cc8c34688d98ef3c3425fbd70ff5b59d26183a18a15506bbad3adea0c1`
+- Issue #28 remediation module: **76/76 PASS**;
+- full repository source suite: **279/279 PASS**;
+- full source-suite exit code: **0**;
+- compiled Rust qualification: **PASS — inherited unchanged scope**;
+- real-world BTDU training qualification: **PASS — inherited unchanged scope**.
 
-Canonical lineage: **Shawn Blackmore → Blackmore Technology Group → ENTITY → v3.4.2**.
+Release merge commit: `528b70aabd05b1e930b77e4933f157731e47274f`  
+Immutable predecessor commit: `6dfa3d6cc738d9369cf092d2782676bf4f2a46e4`
 
-Earlier ENTITY releases remain immutable historical provenance and are superseded for current deployment and conformance purposes.
+The active 30-day wall-clock qualification was not modified by v3.4.3.
 
-External ADAM promotion gates including `RUST_COMPILED_QUALIFIED`, `REAL_WORLD_TRAINING`, hardware-backed key custody, physical multi-host qualification, certified-device pilot, 30-day wall-clock operation, independent security audit and independent assessor receipt remain post-release qualification work and are not claimed complete by this release.
+## Historical v3.4.2 material
+
+v3.4.2 remains immutable historical evidence and is superseded for current deployment. The historical BTDU release documentation remains available at:
+
+https://blackmore-technology-group.github.io/ENTITY-DOCS/v342/
+
+Some public clean-room, audit and qualification tasks deliberately retain `v3.4.2` in their titles because that is the exact sealed artifact or frozen release being reproduced or reviewed. Those references should not be interpreted as current-release status.
+
+Canonical ENTITY origin remains **Shawn Blackmore → Blackmore Technology Group → ENTITY**.
+
+Protocol origin, repository custody, provenance, upstream ownership and automatic economic entitlement remain distinct concepts.
 
 The portal is documentation. Exact released code, signed records, manifests, schemas, hashes and qualification evidence remain controlling evidence for their respective claims. A valid protocol record does not by itself establish external-world truth, legal title, regulatory compliance or accounting fair value.
