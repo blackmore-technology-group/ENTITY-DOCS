@@ -4,3 +4,4 @@ User-agent: *
 Allow: /
 Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap.xml
 Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-guides.xml
+Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-standards.xml
