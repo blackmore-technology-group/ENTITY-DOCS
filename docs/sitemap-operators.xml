@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/evaluate-entity.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/identity-and-key-operations.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/aliases-and-sovereign-domains.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/install-global-profiles.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/ingest-a-file.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/ingest-a-directory.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/global-passport-operations.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/verify-a-passport.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/rights-passport-operations.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/evidence-operations.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/production-state-layout.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/production-checklist.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/security-operations.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/incident-response.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/backup-and-recovery.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/sovereign-export-and-portability.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/upgrade-and-version-control.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/troubleshooting.html</loc></url>
+</urlset>
