@@ -6,3 +6,4 @@ Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap.xml
 Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-guides.xml
 Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-standards.xml
 Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-operators.xml
+Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-discovery.xml
