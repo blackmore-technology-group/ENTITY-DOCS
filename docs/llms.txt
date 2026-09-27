@@ -1,18 +1,35 @@
-# ENTITY v3.4.2
+# ENTITY v3.4.3
 
 ENTITY is an Apache-2.0 open-source protocol and reference implementation from Blackmore Technology Group Limited for sovereign digital authority, delegated rights, provenance/evidence, portable recovery, interoperable economic state, and the Blackmore Technology Data Universe (BTDU).
 
-Current supported canonical release: v3.4.2
+Current supported ENTITY runtime: v3.4.3
+BTDU component in v3.4.3: 3.4.2 unchanged
 Source: https://github.com/blackmore-technology-group/ENTITY
-Release: https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.2
+Current release: https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.3
 Documentation: https://blackmore-technology-group.github.io/ENTITY-DOCS/
 Updates feed: https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml
 Research and citation: https://blackmore-technology-group.github.io/ENTITY-DOCS/research/
 Standards and interoperability: https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/
-Pre-submission authority/provenance working draft: https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/entity-authority-provenance.html
 Standards review issue: https://github.com/blackmore-technology-group/ENTITY/issues/69
 External verification challenge: https://github.com/blackmore-technology-group/ENTITY/issues/55
-External qualification: https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/
+External Repository Qualification campaign: https://github.com/blackmore-technology-group/ENTITY/issues/78
+
+## Current release evidence
+
+- Issue #28 remediation module: 76/76 PASS
+- Full repository source suite: 279/279 PASS
+- Full source-suite exit code: 0
+- Release merge commit: 528b70aabd05b1e930b77e4933f157731e47274f
+- Immutable v3.4.2 predecessor commit: 6dfa3d6cc738d9369cf092d2782676bf4f2a46e4
+- Compiled Rust qualification: PASS, inherited unchanged scope
+- Real-world BTDU training qualification: PASS, inherited unchanged scope
+- Active 30-day wall-clock qualification: unchanged by v3.4.3 and still time-dependent
+
+## Version boundary
+
+v3.4.2 remains immutable historical evidence and is superseded for current deployment. Some clean-room, audit and qualification tasks intentionally retain v3.4.2 because that is the exact frozen artifact they reproduce or review. Do not reinterpret those historical version labels as current-release status.
+
+Historical v3.4.2 + BTDU documentation: https://blackmore-technology-group.github.io/ENTITY-DOCS/v342/
 
 ## Core primitives
 
@@ -23,15 +40,20 @@ ENTITY → AUTHORITY → RIGHT → EVENT → VALUE
 - ENTITY governs authority, rights, provenance, economic state and recovery.
 - ADAM is the deterministic atom/bond state engine.
 - BTDU provides governed information topology, reusable atoms/bonds/compounds, indexes and repository manifests.
+- BTDU component version remains 3.4.2 in ENTITY v3.4.3.
 - NIKI provides bounded reasoning/projection and is not the authority root.
 - Infrastructure possession does not automatically create sovereign authority.
 - Provenance does not automatically establish objective truth or legal ownership.
 - Protocol origin does not transfer downstream user asset ownership to Blackmore Technology Group.
+- Repository ingestion, mirroring, registration, verification or custody do not create upstream ownership or automatic economic entitlement.
 - Canonical protocol origin creates no automatic protocol royalty; economic participation requires explicit terms.
 
 ## Start here
 
-- v3.4.2 + BTDU: https://blackmore-technology-group.github.io/ENTITY-DOCS/v342/
+- Current release: https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.3
+- External verification: https://github.com/blackmore-technology-group/ENTITY/issues/55
+- ERQ campaign: https://github.com/blackmore-technology-group/ENTITY/issues/78
+- Historical v3.4.2 + BTDU: https://blackmore-technology-group.github.io/ENTITY-DOCS/v342/
 - Technical guides: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/
 - Standards and interoperability: https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/
 - Research and citation: https://blackmore-technology-group.github.io/ENTITY-DOCS/research/
@@ -55,8 +77,14 @@ These repositories are maintained by Blackmore Technology Group and are reproduc
 - Swift: https://github.com/blackmore-technology-group/ENTITY-SWIFT-CLEANROOM
 - Java: https://github.com/blackmore-technology-group/ENTITY-JAVA-CLEANROOM
 
+Some baseline tasks deliberately reproduce sealed v3.4.2 campaigns. Those identifiers are historical evidence scope, not current-release status.
+
 Independent classifier challenge: https://github.com/blackmore-technology-group/ENTITY/issues/27
 Rust external reproduction task: https://github.com/blackmore-technology-group/ENTITY/issues/48
+
+## External evidence
+
+An unrelated GitHub contributor reproduced the published Java v3.4.2 26-vector baseline on Windows 11 with 26/26 PASS, the exact sealed-kit hash, the exact canonical result hash and overall_valid=true. This is meaningful external reproduction of a BTG-controlled baseline, not a fully independently authored ENTITY implementation.
 
 ## Problem-focused guides
 
@@ -73,13 +101,12 @@ Rust external reproduction task: https://github.com/blackmore-technology-group/E
 - Standards and interoperability pre-submission material: https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/
 - Authority/provenance/rights/portable-state working draft: https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/entity-authority-provenance.html
 - Public standards review: https://github.com/blackmore-technology-group/ENTITY/issues/69
-- Standards mapping (W3C VC, DID, PROV-O, ODRL and domain standards): https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/standards-mapping.html
-- ENTITY vs IAM: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/entity-vs-iam.html
-- ENTITY vs verifiable credentials: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/entity-vs-verifiable-credentials.html
-- ENTITY vs blockchain provenance: https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/entity-vs-blockchain-provenance.html
+- Standards mapping: https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/standards-mapping.html
 - Research and citation metadata: https://blackmore-technology-group.github.io/ENTITY-DOCS/research/
 
-## Independent qualification calls
+## Historical frozen v3.4.2 qualification calls
+
+These issues remain tied to the exact frozen v3.4.2 target unless explicitly retargeted:
 
 - Hardware-backed key custody: https://github.com/blackmore-technology-group/ENTITY/issues/58
 - Physical multi-host qualification: https://github.com/blackmore-technology-group/ENTITY/issues/59
@@ -89,4 +116,4 @@ Rust external reproduction task: https://github.com/blackmore-technology-group/E
 
 ## Evidence boundary
 
-The v3.4.2 release records BTG-controlled regression, dependency review, public conformance smoke and protected-state recovery evidence. BTG-controlled testing is not presented as unrelated third-party validation. Independent external reproduction, security assessment and additional post-release promotion gates remain separate evidence layers.
+BTG-controlled testing is not presented as unrelated third-party validation. External reproduction of a BTG baseline is not automatically an independently authored protocol implementation. Exact released code, signed records, manifests, schemas, hashes and qualification evidence remain controlling for their respective claims.
