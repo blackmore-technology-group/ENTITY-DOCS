@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>ENTITY Project Updates</title>
-  <subtitle>Release, qualification and technical documentation updates for ENTITY by Blackmore Technology Group Limited.</subtitle>
+  <subtitle>Release, qualification, developer and operator updates for ENTITY by Blackmore Technology Group Limited.</subtitle>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/</id>
-  <updated>2026-09-27T15:00:00Z</updated>
+  <updated>2026-09-27T15:47:00Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+
+  <entry>
+    <title>Evaluate ENTITY for your organization — new operator and adopter path</title>
+    <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/evaluate-entity.html"/>
+    <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/evaluate-entity.html</id>
+    <updated>2026-09-27T15:47:00Z</updated>
+    <summary>A plain-language evaluation path is now available for enterprise architects, security teams, data and AI governance teams, identity architects, research-data infrastructure teams and operators assessing authority, provenance, rights, evidence, recovery and provider portability.</summary>
+  </entry>
 
   <entry>
     <title>Six bounded ENTITY v3.4.2 reproduction tasks open for language-native contributors</title>
