@@ -5,17 +5,17 @@
     "main",
     "experiment/bounty-lineage-v343"
   ],
-  "entity_records_found": 0,
+  "entity_records_found": 1,
   "contributions": [
     {
       "record_id": "contribution-20260928-195128-vectordotdev-vector-issue-26501",
-      "record_version": 0,
-      "captured_at_utc": "2026-09-28T19:51:28Z",
+      "record_version": 1,
+      "captured_at_utc": "2026-09-28T23:12:31.055074+00:00",
       "source": {
-        "kind": "BOOTSTRAP_FROM_ENTITY_PUBLIC_RECORD",
-        "entity_ref": "bootstrap",
-        "path": "tools/contribution-bootstrap.json",
-        "record_url": "https://github.com/blackmore-technology-group/ENTITY/issues/100#issuecomment-5877334266",
+        "kind": "ENTITY_EVIDENCE",
+        "entity_ref": "experiment/bounty-lineage-v343",
+        "path": "evidence/bounty/vector-26501/vector-26501-entity-upstream-accepted-receipt.json",
+        "record_url": "https://github.com/blackmore-technology-group/ENTITY/blob/experiment/bounty-lineage-v343/evidence/bounty/vector-26501/vector-26501-entity-upstream-accepted-receipt.json",
         "experiment_url": "https://github.com/blackmore-technology-group/ENTITY/issues/100",
         "harness_url": "https://github.com/blackmore-technology-group/ENTITY/pull/102"
       },
@@ -31,7 +31,7 @@
         "state": "CLOSED"
       },
       "contribution_class": "PRO_BONO",
-      "entity_evidence_state": "PREPARED",
+      "entity_evidence_state": "UPSTREAM_ACCEPTED_RECORDED",
       "economic": {
         "currency": "USD",
         "advertised_or_expected_amount": 0,
@@ -41,7 +41,7 @@
       },
       "rights": {
         "license": "MPL-2.0",
-        "cla_status_recorded": "REQUIRED_PENDING_SIGNATURE",
+        "cla_status_recorded": "UNKNOWN",
         "provenance_does_not_override_upstream_license": true
       },
       "upstream": {
@@ -66,5 +66,5 @@
       }
     }
   ],
-  "generated_at_utc": "2026-09-28T22:38:13Z"
+  "generated_at_utc": "2026-09-28T23:46:37Z"
 }
