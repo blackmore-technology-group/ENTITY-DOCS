@@ -1,7 +1,8 @@
-# ENTITY documentation discovery
+# ENTITY public website + documentation discovery
 # Updates feed: https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml
 User-agent: *
 Allow: /
+Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-site.xml
 Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap.xml
 Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-guides.xml
 Sitemap: https://blackmore-technology-group.github.io/ENTITY-DOCS/sitemap-standards.xml
