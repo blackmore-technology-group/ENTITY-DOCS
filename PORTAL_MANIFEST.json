@@ -1,20 +1,20 @@
 {
   "schema": "entity-docs-portal-v2",
-  "generated_at_utc": "2026-09-27T20:03:00Z",
+  "generated_at_utc": "2026-09-28T17:01:34Z",
   "current_release": "v3.4.3",
   "current_release_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
   "btdu_component": "3.4.2",
   "btdu_component_status": "unchanged",
-  "generated_from_docs_commit": "f9027d88ba57b67fd530a10c20b6daab0b4d14f5",
+  "generated_from_docs_commit": "8a6b3cb27e20cc024b23515ee7300559c60ed377",
   "repository_heads": {
-    "ENTITY": "d263ac0a3f9ba6ab7f3a3e855984eea77e864d66",
-    "ENTITY-AI": "aa4dffa26a5b9c44b5f4f44ce8eff73d6ca64906",
-    "ENTITY-DEFENCE": "e8405ff706a5f331cb85ae5701ad57f73ea4f742",
-    "ENTITY-FINANCE": "82aa4468b5c30e8c3c4bb6d0f0151d63d227b0c3",
-    "ENTITY-GITHUB-APP": "6e19140f2c635eef44a2c6b3a94e9075b02f018e",
-    "ENTITY-HEALTHCARE": "885c5256e3382a0e687036ff4e931177d3f9c088",
-    "ENTITY-MANUFACTURING": "b02c831ddcc51e998527f6248d2bf48643268af4",
-    "ENTITY-ROBOTICS": "33f6b657f99296bf72e95648b8afd01b3e51bc7b"
+    "ENTITY": "eabfd04ee2b716dd7518979d7b4ce9dd31a6b32e",
+    "ENTITY-AI": "ec30f6c5537c89d7ae9b49f180ebdfec7e24501a",
+    "ENTITY-DEFENCE": "655a9b63c42dd65c6fa59ca8d59660fcaab27d9f",
+    "ENTITY-FINANCE": "c1b3a64b220e06c4584e13139e36163c0296f75b",
+    "ENTITY-GITHUB-APP": "1d7d94f8166d4e8ba9cde08d00f9fb41f130404b",
+    "ENTITY-HEALTHCARE": "baca471a2eb6dc110b4bb4c6f64b744051bf5b4a",
+    "ENTITY-MANUFACTURING": "0d1e7ea844b1074f7671e667a4a2727052c0ebc8",
+    "ENTITY-ROBOTICS": "f1ff62e3953b11d3078461cd8beffb56363bf3b6"
   },
   "curated_search_entries": 78,
   "historical_generated_reference_inventory": {
