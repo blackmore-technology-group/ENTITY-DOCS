@@ -1,0 +1,1 @@
+BTG visual branding is applied to the ENTITY GitHub Pages site and documentation: black/graphite background, silver text and gold accents, with the BTG mark used as site identity and favicon.
