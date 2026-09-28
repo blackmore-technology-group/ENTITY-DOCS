@@ -1,0 +1,52 @@
+name: Sync ENTITY contribution ledger
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - 'tools/sync_contribution_ledger.py'
+      - 'tools/contribution-bootstrap.json'
+      - '.github/workflows/sync-contribution-ledger.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: entity-contribution-ledger
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out documentation repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Refresh public ledger from ENTITY evidence and live GitHub state
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ENTITY_SOURCE_REPO: blackmore-technology-group/ENTITY
+          ENTITY_SOURCE_REFS: main,experiment/bounty-lineage-v343
+        run: python tools/sync_contribution_ledger.py
+
+      - name: Commit ledger only when evidence changed
+        shell: bash
+        run: |
+          if git diff --quiet -- docs/evidence/contributions.json; then
+            echo "Contribution ledger is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- docs/evidence/contributions.json
+          git commit -m "docs: sync ENTITY contribution ledger"
+          git push
