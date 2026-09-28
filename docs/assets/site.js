@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded',()=>{const links=[...document.querySelectorAll('.site-links a')];const path=location.pathname.replace(/\/+$/,'/');for(const a of links){try{const u=new URL(a.href,location.href);if(u.pathname!=="/"&&path.startsWith(u.pathname.replace(/\/+$/,'/')))a.setAttribute('aria-current','page');}catch{}}});
