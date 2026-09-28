@@ -28,7 +28,7 @@
         "number": 26501,
         "title": "vector test panics on ambiguous output names instead of reporting a config error",
         "url": "https://github.com/vectordotdev/vector/issues/26501",
-        "state": "OPEN"
+        "state": "CLOSED"
       },
       "contribution_class": "PRO_BONO",
       "entity_evidence_state": "PREPARED",
@@ -47,24 +47,24 @@
       "upstream": {
         "pull_request": "https://github.com/vectordotdev/vector/pull/26504",
         "pull_request_number": 26504,
-        "pull_request_state": "OPEN",
-        "merged": false,
-        "merged_at": null,
-        "mergeable": true,
+        "pull_request_state": "CLOSED",
+        "merged": true,
+        "merged_at": "2026-09-28T22:23:20Z",
+        "mergeable": null,
         "head_sha": "bf30a83523c21031b8f9cc12a7e27ebc8965b020",
         "recorded_commit": "bf30a83523c21031b8f9cc12a7e27ebc8965b020",
         "review_state": "APPROVED",
         "ci_state": "PASS",
         "check_counts": {
-          "total": 11,
-          "success": 11,
+          "total": 60,
+          "success": 23,
           "failure": 0,
           "pending": 0,
-          "skipped": 0
+          "skipped": 37
         },
-        "live_technical_state": "REVIEW_APPROVED_CI_GREEN"
+        "live_technical_state": "UPSTREAM_ACCEPTED"
       }
     }
   ],
-  "generated_at_utc": "2026-09-28T22:36:00Z"
+  "generated_at_utc": "2026-09-28T22:38:13Z"
 }
