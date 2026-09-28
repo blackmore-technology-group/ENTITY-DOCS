@@ -7,6 +7,7 @@ on:
   push:
     paths:
       - 'tools/sync_contribution_ledger.py'
+      - 'tools/sync_contribution_ledger_v2.py'
       - 'tools/contribution-bootstrap.json'
       - '.github/workflows/sync-contribution-ledger.yml'
 
@@ -36,7 +37,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ENTITY_SOURCE_REPO: blackmore-technology-group/ENTITY
           ENTITY_SOURCE_REFS: main,experiment/bounty-lineage-v343
-        run: python tools/sync_contribution_ledger.py
+        run: python tools/sync_contribution_ledger_v2.py
 
       - name: Commit ledger only when evidence changed
         shell: bash
