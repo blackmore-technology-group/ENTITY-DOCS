@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "contributions": [
+    {
+      "record_id": "contribution-20260928-195128-vectordotdev-vector-issue-26501",
+      "captured_at_utc": "2026-09-28T19:51:28Z",
+      "contribution_class": "PRO_BONO",
+      "external_repository": "vectordotdev/vector",
+      "issue_number": 26501,
+      "issue_title": "vector test panics on ambiguous output names instead of reporting a config error",
+      "entity_evidence_state": "PREPARED",
+      "advertised_or_expected_amount": 0,
+      "currency": "USD",
+      "realized_cash": 0,
+      "license": "MPL-2.0",
+      "cla_status": "REQUIRED_PENDING_SIGNATURE",
+      "human_author": "Shawn Blackmore",
+      "corporate_contributor": "Blackmore Technology Group Limited",
+      "upstream_pull_request": "https://github.com/vectordotdev/vector/pull/26504",
+      "upstream_commit": "bf30a83523c21031b8f9cc12a7e27ebc8965b020",
+      "entity_experiment_url": "https://github.com/blackmore-technology-group/ENTITY/issues/100",
+      "entity_harness_url": "https://github.com/blackmore-technology-group/ENTITY/pull/102",
+      "source_record_url": "https://github.com/blackmore-technology-group/ENTITY/issues/100#issuecomment-5877334266"
+    }
+  ]
+}

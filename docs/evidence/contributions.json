@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "source_repository": "blackmore-technology-group/ENTITY",
+  "source_refs_checked": [
+    "main",
+    "experiment/bounty-lineage-v343"
+  ],
+  "entity_records_found": 0,
+  "contributions": [
+    {
+      "record_id": "contribution-20260928-195128-vectordotdev-vector-issue-26501",
+      "record_version": 0,
+      "captured_at_utc": "2026-09-28T19:51:28Z",
+      "source": {
+        "kind": "BOOTSTRAP_FROM_ENTITY_PUBLIC_RECORD",
+        "entity_ref": "bootstrap",
+        "path": "tools/contribution-bootstrap.json",
+        "record_url": "https://github.com/blackmore-technology-group/ENTITY/issues/100#issuecomment-5877334266",
+        "experiment_url": "https://github.com/blackmore-technology-group/ENTITY/issues/100",
+        "harness_url": "https://github.com/blackmore-technology-group/ENTITY/pull/102"
+      },
+      "contributor": {
+        "human_author": "Shawn Blackmore",
+        "corporate_contributor": "Blackmore Technology Group Limited"
+      },
+      "repository": "vectordotdev/vector",
+      "issue": {
+        "number": 26501,
+        "title": "vector test panics on ambiguous output names instead of reporting a config error",
+        "url": "https://github.com/vectordotdev/vector/issues/26501",
+        "state": "CLOSED"
+      },
+      "contribution_class": "PRO_BONO",
+      "entity_evidence_state": "PREPARED",
+      "economic": {
+        "currency": "USD",
+        "advertised_or_expected_amount": 0,
+        "contingent_value": 0,
+        "realized_cash": 0,
+        "payment_settled": false
+      },
+      "rights": {
+        "license": "MPL-2.0",
+        "cla_status_recorded": "REQUIRED_PENDING_SIGNATURE",
+        "provenance_does_not_override_upstream_license": true
+      },
+      "upstream": {
+        "pull_request": "https://github.com/vectordotdev/vector/pull/26504",
+        "pull_request_number": 26504,
+        "pull_request_state": "CLOSED",
+        "merged": true,
+        "merged_at": "2026-09-28T22:23:20Z",
+        "mergeable": null,
+        "head_sha": "bf30a83523c21031b8f9cc12a7e27ebc8965b020",
+        "recorded_commit": "bf30a83523c21031b8f9cc12a7e27ebc8965b020",
+        "review_state": "APPROVED",
+        "ci_state": "PASS",
+        "check_counts": {
+          "total": 60,
+          "success": 23,
+          "failure": 0,
+          "pending": 0,
+          "skipped": 37
+        },
+        "live_technical_state": "UPSTREAM_ACCEPTED"
+      }
+    }
+  ],
+  "generated_at_utc": "2026-09-28T22:38:13Z"
+}
