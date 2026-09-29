@@ -2,7 +2,19 @@ document.addEventListener('DOMContentLoaded',()=>{
   const nav=document.querySelector('.site-nav');
   const linksBox=document.querySelector('.site-links');
 
-  // Every public-facing site shell must expose the canonical capability map.
+  // Every public-facing site shell must expose the tutorials and canonical capability map.
+  if(linksBox&&!linksBox.querySelector('a[data-entity-tutorials]')){
+    const script=[...document.scripts].find(s=>/assets\/site\.js(?:\?|$)/.test(s.src));
+    const assetBase=script?new URL('.',script.src):new URL('assets/',location.href);
+    const siteRoot=new URL('../',assetBase);
+    const tutorials=document.createElement('a');
+    tutorials.href=new URL('tutorials/',siteRoot).href;
+    tutorials.textContent='Tutorials';
+    tutorials.setAttribute('data-entity-tutorials','1');
+    const github=[...linksBox.querySelectorAll('a')].find(a=>a.classList.contains('nav-cta'));
+    if(github)linksBox.insertBefore(tutorials,github);else linksBox.appendChild(tutorials);
+  }
+
   if(linksBox&&!linksBox.querySelector('a[data-entity-system-map]')){
     const script=[...document.scripts].find(s=>/assets\/site\.js(?:\?|$)/.test(s.src));
     const assetBase=script?new URL('.',script.src):new URL('assets/',location.href);
