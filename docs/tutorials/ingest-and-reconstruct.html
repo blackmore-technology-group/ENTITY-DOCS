@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tutorial 2 · Ingest and Reconstruct with BTDU</title><meta name="description" content="Initialize BTDU state, ingest a pinned Git repository, inspect context and reconstruct exact bytes under ENTITY authority."><link rel="stylesheet" href="../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><h3>Tutorial 2</h3><a href="index.html">← Tutorials</a><a href="first-entity.html">Previous: identity</a><a href="#init">Initialize</a><a href="#ingest">Ingest repository</a><a href="#context">Inspect context</a><a href="#reconstruct">Reconstruct bytes</a><a href="first-rights-market.html">Next: rights market →</a><h3>Reference</h3><a href="../developer/continuous-ingestion-api.html">Continuous ingestion</a><a href="../developer/cli-reference.html">CLI reference</a></nav><main><div class="eyebrow">Tutorial 2 · governed information</div><h1>Ingest and reconstruct with BTDU</h1><p class="lede">This walkthrough puts a real Git repository under governed BTDU state, records pinned provenance, then reconstructs an object exactly. The purpose is not merely storage: it is to preserve source, controller, evidence and lineage while keeping topology separate from ownership.</p><h2>Before you start</h2><p>You need an ENTITY identity state directory, a BTDU state directory, the ADAM runtime root, Git, and a local repository you are authorized to ingest.</p><div class="callout"><strong>Use a pinned provenance reference.</strong> For qualification or release evidence, reference a commit or immutable tag rather than a moving branch such as <code>main</code>.</div><h2 id="init">1. Initialize BTDU</h2><pre>python tools/entity_btdu_cli.py \
+  --entity-state STATE \
+  --btdu-state BTDU_STATE \
+  --adam-root ADAM_ROOT \
+  --git-bin git \
+  init</pre><p>The <code>init</code> command materializes the primitive-byte universe and deep-verifies the BTDU state.</p><h2>2. Check the state before mutation</h2><pre>python tools/entity_btdu_cli.py \
+  --entity-state STATE \
+  --btdu-state BTDU_STATE \
+  --adam-root ADAM_ROOT \
+  --git-bin git \
+  status</pre><p>Treat signature, authorization, reconstruction or atomic-root mismatch as failure. Do not bypass verification to make a tutorial pass.</p><h2 id="ingest">3. Ingest a pinned repository</h2><pre>python tools/entity_btdu_cli.py \
+  --entity-state STATE \
+  --btdu-state BTDU_STATE \
+  --adam-root ADAM_ROOT \
+  --git-bin git \
+  ingest-repo REPO_PATH \
+  --provenance git://OWNER/REPO@COMMIT_SHA</pre><p>The repository manifest can include repository path, Git commit/tree where available, tracked-file count, aggregate SHA-256 and resulting atomic root. BTDU ingestion computes exact content hashes and bonds the governed objects to source/controller/rights/evidence/provenance references.</p><h2>4. Record the output you will need later</h2><ul><li>repository manifest or receipt</li><li>atomic root</li><li>pinned commit/tree</li><li>tracked-file count</li><li>aggregate/content SHA-256 values</li><li>object references you want to query or reconstruct</li></ul><h2 id="context">5. Inspect bounded object context</h2><pre>python tools/entity_btdu_cli.py \
+  --entity-state STATE \
+  --btdu-state BTDU_STATE \
+  --adam-root ADAM_ROOT \
+  --git-bin git \
+  context OBJECT_REF</pre><p><code>context</code> projects bounded governed context. Use it to inspect relationships without assuming that a graph relationship creates ownership, licence rights or economic entitlement.</p><h2 id="reconstruct">6. Reconstruct exact bytes</h2><pre>python tools/entity_btdu_cli.py \
+  --entity-state STATE \
+  --btdu-state BTDU_STATE \
+  --adam-root ADAM_ROOT \
+  --git-bin git \
+  reconstruct OBJECT_REF OUTPUT_PATH</pre><p>The command reconstructs the governed object and reports SHA-256. Compare that hash with the expected source hash.</p><h2>7. What a successful run proves</h2><table><tr><th>Evidence</th><th>What it supports</th></tr><tr><td>Pinned provenance</td><td>The ingest points to an immutable source state rather than a moving branch.</td></tr><tr><td>Atomic/content hashes</td><td>The represented bytes/state can be integrity-checked.</td></tr><tr><td>Exact reconstruction</td><td>The governed object can be recreated byte-for-byte for the tested object.</td></tr><tr><td>ENTITY/BTDU relationships</td><td>Source/controller/evidence/provenance relationships are explicit.</td></tr><tr><td>Not automatically proven</td><td>Ownership, external legal rights, payment or objective truth.</td></tr></table><h2>8. Success criteria</h2><ul><li><code>status</code> verifies before and after ingestion.</li><li>The repository is ingested under a pinned provenance reference.</li><li>You can retrieve bounded context for an object.</li><li>The reconstructed SHA-256 equals the expected source SHA-256.</li></ul><div class="actions"><a class="button" href="first-rights-market.html">Tutorial 3: rights market →</a><a class="button secondary" href="../guides/btdu-knowledge-graphs-vector-indexes.html">BTDU architecture guide</a></div></main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
