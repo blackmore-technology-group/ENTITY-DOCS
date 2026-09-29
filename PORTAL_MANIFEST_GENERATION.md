@@ -17,11 +17,13 @@ For each regeneration:
 9. Preserve current global-infrastructure/adoption surfaces: privacy/access controls, retention/destruction, federated/offline topology, causal partition recovery, crypto-suite migration, passports, provider-neutral custody/connectors, standards adapters and industry implementation packages.
 10. Keep bounded engineering results explicitly scoped: the controlled BTDU benchmark measured 97% lower storage requirements; the qualified destruction/cold-recovery campaign achieved 100% exact reconstruction for the tested campaign, including Memnox 865/865 tracked blobs plus archive, manifest and acceptance proof without original workspace/Git/GitHub/network.
 11. Keep real-world contribution states current: accepted cases and active cases must be sourced from the public ENTITY evidence/ledger, and upstream acceptance must not be converted into payment or ownership claims.
-12. Rebuild `docs/search-index.json` from current public navigation/discovery routes and set `curated_search_entries` to the exact number of entries in that JSON array. Runtime overlays in `docs/assets/app.js` may add canonical capability entries before the next static rebuild; list those separately in `runtime_discovery_overlays`.
-13. Validate that every search-index and canonical capability-map URL resolves within the published portal.
-14. Validate discovery routing through `docs/sitemap-site.xml`, `docs/robots.txt`, `docs/llms.txt`, `docs/assets/site.js` and `docs/assets/app.js`; the canonical capability map must remain reachable from both public site-shell pages and deep documentation pages.
-15. Validate that the homepage, Technology, Economy, Developer, Evidence, Protocol, Operator, Security, Research, Partners and Reference entry points describe ENTITY consistently with the canonical capability definition.
-16. Review the resulting diff through a pull request before merge when the normal repository workflow requires one.
+12. Preserve `docs/tutorials/` as a first-class learning surface. At minimum retain the tutorial hub plus the canonical learning path for Entity identity/signing, BTDU ingest/reconstruction, rights-market lifecycle, provider-independent recovery and external contribution lineage.
+13. Keep tutorial instructions grounded in current public interfaces. Tutorial commands/API names must be sourced from the current identity API, BTDU CLI/continuous-ingestion API, exchange adoption surface, market-recovery documentation and public evidence model rather than invented convenience commands.
+14. Rebuild `docs/search-index.json` from current public navigation/discovery routes and set `curated_search_entries` to the exact number of entries in that JSON array. Runtime overlays in `docs/assets/app.js` may add canonical capability/tutorial entries before the next static rebuild; list those separately in `runtime_discovery_overlays`.
+15. Validate that every search-index, tutorial and canonical capability-map URL resolves within the published portal.
+16. Validate discovery routing through `docs/sitemap-site.xml`, `docs/robots.txt`, `docs/llms.txt`, `docs/assets/site.js` and `docs/assets/app.js`; Tutorials and the canonical capability map must remain reachable from both public site-shell pages and deep documentation pages.
+17. Validate that the homepage, Tutorials, Technology, Economy, Developer, Evidence, Protocol, Operator, Security, Research, Partners and Reference entry points describe ENTITY consistently with the canonical capability definition.
+18. Review the resulting diff through a pull request before merge when the normal repository workflow requires one.
 
 ## Canonical capability source
 
@@ -33,6 +35,10 @@ The primary human and machine-readable system definitions are:
 These files are the documentation-level source of truth for the high-level system inventory. They do not supersede implementation source, signed records, release manifests, protocol schemas, external upstream evidence or settlement attestations for their respective claims.
 
 The portal should consistently describe ENTITY as a **provider-independent digital authority, information, evidence, market, economic and recovery operating fabric**. Sovereignty remains an important invariant of that fabric but must not be used as a shorthand that erases the market/economic, information, evidence or recovery layers.
+
+## Tutorial source boundary
+
+The tutorial hub is `docs/tutorials/index.html`. Tutorials are task-oriented learning material; they do not replace the canonical API/reference pages. Where a tutorial uses a command, method, route or state name, the corresponding developer/operator/source reference remains authoritative. Tutorial examples must preserve fail-closed behavior and the same authority, rights, provenance, settlement and recovery boundaries as the implementation.
 
 ## Public evidence publication boundary
 
