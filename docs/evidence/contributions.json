@@ -31,7 +31,7 @@
         "state": "CLOSED"
       },
       "contribution_class": "PRO_BONO",
-      "entity_evidence_state": "UPSTREAM_ACCEPTED",
+      "entity_evidence_state": "UPSTREAM_ACCEPTED_RECORDED",
       "economic": {
         "currency": "USD",
         "advertised_or_expected_amount": 0,
@@ -52,7 +52,7 @@
         "merged_at": "2026-09-29T01:05:22Z",
         "mergeable": null,
         "head_sha": "a26ad7c1ed76eb01326f85cd37e75f7257d48979",
-        "recorded_commit": "",
+        "recorded_commit": "a26ad7c1ed76eb01326f85cd37e75f7257d48979",
         "review_state": "REVIEWED",
         "ci_state": "PASS",
         "check_counts": {
@@ -124,5 +124,5 @@
       }
     }
   ],
-  "generated_at_utc": "2026-09-29T02:31:58Z"
+  "generated_at_utc": "2026-09-29T02:34:00Z"
 }
