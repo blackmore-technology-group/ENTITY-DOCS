@@ -11,6 +11,8 @@ Current release: https://github.com/blackmore-technology-group/ENTITY/releases/t
 Documentation: https://blackmore-technology-group.github.io/ENTITY-DOCS/
 Canonical capability map: https://blackmore-technology-group.github.io/ENTITY-DOCS/reference/capability-map.html
 Machine-readable capability map: https://blackmore-technology-group.github.io/ENTITY-DOCS/reference/capability-map.json
+Tutorials: https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/
+Scenario tutorials: https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/
 
 ## Core primitives
 
@@ -70,6 +72,32 @@ Key pages:
 - Market recovery: https://blackmore-technology-group.github.io/ENTITY-DOCS/economy/market-recovery.html
 - Settlement verification: https://blackmore-technology-group.github.io/ENTITY-DOCS/economy/settlement-and-verification.html
 - Digital economic infrastructure discovery: https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/digital-economic-infrastructure.html
+
+## Tutorials and end-to-end scenarios
+
+The public portal contains a two-level learning system.
+
+Core tutorials:
+1. Create and sign with an Entity identity.
+2. Ingest and reconstruct governed information with BTDU.
+3. Walk through a rights market from DCO/instrument through entitlement/usage.
+4. Run a provider-independent recovery drill.
+5. Record external software-contribution lineage without confusing acceptance with payment or ownership.
+
+Core tutorial hub:
+https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/
+
+Full-stack scenario tutorials:
+- AI agent licenses governed data: https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/ai-agent-data-license.html
+- Govern training and derivation rights: https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/training-data-rights.html
+- Contribution economy / monetization: https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/contribution-economy.html
+- Enterprise governed data exchange: https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/enterprise-data-exchange.html
+- Zero-infrastructure recovery: https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/zero-infrastructure-recovery.html
+
+Every scenario keeps six questions distinct:
+WHO MAY ACT → WHAT RIGHT EXISTS → WHAT INFORMATION/ASSET IS INVOLVED → WHAT EVENT/EVIDENCE EXISTS → WHAT VALUE/OBLIGATION/SETTLEMENT FOLLOWED → CAN THE STATE BE RECOVERED?
+
+Scenario/tutorial pages are teaching material. Canonical source/API/operator pages remain authoritative for commands, methods, routes and schemas. In particular, Exchange API route names describe the adoption surface and should not be summarized as proof that every deployment exposes a turnkey hosted REST service.
 
 ## Information, execution and intelligence boundaries
 
@@ -162,6 +190,8 @@ External reproduction evidence: an unrelated GitHub contributor reproduced the p
 ## Start here
 
 - Home: https://blackmore-technology-group.github.io/ENTITY-DOCS/
+- Tutorials: https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/
+- Scenario tutorials: https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/
 - Capability map: https://blackmore-technology-group.github.io/ENTITY-DOCS/reference/capability-map.html
 - Technology: https://blackmore-technology-group.github.io/ENTITY-DOCS/technology/
 - Economy: https://blackmore-technology-group.github.io/ENTITY-DOCS/economy/
@@ -179,6 +209,8 @@ External reproduction evidence: an unrelated GitHub contributor reproduced the p
 
 ## Search-intent entry points
 
+- how to use ENTITY / tutorial → https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/
+- ENTITY example / AI agent / training rights / contribution economy / enterprise exchange / disaster recovery → https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/
 - complete ENTITY capability map / what ENTITY is → https://blackmore-technology-group.github.io/ENTITY-DOCS/reference/capability-map.html
 - digital economic infrastructure / rights market / data economy → https://blackmore-technology-group.github.io/ENTITY-DOCS/discover/digital-economic-infrastructure.html
 - exchange API / rights instruments / RFQ / order book / market recovery → https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/exchange-api.html
