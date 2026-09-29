@@ -1,33 +1,31 @@
 {
   "schema": "entity-docs-portal-v3",
-  "generated_at_utc": "2026-09-29T15:50:00Z",
+  "generated_at_utc": "2026-09-29T16:00:00Z",
   "current_release": "v3.4.3",
   "current_release_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
   "btdu_component": "3.4.2",
   "btdu_component_status": "unchanged",
-  "generated_from_docs_commit": "48ec00e9d4bf796bb19ba7ef709fa8eec4b4ac6b",
+  "generated_from_docs_commit": "3fc004b9366abdb23de6a8ffc81e01b1927fe875",
   "canonical_system_definition": "ENTITY is a provider-independent digital authority, information, evidence, market, economic and recovery operating fabric. Sovereignty protects continuity of authority and state across providers; it is not the definition of the whole product.",
   "core_primitives": ["ENTITY", "AUTHORITY", "RIGHT", "EVENT", "VALUE"],
-  "canonical_capability_map": {
-    "html": "docs/reference/capability-map.html",
-    "json": "docs/reference/capability-map.json"
-  },
+  "canonical_capability_map": {"html":"docs/reference/capability-map.html","json":"docs/reference/capability-map.json"},
   "canonical_navigation": {
-    "home": "docs/index.html",
-    "tutorials": "docs/tutorials/index.html",
-    "core_tutorials": "docs/tutorials/core/index.html",
-    "scenario_tutorials": "docs/tutorials/scenarios/index.html",
-    "technology": "docs/technology/index.html",
-    "economy": "docs/economy/index.html",
-    "developer_hub": "docs/build/index.html",
-    "developer_manual": "docs/developer/index.html",
-    "evidence": "docs/evidence/index.html",
-    "runtime_semantics": "docs/protocol/index.html",
-    "operator": "docs/operator/index.html",
-    "security": "docs/security/index.html",
-    "research": "docs/research-hub/index.html",
-    "partners": "docs/collaborate/index.html",
-    "reference": "docs/reference/index.html"
+    "home":"docs/index.html",
+    "tutorials":"docs/tutorials/index.html",
+    "core_tutorials":"docs/tutorials/core/index.html",
+    "recipes":"docs/recipes/index.html",
+    "scenario_tutorials":"docs/tutorials/scenarios/index.html",
+    "technology":"docs/technology/index.html",
+    "economy":"docs/economy/index.html",
+    "developer_hub":"docs/build/index.html",
+    "developer_manual":"docs/developer/index.html",
+    "evidence":"docs/evidence/index.html",
+    "runtime_semantics":"docs/protocol/index.html",
+    "operator":"docs/operator/index.html",
+    "security":"docs/security/index.html",
+    "research":"docs/research-hub/index.html",
+    "partners":"docs/collaborate/index.html",
+    "reference":"docs/reference/index.html"
   },
   "tutorial_model": "The primary tutorial track teaches ENTITY itself from the five primitives outward. External contribution work is retained as a real-world case study rather than the definition or spine of the tutorial curriculum.",
   "core_tutorial_path": [
@@ -45,132 +43,55 @@
     "docs/tutorials/core/recovery-portability.html",
     "docs/tutorials/core/standards-adoption.html"
   ],
-  "quick_start_tutorials": [
-    "docs/tutorials/first-entity.html",
-    "docs/tutorials/ingest-and-reconstruct.html",
-    "docs/tutorials/first-rights-market.html",
-    "docs/tutorials/recovery-drill.html"
+  "recipe_path": [
+    "docs/recipes/source-loader.html",
+    "docs/recipes/identity-signing.html",
+    "docs/recipes/object-authority-rights.html",
+    "docs/recipes/vault-purpose-access.html",
+    "docs/recipes/attestation-trust.html",
+    "docs/recipes/btdu-cli.html",
+    "docs/recipes/passports.html",
+    "docs/recipes/offline-partition.html",
+    "docs/recipes/market-recovery.html",
+    "docs/recipes/standards-mapping.html"
   ],
-  "scenario_tutorial_path": [
-    "docs/tutorials/scenarios/ai-agent-data-license.html",
-    "docs/tutorials/scenarios/training-data-rights.html",
-    "docs/tutorials/scenarios/enterprise-data-exchange.html",
-    "docs/tutorials/scenarios/zero-infrastructure-recovery.html"
-  ],
-  "case_study_tutorials": [
-    "docs/tutorials/external-contribution-lineage.html",
-    "docs/tutorials/scenarios/contribution-economy.html"
-  ],
-  "core_tutorial_invariant": "Core tutorials must teach ENTITY platform capability independently of any one qualification campaign and keep ENTITY, authority, rights, events/evidence, value/settlement and recovery as separately verifiable state.",
+  "recipe_model": "Recipes are minimal source-grounded examples. They load exact current source paths where numbered directories are not conventional Python packages, preserve fail-closed negative tests, and do not present conceptual adoption routes as deployed hosted services.",
+  "quick_start_tutorials": ["docs/tutorials/first-entity.html","docs/tutorials/ingest-and-reconstruct.html","docs/tutorials/first-rights-market.html","docs/tutorials/recovery-drill.html"],
+  "scenario_tutorial_path": ["docs/tutorials/scenarios/ai-agent-data-license.html","docs/tutorials/scenarios/training-data-rights.html","docs/tutorials/scenarios/enterprise-data-exchange.html","docs/tutorials/scenarios/zero-infrastructure-recovery.html"],
+  "case_study_tutorials": ["docs/tutorials/external-contribution-lineage.html","docs/tutorials/scenarios/contribution-economy.html"],
+  "core_tutorial_invariant": "Core tutorials must teach ENTITY platform capability independently of any one campaign and keep ENTITY, authority, rights, events/evidence, value/settlement and recovery as separately verifiable state.",
   "public_discovery": {
-    "llm_context": "docs/llms.txt",
-    "search_index": "docs/search-index.json",
-    "runtime_tutorial_search_overlay": "docs/assets/app.js",
-    "primary_sitemap": "docs/sitemap-site.xml",
-    "robots": "docs/robots.txt",
-    "feed": "docs/feed.xml",
-    "global_site_navigation_injector": "docs/assets/site.js",
-    "deep_documentation_navigation_injector": "docs/assets/app.js"
+    "llm_context":"docs/llms.txt",
+    "search_index":"docs/search-index.json",
+    "runtime_discovery_overlay":"docs/assets/app.js",
+    "primary_sitemap":"docs/sitemap-site.xml",
+    "robots":"docs/robots.txt",
+    "feed":"docs/feed.xml",
+    "global_site_navigation_injector":"docs/assets/site.js",
+    "deep_documentation_navigation_injector":"docs/assets/app.js"
   },
   "capability_surfaces": [
-    "persistent governed objects and identity",
-    "delegated and revocable authority",
-    "machine-readable rights",
-    "governed information topology",
-    "causal provenance and evidence states",
-    "venues and rights-based instruments",
-    "balances and positions",
-    "listings and disclosures",
-    "order books and call auctions",
-    "RFQs, quotes and acceptances",
-    "trades and clearing",
-    "entitlements and usage",
-    "market surveillance and cancellations",
-    "revenue rules and economic participation",
-    "authorized settlement verifiers and payment attestations",
-    "provider-independent market recovery",
-    "BTDU governed information universe",
-    "ADAM deterministic state transformation and replay",
-    "NIKI bounded causal reasoning",
-    "encrypted vaults and purpose-bound access",
-    "retention, legal hold and evidenced destruction",
-    "federated core/regional/edge/satellite/offline infrastructure",
-    "causal partition recovery",
-    "cryptographic-suite migration and downgrade resistance",
-    "rights and global passports",
-    "provider-neutral custody/connectors",
-    "standards adapters and industry implementation packages"
+    "persistent governed objects and identity","delegated and revocable authority","machine-readable rights","governed information topology","causal provenance and evidence states","venues and rights-based instruments","balances and positions","listings and disclosures","order books and call auctions","RFQs, quotes and acceptances","trades and clearing","entitlements and usage","market surveillance and cancellations","revenue rules and economic participation","authorized settlement verifiers and payment attestations","provider-independent market recovery","BTDU governed information universe","ADAM deterministic state transformation and replay","NIKI bounded causal reasoning","encrypted vaults and purpose-bound access","retention, legal hold and evidenced destruction","federated core/regional/edge/satellite/offline infrastructure","causal partition recovery","cryptographic-suite migration and downgrade resistance","rights and global passports","provider-neutral custody/connectors","standards adapters and industry implementation packages"
   ],
-  "market_lifecycle": [
-    "DCO", "INSTRUMENT", "LISTING", "DISCLOSURE", "ORDER/RFQ/AUCTION",
-    "PRICE_DISCOVERY", "TRADE", "CLEARING", "SETTLEMENT", "ENTITLEMENT",
-    "USAGE", "DERIVED_OUTPUT", "ECONOMIC_CONSEQUENCE"
-  ],
+  "market_lifecycle": ["DCO","INSTRUMENT","LISTING","DISCLOSURE","ORDER/RFQ/AUCTION","PRICE_DISCOVERY","TRADE","CLEARING","SETTLEMENT","ENTITLEMENT","USAGE","DERIVED_OUTPUT","ECONOMIC_CONSEQUENCE"],
   "bounded_engineering_results": {
-    "btdu_storage_benchmark": {
-      "result": "97% lower storage requirement",
-      "scope": "controlled tested BTDU benchmark; not asserted as a universal percentage for every workload"
-    },
-    "btdu_destruction_recovery": {
-      "result": "100% exact reconstruction",
-      "scope": "qualified destruction/cold-recovery campaign; Memnox recovered 865/865 tracked blobs plus archive, manifest and acceptance proof without original workspace, Git, GitHub or network"
-    },
-    "external_contribution_lineage": {
-      "accepted": ["Vector #26501 / PR #26504", "Memnox #46 / PR #86"],
-      "active_below_acceptance": ["AWS #934 / PR #935"],
-      "boundary": "upstream acceptance does not automatically establish payment, ownership transfer or execution of every market subsystem"
-    }
+    "btdu_storage_benchmark":{"result":"97% lower storage requirement","scope":"controlled tested BTDU benchmark; not asserted as a universal percentage for every workload"},
+    "btdu_destruction_recovery":{"result":"100% exact reconstruction","scope":"qualified destruction/cold-recovery campaign; Memnox recovered 865/865 tracked blobs plus archive, manifest and acceptance proof without original workspace, Git, GitHub or network"},
+    "external_contribution_lineage":{"accepted":["Vector #26501 / PR #26504","Memnox #46 / PR #86"],"active_below_acceptance":["AWS #934 / PR #935"],"boundary":"upstream acceptance does not automatically establish payment, ownership transfer or execution of every market subsystem"}
   },
-  "claim_boundaries": [
-    "sovereignty is not the whole product",
-    "hosting or custody is not authority",
-    "provenance is not automatically ownership or objective truth",
-    "upstream acceptance is not payment",
-    "trade execution is not verified external settlement",
-    "economic observation is not automatically accounting fair value",
-    "AI inference does not mint rights",
-    "BTG-controlled qualification is distinct from unrelated independent validation"
-  ],
+  "claim_boundaries": ["sovereignty is not the whole product","hosting or custody is not authority","provenance is not automatically ownership or objective truth","upstream acceptance is not payment","trade execution is not verified external settlement","economic observation is not automatically accounting fair value","AI inference does not mint rights","BTG-controlled qualification is distinct from unrelated independent validation"],
   "repository_heads": {
-    "ENTITY": "eabfd04ee2b716dd7518979d7b4ce9dd31a6b32e",
-    "ENTITY-AI": "ec30f6c5537c89d7ae9b49f180ebdfec7e24501a",
-    "ENTITY-DEFENCE": "655a9b63c42dd65c6fa59ca8d59660fcaab27d9f",
-    "ENTITY-FINANCE": "c1b3a64b220e06c4584e13139e36163c0296f75b",
-    "ENTITY-GITHUB-APP": "1d7d94f8166d4e8ba9cde08d00f9fb41f130404b",
-    "ENTITY-HEALTHCARE": "baca471a2eb6dc110b4bb4c6f64b744051bf5b4a",
-    "ENTITY-MANUFACTURING": "0d1e7ea844b1074f7671e667a4a2727052c0ebc8",
-    "ENTITY-ROBOTICS": "f1ff62e3953b11d3078461cd8beffb56363bf3b6"
+    "ENTITY":"eabfd04ee2b716dd7518979d7b4ce9dd31a6b32e",
+    "ENTITY-AI":"ec30f6c5537c89d7ae9b49f180ebdfec7e24501a",
+    "ENTITY-DEFENCE":"655a9b63c42dd65c6fa59ca8d59660fcaab27d9f",
+    "ENTITY-FINANCE":"c1b3a64b220e06c4584e13139e36163c0296f75b",
+    "ENTITY-GITHUB-APP":"1d7d94f8166d4e8ba9cde08d00f9fb41f130404b",
+    "ENTITY-HEALTHCARE":"baca471a2eb6dc110b4bb4c6f64b744051bf5b4a",
+    "ENTITY-MANUFACTURING":"0d1e7ea844b1074f7671e667a4a2727052c0ebc8",
+    "ENTITY-ROBOTICS":"f1ff62e3953b11d3078461cd8beffb56363bf3b6"
   },
   "curated_search_entries": 78,
-  "runtime_discovery_overlays": [
-    "ENTITY Core Tutorials",
-    "Five Primitives and Governed Objects",
-    "Authority and Delegation",
-    "Rights and Constraints",
-    "Encrypted Vault and Purpose-Bound Access",
-    "Evidence, Attestations and Trust",
-    "Provenance and Value",
-    "BTDU, ADAM and NIKI",
-    "Rights Passports and Global Passports",
-    "Privacy, Retention and Evidenced Destruction",
-    "Federated, Edge and Offline Operation",
-    "ENTITY Economic Fabric",
-    "Provider-Independent Recovery",
-    "Standards and Industry Adoption",
-    "ENTITY End-to-End Scenario Tutorials",
-    "Complete ENTITY Capability Map",
-    "ENTITY Market Fabric",
-    "ENTITY Market Recovery",
-    "External Economic Lineage",
-    "BTDU Storage & Destruction Recovery Evidence"
-  ],
-  "historical_generated_reference_inventory": {
-    "source_release": "v3.4.0",
-    "source_commit": "6a45a62984b8278ddbcd65e51d2d441878837457",
-    "file_reference_pages": 599,
-    "symbol_reference_pages": 1922,
-    "total_html_pages": 2603,
-    "status": "historical baseline only; not asserted as current counts"
-  },
-  "claim_boundary": "Current release, repository-head, capability, core-tutorial, scenario, case-study and discovery fields describe the public documentation state. Legacy generated reference counts remain explicitly historical. This manifest does not alter ENTITY protocol semantics, runtime qualification, immutable release evidence, upstream rights, settlement evidence or historical tags."
+  "runtime_discovery_overlays": ["ENTITY Core Tutorials","Authority & Delegation","Rights & Constraints","Encrypted Vault & Purpose Access","Evidence, Attestations & Trust","Provenance & Value","BTDU, ADAM & NIKI","Rights & Global Passports","Privacy, Retention & Evidenced Destruction","Federated, Edge & Offline Operation","ENTITY Economic Fabric","Provider-Independent Recovery","Standards & Industry Adoption","ENTITY Developer Recipes","Identity & Signing Recipe","Object Authority Rights Recipe","Vault & Purpose Access Recipe","Attestation & Trust Recipe","BTDU CLI Recipe","Passports Recipe","Offline & Partition Recipe","Market Recovery Recipe","Standards Mapping Recipe","Complete ENTITY Capability Map","ENTITY Market Fabric","ENTITY Market Recovery","External Economic Lineage","BTDU Storage & Destruction Recovery Evidence"],
+  "historical_generated_reference_inventory": {"source_release":"v3.4.0","source_commit":"6a45a62984b8278ddbcd65e51d2d441878837457","file_reference_pages":599,"symbol_reference_pages":1922,"total_html_pages":2603,"status":"historical baseline only; not asserted as current counts"},
+  "claim_boundary": "Current release, repository-head, capability, core-tutorial, recipe, scenario, case-study and discovery fields describe the public documentation state. Legacy generated reference counts remain explicitly historical. This manifest does not alter ENTITY protocol semantics, runtime qualification, immutable release evidence, upstream rights, settlement evidence or historical tags."
 }
