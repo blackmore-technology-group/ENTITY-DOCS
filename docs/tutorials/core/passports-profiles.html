@@ -1,0 +1,35 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Tutorial · Rights Passports & Global Passports</title><meta name="description" content="Learn how ENTITY packages rights, custody, profiles, evidence, economic state and BTDU bindings into portable signed passports without creating new authority."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Core curriculum</a><a href="btdu-adam-niki.html">Previous</a><a href="privacy-retention.html">Next: Privacy & retention →</a></nav><main><div class="eyebrow">Core tutorial 8</div><h1>Package governed rights and evidence without replacing them</h1><p class="lede">ENTITY passports are portable signed envelopes around existing governed state. A passport binds rights, evidence, profiles, custody references, provenance, economic state and optional BTDU information—but profile composition itself does not create authority.</p><h2>1. Issue a rights passport</h2><pre>rights_registry = RightsPassportRegistry(STATE, identity, fabric)
+passport = rights_registry.issue(
+    controller=owner_id,
+    object_id=object_id,
+    rights=[{
+        "effect":"ALLOW",
+        "actions":["READ", "TRAIN"],
+        "conditions":{"purpose":"research"},
+        "obligations":["ATTRIBUTE_SOURCE"],
+        "right_refs":[right_id],
+    }],
+    authority_refs=[authority_id],
+    privacy_profile="SELECTIVE_DISCLOSURE",
+    provenance_refs=[provenance_edge_id],
+    economic_terms={"underlying_information_remains_nonrival":True},
+)</pre><p>The passport rules can be <code>ALLOW</code>, <code>REQUIRE</code> or <code>PROHIBIT</code>. The controller signs an immutable version.</p><h2>2. Keep custody as a locator, not authority</h2><pre>custody=[{
+    "provider":"example-provider",
+    "locator":"bucket/object-ref",
+    "content_sha256":CONTENT_SHA256,
+    "provider_is_authority":False,
+    "credentials_included":False,
+}]</pre><p>The implementation rejects a custody locator that claims the provider is authority or embeds provider credentials inside the passport.</p><h2>3. Verify the passport</h2><pre>result = rights_registry.verify(passport)
+assert result["valid"] is True</pre><p>Verification checks the body hash, controller signature, core primitives and the custody/transfer/legal boundaries.</p><h2>4. Supersede instead of rewriting history</h2><p>If rights change, issue a new immutable version and record supersession. Do not mutate the old passport to pretend the earlier rights state never existed.</p><h2>5. Build a global passport</h2><p>A global passport composes an already-valid rights passport with profiles, evidence/provenance references, jurisdiction profiles, standards mappings, economic state, industry context, protocol-origin binding and optional BTDU binding.</p><pre>global_registry = GlobalPassportRegistry(
+    STATE, identity, fabric,
+    rights_registry, profile_registry,
+)
+global_passport = global_registry.issue(
+    owner_id,
+    object_id,
+    passport["passport_id"],
+    profile_refs=["profile:research-data"],
+    evidence_refs=[attestation_id],
+    provenance_refs=[provenance_edge_id],
+    economic_state={"state":"POTENTIAL", "amount_units":0, "currency":"CAD"},
+)</pre><p>The global passport explicitly preserves boundaries including <code>profile_composition_does_not_create_authority</code>, <code>evidence_does_not_establish_objective_truth</code> and <code>standards_mapping_is_not_normative_equivalence</code>.</p><div class="callout"><strong>Think of a passport as a signed portable dossier around governed state—not a magic certificate that creates rights or legal status by being printed.</strong></div><div class="actions"><a class="button" href="privacy-retention.html">Apply privacy & retention →</a><a class="button secondary" href="https://github.com/blackmore-technology-group/ENTITY/blob/main/src/36_Adoption_Layer/rights_passport.py">Rights passport source</a><a class="button secondary" href="https://github.com/blackmore-technology-group/ENTITY/blob/main/src/38_Global_Passports/global_passport.py">Global passport source</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>
