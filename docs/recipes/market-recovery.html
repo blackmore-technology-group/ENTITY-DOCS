@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Recipe · Market-State Recovery</title><link rel="stylesheet" href="../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Recipes</a><a href="offline-partition.html">Previous</a><a href="standards-mapping.html">Next →</a></nav><main><div class="eyebrow">Recipe 8</div><h1>Export, verify and restore complete market/economic state</h1><p>This recipe assumes your deployment already has compatible populated exchange and economic-participation SQLite databases. It demonstrates the recovery contract; it does not invent those schemas.</p><pre>from pathlib import Path
+import importlib.util
+
+ROOT=Path.cwd()
+def load_source(path,name):
+    spec=importlib.util.spec_from_file_location(name,ROOT/path)
+    mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+
+recovery_mod=load_source("src/34_Market_Recovery/market_recovery.py","entity_market_recovery")
+MarketStateRecovery=recovery_mod.MarketStateRecovery
+
+bundle=MarketStateRecovery.export(
+    exchange_path=EXCHANGE_DB,
+    economic_path=ECONOMIC_DB,
+    identity=identity,
+    core_bundles=[core_bundle],
+)
+
+check=MarketStateRecovery.verify(
+    bundle,
+    verify_manifest=identity.verify_manifest,
+    verify_signature=VERIFY_SIGNATURE,
+    verify_core_bundle=fabric.verify_bundle,
+)
+assert check["valid"] is True
+print(check["exchange_state_sha256"])
+print(check["economic_state_sha256"])
+
+restore=MarketStateRecovery.restore(
+    bundle,
+    NEW_EMPTY_EXCHANGE_DB,
+    NEW_EMPTY_ECONOMIC_DB,
+    verify_manifest=identity.verify_manifest,
+    verify_signature=VERIFY_SIGNATURE,
+    verify_core_bundle=fabric.verify_bundle,
+)
+print(restore)</pre><p><code>VERIFY_SIGNATURE</code> should be the deployment's ENTITY signature-verification callback matching the identity implementation. The recovery implementation requires compatible empty destinations and complete required table sets.</p><div class="callout"><strong>Do not restore a partial bundle as a complete market.</strong> Missing required tables, semantic-hash mismatch, bad identity material or missing controller attestations must fail verification.</div><div class="actions"><a class="button" href="standards-mapping.html">Standards recipe →</a><a class="button secondary" href="../economy/market-recovery.html">Recovery reference</a></div></main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
