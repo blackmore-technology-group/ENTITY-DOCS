@@ -13,6 +13,8 @@ Frozen external conformance target: ENTITY Protocol 1.0
 Source: https://github.com/blackmore-technology-group/ENTITY
 Docs: https://blackmore-technology-group.github.io/ENTITY-DOCS/
 Capability map: https://blackmore-technology-group.github.io/ENTITY-DOCS/reference/capability-map.html
+Community Board: https://blackmore-technology-group.github.io/ENTITY-DOCS/community/
+Discussion forum: https://github.com/blackmore-technology-group/ENTITY/discussions
 
 ## Version and evidence targets
 
@@ -90,6 +92,20 @@ https://blackmore-technology-group.github.io/ENTITY-DOCS/recipes/
 - standards mapping: /recipes/standards-mapping.html
 
 Recipes must preserve fail-closed behavior and must not present conceptual adoption routes as proof that every deployment exposes a hosted service.
+
+## Developer and user community
+
+The ENTITY Community Board is for people building, integrating, evaluating, operating or using ENTITY. It is not a marketing, investor-relations or general business-development channel.
+
+Community front door:
+https://blackmore-technology-group.github.io/ENTITY-DOCS/community/
+
+GitHub Discussions:
+https://github.com/blackmore-technology-group/ENTITY/discussions
+
+Use Discussions for questions, ideas, evaluation, design conversation and user/developer experience. Use Issues for reproducible defects, concrete ambiguities, documentation errors, qualification failures or bounded tracked work. Use Pull Requests for concrete reviewable changes. Security-sensitive reports must follow the repository SECURITY.md instead of public Discussions or Issues.
+
+The community board uses Q&A, General, Ideas and Show-and-tell discussion forms. Technical posts should identify the relevant runtime/component/protocol target and distinguish implemented, locally tested, BTG-qualified, externally reproduced, independently implemented/validated, upstream accepted and economically settled states.
 
 ## Implemented source layers
 
@@ -181,6 +197,8 @@ Home: https://blackmore-technology-group.github.io/ENTITY-DOCS/
 Core tutorials: https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/core/
 Recipes: https://blackmore-technology-group.github.io/ENTITY-DOCS/recipes/
 All tutorials: https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/
+Community Board: https://blackmore-technology-group.github.io/ENTITY-DOCS/community/
+Community discussions: https://github.com/blackmore-technology-group/ENTITY/discussions
 Capability map: https://blackmore-technology-group.github.io/ENTITY-DOCS/reference/capability-map.html
 Technology: https://blackmore-technology-group.github.io/ENTITY-DOCS/technology/
 Economy: https://blackmore-technology-group.github.io/ENTITY-DOCS/economy/
