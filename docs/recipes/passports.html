@@ -1,0 +1,47 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Recipe · Rights & Global Passports</title><link rel="stylesheet" href="../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Recipes</a><a href="btdu-cli.html">Previous</a><a href="offline-partition.html">Next →</a></nav><main><div class="eyebrow">Recipe 6</div><h1>Issue a rights passport, then wrap it in a global passport</h1><pre>from pathlib import Path
+import importlib.util, hashlib
+
+ROOT=Path.cwd()
+def load_source(path,name):
+    spec=importlib.util.spec_from_file_location(name,ROOT/path)
+    mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+
+identity_mod=load_source("src/01_Core_Runtime/identity/canonical_identity.py","entity_identity")
+fabric_mod=load_source("src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py","entity_fabric")
+rights_mod=load_source("src/36_Adoption_Layer/rights_passport.py","entity_rights_passport")
+profiles_mod=load_source("src/38_Global_Passports/profile_registry.py","entity_profiles")
+global_mod=load_source("src/38_Global_Passports/global_passport.py","entity_global_passport")
+STATE=ROOT/".recipe-state"/"passports"
+identity=identity_mod.EntityIdentityVault(STATE)
+owner=identity.create("Owner","organization")
+fabric=fabric_mod.UniversalTransactionFabric(STATE,identity)
+obj=fabric.register_object(owner["entity_id"],"DATASET","Passport Dataset")
+
+rights=rights_mod.RightsPassportRegistry(STATE,identity,fabric)
+rp=rights.issue(
+    owner["entity_id"], obj["object_id"],
+    rights=[{"effect":"ALLOW","actions":["READ"],"conditions":{},"obligations":[],"right_refs":[]}],
+    privacy_profile="SELECTIVE_DISCLOSURE",
+)
+assert rights.verify(rp)["valid"] is True
+
+profiles=profiles_mod.GlobalProfileRegistry(STATE,identity)
+schema_sha=hashlib.sha256(b"recipe-global-profile-v1").hexdigest()
+profile=profiles.register(
+    owner["entity_id"], "entity-profile:recipe-global", "1.0", "GLOBAL",
+    schema_sha256=schema_sha,
+    object_types=["DATASET"], required_evidence_types=["DOCUMENT"],
+    policy={"example":True},
+)
+assert profiles.verify(profile)["valid"] is True
+
+global_registry=global_mod.GlobalPassportRegistry(
+    STATE,identity,fabric,rights,profiles
+)
+gp=global_registry.issue(
+    owner["entity_id"], obj["object_id"], rp["passport_id"],
+    profile_refs=[profile["profile_ref"]],
+    economic_state={"state":"POTENTIAL","amount_units":0,"currency":"CAD"},
+)
+assert global_registry.verify(gp)["valid"] is True
+print(gp["passport_id"])</pre><p>The global passport composes already-existing rights and profile state. It does not create new authority merely because those records are bundled together.</p><div class="actions"><a class="button" href="offline-partition.html">Offline/partition recipe →</a><a class="button secondary" href="../tutorials/core/passports-profiles.html">Passport tutorial</a></div></main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
