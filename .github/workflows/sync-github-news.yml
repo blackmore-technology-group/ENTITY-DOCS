@@ -7,6 +7,7 @@ on:
   push:
     paths:
       - 'tools/sync_github_news.py'
+      - 'tools/enforce_news_public_only.py'
       - 'docs/evidence/contributions.json'
       - '.github/workflows/sync-github-news.yml'
 
@@ -36,6 +37,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BTG_GITHUB_ACCOUNT: blackmore-technology-group
         run: python tools/sync_github_news.py
+
+      - name: Enforce anonymous public-only privacy boundary
+        env:
+          BTG_GITHUB_ACCOUNT: blackmore-technology-group
+        run: python tools/enforce_news_public_only.py
 
       - name: Commit generated NEWS data only when source state changed
         shell: bash
