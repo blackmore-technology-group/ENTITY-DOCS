@@ -1,0 +1,108 @@
+{
+  "schema": "entity-capability-map-v1",
+  "runtime": "v3.4.3",
+  "btdu_component": "3.4.2",
+  "definition": "ENTITY is a provider-independent digital authority, information, evidence, market, economic and recovery operating fabric. Sovereignty is an invariant that protects continuity of authority and state; it is not the whole product.",
+  "core_primitives": ["ENTITY", "AUTHORITY", "RIGHT", "EVENT", "VALUE"],
+  "governed_object_classes": [
+    "people", "organizations", "AI agents", "datasets", "documents", "models", "software", "APIs", "devices", "vehicles", "buildings", "research", "digital twins", "financial instruments", "physical assets"
+  ],
+  "authority_actions": ["act", "sign", "access data", "execute", "purchase", "license", "settle", "publish", "resolve", "delegate", "control"],
+  "rights_actions": ["inspect", "read", "copy", "derive", "train", "infer", "execute", "modify", "redistribute", "commercialize", "control", "transfer"],
+  "implemented_layers": [
+    {
+      "name": "Universal Transaction Fabric",
+      "purpose": "Persistent governed objects, delegated authority, rights, events, provenance, value, attestations, trust policies and resolution.",
+      "source": "src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py"
+    },
+    {
+      "name": "Exchange Protocol",
+      "purpose": "Venues, rights-based instruments, balances, listings, disclosures, order books, call auctions, RFQs/quotes, trades, clearing, entitlements, usage, surveillance, cancellations, revenue rules, settlement verifiers and payment attestations.",
+      "source": "src/32_V3_Hardening/exchange_protocol.py"
+    },
+    {
+      "name": "Economic Participation",
+      "purpose": "Treasuries, reserves, primary/secondary/derivative participation, service revenue, obligations, position snapshots and settlement verification without an automatic protocol tax.",
+      "source": "src/33_Economic_Participation/economic_participation.py"
+    },
+    {
+      "name": "Market Recovery",
+      "purpose": "Provider-independent logical export and restore of exchange and economic-participation state with semantic hashes and identity/controller evidence.",
+      "source": "src/34_Market_Recovery/market_recovery.py"
+    },
+    {
+      "name": "Verifiable Reality / Causal Economy",
+      "purpose": "Evidence-state transitions, contestable claims and causal economic attribution across contributors, data, rights, usage, products, transactions, revenue and settlement.",
+      "source": "src/37_Verifiable_Reality/causal_economic_graph.py"
+    },
+    {
+      "name": "BTDU",
+      "purpose": "Governed information universe using exact objects, atoms, bonds, compounds, indexes, manifests and lineage/economic topology under ENTITY authorization.",
+      "source": "src/40_BTDU/canonical_btdu.py"
+    },
+    {
+      "name": "Ecosystem Runtime",
+      "purpose": "Binds the major subsystems into an operational runtime while preserving authority boundaries.",
+      "source": "src/41_Ecosystem_Runtime/canonical_ecosystem_runtime.py"
+    }
+  ],
+  "market_lifecycle": ["DCO", "INSTRUMENT", "LISTING", "DISCLOSURE", "ORDER/RFQ/AUCTION", "PRICE DISCOVERY", "TRADE", "CLEARING", "SETTLEMENT", "ENTITLEMENT", "USAGE", "DERIVED OUTPUT", "ECONOMIC CONSEQUENCE"],
+  "execution_models": ["ORDER_BOOK", "CALL_AUCTION", "RFQ"],
+  "instrument_classes": ["SPOT_LICENSE", "SUBSCRIPTION", "COMPUTE_TO_DATA", "PROCUREMENT", "CONTRIBUTION", "SECONDARY_LICENSE"],
+  "information_and_intelligence_boundaries": {
+    "ENTITY": "identity, authority, rights, evidence, value, market and recovery relationships",
+    "BTDU": "governed information topology and reconstructable lineage/state",
+    "ADAM": "deterministic state transformation/replay; does not mint authority or rights",
+    "NIKI": "bounded causal reasoning over approved governed projections; does not mint ownership, permission or settlement"
+  },
+  "global_infrastructure": [
+    "encrypted data vaults",
+    "purpose-bound access and use caps",
+    "retention, legal hold and evidenced destruction",
+    "federated sovereign domains and services",
+    "core/regional/edge/satellite/offline topology",
+    "vector-clock causal partition recovery with fail-closed conflicts",
+    "cryptographic-suite migration and downgrade resistance",
+    "rights passports and global passports",
+    "provider-neutral custody/connectors",
+    "standards adapters",
+    "healthcare, finance, manufacturing, AI, robotics and public/unclassified defence implementation packages"
+  ],
+  "bounded_engineering_results": {
+    "btdu_storage_benchmark": {
+      "result": "97% lower storage requirement",
+      "scope": "controlled BTDU benchmark; not asserted as a universal percentage for every workload"
+    },
+    "btdu_destruction_recovery": {
+      "result": "100% exact reconstruction in the qualified destruction/cold-recovery campaign",
+      "scope": "qualified tested campaign; Memnox recovered all 865/865 tracked blobs, archive, manifest and acceptance proof without original workspace, Git, GitHub or network"
+    },
+    "external_contribution_cases": {
+      "accepted": ["Vector #26501 / PR #26504", "Memnox #46 / PR #86"],
+      "active": ["AWS #934 / PR #935"],
+      "boundary": "accepted contribution lineage does not automatically mean paid settlement, ownership transfer or that every exchange subsystem was exercised"
+    }
+  },
+  "claim_boundaries": [
+    "sovereignty is not the entire product",
+    "hosting/custody is not authority",
+    "provenance is not automatically ownership or objective truth",
+    "upstream acceptance is not payment",
+    "trade execution is not verified external settlement",
+    "economic observation is not automatically accounting fair value",
+    "AI inference does not mint rights",
+    "BTG-controlled qualification is distinct from unrelated independent validation"
+  ],
+  "canonical_pages": {
+    "home": "../index.html",
+    "technology": "../technology/",
+    "economy": "../economy/",
+    "developer": "../developer/",
+    "evidence": "../evidence/",
+    "about": "../about/",
+    "market_fabric": "../economy/market-fabric.html",
+    "market_recovery": "../economy/market-recovery.html",
+    "exchange_api": "../developer/exchange-api.html",
+    "real_world_lineage": "../economy/real-world-economic-lineage.html"
+  }
+}
