@@ -17,6 +17,17 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   const links=[...document.querySelectorAll('.site-links a')];
   const path=location.pathname.replace(/\/+$/,'/');
+
+  // The canonical About-page identity must reflect the complete current system,
+  // not reduce ENTITY to sovereignty alone. This also keeps older generated HTML
+  // shells aligned when the shared site runtime is newer than their static title.
+  if(/\/ENTITY-DOCS\/about\/$/.test(path)||/\/about\/$/.test(path)){
+    document.title='About ENTITY · Digital Authority, Information, Market, Economic & Recovery Fabric';
+    let meta=document.querySelector('meta[name="description"]');
+    if(!meta){meta=document.createElement('meta');meta.name='description';document.head.appendChild(meta);}
+    meta.content="ENTITY is Blackmore Technology Group's Canadian-designed digital authority, governed information, rights, evidence, market, economic and recovery operating fabric.";
+  }
+
   for(const a of links){
     try{
       const u=new URL(a.href,location.href);
