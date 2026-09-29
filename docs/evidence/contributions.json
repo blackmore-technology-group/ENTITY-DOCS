@@ -86,7 +86,7 @@
         "number": 46,
         "title": "policy: invalid 'windows' either crash the validator or silently switch a rule off",
         "url": "https://github.com/Memnox/memnox/issues/46",
-        "state": "OPEN"
+        "state": "CLOSED"
       },
       "contribution_class": "PRO_BONO",
       "entity_evidence_state": "UPSTREAM_PR",
@@ -105,24 +105,24 @@
       "upstream": {
         "pull_request": "https://github.com/Memnox/memnox/pull/86",
         "pull_request_number": 86,
-        "pull_request_state": "OPEN",
-        "merged": false,
-        "merged_at": null,
-        "mergeable": true,
+        "pull_request_state": "CLOSED",
+        "merged": true,
+        "merged_at": "2026-09-29T01:05:22Z",
+        "mergeable": null,
         "head_sha": "a26ad7c1ed76eb01326f85cd37e75f7257d48979",
         "recorded_commit": "6241c89ff9800e323d820a700fab7baf3ddbc4ca",
         "review_state": "REVIEWED",
-        "ci_state": "PENDING",
+        "ci_state": "PASS",
         "check_counts": {
-          "total": 10,
-          "success": 1,
+          "total": 11,
+          "success": 11,
           "failure": 0,
-          "pending": 9,
+          "pending": 0,
           "skipped": 0
         },
-        "live_technical_state": "PR_OPEN"
+        "live_technical_state": "UPSTREAM_ACCEPTED"
       }
     }
   ],
-  "generated_at_utc": "2026-09-29T00:56:06Z"
+  "generated_at_utc": "2026-09-29T01:27:59Z"
 }
