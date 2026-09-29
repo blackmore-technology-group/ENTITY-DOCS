@@ -29,6 +29,13 @@
     <summary>PRO_BONO; payment_settled=false; realized_cash=0 USD</summary>
   </entry>
   <entry>
+    <title>blackmore-technology-group/ENTITY-DOCS: created branch automation/contribution-ledger</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
+    <id>urn:btg-github-news:create:22519342744</id>
+    <updated>2026-09-28T22:35:36Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
     <title>vectordotdev/vector PR #26504: fix(config): report ambiguous vector test outputs as config errors</title>
     <link href="https://github.com/vectordotdev/vector/pull/26504"/>
     <id>urn:btg-github-news:external-pr:vectordotdev/vector:26504</id>
