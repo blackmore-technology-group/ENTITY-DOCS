@@ -15,6 +15,7 @@ Docs: https://blackmore-technology-group.github.io/ENTITY-DOCS/
 Capability map: https://blackmore-technology-group.github.io/ENTITY-DOCS/reference/capability-map.html
 Community Board: https://blackmore-technology-group.github.io/ENTITY-DOCS/community/
 Discussion forum: https://github.com/blackmore-technology-group/ENTITY/discussions
+GitHub footprint NEWS: https://blackmore-technology-group.github.io/ENTITY-DOCS/news/
 
 ## Version and evidence targets
 
@@ -106,6 +107,33 @@ https://github.com/blackmore-technology-group/ENTITY/discussions
 Use Discussions for questions, ideas, evaluation, design conversation and user/developer experience. Use Issues for reproducible defects, concrete ambiguities, documentation errors, qualification failures or bounded tracked work. Use Pull Requests for concrete reviewable changes. Security-sensitive reports must follow the repository SECURITY.md instead of public Discussions or Issues.
 
 The community board uses Q&A, General, Ideas and Show-and-tell discussion forms. Technical posts should identify the relevant runtime/component/protocol target and distinguish implemented, locally tested, BTG-qualified, externally reproduced, independently implemented/validated, upstream accepted and economically settled states.
+
+## NEWS / Blackmore Technology GitHub footprint
+
+NEWS is an engineering/activity ledger, not a marketing blog. It tracks the public Blackmore Technology GitHub footprint from source state.
+
+Public front door:
+https://blackmore-technology-group.github.io/ENTITY-DOCS/news/
+
+Machine-readable activity ledger:
+https://blackmore-technology-group.github.io/ENTITY-DOCS/news/activity.json
+
+Atom feed:
+https://blackmore-technology-group.github.io/ENTITY-DOCS/news/feed.xml
+
+The ledger includes public repository inventory, forks and their upstream parents, GitHub releases, recent public commit/repository events, BTG-authored pull requests into external repositories, and published ENTITY contribution-evidence records. Private repositories and private activity are excluded from public output.
+
+Current repository, release and pull-request state is refreshed from GitHub on each sync. Because GitHub's public-events API is a rolling recent window, NEWS append-retains already-observed public activity from the first automated NEWS sync forward so older events do not disappear when that API window rolls forward.
+
+Keep these NEWS states separate:
+
+- public GitHub activity ≠ ENTITY evidence;
+- fork/custody ≠ ownership of upstream code;
+- BTG-authored external PR ≠ upstream acceptance;
+- ENTITY ingestion/evidence ≠ independent validation;
+- upstream acceptance/merge ≠ payment or economic settlement.
+
+If an external contribution is visible on GitHub but its ENTITY evidence has not been published in the public ENTITY repository/evidence ledger, NEWS must show the GitHub state without falsely applying an ENTITY-ingested label.
 
 ## Implemented source layers
 
@@ -199,6 +227,9 @@ Recipes: https://blackmore-technology-group.github.io/ENTITY-DOCS/recipes/
 All tutorials: https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/
 Community Board: https://blackmore-technology-group.github.io/ENTITY-DOCS/community/
 Community discussions: https://github.com/blackmore-technology-group/ENTITY/discussions
+NEWS / GitHub footprint: https://blackmore-technology-group.github.io/ENTITY-DOCS/news/
+NEWS JSON: https://blackmore-technology-group.github.io/ENTITY-DOCS/news/activity.json
+NEWS Atom: https://blackmore-technology-group.github.io/ENTITY-DOCS/news/feed.xml
 Capability map: https://blackmore-technology-group.github.io/ENTITY-DOCS/reference/capability-map.html
 Technology: https://blackmore-technology-group.github.io/ENTITY-DOCS/technology/
 Economy: https://blackmore-technology-group.github.io/ENTITY-DOCS/economy/
