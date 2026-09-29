@@ -1,18 +1,20 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-09-29T17:07:13.906260Z",
+  "generated_at_utc": "2026-09-29T17:13:57.402311Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private repositories and private activity are excluded from public output.",
   "editorial_boundary": "Engineering/activity ledger, not marketing copy. Source state controls status.",
+  "history_retention": "Previously observed public activity is append-retained from the first automated sync; current repository, release and pull-request state is refreshed from GitHub on every run.",
   "stats": {
     "public_repositories": 23,
     "original_public_repositories": 18,
     "public_forks": 5,
-    "release_records": 11,
+    "release_records": 13,
     "recent_external_prs": 3,
     "entity_evidence_records": 2,
-    "activity_items": 19
+    "retained_previous_activity_items": 19,
+    "activity_items": 21
   },
   "repositories": [
     {
@@ -26,8 +28,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-09-29T17:06:54Z",
-      "pushed_at": "2026-09-29T17:07:05Z"
+      "updated_at": "2026-09-29T17:13:49Z",
+      "pushed_at": "2026-09-29T17:12:35Z"
     },
     {
       "name": "ENTITY",
@@ -593,6 +595,32 @@
       "summary": "v1.0.0-rc2.2 — HISTORICAL / UNSUPPORTED",
       "repository": "blackmore-technology-group/ENTITY",
       "url": "https://github.com/blackmore-technology-group/ENTITY/releases/tag/v1.0.0-rc2.2",
+      "status": "PUBLISHED",
+      "source": "GITHUB_RELEASE",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "release:blackmore-technology-group/ENTITY:391143537",
+      "type": "RELEASE",
+      "occurred_at": "2026-09-18T00:46:48Z",
+      "title": "blackmore-technology-group/ENTITY released v1.0.0-rc2.1",
+      "summary": "v1.0.0-rc2.1 — HISTORICAL / UNSUPPORTED",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY/releases/tag/v1.0.0-rc2.1",
+      "status": "PUBLISHED",
+      "source": "GITHUB_RELEASE",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "release:blackmore-technology-group/ENTITY:391142108",
+      "type": "RELEASE",
+      "occurred_at": "2026-09-18T00:41:55Z",
+      "title": "blackmore-technology-group/ENTITY released v1.0.0-rc2",
+      "summary": "v1.0.0-rc2 — HISTORICAL / UNSUPPORTED",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY/releases/tag/v1.0.0-rc2",
       "status": "PUBLISHED",
       "source": "GITHUB_RELEASE",
       "entity_ingested": false,
