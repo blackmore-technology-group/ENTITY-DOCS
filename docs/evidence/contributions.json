@@ -14,10 +14,16 @@
       "source": {
         "kind": "ENTITY_EVIDENCE",
         "entity_ref": "experiment/bounty-lineage-v343",
-        "path": "evidence/bounty/memnox-46/memnox-46-entity-upstream-accepted-receipt.json",
-        "record_url": "https://github.com/blackmore-technology-group/ENTITY/blob/experiment/bounty-lineage-v343/evidence/bounty/memnox-46/memnox-46-entity-upstream-accepted-receipt.json",
+        "path": "evidence/bounty/memnox-46/memnox-46-entity-upstream-accepted-public-projection.json",
+        "record_url": "https://github.com/blackmore-technology-group/ENTITY/blob/experiment/bounty-lineage-v343/evidence/bounty/memnox-46/memnox-46-entity-upstream-accepted-public-projection.json",
         "experiment_url": "https://github.com/blackmore-technology-group/ENTITY/issues/100",
-        "harness_url": "https://github.com/blackmore-technology-group/ENTITY/pull/102"
+        "harness_url": "https://github.com/blackmore-technology-group/ENTITY/pull/102",
+        "evidence_schema": "entity-v343-external-contribution-upstream-accepted-public-projection-v1",
+        "public_projection": true,
+        "sealed_receipt_sha256": "EDBD4596E589F612E17CB6B72ED65E25B5D4F854A65D3434E12958E3391800C0",
+        "entity_atomic_root": "c783b3e419201118242f76cce3a947dd89d04cb325cac6b4322804c2134c2f03",
+        "predecessor_receipt_sha256": "1914A780F6554558264A4BC8FD1B4B2BE1E95BE85FAF89C2438A7BDEE3B7E7D1",
+        "exact_reconstruction_verified": true
       },
       "contributor": {
         "human_author": "Shawn Blackmore",
@@ -72,10 +78,16 @@
       "source": {
         "kind": "ENTITY_EVIDENCE",
         "entity_ref": "experiment/bounty-lineage-v343",
-        "path": "evidence/bounty/vector-26501/vector-26501-entity-upstream-accepted-receipt.json",
-        "record_url": "https://github.com/blackmore-technology-group/ENTITY/blob/experiment/bounty-lineage-v343/evidence/bounty/vector-26501/vector-26501-entity-upstream-accepted-receipt.json",
+        "path": "evidence/bounty/vector-26501/vector-26501-entity-upstream-accepted-public-projection.json",
+        "record_url": "https://github.com/blackmore-technology-group/ENTITY/blob/experiment/bounty-lineage-v343/evidence/bounty/vector-26501/vector-26501-entity-upstream-accepted-public-projection.json",
         "experiment_url": "https://github.com/blackmore-technology-group/ENTITY/issues/100",
-        "harness_url": "https://github.com/blackmore-technology-group/ENTITY/pull/102"
+        "harness_url": "https://github.com/blackmore-technology-group/ENTITY/pull/102",
+        "evidence_schema": "entity-v343-external-contribution-upstream-accepted-public-projection-v1",
+        "public_projection": true,
+        "sealed_receipt_sha256": "CD1099B45EB7727F839088FE030BA83B5ADEE64FFC63653AAFA31388E9ED3D50",
+        "entity_atomic_root": "06274b223c27e5e9eca0a7157aadbe0a0062f4475b71cf2d1178e3c33257931e",
+        "predecessor_receipt_sha256": "FFDB3A2AF0914FFBB9F846BA70FD4A7DD3F2C1B15EBD8AD5F83FBB05EB13016F",
+        "exact_reconstruction_verified": true
       },
       "contributor": {
         "human_author": "Shawn Blackmore",
@@ -124,5 +136,5 @@
       }
     }
   ],
-  "generated_at_utc": "2026-09-29T02:34:00Z"
+  "generated_at_utc": "2026-09-29T14:44:44Z"
 }
