@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const assetBase=script?new URL('.',script.src):new URL('assets/',location.href);
     const siteRoot=new URL('../',assetBase);
     const map=document.createElement('a');
-    map.href=new URL('system-map/',siteRoot).href;
+    map.href=new URL('reference/capability-map.html',siteRoot).href;
     map.textContent='System Map';
     map.setAttribute('data-entity-system-map','1');
     const github=[...linksBox.querySelectorAll('a')].find(a=>a.classList.contains('nav-cta'));
