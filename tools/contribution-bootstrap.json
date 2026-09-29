@@ -21,6 +21,27 @@
       "entity_experiment_url": "https://github.com/blackmore-technology-group/ENTITY/issues/100",
       "entity_harness_url": "https://github.com/blackmore-technology-group/ENTITY/pull/102",
       "source_record_url": "https://github.com/blackmore-technology-group/ENTITY/issues/100#issuecomment-5877334266"
+    },
+    {
+      "record_id": "contribution-20260928-memnox-memnox-issue-46",
+      "captured_at_utc": "2026-09-28T23:02:58Z",
+      "contribution_class": "PRO_BONO",
+      "external_repository": "Memnox/memnox",
+      "issue_number": 46,
+      "issue_title": "policy: invalid 'windows' either crash the validator or silently switch a rule off",
+      "entity_evidence_state": "UPSTREAM_PR",
+      "advertised_or_expected_amount": 0,
+      "currency": "USD",
+      "realized_cash": 0,
+      "license": "Apache-2.0",
+      "cla_status": "UNKNOWN",
+      "human_author": "Shawn Blackmore",
+      "corporate_contributor": "Blackmore Technology Group Limited",
+      "upstream_pull_request": "https://github.com/Memnox/memnox/pull/86",
+      "upstream_commit": "6241c89ff9800e323d820a700fab7baf3ddbc4ca",
+      "entity_experiment_url": "https://github.com/blackmore-technology-group/ENTITY/issues/100",
+      "entity_harness_url": "https://github.com/blackmore-technology-group/ENTITY/pull/102",
+      "source_record_url": "https://github.com/Memnox/memnox/pull/86"
     }
   ]
 }
