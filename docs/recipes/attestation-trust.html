@@ -1,0 +1,40 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Recipe · Attestation & Trust Policy</title><link rel="stylesheet" href="../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Recipes</a><a href="vault-purpose-access.html">Previous</a><a href="btdu-cli.html">Next →</a></nav><main><div class="eyebrow">Recipe 4</div><h1>Create evidence attestations and a two-attestor trust policy</h1><pre>from pathlib import Path
+import importlib.util, hashlib
+
+ROOT=Path.cwd()
+def load_source(path,name):
+    spec=importlib.util.spec_from_file_location(name,ROOT/path)
+    mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+
+identity_mod=load_source("src/01_Core_Runtime/identity/canonical_identity.py","entity_identity")
+fabric_mod=load_source("src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py","entity_fabric")
+STATE=ROOT/".recipe-state"/"trust"
+identity=identity_mod.EntityIdentityVault(STATE)
+owner=identity.create("Owner","organization")
+lab_a=identity.create("Lab A","organization")
+lab_b=identity.create("Lab B","organization")
+fabric=fabric_mod.UniversalTransactionFabric(STATE,identity)
+obj=fabric.register_object(owner["entity_id"],"DOCUMENT","Quality Report")
+
+policy=fabric.create_trust_policy(
+    owner["entity_id"], "QUALITY_TEST",
+    minimum_attestations=2,
+    required_attestors=[lab_a["entity_id"]],
+    allowed_attestors=[lab_a["entity_id"],lab_b["entity_id"]],
+)
+
+def attest(lab, evidence):
+    return fabric.attest(
+        lab["entity_id"], obj["object_id"], "QUALITY_TEST",
+        hashlib.sha256(evidence).hexdigest(), claim={"result":"PASS"}
+    )
+
+attest(lab_a,b"lab-a-report")
+first=fabric.evaluate_trust(policy["policy_id"],obj["object_id"])
+assert first["policy_satisfied"] is False
+assert first["truth_inferred"] is False
+
+attest(lab_b,b"lab-b-report")
+second=fabric.evaluate_trust(policy["policy_id"],obj["object_id"])
+assert second["policy_satisfied"] is True
+assert second["truth_inferred"] is False</pre><p>Policy satisfaction proves the configured evidence rule passed; it deliberately does not claim objective truth.</p><div class="actions"><a class="button" href="btdu-cli.html">BTDU CLI recipe →</a></div></main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
