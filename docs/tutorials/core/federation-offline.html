@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Tutorial · Federation, Edge & Offline Operation</title><meta name="description" content="Learn ENTITY CORE/REGIONAL/EDGE/SATELLITE/OFFLINE topology, signed checkpoints, offline envelopes and fail-closed partition recovery."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Core curriculum</a><a href="privacy-retention.html">Previous</a><a href="economic-fabric.html">Next: Economic fabric →</a></nav><main><div class="eyebrow">Core tutorial 10</div><h1>Operate across core, edge, satellite and offline nodes without giving infrastructure authority</h1><p class="lede">ENTITY's global topology is designed for disconnected and federated operation. Nodes can host, transport and checkpoint state, but topology membership itself never grants sovereign authority.</p><h2>1. Register topology nodes</h2><pre>topology = TopologyRegistry(STATE, identity)
+core = topology.register_node(
+    operator=core_operator_id,
+    node_id="core-ca-01",
+    topology_class="CORE",
+    jurisdiction="CA",
+    trust_domain="btg-core",
+    capabilities=["RESOLUTION", "SETTLEMENT"],
+)
+edge = topology.register_node(
+    operator=edge_operator_id,
+    node_id="edge-field-01",
+    topology_class="EDGE",
+    jurisdiction="CA",
+    trust_domain="field-team",
+    capabilities=["OFFLINE_CAPTURE"],
+)</pre><p>Supported topology classes are <code>CORE</code>, <code>REGIONAL</code>, <code>EDGE</code>, <code>SATELLITE</code> and <code>OFFLINE</code>. Node registration is signed by the operator and explicitly states that infrastructure membership is not sovereign authority.</p><h2>2. Publish causal checkpoints</h2><pre>sync = PartitionSync(STATE, identity)
+cp1 = sync.publish(
+    node_id="edge-field-01",
+    operator=edge_operator_id,
+    partition_id="incident-123",
+    sequence=1,
+    epoch=1,
+    state_root_sha256=STATE_ROOT,
+    vector_clock={"edge-field-01":1},
+)</pre><p>Subsequent checkpoints must increase sequence by one and link the previous checkpoint hash.</p><h2>3. Create an offline envelope</h2><pre>envelope = OfflineEnvelope.create(
+    identity,
+    actor=operator_id,
+    node_id="edge-field-01",
+    partition_id="incident-123",
+    sequence=2,
+    payload=payload,
+    expires_at_ms=EXPIRY_MS,
+)
+result = OfflineEnvelope.verify(identity, envelope)
+assert result["valid"] is True</pre><p>The envelope is signed, content-bound and expiry-bounded. Valid offline evidence is still not automatic merge authority.</p><h2>4. Merge partitions causally</h2><pre>merge = sync.merge("incident-123")</pre><p>If all current checkpoints share a state root, ENTITY can report converged state. If one checkpoint causally dominates the others, it can be selected. If two states are concurrent and divergent, merge returns a conflict and explicitly prohibits automatic last-writer-wins.</p><h2>5. Treat conflicts as governance/evidence events</h2><p>A concurrent divergent state needs resolution under the relevant authority/policy. The node with the newest wall-clock timestamp is not automatically correct.</p><div class="callout"><strong>This is sovereignty as an engineering property:</strong> the network can partition and reconnect without silently transferring decision authority to the fastest server, latest timestamp or largest provider.</div><div class="actions"><a class="button" href="economic-fabric.html">Run economic state across the fabric →</a><a class="button secondary" href="https://github.com/blackmore-technology-group/ENTITY/blob/main/src/35_Global_Infrastructure/topology_crypto.py">Topology source →</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>
