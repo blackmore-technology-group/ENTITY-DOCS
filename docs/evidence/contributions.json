@@ -64,7 +64,65 @@
         },
         "live_technical_state": "UPSTREAM_ACCEPTED"
       }
+    },
+    {
+      "record_id": "contribution-20260928-memnox-memnox-issue-46",
+      "record_version": 0,
+      "captured_at_utc": "2026-09-28T23:02:58Z",
+      "source": {
+        "kind": "BOOTSTRAP_FROM_ENTITY_PUBLIC_RECORD",
+        "entity_ref": "bootstrap",
+        "path": "tools/contribution-bootstrap.json",
+        "record_url": "https://github.com/Memnox/memnox/pull/86",
+        "experiment_url": "https://github.com/blackmore-technology-group/ENTITY/issues/100",
+        "harness_url": "https://github.com/blackmore-technology-group/ENTITY/pull/102"
+      },
+      "contributor": {
+        "human_author": "Shawn Blackmore",
+        "corporate_contributor": "Blackmore Technology Group Limited"
+      },
+      "repository": "Memnox/memnox",
+      "issue": {
+        "number": 46,
+        "title": "policy: invalid 'windows' either crash the validator or silently switch a rule off",
+        "url": "https://github.com/Memnox/memnox/issues/46",
+        "state": "OPEN"
+      },
+      "contribution_class": "PRO_BONO",
+      "entity_evidence_state": "UPSTREAM_PR",
+      "economic": {
+        "currency": "USD",
+        "advertised_or_expected_amount": 0,
+        "contingent_value": 0,
+        "realized_cash": 0,
+        "payment_settled": false
+      },
+      "rights": {
+        "license": "Apache-2.0",
+        "cla_status_recorded": "UNKNOWN",
+        "provenance_does_not_override_upstream_license": true
+      },
+      "upstream": {
+        "pull_request": "https://github.com/Memnox/memnox/pull/86",
+        "pull_request_number": 86,
+        "pull_request_state": "OPEN",
+        "merged": false,
+        "merged_at": null,
+        "mergeable": true,
+        "head_sha": "a26ad7c1ed76eb01326f85cd37e75f7257d48979",
+        "recorded_commit": "6241c89ff9800e323d820a700fab7baf3ddbc4ca",
+        "review_state": "REVIEWED",
+        "ci_state": "PENDING",
+        "check_counts": {
+          "total": 10,
+          "success": 1,
+          "failure": 0,
+          "pending": 9,
+          "skipped": 0
+        },
+        "live_technical_state": "PR_OPEN"
+      }
     }
   ],
-  "generated_at_utc": "2026-09-28T23:46:37Z"
+  "generated_at_utc": "2026-09-29T00:56:06Z"
 }
