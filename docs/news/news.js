@@ -1,6 +1,6 @@
 (()=>{
 const $=id=>document.getElementById(id);
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=t=>{if(!t)return'unknown time';try{return new Date(t).toLocaleString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}catch{return t}};
 let DATA=null,FILTER='ALL';
 const TYPES=['ALL','RELEASE','COMMIT','FORK','EXTERNAL_FIX','ENTITY_EVIDENCE','PULL_REQUEST','REPOSITORY_EVENT'];
