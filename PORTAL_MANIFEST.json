@@ -1,6 +1,6 @@
 {
   "schema": "entity-docs-portal-v3",
-  "generated_at_utc": "2026-09-29T16:33:36Z",
+  "generated_at_utc": "2026-09-29T16:55:04Z",
   "current_release": "v3.4.3",
   "current_release_tag_object": "e92b34221838fc09d7e72cc2e7a7f19c53a2b5f7",
   "current_release_tag_signature_verified": true,
@@ -8,7 +8,7 @@
   "current_release_tree": "f13e42f515dcc4cd985e9b832e0ecfec416ce423",
   "btdu_component": "3.4.2",
   "btdu_component_status": "unchanged",
-  "generated_from_docs_commit": "9b75f111fdce07270ab7b0a2ca793201737c82f5",
+  "generated_from_docs_commit": "950a81ab708a8d6045270a77199dfcc74956d4ff",
   "canonical_system_definition": "ENTITY is a provider-independent digital authority, information, evidence, market, economic and recovery operating fabric. Sovereignty protects continuity of authority and state across providers; it is not the definition of the whole product.",
   "core_primitives": ["ENTITY", "AUTHORITY", "RIGHT", "EVENT", "VALUE"],
   "version_and_evidence_policy": {
@@ -34,6 +34,7 @@
     "tutorials":"docs/tutorials/index.html",
     "core_tutorials":"docs/tutorials/core/index.html",
     "recipes":"docs/recipes/index.html",
+    "community":"docs/community/index.html",
     "scenario_tutorials":"docs/tutorials/scenarios/index.html",
     "technology":"docs/technology/index.html",
     "economy":"docs/economy/index.html",
@@ -80,10 +81,21 @@
   "scenario_tutorial_path": ["docs/tutorials/scenarios/ai-agent-data-license.html","docs/tutorials/scenarios/training-data-rights.html","docs/tutorials/scenarios/enterprise-data-exchange.html","docs/tutorials/scenarios/zero-infrastructure-recovery.html"],
   "case_study_tutorials": ["docs/tutorials/external-contribution-lineage.html","docs/tutorials/scenarios/contribution-economy.html"],
   "core_tutorial_invariant": "Core tutorials must teach ENTITY platform capability independently of any one campaign and keep ENTITY, authority, rights, events/evidence, value/settlement and recovery as separately verifiable state.",
+  "community_model": {
+    "audience": "developers and users building, integrating, evaluating, operating or using ENTITY",
+    "front_door": "docs/community/index.html",
+    "discussion_backend": "https://github.com/blackmore-technology-group/ENTITY/discussions",
+    "discussion_categories": ["Q&A", "General", "Ideas", "Show and tell", "Announcements", "Polls"],
+    "routing": "Discussions for questions, ideas, evaluation and design conversation; Issues for reproducible defects/ambiguities/bounded work; Pull Requests for concrete reviewable changes; SECURITY.md for sensitive reports",
+    "evidence_rule": "Community posts must not collapse implemented, locally tested, BTG-qualified, externally reproduced, independently implemented/validated, upstream accepted or economically settled states",
+    "scope_boundary": "Community discussion does not alter released protocol/runtime semantics, qualification evidence, rights or settlement state"
+  },
   "public_discovery": {
     "llm_context":"docs/llms.txt",
     "search_index":"docs/search-index.json",
     "runtime_discovery_overlay":"docs/assets/app.js",
+    "community_board":"docs/community/index.html",
+    "discussion_forum":"https://github.com/blackmore-technology-group/ENTITY/discussions",
     "primary_sitemap":"docs/sitemap-site.xml",
     "robots":"docs/robots.txt",
     "feed":"docs/feed.xml",
@@ -99,9 +111,9 @@
     "btdu_destruction_recovery":{"result":"100% exact reconstruction","scope":"qualified destruction/cold-recovery campaign; Memnox recovered 865/865 tracked blobs plus archive, manifest and acceptance proof without original workspace, Git, GitHub or network"},
     "external_contribution_lineage":{"accepted":["Vector #26501 / PR #26504","Memnox #46 / PR #86"],"active_below_acceptance":["AWS #934 / PR #935"],"boundary":"upstream acceptance does not automatically establish payment, ownership transfer or execution of every market subsystem"}
   },
-  "claim_boundaries": ["sovereignty is not the whole product","hosting or custody is not authority","provenance is not automatically ownership or objective truth","upstream acceptance is not payment","trade execution is not verified external settlement","economic observation is not automatically accounting fair value","AI inference does not mint rights","BTG-controlled qualification is distinct from unrelated independent validation","historical or inherited qualification is not a fresh current-runtime execution"],
+  "claim_boundaries": ["sovereignty is not the whole product","hosting or custody is not authority","provenance is not automatically ownership or objective truth","upstream acceptance is not payment","trade execution is not verified external settlement","economic observation is not automatically accounting fair value","AI inference does not mint rights","BTG-controlled qualification is distinct from unrelated independent validation","historical or inherited qualification is not a fresh current-runtime execution","community discussion does not itself change protocol/runtime/evidence state"],
   "repository_heads": {
-    "ENTITY":"eabfd04ee2b716dd7518979d7b4ce9dd31a6b32e",
+    "ENTITY":"cae970f80573fed499d30cfc3bc4437b2b8b92f3",
     "ENTITY-AI":"ec30f6c5537c89d7ae9b49f180ebdfec7e24501a",
     "ENTITY-DEFENCE":"655a9b63c42dd65c6fa59ca8d59660fcaab27d9f",
     "ENTITY-FINANCE":"c1b3a64b220e06c4584e13139e36163c0296f75b",
@@ -111,7 +123,7 @@
     "ENTITY-ROBOTICS":"f1ff62e3953b11d3078461cd8beffb56363bf3b6"
   },
   "curated_search_entries": 78,
-  "runtime_discovery_overlays": ["ENTITY Core Tutorials","Authority & Delegation","Rights & Constraints","Encrypted Vault & Purpose Access","Evidence, Attestations & Trust","Provenance & Value","BTDU, ADAM & NIKI","Rights & Global Passports","Privacy, Retention & Evidenced Destruction","Federated, Edge & Offline Operation","ENTITY Economic Fabric","Provider-Independent Recovery","Standards & Industry Adoption","ENTITY Developer Recipes","Identity & Signing Recipe","Object Authority Rights Recipe","Vault & Purpose Access Recipe","Attestation & Trust Recipe","BTDU CLI Recipe","Passports Recipe","Offline & Partition Recipe","Market Recovery Recipe","Standards Mapping Recipe","Complete ENTITY Capability Map","ENTITY Market Fabric","ENTITY Market Recovery","External Economic Lineage","BTDU Storage & Destruction Recovery Evidence"],
+  "runtime_discovery_overlays": ["ENTITY Core Tutorials","Authority & Delegation","Rights & Constraints","Encrypted Vault & Purpose Access","Evidence, Attestations & Trust","Provenance & Value","BTDU, ADAM & NIKI","Rights & Global Passports","Privacy, Retention & Evidenced Destruction","Federated, Edge & Offline Operation","ENTITY Economic Fabric","Provider-Independent Recovery","Standards & Industry Adoption","ENTITY Developer Recipes","Identity & Signing Recipe","Object Authority Rights Recipe","Vault & Purpose Access Recipe","Attestation & Trust Recipe","BTDU CLI Recipe","Passports Recipe","Offline & Partition Recipe","Market Recovery Recipe","Standards Mapping Recipe","ENTITY Community Board","Complete ENTITY Capability Map","ENTITY Market Fabric","ENTITY Market Recovery","External Economic Lineage","BTDU Storage & Destruction Recovery Evidence"],
   "historical_generated_reference_inventory": {"source_release":"v3.4.0","source_commit":"6a45a62984b8278ddbcd65e51d2d441878837457","file_reference_pages":599,"symbol_reference_pages":1922,"total_html_pages":2603,"status":"historical baseline only; not asserted as current counts"},
-  "claim_boundary": "Current release, immutable release identifiers, repository-head, capability, core-tutorial, recipe, scenario, case-study and discovery fields describe the public documentation state. Legacy generated reference counts and historical qualification remain explicitly historical. This manifest does not alter ENTITY protocol semantics, runtime qualification, immutable release evidence, upstream rights, settlement evidence or historical tags."
+  "claim_boundary": "Current release, immutable release identifiers, repository-head, capability, core-tutorial, recipe, scenario, case-study, community and discovery fields describe the public documentation state. Legacy generated reference counts and historical qualification remain explicitly historical. This manifest does not alter ENTITY protocol semantics, runtime qualification, immutable release evidence, upstream rights, settlement evidence or historical tags."
 }
