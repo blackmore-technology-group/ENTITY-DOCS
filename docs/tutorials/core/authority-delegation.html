@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Tutorial · Delegate & Revoke Authority</title><meta name="description" content="Learn ENTITY authority delegation, scopes, expiry and revocation using the Universal Transaction Fabric."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Core curriculum</a><a href="five-primitives.html">Previous</a><a href="rights-control.html">Next: Rights →</a></nav><main><div class="eyebrow">Core tutorial 2</div><h1>Delegate authority without giving away the root</h1><p class="lede">Authority is explicit, scoped, time-bounded and revocable. ENTITY does not infer authority from employment, custody, infrastructure ownership, a database role or an AI model deciding it wants to act.</p><h2>Authority actions</h2><p><code>ACT · SIGN · ACCESS_DATA · EXECUTE · PURCHASE · LICENSE · SETTLE · PUBLISH · RESOLVE · DELEGATE · CONTROL</code></p><h2>1. Create grantor and grantee Entities</h2><pre>owner = identity.create("Data Owner", "organization")
+operator = identity.create("Licensing Operator", "person")</pre><h2>2. Delegate only the authority required</h2><pre>grant = fabric.delegate_authority(
+    subject_ref=object_id,
+    grantor_entity_id=owner["entity_id"],
+    grantee_entity_id=operator["entity_id"],
+    actions=["LICENSE", "PUBLISH"],
+    scope={"market":"research-data", "max_term_days":30},
+    expires_at_ms=EXPIRY_MS,
+)</pre><p>The grant is signed by the grantor and records <code>implicit_escalation_prohibited=true</code>. LICENSE authority does not silently become CONTROL or SETTLE authority.</p><h2>3. Check authority at the point of use</h2><pre>auth = fabric.active_authority(
+    object_id,
+    operator["entity_id"],
+    "LICENSE",
+)
+assert auth is not None</pre><p>Applications should evaluate authority before the operation they are about to perform. A UI role or cached session is not a substitute for the authoritative record.</p><h2>4. Prove unauthorized escalation fails</h2><pre>assert fabric.active_authority(
+    object_id,
+    operator["entity_id"],
+    "SETTLE",
+) is None</pre><h2>5. Revoke the delegation</h2><pre>fabric.revoke_authority(
+    owner["entity_id"],
+    grant["authority_id"],
+)
+assert fabric.active_authority(
+    object_id,
+    operator["entity_id"],
+    "LICENSE",
+) is None</pre><div class="callout"><strong>Key lesson:</strong> sovereignty in ENTITY is not a stamp. It is the property that authority remains attached to explicit signed relationships instead of leaking to whoever happens to host, transport or operate the system.</div><h2>AI agents use the same rule</h2><p>An AI agent can be represented as an ENTITY object/actor, but its model output does not create authority. The principal must delegate a bounded action such as PURCHASE, LICENSE or ACCESS_DATA, and the same expiry/revocation rules apply.</p><div class="actions"><a class="button" href="rights-control.html">Grant rights →</a><a class="button secondary" href="../scenarios/ai-agent-data-license.html">AI-agent scenario</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>
