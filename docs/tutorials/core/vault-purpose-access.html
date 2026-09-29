@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Tutorial · Encrypted Vault & Purpose-Bound Access</title><meta name="description" content="Learn ENTITY encrypted vault storage and purpose-bound access with expiry, use caps and revocation."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Core curriculum</a><a href="rights-control.html">Previous</a><a href="evidence-trust.html">Next: Evidence & trust →</a></nav><main><div class="eyebrow">Core tutorial 4</div><h1>Protect content without turning storage into authority</h1><p class="lede">ENTITY's encrypted vault stores content under owner/controller control while the governed state keeps commitments and metadata rather than plaintext. Access can then be further constrained by purpose, action, expiry, use count and revocation.</p><h2>1. Put content into the encrypted vault</h2><pre>vault = EncryptedDataVault(STATE)
+item = vault.put_file(
+    owner_id,
+    "dataset.csv",
+    media_type="text/csv",
+    classification="PRIVATE",
+    metadata={"purpose":"research-source"},
+)</pre><p>The vault uses AES-256-GCM with per-object keys. The returned metadata includes a SHA-256 commitment; plaintext is not written into the ledger/state record.</p><h2>2. Read as the controller</h2><pre>raw = vault.read_bytes(owner_id, item["vault_object_id"])
+assert sha256(raw).hexdigest() == item["content_sha256"]</pre><p>A controller mismatch fails. A missing key fails. A plaintext commitment mismatch fails.</p><h2>3. Add a purpose-bound grant</h2><p>The global privacy layer supports explicit purpose/action grants with expiry and optional use caps.</p><pre>registry = PurposeBoundAccessRegistry(STATE, identity)
+grant = registry.grant(
+    owner_id,
+    researcher_id,
+    resource_ref=item["vault_object_id"],
+    purposes=["RESEARCH"],
+    actions=["READ"],
+    expires_at_ms=EXPIRY_MS,
+    max_uses=3,
+)</pre><h2>4. Authorize actual use</h2><pre>use = registry.authorize_use(
+    grant["grant_id"],
+    researcher_id,
+    "RESEARCH",
+    "READ",
+    evidence_sha256=USE_EVIDENCE_SHA256,
+)
+assert use["authorized"] is True</pre><p>The implementation rejects inactive grants, wrong grantees, expired grants, wrong purposes, wrong actions and exhausted use caps.</p><h2>5. Revoke access</h2><pre>registry.revoke(owner_id, grant["grant_id"])</pre><h2>6. Understand vault lifecycle states</h2><p>The encrypted vault distinguishes <code>ACTIVE</code>, <code>LOCAL_DELETED</code>, <code>CRYPTOGRAPHICALLY_ERASED</code>, <code>REMOTE_DELETION_REQUESTED</code>, <code>REMOTE_DELETION_ATTESTED</code>, <code>REMOTE_DELETION_UNVERIFIED</code> and <code>RETENTION_LEGALLY_REQUIRED</code>.</p><div class="callout"><strong>Important:</strong> deleting local ciphertext, destroying a local key and receiving a remote deletion attestation are different events. ENTITY keeps those distinctions instead of declaring “deleted everywhere” without evidence.</div><div class="actions"><a class="button" href="evidence-trust.html">Add evidence and trust →</a><a class="button secondary" href="https://github.com/blackmore-technology-group/ENTITY/blob/main/src/08_Data_Vaults/canonical_encrypted_vault.py">Vault source</a><a class="button secondary" href="https://github.com/blackmore-technology-group/ENTITY/blob/main/src/35_Global_Infrastructure/privacy_provenance.py">Purpose access source</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>
