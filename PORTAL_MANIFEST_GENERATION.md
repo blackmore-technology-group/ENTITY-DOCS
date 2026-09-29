@@ -18,12 +18,14 @@ For each regeneration:
 10. Keep bounded engineering results explicitly scoped: the controlled BTDU benchmark measured 97% lower storage requirements; the qualified destruction/cold-recovery campaign achieved 100% exact reconstruction for the tested campaign, including Memnox 865/865 tracked blobs plus archive, manifest and acceptance proof without original workspace/Git/GitHub/network.
 11. Keep real-world contribution states current: accepted cases and active cases must be sourced from the public ENTITY evidence/ledger, and upstream acceptance must not be converted into payment or ownership claims.
 12. Preserve `docs/tutorials/` as a first-class learning surface. At minimum retain the tutorial hub plus the canonical learning path for Entity identity/signing, BTDU ingest/reconstruction, rights-market lifecycle, provider-independent recovery and external contribution lineage.
-13. Keep tutorial instructions grounded in current public interfaces. Tutorial commands/API names must be sourced from the current identity API, BTDU CLI/continuous-ingestion API, exchange adoption surface, market-recovery documentation and public evidence model rather than invented convenience commands.
-14. Rebuild `docs/search-index.json` from current public navigation/discovery routes and set `curated_search_entries` to the exact number of entries in that JSON array. Runtime overlays in `docs/assets/app.js` may add canonical capability/tutorial entries before the next static rebuild; list those separately in `runtime_discovery_overlays`.
-15. Validate that every search-index, tutorial and canonical capability-map URL resolves within the published portal.
-16. Validate discovery routing through `docs/sitemap-site.xml`, `docs/robots.txt`, `docs/llms.txt`, `docs/assets/site.js` and `docs/assets/app.js`; Tutorials and the canonical capability map must remain reachable from both public site-shell pages and deep documentation pages.
-17. Validate that the homepage, Tutorials, Technology, Economy, Developer, Evidence, Protocol, Operator, Security, Research, Partners and Reference entry points describe ENTITY consistently with the canonical capability definition.
-18. Review the resulting diff through a pull request before merge when the normal repository workflow requires one.
+13. Preserve `docs/tutorials/scenarios/` as the full-stack scenario layer. At minimum retain the AI-agent data-license, training/derivation-rights, contribution-economy, enterprise-data-exchange and zero-infrastructure-recovery scenarios.
+14. Scenario tutorials must keep these states separately visible and testable: actor authority, machine-readable rights, governed information/asset, event/evidence, value/obligation/settlement and recovery. They must not collapse the scenario into a single "success" state.
+15. Keep tutorial instructions grounded in current public interfaces. Tutorial commands/API names must be sourced from the current identity API, BTDU CLI/continuous-ingestion API, exchange adoption surface, market-recovery documentation and public evidence model rather than invented convenience commands. Where the adoption layer describes conceptual routes rather than a turnkey hosted HTTP service, tutorials must say so.
+16. Rebuild `docs/search-index.json` from current public navigation/discovery routes and set `curated_search_entries` to the exact number of entries in that JSON array. Runtime overlays in `docs/assets/app.js` may add canonical capability/tutorial/scenario entries before the next static rebuild; list those separately in `runtime_discovery_overlays`.
+17. Validate that every search-index, tutorial, scenario and canonical capability-map URL resolves within the published portal.
+18. Validate discovery routing through `docs/sitemap-site.xml`, `docs/robots.txt`, `docs/llms.txt`, `docs/assets/site.js` and `docs/assets/app.js`; Tutorials and the canonical capability map must remain reachable from both public site-shell pages and deep documentation pages.
+19. Validate that the homepage, Tutorials, Scenario Tutorials, Technology, Economy, Developer, Evidence, Protocol, Operator, Security, Research, Partners and Reference entry points describe ENTITY consistently with the canonical capability definition.
+20. Review the resulting diff through a pull request before merge when the normal repository workflow requires one.
 
 ## Canonical capability source
 
@@ -38,7 +40,9 @@ The portal should consistently describe ENTITY as a **provider-independent digit
 
 ## Tutorial source boundary
 
-The tutorial hub is `docs/tutorials/index.html`. Tutorials are task-oriented learning material; they do not replace the canonical API/reference pages. Where a tutorial uses a command, method, route or state name, the corresponding developer/operator/source reference remains authoritative. Tutorial examples must preserve fail-closed behavior and the same authority, rights, provenance, settlement and recovery boundaries as the implementation.
+The tutorial hub is `docs/tutorials/index.html`; full-stack scenarios are rooted at `docs/tutorials/scenarios/index.html`. Tutorials are task-oriented learning material and do not replace canonical API/reference pages. Where a tutorial uses a command, method, route or state name, the corresponding developer/operator/source reference remains authoritative. Tutorial examples must preserve fail-closed behavior and the same authority, rights, provenance, settlement and recovery boundaries as the implementation.
+
+The scenario layer is specifically intended to demonstrate subsystem composition: AI-agent authority, governed data licensing/training, contribution economics, enterprise rights exchange and complete recovery. Scenario text must distinguish implemented platform capability from what a specific real-world case has independently evidenced.
 
 ## Public evidence publication boundary
 
