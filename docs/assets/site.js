@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(linksBox&&!linksBox.querySelector('a[data-entity-system-map]')){
     const a=document.createElement('a');a.href=new URL('reference/capability-map.html',siteRoot).href;a.textContent='System Map';a.setAttribute('data-entity-system-map','1');insertBeforeGithub(a);
   }
+  if(linksBox&&!linksBox.querySelector('a[data-entity-community]')){
+    const a=document.createElement('a');a.href=new URL('community/',siteRoot).href;a.textContent='Community';a.setAttribute('data-entity-community','1');insertBeforeGithub(a);
+  }
 
   const links=[...document.querySelectorAll('.site-links a')];
   const path=location.pathname.replace(/\/+$/,'/');
