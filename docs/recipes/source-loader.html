@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Recipe · Load Canonical Source Modules</title><link rel="stylesheet" href="../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Recipes</a><a href="identity-signing.html">Next: Identity →</a></nav><main><div class="eyebrow">Recipe 0</div><h1>Load current source modules by exact path</h1><p class="lede">Use this helper when working directly from a checked-out ENTITY repository. Numeric source-directory prefixes are valid filesystem paths but not normal Python package identifiers.</p><pre>from pathlib import Path
+import importlib.util
+
+ROOT = Path.cwd()  # run from the ENTITY repository root
+
+def load_source(relative_path: str, module_name: str):
+    path = ROOT / relative_path
+    if not path.is_file():
+        raise FileNotFoundError(path)
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+identity_mod = load_source(
+    "src/01_Core_Runtime/identity/canonical_identity.py",
+    "entity_identity",
+)
+fabric_mod = load_source(
+    "src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py",
+    "entity_fabric",
+)</pre><h2>Why use this in the cookbook?</h2><p>It keeps every example anchored to an exact repository file instead of pretending that a package such as <code>from entity import ...</code> already exists. Production integrations may wrap or package these modules differently.</p><h2>Pin what you test</h2><pre>git rev-parse HEAD
+git status --short</pre><p>For reproducible qualification, record the exact commit/tag used by the recipe.</p><div class="actions"><a class="button" href="identity-signing.html">Identity recipe →</a></div></main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
