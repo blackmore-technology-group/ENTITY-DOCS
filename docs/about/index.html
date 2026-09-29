@@ -49,11 +49,23 @@
   <h2>ENTITY is the authority system. The surrounding components have deliberately separate jobs.</h2>
   <div class="grid">
     <article class="card"><h3>ENTITY</h3><p><strong>Authority, identity, rights, provenance, evidence, economic state and recovery.</strong> ENTITY defines the governed relationships and the evidence required to verify them.</p></article>
-    <article class="card"><h3>BTDU</h3><p><strong>Blackmore Technology Data Universe.</strong> BTDU 3.4.2 is the governed information layer used to preserve exact information objects, relationships, lineage and reconstructable state under ENTITY authority.</p></article>
+    <article class="card"><h3>BTDU</h3><p><strong>Blackmore Technology Data Universe.</strong> BTDU 3.4.2 is the governed information layer used to preserve exact information objects, relationships, lineage and reconstructable state under ENTITY authority. Controlled BTDU benchmark campaigns have also measured substantial storage reduction while preserving exact recovery.</p></article>
     <article class="card"><h3>ADAM</h3><p><strong>Deterministic state transformation and replay.</strong> ADAM applies and recovers governed state transitions. It does not independently decide who owns something or who is authorized.</p></article>
     <article class="card"><h3>NIKI</h3><p><strong>Reasoning inside authority boundaries.</strong> NIKI can reason over governed evidence and information, but it is not allowed to create authority, ownership, rights or settlement merely because a model inferred them.</p></article>
   </div>
   <div class="notice"><strong>Separation matters:</strong> reasoning can change; providers can change; applications can change. The authority and evidence chain is intended to remain independently understandable.</div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">BTDU measured engineering results</div>
+  <h2>Storage reduction and exact destruction recovery have both been tested.</h2>
+  <p class="section-intro">BTDU is not only intended to retain lineage. Controlled engineering campaigns have tested whether governed information can be represented more compactly and whether the accepted state can still be recovered exactly after the original working source is no longer available.</p>
+  <div class="grid two">
+    <article class="card"><h3>97% lower storage in the tested benchmark</h3><p>In the controlled BTDU benchmark referenced by the v3.4.x engineering campaign, the tested representation required approximately <strong>97% less storage</strong> than the comparison baseline while preserving the information needed by that workload. This is a measured result for that test configuration, not a universal compression guarantee for every dataset or workload.</p></article>
+    <article class="card"><h3>100% exact recovery in the qualified destruction test</h3><p>BTDU cold-recovery qualification demonstrated complete reconstruction of the qualified accepted source and evidence after removing dependence on the original working source. In the Memnox #46 qualification, the source clone, Git, GitHub and network were not used; the archive, manifest and upstream-acceptance proof reconstructed exactly, and all <strong>865 of 865</strong> tracked Git blobs verified with zero missing paths, zero extra paths and zero mismatches.</p></article>
+  </div>
+  <div class="flow">INGEST → GOVERNED BTDU STATE → ORIGINAL WORKSPACE NOT REQUIRED → COLD RECOVERY → EXACT HASH / BLOB VERIFICATION</div>
+  <div class="notice"><strong>Claim boundary:</strong> “97%” refers to the controlled storage benchmark that produced that measurement. “100% recovery” refers to exact recovery of the qualified test corpus and evidence, not a claim that every conceivable damaged or incomplete system state is automatically recoverable.</div>
 </section>
 
 <section class="section">
@@ -121,7 +133,7 @@
 <section class="section">
   <div class="eyebrow">Development and evidence model</div>
   <h2>Public engineering, explicit evidence boundaries.</h2>
-  <div class="split"><div><ul class="checklist"><li>public core repository</li><li>public release history</li><li>sealed conformance material</li><li>BTG-controlled multi-language implementation baselines</li><li>external verification challenges</li><li>independent implementation path</li><li>security and recovery qualification</li><li>public real-world contribution evidence</li><li>public documentation and research resources</li></ul></div><div class="notice">BTG-controlled test results are engineering evidence. They are not represented as unrelated third-party validation. Outside reproduction, independent implementation, security review, institutional pilots and commercial adoption remain separate evidence classes.</div></div>
+  <div class="split"><div><ul class="checklist"><li>public core repository</li><li>public release history</li><li>sealed conformance material</li><li>BTG-controlled multi-language implementation baselines</li><li>external verification challenges</li><li>independent implementation path</li><li>security and recovery qualification</li><li>controlled storage-efficiency benchmarks</li><li>destruction/cold-recovery qualification</li><li>public real-world contribution evidence</li><li>public documentation and research resources</li></ul></div><div class="notice">BTG-controlled test results are engineering evidence. They are not represented as unrelated third-party validation. Outside reproduction, independent implementation, security review, institutional pilots and commercial adoption remain separate evidence classes.</div></div>
 </section>
 
 <section class="section">
@@ -130,7 +142,7 @@
   <p class="section-intro">The current supported runtime is ENTITY v3.4.3. The BTDU component remains 3.4.2. Historical evidence, hashes, receipts and qualification artifacts remain preserved rather than being silently rewritten by later documentation.</p>
   <div class="grid">
     <article class="card"><h3>Current runtime</h3><p><strong>v3.4.3</strong><br>Supported ENTITY runtime and current public release.</p><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.3">Release →</a></article>
-    <article class="card"><h3>BTDU component</h3><p><strong>3.4.2</strong><br>Governed information and reconstructable state component used by the current runtime.</p><a href="../research-hub/">Research boundary →</a></article>
+    <article class="card"><h3>BTDU component</h3><p><strong>3.4.2</strong><br>Governed information and reconstructable state component used by the current runtime, with controlled benchmark and cold-recovery qualification evidence preserved separately.</p><a href="../research-hub/">Research boundary →</a></article>
     <article class="card"><h3>Historical evidence</h3><p><strong>v3.4.2 campaign</strong><br>Immutable predecessor evidence remains available for verification and comparison.</p><a href="../v342/">Historical archive →</a></article>
   </div>
 </section>
