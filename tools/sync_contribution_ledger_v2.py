@@ -52,6 +52,10 @@ def _parent_receipt_sha(receipt: dict[str, Any]) -> str:
     if isinstance(parent, dict):
         return str(parent.get("sha256") or "")
 
+    predecessor = receipt.get("predecessor")
+    if isinstance(predecessor, dict):
+        return str(predecessor.get("receipt_sha256") or "")
+
     event = receipt.get("event")
     if isinstance(event, dict):
         return str(event.get("parent_entity_receipt_sha256") or "")
@@ -70,7 +74,9 @@ def _normalize_acceptance_receipt(receipt: dict[str, Any]) -> dict[str, Any] | N
     repository = str(receipt.get("repository") or event.get("repository") or "")
     issue_number = int(receipt.get("issue_number") or event.get("issue_number") or 0)
     pr_number = int(
-        receipt.get("pull_request_number")
+        receipt.get("pr_number")
+        or receipt.get("pull_request_number")
+        or event.get("pr_number")
         or event.get("pull_request_number")
         or 0
     )
@@ -93,10 +99,21 @@ def _normalize_acceptance_receipt(receipt: dict[str, Any]) -> dict[str, Any] | N
         or ""
     )
     final_head = str(
-        receipt.get("final_head_sha")
+        receipt.get("final_pr_head")
+        or receipt.get("final_head_sha")
+        or event.get("final_pr_head")
         or event.get("final_head_sha")
         or ""
     )
+
+    atomic_root = str(
+        receipt.get("atomic_root")
+        or entity.get("atomic_root")
+        or ""
+    )
+    exact_reconstruction = receipt.get("exact_reconstruction_verified")
+    if exact_reconstruction is None:
+        exact_reconstruction = entity.get("exact_reconstruction_verified", False)
 
     return {
         "record_version": 1,
@@ -109,9 +126,7 @@ def _normalize_acceptance_receipt(receipt: dict[str, Any]) -> dict[str, Any] | N
             "issue_number": issue_number,
             "advertised_or_expected_amount": 0,
             "currency": str(realized_cash.get("currency") or "USD"),
-            "evidence_state": str(
-                receipt.get("phase") or "UPSTREAM_ACCEPTED_RECORDED"
-            ),
+            "evidence_state": "UPSTREAM_ACCEPTED_RECORDED",
         },
         "economic": {
             "class": contribution_class,
@@ -130,10 +145,8 @@ def _normalize_acceptance_receipt(receipt: dict[str, Any]) -> dict[str, Any] | N
             "cla_status": "UNKNOWN",
         },
         "_entity_receipt_schema": ACCEPTANCE_SCHEMA,
-        "_entity_atomic_root": str(entity.get("atomic_root") or ""),
-        "_entity_exact_reconstruction_verified": bool(
-            entity.get("exact_reconstruction_verified", False)
-        ),
+        "_entity_atomic_root": atomic_root,
+        "_entity_exact_reconstruction_verified": bool(exact_reconstruction),
         "_entity_parent_receipt_sha256": _parent_receipt_sha(receipt),
     }
 
