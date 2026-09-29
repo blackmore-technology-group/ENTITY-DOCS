@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Tutorial · Evidence, Attestations & Trust</title><meta name="description" content="Learn ENTITY attestations, evidence commitments and threshold trust policies without confusing evidence with objective truth."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Core curriculum</a><a href="vault-purpose-access.html">Previous</a><a href="provenance-value.html">Next: Provenance & value →</a></nav><main><div class="eyebrow">Core tutorial 5</div><h1>Build evidence without declaring it to be truth</h1><p class="lede">ENTITY can record signed attestations and evaluate explicit trust policies while preserving a critical boundary: an attestation is evidence, and satisfying a policy is not the same thing as proving objective truth.</p><h2>1. Hash the evidence you actually observed</h2><pre>evidence_sha256 = sha256(report_bytes).hexdigest()</pre><p>The evidence can be a lab report, external registry response, sensor bundle, certificate, upstream CI result or another verifiable artifact. Keep the underlying artifact according to its own retention/privacy requirements.</p><h2>2. Create an attestation</h2><pre>att = fabric.attest(
+    attestor_entity_id=lab_entity_id,
+    subject_ref=sample_object_id,
+    claim_type="QUALITY_TEST",
+    evidence_sha256=evidence_sha256,
+    claim={"result":"PASS", "method":"example-v1"},
+)</pre><p>The signed record deliberately carries <code>attestation_is_evidence_not_truth=true</code>.</p><h2>3. Define the trust rule explicitly</h2><pre>policy = fabric.create_trust_policy(
+    controller_entity_id=owner_id,
+    claim_type="QUALITY_TEST",
+    minimum_attestations=2,
+    required_attestors=[lab_a_id],
+    allowed_attestors=[lab_a_id, lab_b_id, lab_c_id],
+)</pre><p>This means “for our application, this claim class is acceptable when at least two valid, allowed attestations exist and Lab A is one of them.” It does not mean ENTITY has discovered universal truth.</p><h2>4. Evaluate the policy</h2><pre>result = fabric.evaluate_trust(
+    policy["policy_id"],
+    sample_object_id,
+)
+print(result["policy_satisfied"])</pre><p>The evaluation verifies attestation signatures, filters disallowed/duplicate attestors and reports whether the threshold and required-attestor conditions are satisfied. The result explicitly reports <code>truth_inferred=false</code>.</p><h2>5. Test the failure modes</h2><ul><li>Only one attestation exists when the threshold is two.</li><li>A required attestor is absent.</li><li>An attestor is not in the allowed set.</li><li>An attestation signature or evidence commitment is invalid.</li></ul><div class="callout"><strong>Why this matters:</strong> ENTITY can support institutional verification without pretending cryptography magically decides whether a scientific, legal, financial or factual claim is objectively correct.</div><div class="actions"><a class="button" href="provenance-value.html">Trace provenance & value →</a><a class="button secondary" href="https://github.com/blackmore-technology-group/ENTITY/blob/main/src/37_Verifiable_Reality/evidence_objects.py">Evidence source</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>
