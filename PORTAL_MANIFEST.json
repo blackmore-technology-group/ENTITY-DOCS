@@ -1,6 +1,6 @@
 {
   "schema": "entity-docs-portal-v3",
-  "generated_at_utc": "2026-09-29T16:55:04Z",
+  "generated_at_utc": "2026-09-29T17:18:00Z",
   "current_release": "v3.4.3",
   "current_release_tag_object": "e92b34221838fc09d7e72cc2e7a7f19c53a2b5f7",
   "current_release_tag_signature_verified": true,
@@ -8,7 +8,7 @@
   "current_release_tree": "f13e42f515dcc4cd985e9b832e0ecfec416ce423",
   "btdu_component": "3.4.2",
   "btdu_component_status": "unchanged",
-  "generated_from_docs_commit": "950a81ab708a8d6045270a77199dfcc74956d4ff",
+  "generated_from_docs_commit": "376d3aab4467eaae3fe3ecf3f6d33a8152ac2c82",
   "canonical_system_definition": "ENTITY is a provider-independent digital authority, information, evidence, market, economic and recovery operating fabric. Sovereignty protects continuity of authority and state across providers; it is not the definition of the whole product.",
   "core_primitives": ["ENTITY", "AUTHORITY", "RIGHT", "EVENT", "VALUE"],
   "version_and_evidence_policy": {
@@ -35,6 +35,7 @@
     "core_tutorials":"docs/tutorials/core/index.html",
     "recipes":"docs/recipes/index.html",
     "community":"docs/community/index.html",
+    "news":"docs/news/index.html",
     "scenario_tutorials":"docs/tutorials/scenarios/index.html",
     "technology":"docs/technology/index.html",
     "economy":"docs/economy/index.html",
@@ -90,12 +91,31 @@
     "evidence_rule": "Community posts must not collapse implemented, locally tested, BTG-qualified, externally reproduced, independently implemented/validated, upstream accepted or economically settled states",
     "scope_boundary": "Community discussion does not alter released protocol/runtime semantics, qualification evidence, rights or settlement state"
   },
+  "news_model": {
+    "name": "Blackmore Technology GitHub Footprint NEWS",
+    "front_door": "docs/news/index.html",
+    "schema": "btg-github-footprint-news-v1",
+    "generator": "tools/sync_github_news.py",
+    "workflow": ".github/workflows/sync-github-news.yml",
+    "schedule": "twice hourly at minute 7 and 37 plus manual/push triggers",
+    "activity_json": "docs/news/activity.json",
+    "atom_feed": "docs/news/feed.xml",
+    "root_atom_feed": "docs/feed.xml",
+    "scope": "public Blackmore Technology GitHub footprint only; private repositories and private activity excluded",
+    "event_types": ["RELEASE", "COMMIT", "FORK", "REPOSITORY_EVENT", "PULL_REQUEST", "EXTERNAL_FIX", "ENTITY_EVIDENCE"],
+    "views": ["chronological activity", "releases", "external fixes/upstream PRs", "ENTITY-ingested public evidence", "complete public repository/fork inventory"],
+    "history_rule": "current repository/release/PR state is refreshed each sync; previously observed public activity is append-retained from the first automated NEWS sync forward because GitHub public events are a rolling recent window",
+    "claim_boundaries": ["GitHub activity is not automatically ENTITY evidence", "fork or repository custody is not upstream ownership", "external pull request is not upstream acceptance", "ENTITY ingestion is not independent validation", "upstream merge is not payment or economic settlement"]
+  },
   "public_discovery": {
     "llm_context":"docs/llms.txt",
     "search_index":"docs/search-index.json",
     "runtime_discovery_overlay":"docs/assets/app.js",
     "community_board":"docs/community/index.html",
     "discussion_forum":"https://github.com/blackmore-technology-group/ENTITY/discussions",
+    "github_footprint_news":"docs/news/index.html",
+    "github_footprint_json":"docs/news/activity.json",
+    "github_footprint_atom":"docs/news/feed.xml",
     "primary_sitemap":"docs/sitemap-site.xml",
     "robots":"docs/robots.txt",
     "feed":"docs/feed.xml",
@@ -111,7 +131,7 @@
     "btdu_destruction_recovery":{"result":"100% exact reconstruction","scope":"qualified destruction/cold-recovery campaign; Memnox recovered 865/865 tracked blobs plus archive, manifest and acceptance proof without original workspace, Git, GitHub or network"},
     "external_contribution_lineage":{"accepted":["Vector #26501 / PR #26504","Memnox #46 / PR #86"],"active_below_acceptance":["AWS #934 / PR #935"],"boundary":"upstream acceptance does not automatically establish payment, ownership transfer or execution of every market subsystem"}
   },
-  "claim_boundaries": ["sovereignty is not the whole product","hosting or custody is not authority","provenance is not automatically ownership or objective truth","upstream acceptance is not payment","trade execution is not verified external settlement","economic observation is not automatically accounting fair value","AI inference does not mint rights","BTG-controlled qualification is distinct from unrelated independent validation","historical or inherited qualification is not a fresh current-runtime execution","community discussion does not itself change protocol/runtime/evidence state"],
+  "claim_boundaries": ["sovereignty is not the whole product","hosting or custody is not authority","provenance is not automatically ownership or objective truth","upstream acceptance is not payment","trade execution is not verified external settlement","economic observation is not automatically accounting fair value","AI inference does not mint rights","BTG-controlled qualification is distinct from unrelated independent validation","historical or inherited qualification is not a fresh current-runtime execution","community discussion does not itself change protocol/runtime/evidence state","GitHub NEWS activity does not itself create ENTITY evidence, upstream ownership, independent validation or settlement"],
   "repository_heads": {
     "ENTITY":"cae970f80573fed499d30cfc3bc4437b2b8b92f3",
     "ENTITY-AI":"ec30f6c5537c89d7ae9b49f180ebdfec7e24501a",
@@ -122,8 +142,8 @@
     "ENTITY-MANUFACTURING":"0d1e7ea844b1074f7671e667a4a2727052c0ebc8",
     "ENTITY-ROBOTICS":"f1ff62e3953b11d3078461cd8beffb56363bf3b6"
   },
-  "curated_search_entries": 78,
-  "runtime_discovery_overlays": ["ENTITY Core Tutorials","Authority & Delegation","Rights & Constraints","Encrypted Vault & Purpose Access","Evidence, Attestations & Trust","Provenance & Value","BTDU, ADAM & NIKI","Rights & Global Passports","Privacy, Retention & Evidenced Destruction","Federated, Edge & Offline Operation","ENTITY Economic Fabric","Provider-Independent Recovery","Standards & Industry Adoption","ENTITY Developer Recipes","Identity & Signing Recipe","Object Authority Rights Recipe","Vault & Purpose Access Recipe","Attestation & Trust Recipe","BTDU CLI Recipe","Passports Recipe","Offline & Partition Recipe","Market Recovery Recipe","Standards Mapping Recipe","ENTITY Community Board","Complete ENTITY Capability Map","ENTITY Market Fabric","ENTITY Market Recovery","External Economic Lineage","BTDU Storage & Destruction Recovery Evidence"],
+  "curated_search_entries": 79,
+  "runtime_discovery_overlays": ["ENTITY Core Tutorials","Authority & Delegation","Rights & Constraints","Encrypted Vault & Purpose Access","Evidence, Attestations & Trust","Provenance & Value","BTDU, ADAM & NIKI","Rights & Global Passports","Privacy, Retention & Evidenced Destruction","Federated, Edge & Offline Operation","ENTITY Economic Fabric","Provider-Independent Recovery","Standards & Industry Adoption","ENTITY Developer Recipes","Identity & Signing Recipe","Object Authority Rights Recipe","Vault & Purpose Access Recipe","Attestation & Trust Recipe","BTDU CLI Recipe","Passports Recipe","Offline & Partition Recipe","Market Recovery Recipe","Standards Mapping Recipe","ENTITY Community Board","Blackmore Technology GitHub Footprint NEWS","Complete ENTITY Capability Map","ENTITY Market Fabric","ENTITY Market Recovery","External Economic Lineage","BTDU Storage & Destruction Recovery Evidence"],
   "historical_generated_reference_inventory": {"source_release":"v3.4.0","source_commit":"6a45a62984b8278ddbcd65e51d2d441878837457","file_reference_pages":599,"symbol_reference_pages":1922,"total_html_pages":2603,"status":"historical baseline only; not asserted as current counts"},
-  "claim_boundary": "Current release, immutable release identifiers, repository-head, capability, core-tutorial, recipe, scenario, case-study, community and discovery fields describe the public documentation state. Legacy generated reference counts and historical qualification remain explicitly historical. This manifest does not alter ENTITY protocol semantics, runtime qualification, immutable release evidence, upstream rights, settlement evidence or historical tags."
+  "claim_boundary": "Current release, immutable release identifiers, repository-head, capability, core-tutorial, recipe, scenario, case-study, community, NEWS and discovery fields describe the public documentation state. Legacy generated reference counts and historical qualification remain explicitly historical. This manifest does not alter ENTITY protocol semantics, runtime qualification, immutable release evidence, upstream rights, settlement evidence or historical tags."
 }
