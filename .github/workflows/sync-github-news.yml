@@ -1,0 +1,51 @@
+name: Sync Blackmore GitHub footprint NEWS
+
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - 'tools/sync_github_news.py'
+      - 'docs/evidence/contributions.json'
+      - '.github/workflows/sync-github-news.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: btg-github-footprint-news
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out documentation repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Rebuild public GitHub footprint ledger
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BTG_GITHUB_ACCOUNT: blackmore-technology-group
+        run: python tools/sync_github_news.py
+
+      - name: Commit generated NEWS data only when source state changed
+        shell: bash
+        run: |
+          if git diff --quiet -- docs/news/activity.json docs/news/feed.xml docs/feed.xml; then
+            echo "GitHub footprint NEWS is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- docs/news/activity.json docs/news/feed.xml docs/feed.xml
+          git commit -m "news: sync public Blackmore GitHub footprint"
+          git push
