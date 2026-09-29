@@ -22,8 +22,8 @@
 
   const statusClass = (state) => {
     const s = String(state || '').toUpperCase();
-    if (s.includes('ACCEPTED') || s === 'PASS' || s.includes('APPROVED')) return 'ledger-good';
-    if (s.includes('FAIL') || s.includes('CLOSED') || s.includes('CHANGES REQUESTED')) return 'ledger-bad';
+    if (s.includes('ACCEPTED') || s === 'PASS' || s.includes('APPROVED') || s.includes('VERIFIED') || s === 'SETTLED') return 'ledger-good';
+    if (s.includes('FAIL') || s.includes('CLOSED UNMERGED') || s.includes('CHANGES REQUESTED')) return 'ledger-bad';
     return 'ledger-neutral';
   };
 
@@ -39,6 +39,9 @@
     const entityState = label(item.entity_evidence_state);
     const contributionClass = label(item.contribution_class);
     const checks = upstream.check_counts || {};
+    const accepted = upstream.live_technical_state === 'UPSTREAM_ACCEPTED' || Boolean(upstream.merged);
+    const valueState = accepted ? 'UPSTREAM ACCEPTANCE VERIFIED' : 'CONTRIBUTION IN PROGRESS';
+    const settlementState = economic.payment_settled ? 'SETTLED' : 'NO SETTLEMENT RECORDED';
 
     return `
       <article class="card ledger-card">
@@ -46,15 +49,19 @@
         <h3>${esc(item.repository)} #${esc(issue.number)} — ${esc(issue.title)}</h3>
         <div class="ledger-status-row">
           <span class="ledger-pill ${statusClass(upstream.live_technical_state)}">LIVE: ${esc(technical)}</span>
+          <span class="ledger-pill ${statusClass(valueState)}">VALUE EVIDENCE: ${esc(valueState)}</span>
           <span class="ledger-pill ledger-neutral">ENTITY: ${esc(entityState)}</span>
+          <span class="ledger-pill ${statusClass(settlementState)}">COMMERCIAL: ${esc(settlementState)}</span>
           <span class="ledger-pill ${statusClass(upstream.ci_state)}">CI: ${esc(label(upstream.ci_state))}</span>
           <span class="ledger-pill ${statusClass(upstream.review_state)}">REVIEW: ${esc(label(upstream.review_state))}</span>
         </div>
         <p><strong>Contributor:</strong> ${esc(item.contributor?.human_author || '')} / ${esc(item.contributor?.corporate_contributor || '')}<br>
         <strong>Licence:</strong> ${esc(rights.license || 'UNKNOWN')}<br>
         <strong>Recorded cash:</strong> ${esc(money(economic.realized_cash, economic.currency))}<br>
+        <strong>Settlement recorded:</strong> ${economic.payment_settled ? 'yes' : 'no'}<br>
         <strong>Head SHA:</strong> <code>${esc(upstream.head_sha || upstream.recorded_commit || 'not recorded')}</code></p>
-        <p><strong>Live upstream observation:</strong> ${esc(technical)}. <strong>ENTITY recorded state:</strong> ${esc(entityState)}. These are deliberately separate: the site may observe a later public GitHub event, but it does not rewrite the underlying ENTITY evidence record.</p>
+        <p><strong>Contribution-value interpretation:</strong> ${accepted ? 'An unrelated upstream project has accepted the contribution, providing external evidence of technical adoption.' : 'The contribution has not yet reached verified upstream acceptance.'} This statement does not assign a monetary valuation or create a payment obligation.</p>
+        <p><strong>ENTITY recorded state:</strong> ${esc(entityState)}. <strong>Live upstream observation:</strong> ${esc(technical)}. <strong>Commercial settlement:</strong> ${esc(settlementState)}. These remain deliberately separate evidence domains.</p>
         <p class="muted">Checks observed: ${esc(checks.success || 0)} successful, ${esc(checks.failure || 0)} failing, ${esc(checks.pending || 0)} pending. Source record: <code>${esc(item.record_id)}</code>.</p>
         <div class="actions">
           ${link(issue.url, 'Issue')}
