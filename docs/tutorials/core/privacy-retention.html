@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Tutorial · Privacy, Retention & Evidenced Destruction</title><meta name="description" content="Learn ENTITY purpose-bound access, retention, legal hold, confidential provenance and evidenced destruction."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Core curriculum</a><a href="passports-profiles.html">Previous</a><a href="federation-offline.html">Next: Federation & offline →</a></nav><main><div class="eyebrow">Core tutorial 9</div><h1>Keep evidence while minimizing exposed information</h1><p class="lede">ENTITY's privacy layer separates evidence commitments from raw payloads. You can enforce purpose-bound use, retain commitments after payload destruction, preserve legal holds and keep sensitive provenance metadata encrypted.</p><h2>1. Register a retention policy for a payload commitment</h2><pre>ledger = SelectiveRetentionLedger(STATE, identity)
+record = ledger.register(
+    controller=owner_id,
+    subject_ref=object_id,
+    payload_sha256=PAYLOAD_SHA256,
+    purpose="RESEARCH",
+    jurisdiction="CA",
+    retain_until_ms=RETENTION_END,
+    destruction_mode="DELETE_PAYLOAD",
+)</pre><p>The ledger records the commitment and policy state, not the raw payload.</p><h2>2. Test legal/temporal controls</h2><p>Destruction before <code>retain_until_ms</code> must fail. A <code>LEGAL_HOLD</code> record must refuse destruction even after the nominal retention period.</p><h2>3. Destroy with evidence</h2><pre>destroyed = ledger.destroy(
+    owner_id,
+    record["record_id"],
+    destruction_evidence_sha256=DESTRUCTION_EVIDENCE_SHA256,
+    at_ms=AFTER_RETENTION,
+)</pre><p>The resulting state preserves the original payload commitment and the destruction-evidence commitment while marking the governed record destroyed.</p><h2>4. Use confidential provenance when public lineage is too revealing</h2><pre>private_graph = ConfidentialProvenanceLedger(STATE, identity)
+edge = private_graph.add_edge(
+    actor=owner_id,
+    parent_ref=source_ref,
+    child_ref=derived_ref,
+    relationship="DERIVED_FROM",
+    evidence_sha256=EVIDENCE_SHA256,
+    metadata={"internal_method":"restricted"},
+    encryption_key=KEY,
+)</pre><p>The public record can retain a metadata commitment while sensitive metadata remains AES-GCM protected. Later disclosure can prove the revealed metadata matches the original commitment.</p><h2>5. Distinguish local and remote deletion</h2><p>A local erase does not prove a provider erased its copy. A remote deletion request does not prove fulfillment. A remote deletion attestation is evidence from the attestor and should be evaluated under the applicable trust policy.</p><div class="callout"><strong>Privacy is not “delete the audit trail.”</strong> ENTITY is designed so the system can preserve signed commitments/evidence while minimizing or destroying payloads according to explicit rules.</div><div class="actions"><a class="button" href="federation-offline.html">Operate across nodes/offline →</a><a class="button secondary" href="https://github.com/blackmore-technology-group/ENTITY/blob/main/src/35_Global_Infrastructure/privacy_provenance.py">Privacy source →</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>
