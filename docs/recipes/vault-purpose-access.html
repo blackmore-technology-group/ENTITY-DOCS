@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Recipe · Vault & Purpose-Bound Access</title><link rel="stylesheet" href="../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Recipes</a><a href="object-authority-rights.html">Previous</a><a href="attestation-trust.html">Next →</a></nav><main><div class="eyebrow">Recipe 3</div><h1>Encrypt bytes and authorize one bounded use</h1><pre>from pathlib import Path
+import importlib.util, hashlib, time
+
+ROOT = Path.cwd()
+def load_source(path, name):
+    spec=importlib.util.spec_from_file_location(name, ROOT/path)
+    mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+
+identity_mod=load_source("src/01_Core_Runtime/identity/canonical_identity.py","entity_identity")
+vault_mod=load_source("src/08_Data_Vaults/canonical_encrypted_vault.py","entity_vault")
+privacy_mod=load_source("src/35_Global_Infrastructure/privacy_provenance.py","entity_privacy")
+STATE=ROOT/".recipe-state"/"vault"
+identity=identity_mod.EntityIdentityVault(STATE)
+owner=identity.create("Owner","organization")
+reader=identity.create("Reader","person")
+
+vault=vault_mod.EncryptedDataVault(STATE)
+item=vault.put_bytes(owner["entity_id"], b"confidential payload", media_type="text/plain", classification="PRIVATE")
+assert vault.read_bytes(owner["entity_id"], item["vault_object_id"]) == b"confidential payload"
+
+access=privacy_mod.PurposeBoundAccessRegistry(STATE, identity)
+grant=access.grant(
+    owner["entity_id"], reader["entity_id"], item["vault_object_id"],
+    purposes=["RESEARCH"], actions=["READ"],
+    expires_at_ms=int(time.time()*1000)+60000, max_uses=1,
+)
+use_hash=hashlib.sha256(b"read-session-evidence").hexdigest()
+use=access.authorize_use(grant["grant_id"], reader["entity_id"], "RESEARCH", "READ", use_hash)
+assert use["authorized"] is True
+assert use["remaining_uses"] == 0
+
+try:
+    access.authorize_use(grant["grant_id"], reader["entity_id"], "RESEARCH", "READ", use_hash)
+    raise AssertionError("second use should fail")
+except PermissionError:
+    pass</pre><p>This recipe proves encrypted content storage and purpose/action/use-cap authorization are separate controls.</p><div class="actions"><a class="button" href="attestation-trust.html">Evidence/trust recipe →</a></div></main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
