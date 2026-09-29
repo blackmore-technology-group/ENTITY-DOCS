@@ -1,12 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>ENTITY Project Updates</title>
-  <subtitle>Release, qualification, developer and operator updates for ENTITY by Blackmore Technology Group Limited.</subtitle>
+  <subtitle>Release, economic fabric, qualification, developer and operator updates for ENTITY by Blackmore Technology Group Limited.</subtitle>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/</id>
-  <updated>2026-09-27T19:38:00Z</updated>
+  <updated>2026-09-29T03:28:00Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+
+  <entry>
+    <title>ENTITY documentation now exposes the full digital-economic operating fabric</title>
+    <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/economy/market-fabric.html"/>
+    <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/economy/market-fabric.html#2026-09-29-economic-fabric</id>
+    <updated>2026-09-29T03:28:00Z</updated>
+    <summary>The public portal has been restructured so sovereignty is treated as an authority/recovery invariant rather than the definition of ENTITY. First-class documentation now covers venues, rights instruments, balances, listings, disclosures, order books, RFQs/quotes, call auctions, trades, clearing, entitlements, usage, surveillance, revenue rules, settlement verifiers, payment attestations, economic participation and market recovery.</summary>
+  </entry>
+
+  <entry>
+    <title>Vector and Memnox accepted external contributions recorded as ENTITY economic lineage</title>
+    <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/evidence/real-world.html"/>
+    <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/evidence/real-world.html#2026-09-29-vector-memnox</id>
+    <updated>2026-09-29T02:34:00Z</updated>
+    <summary>Vector issue #26501 / PR #26504 and Memnox issue #46 / PR #86 are both upstream merged and recorded as UPSTREAM_ACCEPTED_RECORDED. Both remain PRO_BONO with USD 0 realized cash and payment_settled=false. The cases demonstrate real external problem-to-contribution-to-acceptance-to-economic-state lineage without conflating acceptance with payment.</summary>
+  </entry>
 
   <entry>
     <title>ENTITY v3.4.3 — current supported remediation release</title>
@@ -17,11 +33,11 @@
   </entry>
 
   <entry>
-    <title>Evaluate ENTITY for your organization — new operator and adopter path</title>
+    <title>Evaluate ENTITY for your organization</title>
     <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/evaluate-entity.html"/>
     <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/operator/evaluate-entity.html</id>
     <updated>2026-09-27T15:47:00Z</updated>
-    <summary>A plain-language evaluation path is available for enterprise architects, security teams, data and AI governance teams, identity architects, research-data infrastructure teams and operators assessing authority, provenance, rights, evidence, recovery and provider portability.</summary>
+    <summary>A plain-language evaluation path is available for enterprise architects, security teams, data and AI governance teams, market/data infrastructure teams and operators assessing authority, provenance, rights, evidence, economic state, recovery and provider portability.</summary>
   </entry>
 
   <entry>
@@ -29,7 +45,7 @@
     <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/"/>
     <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/#language-reproduction-2026-09-27</id>
     <updated>2026-09-27T15:00:00Z</updated>
-    <summary>Small reproducibility tasks remain open in Rust, TypeScript, C#/.NET, Go, Swift and Java against the exact frozen v3.4.2 26-vector baseline. Each task provides a native run command and exact expected result. These historical target labels do not mean v3.4.2 remains the current runtime.</summary>
+    <summary>Small reproducibility tasks remain open in Rust, TypeScript, C#/.NET, Go, Swift and Java against exact frozen v3.4.2 evidence targets where specified. These historical labels do not mean v3.4.2 remains the current runtime.</summary>
   </entry>
 
   <entry>
@@ -37,7 +53,7 @@
     <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/entity-authority-provenance.html"/>
     <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/standards/entity-authority-provenance.html</id>
     <updated>2026-09-27T04:00:00Z</updated>
-    <summary>Open technical material for review of provider-neutral authority, provenance, rights, portable state and conformance boundaries. The material is pre-submission and carries no IETF, W3C, DIF or other standards-body endorsement.</summary>
+    <summary>Open technical material for review of provider-neutral authority, provenance, rights, portable state and conformance boundaries. Current standards documentation also maps the market/economic interoperability surface without claiming standards-body endorsement.</summary>
   </entry>
 
   <entry>
@@ -49,42 +65,10 @@
   </entry>
 
   <entry>
-    <title>ENTITY v3.4.2 — Canonical BTDU Release</title>
+    <title>ENTITY v3.4.2 — historical BTDU release</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.2"/>
     <id>https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.2</id>
     <updated>2026-09-26T16:08:00Z</updated>
     <summary>ENTITY v3.4.2 introduced the BTDU release line and remains immutable historical evidence. It is superseded for current deployment by ENTITY v3.4.3; the BTDU component itself remains version 3.4.2 unchanged.</summary>
-  </entry>
-
-  <entry>
-    <title>ENTITY v3.4.2 Frozen External Qualification Program</title>
-    <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/"/>
-    <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/qualification/</id>
-    <updated>2026-09-26T18:20:00Z</updated>
-    <summary>Historical frozen-v3.4.2 qualification calls cover hardware-backed key custody, physical multi-host operation, certified-device testing, independent security audit and independent assessor review. The exact frozen target remains unchanged even though v3.4.3 is now the current runtime.</summary>
-  </entry>
-
-  <entry>
-    <title>External Verification Challenge — reproduce it, break it, or implement one part independently</title>
-    <link href="https://github.com/blackmore-technology-group/ENTITY/issues/55"/>
-    <id>https://github.com/blackmore-technology-group/ENTITY/issues/55</id>
-    <updated>2026-09-27T19:20:00Z</updated>
-    <summary>The current umbrella challenge now identifies ENTITY v3.4.3 as the supported runtime while preserving exact frozen v3.4.2 campaigns as historical test targets where appropriate.</summary>
-  </entry>
-
-  <entry>
-    <title>AI Governance and Provenance Guide</title>
-    <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/ai-governance-provenance.html"/>
-    <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/ai-governance-provenance.html</id>
-    <updated>2026-09-26T23:00:48Z</updated>
-    <summary>A technical guide to explicit delegated authority, data/model lineage, evidence boundaries, training/derivation rights and independent scrutiny for governed AI systems.</summary>
-  </entry>
-
-  <entry>
-    <title>ENTITY Technical Guides</title>
-    <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/"/>
-    <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/guides/</id>
-    <updated>2026-09-26T23:00:48Z</updated>
-    <summary>Problem-focused guides for data provenance, sovereign data rights, BTDU versus knowledge graphs/vector indexes, portable digital authority/recovery, and AI governance/provenance.</summary>
   </entry>
 </feed>
