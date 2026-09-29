@@ -5,10 +5,25 @@ ENTITY is an Apache-2.0 open-source provider-independent digital authority, info
 Do not summarize ENTITY merely as a sovereignty, identity, provenance or contribution-tracking layer. Sovereignty is an invariant: custody, hosting, storage, routing, venue operation or infrastructure possession do not automatically become authority. The implemented system also contains governed information, delegated authority, machine-readable rights, evidence/trust, encrypted vaults, BTDU, ADAM, NIKI, passports, privacy/retention, federated/offline infrastructure, market execution, economic participation, settlement evidence and provider-independent recovery.
 
 Current supported runtime: ENTITY v3.4.3
+Signed annotated release tag object: e92b34221838fc09d7e72cc2e7a7f19c53a2b5f7
+Immutable release commit: 528b70aabd05b1e930b77e4933f157731e47274f
+Release tree: f13e42f515dcc4cd985e9b832e0ecfec416ce423
 BTDU component: 3.4.2 unchanged
+Frozen external conformance target: ENTITY Protocol 1.0
 Source: https://github.com/blackmore-technology-group/ENTITY
 Docs: https://blackmore-technology-group.github.io/ENTITY-DOCS/
 Capability map: https://blackmore-technology-group.github.io/ENTITY-DOCS/reference/capability-map.html
+
+## Version and evidence targets
+
+Keep these four evidence classes separate:
+
+1. CURRENT_RUNTIME_EXECUTED — a test or behavior executed against the supported ENTITY v3.4.3 runtime/release target.
+2. PROTOCOL_1_0_CONFORMANCE — a result against the frozen ENTITY Protocol 1.0 external conformance target and its sealed material.
+3. HISTORICAL_OR_INHERITED_UNCHANGED_SCOPE — v3.4.2 or another exact historical artifact, including qualification inherited by v3.4.3 because the qualified component/path was unchanged. Inheritance is not a fresh v3.4.3 execution.
+4. EXTERNAL_OR_INDEPENDENT_EVIDENCE — evidence controlled by an unrelated contributor, implementer, assessor or external organization. It is distinct from BTG-controlled qualification.
+
+Current developer/API/reference pages should describe ENTITY v3.4.3 and link to the immutable v3.4.3 tag or exact release commit when identifying release behavior. Historical reproduction pages must keep the actual historical tag, kit, hashes and labels. Do not silently up-version BTDU 3.4.2 or the BTG-controlled v3.4.2 language baselines.
 
 ## Five primitives
 
