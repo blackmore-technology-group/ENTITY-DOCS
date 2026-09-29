@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Recipe · Offline Envelope & Partition Merge</title><link rel="stylesheet" href="../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Recipes</a><a href="passports.html">Previous</a><a href="market-recovery.html">Next →</a></nav><main><div class="eyebrow">Recipe 7</div><h1>Register an EDGE node, sign offline work and test conflict handling</h1><pre>from pathlib import Path
+import importlib.util, hashlib, time
+
+ROOT=Path.cwd()
+def load_source(path,name):
+    spec=importlib.util.spec_from_file_location(name,ROOT/path)
+    mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+
+identity_mod=load_source("src/01_Core_Runtime/identity/canonical_identity.py","entity_identity")
+topo_mod=load_source("src/35_Global_Infrastructure/topology_crypto.py","entity_topology")
+STATE=ROOT/".recipe-state"/"offline"
+identity=identity_mod.EntityIdentityVault(STATE)
+operator=identity.create("Edge Operator","organization")
+
+topology=topo_mod.TopologyRegistry(STATE,identity)
+topology.register_node(
+    operator["entity_id"], "edge-01", "EDGE", "CA", "recipe-edge",
+    ["OFFLINE_CAPTURE"]
+)
+
+payload={"observation":"sample","sequence":1}
+envelope=topo_mod.OfflineEnvelope.create(
+    identity, operator["entity_id"], "edge-01", "partition-a", 1, payload,
+    expires_at_ms=int(time.time()*1000)+60000,
+)
+assert topo_mod.OfflineEnvelope.verify(identity,envelope)["valid"] is True
+
+sync=topo_mod.PartitionSync(STATE,identity)
+root=hashlib.sha256(b"state-v1").hexdigest()
+cp=sync.publish(
+    "edge-01", operator["entity_id"], "partition-a",
+    sequence=1, epoch=1, state_root_sha256=root,
+    vector_clock={"edge-01":1},
+)
+merged=sync.merge("partition-a")
+assert merged["resolved"] is True
+assert merged["state_root_sha256"] == root</pre><p>For a conflict test, publish causally concurrent divergent checkpoints from multiple nodes. ENTITY should return <code>CONCURRENT_DIVERGENT_STATE</code> rather than silently picking the newest wall-clock record.</p><div class="actions"><a class="button" href="market-recovery.html">Market recovery recipe →</a><a class="button secondary" href="../tutorials/core/federation-offline.html">Federation tutorial</a></div></main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
