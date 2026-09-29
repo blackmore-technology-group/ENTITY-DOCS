@@ -1,11 +1,11 @@
 {
   "schema": "entity-docs-portal-v3",
-  "generated_at_utc": "2026-09-29T15:30:46Z",
+  "generated_at_utc": "2026-09-29T15:38:00Z",
   "current_release": "v3.4.3",
   "current_release_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
   "btdu_component": "3.4.2",
   "btdu_component_status": "unchanged",
-  "generated_from_docs_commit": "27a865f46a6fa3c1c30311d25e2b3d709239fbbb",
+  "generated_from_docs_commit": "8ed3cb7c19fff5a14aef401b18a250af7633562d",
   "canonical_system_definition": "ENTITY is a provider-independent digital authority, information, evidence, market, economic and recovery operating fabric. Sovereignty protects continuity of authority and state across providers; it is not the definition of the whole product.",
   "core_primitives": [
     "ENTITY",
@@ -21,6 +21,7 @@
   "canonical_navigation": {
     "home": "docs/index.html",
     "tutorials": "docs/tutorials/index.html",
+    "scenario_tutorials": "docs/tutorials/scenarios/index.html",
     "technology": "docs/technology/index.html",
     "economy": "docs/economy/index.html",
     "developer_hub": "docs/build/index.html",
@@ -40,6 +41,14 @@
     "docs/tutorials/recovery-drill.html",
     "docs/tutorials/external-contribution-lineage.html"
   ],
+  "scenario_tutorial_path": [
+    "docs/tutorials/scenarios/ai-agent-data-license.html",
+    "docs/tutorials/scenarios/training-data-rights.html",
+    "docs/tutorials/scenarios/contribution-economy.html",
+    "docs/tutorials/scenarios/enterprise-data-exchange.html",
+    "docs/tutorials/scenarios/zero-infrastructure-recovery.html"
+  ],
+  "scenario_tutorial_invariant": "Every scenario must keep actor authority, rights, information, event/evidence, value/settlement and recovery as separately verifiable states rather than collapsing them into one success flag.",
   "public_discovery": {
     "llm_context": "docs/llms.txt",
     "search_index": "docs/search-index.json",
@@ -142,6 +151,12 @@
     "Walk Through an ENTITY Rights Market",
     "Run an ENTITY Recovery Drill",
     "Record External Contribution Lineage",
+    "ENTITY End-to-End Scenario Tutorials",
+    "AI Agent Licenses Governed Data",
+    "Govern Training and Derivation Rights",
+    "Contribution Economy Scenario",
+    "Enterprise Data Exchange Scenario",
+    "Zero-Infrastructure Recovery Scenario",
     "Complete ENTITY Capability Map",
     "Machine-Readable ENTITY Capability Map",
     "ENTITY Market Fabric",
@@ -157,5 +172,5 @@
     "total_html_pages": 2603,
     "status": "historical baseline only; not asserted as current counts"
   },
-  "claim_boundary": "Current release, repository-head, capability, tutorial and discovery fields describe the public documentation state. Legacy generated reference counts remain explicitly historical. This manifest does not alter ENTITY protocol semantics, runtime qualification, immutable release evidence, upstream rights, settlement evidence or historical tags."
+  "claim_boundary": "Current release, repository-head, capability, tutorial, scenario and discovery fields describe the public documentation state. Legacy generated reference counts remain explicitly historical. This manifest does not alter ENTITY protocol semantics, runtime qualification, immutable release evidence, upstream rights, settlement evidence or historical tags."
 }
