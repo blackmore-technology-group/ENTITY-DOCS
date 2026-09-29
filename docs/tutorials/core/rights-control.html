@@ -1,0 +1,40 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Tutorial · Grant, Constrain & Revoke Rights</title><meta name="description" content="Learn ENTITY machine-readable rights, purpose/jurisdiction constraints, economic terms and revocation."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Core curriculum</a><a href="authority-delegation.html">Previous</a><a href="vault-purpose-access.html">Next: Vault & access →</a></nav><main><div class="eyebrow">Core tutorial 3</div><h1>Rights are explicit, machine-readable state</h1><p class="lede">Authority answers who may act. Rights answer what a grantee may do with a governed object. ENTITY deliberately separates those concepts.</p><h2>Rights actions</h2><p><code>INSPECT · READ · COPY · DERIVE · TRAIN · INFER · EXECUTE · MODIFY · REDISTRIBUTE · COMMERCIALIZE · CONTROL · TRANSFER</code></p><h2>1. Grant only the needed actions</h2><pre>right = fabric.grant_right(
+    object_id,
+    grantor_entity_id=owner_id,
+    grantee_ref=researcher_id,
+    actions=["READ", "TRAIN", "DERIVE"],
+    constraints={
+        "purposes":["climate-research"],
+        "jurisdictions":["CA"],
+    },
+    economic_terms={
+        "price_units":25000,
+        "currency":"CAD-CENTS",
+    },
+    expires_at_ms=EXPIRY_MS,
+)</pre><p>The record explicitly states <code>access_is_not_ownership=true</code>. Giving TRAIN does not silently give COMMERCIALIZE. Giving READ does not give REDISTRIBUTE.</p><h2>2. Evaluate a right at use time</h2><pre>allowed = fabric.active_right(
+    object_id,
+    researcher_id,
+    "TRAIN",
+    purpose="climate-research",
+    jurisdiction="CA",
+)
+assert allowed is not None</pre><h2>3. Negative tests matter</h2><pre>assert fabric.active_right(
+    object_id,
+    researcher_id,
+    "COMMERCIALIZE",
+    purpose="climate-research",
+    jurisdiction="CA",
+) is None
+
+assert fabric.active_right(
+    object_id,
+    researcher_id,
+    "TRAIN",
+    purpose="advertising",
+    jurisdiction="CA",
+) is None</pre><p>A real integration should make these failures visible. Do not “helpfully” broaden a right because the caller is authenticated or has physical access to the bytes.</p><h2>4. Revoke it</h2><pre>fabric.revoke_right(owner_id, right["right_id"])
+assert fabric.active_right(
+    object_id, researcher_id, "TRAIN",
+    purpose="climate-research", jurisdiction="CA"
+) is None</pre><h2>5. Separate byte possession from legal/economic permission</h2><p>A recipient may possess a copy while the governed right expires or is revoked. ENTITY records the rights state around the information; it does not pretend non-rival information bytes become physically scarce.</p><div class="callout"><strong>Checkpoint:</strong> you should be able to explain why controller, authority, custody and rights can all belong to different parties without contradiction.</div><div class="actions"><a class="button" href="vault-purpose-access.html">Protect the bytes →</a><a class="button secondary" href="../scenarios/training-data-rights.html">Training-rights scenario</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>
