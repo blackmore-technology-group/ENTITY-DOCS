@@ -230,6 +230,7 @@ def _acceptance_records_for_ref(ref: str) -> list[dict[str, Any]]:
 
 
 _original_records_for_ref = ledger.evidence_records_for_ref
+_original_enrich = ledger.enrich
 
 
 def evidence_records_for_ref(ref: str) -> list[dict[str, Any]]:
@@ -333,8 +334,32 @@ def choose_latest(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return list(chosen.values())
 
 
+def enrich(rec: dict[str, Any]) -> dict[str, Any]:
+    out = _original_enrich(rec)
+    source = out.setdefault("source", {})
+
+    if rec.get("_entity_evidence_schema"):
+        source["evidence_schema"] = rec.get("_entity_evidence_schema")
+    if rec.get("_entity_public_projection"):
+        source["public_projection"] = True
+    if rec.get("_entity_sealed_receipt_sha256"):
+        source["sealed_receipt_sha256"] = rec.get("_entity_sealed_receipt_sha256")
+    if rec.get("_entity_atomic_root"):
+        source["entity_atomic_root"] = rec.get("_entity_atomic_root")
+    if rec.get("_entity_parent_receipt_sha256"):
+        source["predecessor_receipt_sha256"] = rec.get(
+            "_entity_parent_receipt_sha256"
+        )
+    source["exact_reconstruction_verified"] = bool(
+        rec.get("_entity_exact_reconstruction_verified", False)
+    )
+
+    return out
+
+
 ledger.evidence_records_for_ref = evidence_records_for_ref
 ledger.choose_latest = choose_latest
+ledger.enrich = enrich
 
 
 if __name__ == "__main__":
