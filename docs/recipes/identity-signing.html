@@ -1,0 +1,29 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Recipe · Identity & Signing</title><link rel="stylesheet" href="../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Recipes</a><a href="source-loader.html">Source loader</a><a href="object-authority-rights.html">Next →</a></nav><main><div class="eyebrow">Recipe 1</div><h1>Create, verify and sign with an ENTITY identity</h1><pre>from pathlib import Path
+import importlib.util, json
+
+ROOT = Path.cwd()
+def load_source(path, name):
+    spec = importlib.util.spec_from_file_location(name, ROOT / path)
+    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+
+m = load_source("src/01_Core_Runtime/identity/canonical_identity.py", "entity_identity")
+STATE = ROOT / ".recipe-state" / "identity"
+vault = m.EntityIdentityVault(STATE)
+
+manifest = vault.create(
+    "Recipe Organization",
+    "organization",
+    aliases=["recipe-org"],
+)
+assert vault.verify_manifest(manifest)
+entity_id = manifest["entity_id"]
+print(entity_id)
+
+payload = {"action":"demo", "object":"sample"}
+signature_record = vault.sign(entity_id, payload)
+print(json.dumps(signature_record, indent=2))
+
+rotated = vault.rotate_signing_key(entity_id)
+assert vault.verify_manifest(rotated)
+assert rotated["manifest_revision"] == 2
+print(rotated["active_signing_key_id"])</pre><h2>What this proves</h2><p>You created a persistent <code>ent2-</code> identity with distinct operational and recovery verification methods, verified the signed manifest, produced an ENTITY signature record and rotated the operational key with continuity evidence.</p><div class="callout"><strong>Do not use this disposable state directory for production keys.</strong> Production custody, backup and hardware-key policy are deployment concerns.</div><div class="actions"><a class="button" href="object-authority-rights.html">Object/authority/rights recipe →</a><a class="button secondary" href="../tutorials/core/authority-delegation.html">Concept tutorial</a></div></main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
