@@ -16,17 +16,28 @@
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/core/economic-fabric.html</loc><changefreq>weekly</changefreq><priority>0.98</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/core/recovery-portability.html</loc><changefreq>weekly</changefreq><priority>0.98</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/core/standards-adoption.html</loc><changefreq>weekly</changefreq><priority>0.94</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/recipes/</loc><changefreq>weekly</changefreq><priority>0.98</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/recipes/source-loader.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/recipes/identity-signing.html</loc><changefreq>weekly</changefreq><priority>0.94</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/recipes/object-authority-rights.html</loc><changefreq>weekly</changefreq><priority>0.96</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/recipes/vault-purpose-access.html</loc><changefreq>weekly</changefreq><priority>0.94</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/recipes/attestation-trust.html</loc><changefreq>weekly</changefreq><priority>0.94</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/recipes/btdu-cli.html</loc><changefreq>weekly</changefreq><priority>0.96</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/recipes/passports.html</loc><changefreq>weekly</changefreq><priority>0.94</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/recipes/offline-partition.html</loc><changefreq>weekly</changefreq><priority>0.92</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/recipes/market-recovery.html</loc><changefreq>weekly</changefreq><priority>0.96</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/recipes/standards-mapping.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/first-entity.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/ingest-and-reconstruct.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/first-rights-market.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/recovery-drill.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/external-contribution-lineage.html</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/</loc><changefreq>weekly</changefreq><priority>0.95</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/ai-agent-data-license.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/training-data-rights.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/contribution-economy.html</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/enterprise-data-exchange.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/zero-infrastructure-recovery.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/external-contribution-lineage.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/scenarios/contribution-economy.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/reference/capability-map.html</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/technology/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/economy/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
