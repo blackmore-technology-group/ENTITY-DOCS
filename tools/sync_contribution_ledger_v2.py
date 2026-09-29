@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""ENTITY contribution-ledger compatibility layer for sealed v3.4.3 acceptance receipts.
+"""ENTITY contribution-ledger compatibility layer for v3.4.3 acceptance evidence.
 
 This module leaves the existing synchronizer intact and extends its evidence discovery
-to include immutable ENTITY upstream-acceptance receipts published under
-evidence/bounty/**.
+to include both sealed upstream-acceptance receipts and portable public projections
+published under evidence/bounty/**.
+
+Portable projections deliberately omit workstation-local paths and point back to the
+immutable sealed receipt by SHA-256. They are public evidence views, not replacements
+for the sealed receipt bytes.
 """
 
 from __future__ import annotations
@@ -17,7 +21,14 @@ from typing import Any
 import sync_contribution_ledger as ledger
 
 ACCEPTANCE_SCHEMA = "entity-v343-external-contribution-upstream-accepted-receipt-v1"
-ACCEPTANCE_SUFFIX = "-entity-upstream-accepted-receipt.json"
+PUBLIC_PROJECTION_SCHEMA = (
+    "entity-v343-external-contribution-upstream-accepted-public-projection-v1"
+)
+ACCEPTANCE_SCHEMAS = {ACCEPTANCE_SCHEMA, PUBLIC_PROJECTION_SCHEMA}
+ACCEPTANCE_SUFFIXES = (
+    "-entity-upstream-accepted-receipt.json",
+    "-entity-upstream-accepted-public-projection.json",
+)
 
 STATE_RANK = {
     "PREPARED": 10,
@@ -64,12 +75,18 @@ def _parent_receipt_sha(receipt: dict[str, Any]) -> str:
 
 
 def _normalize_acceptance_receipt(receipt: dict[str, Any]) -> dict[str, Any] | None:
-    if str(receipt.get("schema") or "") != ACCEPTANCE_SCHEMA:
+    schema = str(receipt.get("schema") or "")
+    if schema not in ACCEPTANCE_SCHEMAS:
         return None
 
     event = receipt.get("event") if isinstance(receipt.get("event"), dict) else {}
     claims = receipt.get("claims") if isinstance(receipt.get("claims"), dict) else {}
     entity = receipt.get("entity") if isinstance(receipt.get("entity"), dict) else {}
+    publication = (
+        receipt.get("publication")
+        if isinstance(receipt.get("publication"), dict)
+        else {}
+    )
 
     repository = str(receipt.get("repository") or event.get("repository") or "")
     issue_number = int(receipt.get("issue_number") or event.get("issue_number") or 0)
@@ -88,6 +105,8 @@ def _normalize_acceptance_receipt(receipt: dict[str, Any]) -> dict[str, Any] | N
     )
 
     realized_cash = receipt.get("realized_cash")
+    if not isinstance(realized_cash, dict):
+        realized_cash = claims.get("realized_cash")
     if not isinstance(realized_cash, dict):
         realized_cash = event.get("realized_cash")
     if not isinstance(realized_cash, dict):
@@ -114,6 +133,9 @@ def _normalize_acceptance_receipt(receipt: dict[str, Any]) -> dict[str, Any] | N
     exact_reconstruction = receipt.get("exact_reconstruction_verified")
     if exact_reconstruction is None:
         exact_reconstruction = entity.get("exact_reconstruction_verified", False)
+
+    sealed_schema = str(publication.get("sealed_receipt_schema") or schema)
+    sealed_receipt_sha = str(publication.get("sealed_receipt_sha256") or "")
 
     return {
         "record_version": 1,
@@ -144,7 +166,10 @@ def _normalize_acceptance_receipt(receipt: dict[str, Any]) -> dict[str, Any] | N
             "license": "UNKNOWN",
             "cla_status": "UNKNOWN",
         },
-        "_entity_receipt_schema": ACCEPTANCE_SCHEMA,
+        "_entity_receipt_schema": sealed_schema,
+        "_entity_evidence_schema": schema,
+        "_entity_public_projection": schema == PUBLIC_PROJECTION_SCHEMA,
+        "_entity_sealed_receipt_sha256": sealed_receipt_sha,
         "_entity_atomic_root": atomic_root,
         "_entity_exact_reconstruction_verified": bool(exact_reconstruction),
         "_entity_parent_receipt_sha256": _parent_receipt_sha(receipt),
@@ -175,7 +200,10 @@ def _acceptance_records_for_ref(ref: str) -> list[dict[str, Any]]:
 
     for item in tree.get("tree", []):
         path = str(item.get("path") or "")
-        if item.get("type") != "blob" or not path.endswith(ACCEPTANCE_SUFFIX):
+        if (
+            item.get("type") != "blob"
+            or not any(path.endswith(suffix) for suffix in ACCEPTANCE_SUFFIXES)
+        ):
             continue
 
         parsed = _decode_blob(item, ref, path)
@@ -185,7 +213,7 @@ def _acceptance_records_for_ref(ref: str) -> list[dict[str, Any]]:
         rec = _normalize_acceptance_receipt(parsed)
         if rec is None:
             print(
-                f"WARN: unsupported upstream acceptance receipt schema in {path} at {ref}",
+                f"WARN: unsupported upstream acceptance evidence schema in {path} at {ref}",
                 file=sys.stderr,
             )
             continue
