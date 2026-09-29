@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Tutorial · Provenance & Value</title><meta name="description" content="Learn causal provenance, contribution weights and explicit value states in ENTITY without treating lineage as ownership or automatic royalty."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Core curriculum</a><a href="evidence-trust.html">Previous</a><a href="btdu-adam-niki.html">Next: BTDU, ADAM & NIKI →</a></nav><main><div class="eyebrow">Core tutorial 6</div><h1>Trace lineage without turning lineage into ownership</h1><p class="lede">ENTITY records causal relationships among governed objects and can deterministically distribute explicitly modeled value across contribution weights. It does not infer legal title, royalties or payment obligations merely because one object contributed to another.</p><h2>1. Register source and derived objects</h2><pre>source = fabric.register_object(owner_id, "DATASET", "Source Dataset", content_sha256=SOURCE_SHA)
+derived = fabric.register_object(owner_id, "MODEL", "Derived Model", content_sha256=MODEL_SHA)</pre><h2>2. Add a provenance edge</h2><pre>edge = fabric.add_provenance(
+    actor_entity_id=owner_id,
+    parent_object_id=source["object_id"],
+    child_object_id=derived["object_id"],
+    relation="TRAINING_SOURCE",
+    contribution_bps=6500,
+    evidence={"training_run":"run-2026-001"},
+)</pre><p>The graph must remain acyclic, and incoming contribution weights cannot exceed 10,000 basis points. The record explicitly states <code>provenance_is_not_ownership=true</code>.</p><h2>3. Add additional contributors when justified</h2><pre>fabric.add_provenance(
+    owner_id,
+    second_source_id,
+    derived["object_id"],
+    "TRAINING_SOURCE",
+    contribution_bps=3500,
+    evidence={"training_run":"run-2026-001"},
+)</pre><h2>4. Compute a deterministic distribution</h2><pre>distribution = fabric.contribution_distribution(
+    derived["object_id"],
+    amount_units=100000,
+)</pre><p>This gives a deterministic mathematical allocation from the recorded contribution graph. It is not, by itself, a royalty agreement. An actual payment obligation still needs explicit economic terms, a valid obligation and settlement evidence.</p><h2>5. Keep value state explicit</h2><p>ENTITY uses the value states <code>POTENTIAL</code>, <code>OFFER</code>, <code>CONTRACTED</code>, <code>ACCRUED</code>, <code>SETTLED</code> and <code>REALIZED</code>. A system should not jump directly from “this contributed” to “this is realized cash.”</p><table><tr><th>State</th><th>Meaning</th></tr><tr><td>POTENTIAL</td><td>Economic significance is possible but not contracted.</td></tr><tr><td>OFFER</td><td>A price/term has been offered.</td></tr><tr><td>CONTRACTED</td><td>An enforceable/accepted economic basis is recorded.</td></tr><tr><td>ACCRUED</td><td>An obligation has accrued under the governing terms.</td></tr><tr><td>SETTLED</td><td>The modeled settlement state has completed with required evidence.</td></tr><tr><td>REALIZED</td><td>The system records realized economic consequence under the chosen accounting/evidence model.</td></tr></table><div class="callout"><strong>Boundary:</strong> provenance can explain contribution. It does not manufacture ownership, licence rights, royalties or fair value.</div><div class="actions"><a class="button" href="btdu-adam-niki.html">Understand the information/intelligence stack →</a><a class="button secondary" href="../../economy/">Economic architecture</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>
