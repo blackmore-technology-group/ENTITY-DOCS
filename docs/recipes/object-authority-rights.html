@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Recipe · Object, Authority & Rights</title><link rel="stylesheet" href="../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Recipes</a><a href="identity-signing.html">Previous</a><a href="vault-purpose-access.html">Next →</a></nav><main><div class="eyebrow">Recipe 2</div><h1>Register an object, delegate authority and grant a right</h1><pre>from pathlib import Path
+import importlib.util, hashlib
+
+ROOT = Path.cwd()
+def load_source(path, name):
+    spec = importlib.util.spec_from_file_location(name, ROOT / path)
+    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+
+identity_mod = load_source("src/01_Core_Runtime/identity/canonical_identity.py", "entity_identity")
+fabric_mod = load_source("src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py", "entity_fabric")
+STATE = ROOT / ".recipe-state" / "fabric"
+identity = identity_mod.EntityIdentityVault(STATE)
+owner = identity.create("Owner", "organization")
+operator = identity.create("Operator", "person")
+researcher = identity.create("Researcher", "person")
+fabric = fabric_mod.UniversalTransactionFabric(STATE, identity)
+
+digest = hashlib.sha256(b"example dataset").hexdigest()
+obj = fabric.register_object(owner["entity_id"], "DATASET", "Example Dataset", content_sha256=digest)
+
+auth = fabric.delegate_authority(
+    obj["object_id"], owner["entity_id"], operator["entity_id"],
+    ["LICENSE", "PUBLISH"], scope={"channel":"research"}
+)
+assert fabric.active_authority(obj["object_id"], operator["entity_id"], "LICENSE")
+assert fabric.active_authority(obj["object_id"], operator["entity_id"], "SETTLE") is None
+
+right = fabric.grant_right(
+    obj["object_id"], owner["entity_id"], researcher["entity_id"],
+    ["READ", "TRAIN"],
+    constraints={"purposes":["research"], "jurisdictions":["CA"]}
+)
+assert fabric.active_right(obj["object_id"], researcher["entity_id"], "TRAIN", purpose="research", jurisdiction="CA")
+assert fabric.active_right(obj["object_id"], researcher["entity_id"], "COMMERCIALIZE", purpose="research", jurisdiction="CA") is None
+
+fabric.revoke_authority(owner["entity_id"], auth["authority_id"])
+fabric.revoke_right(owner["entity_id"], right["right_id"])</pre><p>This is the smallest useful demonstration that authority and rights are separate and both fail closed when the requested action is outside the grant.</p><div class="actions"><a class="button" href="vault-purpose-access.html">Vault/access recipe →</a><a class="button secondary" href="../tutorials/core/rights-control.html">Rights tutorial</a></div></main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
