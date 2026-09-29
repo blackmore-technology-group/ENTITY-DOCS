@@ -1,11 +1,11 @@
 {
   "schema": "entity-docs-portal-v3",
-  "generated_at_utc": "2026-09-29T15:12:24Z",
+  "generated_at_utc": "2026-09-29T15:30:46Z",
   "current_release": "v3.4.3",
   "current_release_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
   "btdu_component": "3.4.2",
   "btdu_component_status": "unchanged",
-  "generated_from_docs_commit": "d4f925acd07a437a512ba15143e65eb85743db96",
+  "generated_from_docs_commit": "27a865f46a6fa3c1c30311d25e2b3d709239fbbb",
   "canonical_system_definition": "ENTITY is a provider-independent digital authority, information, evidence, market, economic and recovery operating fabric. Sovereignty protects continuity of authority and state across providers; it is not the definition of the whole product.",
   "core_primitives": [
     "ENTITY",
@@ -20,6 +20,7 @@
   },
   "canonical_navigation": {
     "home": "docs/index.html",
+    "tutorials": "docs/tutorials/index.html",
     "technology": "docs/technology/index.html",
     "economy": "docs/economy/index.html",
     "developer_hub": "docs/build/index.html",
@@ -32,9 +33,17 @@
     "partners": "docs/collaborate/index.html",
     "reference": "docs/reference/index.html"
   },
+  "tutorial_learning_path": [
+    "docs/tutorials/first-entity.html",
+    "docs/tutorials/ingest-and-reconstruct.html",
+    "docs/tutorials/first-rights-market.html",
+    "docs/tutorials/recovery-drill.html",
+    "docs/tutorials/external-contribution-lineage.html"
+  ],
   "public_discovery": {
     "llm_context": "docs/llms.txt",
     "search_index": "docs/search-index.json",
+    "runtime_tutorial_search_overlay": "docs/assets/app.js",
     "primary_sitemap": "docs/sitemap-site.xml",
     "robots": "docs/robots.txt",
     "feed": "docs/feed.xml",
@@ -127,6 +136,12 @@
   },
   "curated_search_entries": 78,
   "runtime_discovery_overlays": [
+    "ENTITY Tutorials",
+    "Create and Sign with an ENTITY Identity",
+    "Ingest and Reconstruct with BTDU",
+    "Walk Through an ENTITY Rights Market",
+    "Run an ENTITY Recovery Drill",
+    "Record External Contribution Lineage",
     "Complete ENTITY Capability Map",
     "Machine-Readable ENTITY Capability Map",
     "ENTITY Market Fabric",
@@ -142,5 +157,5 @@
     "total_html_pages": 2603,
     "status": "historical baseline only; not asserted as current counts"
   },
-  "claim_boundary": "Current release, repository-head, capability and discovery fields describe the public documentation state. Legacy generated reference counts remain explicitly historical. This manifest does not alter ENTITY protocol semantics, runtime qualification, immutable release evidence, upstream rights, settlement evidence or historical tags."
+  "claim_boundary": "Current release, repository-head, capability, tutorial and discovery fields describe the public documentation state. Legacy generated reference counts remain explicitly historical. This manifest does not alter ENTITY protocol semantics, runtime qualification, immutable release evidence, upstream rights, settlement evidence or historical tags."
 }
