@@ -19,7 +19,9 @@ For each regeneration:
 11. Keep real-world contribution states current: accepted cases and active cases must be sourced from the public ENTITY evidence/ledger, and upstream acceptance must not be converted into payment or ownership claims.
 12. Rebuild `docs/search-index.json` from current public navigation/discovery routes and set `curated_search_entries` to the exact number of entries in that JSON array. Runtime overlays in `docs/assets/app.js` may add canonical capability entries before the next static rebuild; list those separately in `runtime_discovery_overlays`.
 13. Validate that every search-index and canonical capability-map URL resolves within the published portal.
-14. Review the resulting diff through a pull request before merge when the normal repository workflow requires one.
+14. Validate discovery routing through `docs/sitemap-site.xml`, `docs/robots.txt`, `docs/llms.txt`, `docs/assets/site.js` and `docs/assets/app.js`; the canonical capability map must remain reachable from both public site-shell pages and deep documentation pages.
+15. Validate that the homepage, Technology, Economy, Developer, Evidence, Protocol, Operator, Security, Research, Partners and Reference entry points describe ENTITY consistently with the canonical capability definition.
+16. Review the resulting diff through a pull request before merge when the normal repository workflow requires one.
 
 ## Canonical capability source
 
@@ -31,6 +33,10 @@ The primary human and machine-readable system definitions are:
 These files are the documentation-level source of truth for the high-level system inventory. They do not supersede implementation source, signed records, release manifests, protocol schemas, external upstream evidence or settlement attestations for their respective claims.
 
 The portal should consistently describe ENTITY as a **provider-independent digital authority, information, evidence, market, economic and recovery operating fabric**. Sovereignty remains an important invariant of that fabric but must not be used as a shorthand that erases the market/economic, information, evidence or recovery layers.
+
+## Public evidence publication boundary
+
+The public contribution ledger may use portable public projections rather than path-bearing local receipts. A projection is a public disclosure view, not replacement sealed evidence. It must remain anchored to the authoritative sealed receipt using the recorded receipt SHA-256 / ENTITY atomic root and preserve the actual upstream and economic state without creating new rights, payment, ownership or settlement claims.
 
 ## Generated reference inventory
 
