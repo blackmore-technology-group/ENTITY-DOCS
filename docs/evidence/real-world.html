@@ -1,1 +1,109 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY in the Real World · Live Contribution Provenance Ledger</title><meta name="description" content="A live public ledger of real bounty and pro-bono software contributions connected to ENTITY provenance, rights context, external review, CI and upstream outcomes."><link rel="canonical" href="https://blackmore-technology-group.github.io/ENTITY-DOCS/evidence/real-world.html"><link rel="stylesheet" href="../assets/site.css"><style>.ledger-status-row{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0}.ledger-pill{display:inline-block;padding:.35rem .6rem;border:1px solid currentColor;border-radius:999px;font-size:.78rem;font-weight:700;letter-spacing:.04em}.ledger-good{opacity:1}.ledger-neutral{opacity:.72}.ledger-bad{text-decoration:underline}.ledger-card{margin-bottom:1rem}.ledger-meta{font-size:.9rem;opacity:.72}</style></head><body><header class="site-header"><div class="site-nav"><a class="brand" href="../">ENTITY <span>/ BTG</span></a><nav class="site-links"><a href="../technology/">Technology</a><a href="../build/">Developers</a><a href="../evidence/">Evidence</a><a href="../research-hub/">Research</a><a href="../collaborate/">Partners</a><a href="../about/">About</a><a class="nav-cta" href="https://github.com/blackmore-technology-group/ENTITY">GitHub</a></nav><a class="mobile-only" href="../developer/">Docs</a></div></header><section class="page-hero"><div class="eyebrow">ENTITY in the real world</div><h1>A living public provenance ledger, not a static case study.</h1><p>Real bounty and pro-bono contributions are published here from machine-readable ENTITY contribution evidence, then independently refreshed against the live upstream GitHub issue, pull request, review, CI and merge state.</p></section><section class="section compact"><div class="status-grid"><div class="stat"><strong id="ledger-total">—</strong><span>public contribution records</span></div><div class="stat"><strong id="ledger-accepted">—</strong><span>live upstream accepted</span></div><div class="stat"><strong id="ledger-validated">—</strong><span>review approved + CI green</span></div><div class="stat"><strong id="ledger-probono">—</strong><span>pro-bono records</span></div></div><p class="ledger-meta">Last ledger change: <span id="ledger-updated">loading…</span></p></section><section class="section"><div class="eyebrow">Automatic chain</div><h2>Contribution evidence becomes public proof without collapsing evidence boundaries.</h2><div class="flow">EXTERNAL ISSUE → BTG WORK → ENTITY RECORD → PUBLIC PR → REVIEW / CI → MERGE STATUS → DOWNSTREAM HISTORY</div><div class="grid"><article class="card"><h3>ENTITY is the recorded source</h3><p>The ledger reads the public contribution records created by the existing ENTITY v3.4.3 evidence harness. Identity, economic class, recorded evidence state, licence context and recorded cash remain tied to that evidence.</p></article><article class="card"><h3>GitHub supplies live observations</h3><p>The synchronizer re-checks the external issue and pull request, current review result, CI checks and merge state. Those observations can advance visually without silently rewriting the original ENTITY evidence state.</p></article><article class="card"><h3>Pages republishes automatically</h3><p>When the machine-readable ledger changes, ENTITY-DOCS commits the updated JSON. GitHub Pages then rebuilds the public site through the repository's existing deployment path.</p></article></div></section><section class="section"><div class="eyebrow">Live public examples</div><h2>Verify every contribution yourself.</h2><p id="ledger-load-status" class="section-intro">Loading the machine-readable contribution ledger…</p><div id="contribution-ledger" class="grid two"><div class="notice">Loading contribution evidence…</div></div></section><section class="section"><div class="eyebrow">Two states are intentionally shown</div><h2>Observed upstream status is not allowed to overwrite recorded ENTITY history.</h2><div class="table-wrap"><table><tr><th>Field</th><th>Meaning</th><th>Authority</th></tr><tr><td>ENTITY evidence state</td><td><code>PREPARED</code>, <code>ENTITY_RECORDED</code>, <code>UPSTREAM_ACCEPTED</code>, or <code>SETTLED</code> as actually captured</td><td>Published ENTITY evidence record</td></tr><tr><td>Live technical state</td><td>PR open, review approved, CI green, merged, closed-unmerged, or changes requested</td><td>Current upstream GitHub evidence</td></tr><tr><td>Economic state</td><td>Pro-bono, contingent, funded/settled, with realized cash shown separately</td><td>ENTITY record and settlement evidence</td></tr><tr><td>Rights context</td><td>Upstream licence and contributor terms remain controlling</td><td>External project terms + recorded evidence</td></tr></table></div><div class="notice"><strong>Claim boundary:</strong> a live merge can be displayed as an observed upstream event before a later ENTITY capture records <code>UPSTREAM_ACCEPTED</code>. The website does not manufacture an ENTITY state transition, payment, ownership right or royalty.</div></section><section class="section"><div class="eyebrow">Designed for scale</div><h2>The same path works for the next contribution and the hundredth.</h2><p class="section-intro">New public records under <code>ENTITY/evidence/bounty/</code> are discovered automatically. The ledger selects the latest published record for each external repository/issue pair and enriches it with live GitHub state. A bootstrap entry exists only for the first Vector proof until its local evidence directory is pushed into the ENTITY repository; a real ENTITY evidence file supersedes the bootstrap automatically.</p><div class="grid"><article class="card"><h3>Bounty work</h3><p>Funded and promised work can be shown without treating an advertised amount as settled revenue. Settlement remains a separate evidenced event.</p></article><article class="card"><h3>Pro-bono work</h3><p>Zero-dollar contributions can accumulate externally verifiable provenance, review, CI, merge and downstream history while realized cash correctly remains zero.</p></article><article class="card"><h3>Downstream reuse</h3><p>Git ancestry can later be connected to forks and derivatives where evidence supports the relationship. Similar code alone is not represented as proven descent.</p></article></div></section><section class="section compact"><div class="notice"><strong>Rights boundary:</strong> ENTITY provenance records contribution history; it does not convert an upstream project's source into BTG-owned property or override the applicable open-source licence.</div><div class="actions"><a class="button" href="./contributions.json">Open machine-readable ledger</a><a class="button secondary" href="https://github.com/blackmore-technology-group/ENTITY/issues/100">ENTITY experiment #100</a><a class="button secondary" href="./">Evidence ladder</a></div></section><footer class="footer"><div class="footer-inner"><div><a class="brand" href="../">ENTITY <span>/ BTG</span></a><p>Public evidence before claims.</p></div><div><h4>Evidence</h4><a href="./">Evidence ladder</a><a href="./contributions.json">Contribution JSON</a></div><div><h4>ENTITY</h4><a href="https://github.com/blackmore-technology-group/ENTITY/issues/100">Experiment #100</a><a href="https://github.com/blackmore-technology-group/ENTITY/pull/102">Evidence harness #102</a></div><div><h4>Build</h4><a href="../build/">Developers</a><a href="../developer/">Documentation</a></div></div><div class="legal">The live upstream repository remains authoritative for current review, CI and merge events. ENTITY evidence remains authoritative for the state actually recorded under ENTITY lineage.</div></footer><script src="../assets/site.js"></script><script src="../assets/contribution-ledger.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ENTITY in the Real World · Verified Contribution Economy</title>
+  <meta name="description" content="A live public ledger showing how externally accepted software contributions move from problem discovery through ENTITY provenance, independent validation, upstream acceptance and potential economic consequence.">
+  <link rel="canonical" href="https://blackmore-technology-group.github.io/ENTITY-DOCS/evidence/real-world.html">
+  <link rel="stylesheet" href="../assets/site.css">
+  <style>
+    .ledger-status-row{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0}
+    .ledger-pill{display:inline-block;padding:.35rem .6rem;border:1px solid currentColor;border-radius:999px;font-size:.78rem;font-weight:700;letter-spacing:.04em}
+    .ledger-good{opacity:1}.ledger-neutral{opacity:.72}.ledger-bad{text-decoration:underline}
+    .ledger-card{margin-bottom:1rem}.ledger-meta{font-size:.9rem;opacity:.72}
+  </style>
+</head>
+<body>
+<header class="site-header"><div class="site-nav"><a class="brand" href="../">ENTITY <span>/ BTG</span></a><nav class="site-links"><a href="../technology/">Technology</a><a href="../build/">Developers</a><a href="../evidence/">Evidence</a><a href="../research-hub/">Research</a><a href="../collaborate/">Partners</a><a href="../about/">About</a><a class="nav-cta" href="https://github.com/blackmore-technology-group/ENTITY">GitHub</a></nav><a class="mobile-only" href="../developer/">Docs</a></div></header>
+
+<section class="page-hero">
+  <div class="eyebrow">ENTITY in the real world</div>
+  <h1>From accepted contribution to verifiable economic history.</h1>
+  <p>This ledger tracks real external software contributions through exact provenance, independent review, CI, upstream acceptance, licence context and economic outcome. A bounty may provide a price before work begins, but ENTITY does not require a bounty in order to prove that a contribution happened, was independently accepted and can later participate in a commercial relationship.</p>
+</section>
+
+<section class="section compact">
+  <div class="status-grid">
+    <div class="stat"><strong id="ledger-total">—</strong><span>public contribution records</span></div>
+    <div class="stat"><strong id="ledger-accepted">—</strong><span>live upstream accepted</span></div>
+    <div class="stat"><strong id="ledger-validated">—</strong><span>review approved + CI green</span></div>
+    <div class="stat"><strong id="ledger-probono">—</strong><span>pro-bono records</span></div>
+  </div>
+  <p class="ledger-meta">Last ledger change: <span id="ledger-updated">loading…</span></p>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Contribution economy</div>
+  <h2>The economic model no longer starts with a bounty.</h2>
+  <div class="flow">PROBLEM → BTG FIX → ENTITY PROVENANCE → INDEPENDENT VALIDATION → UPSTREAM ACCEPTANCE → MEASURABLE CONSEQUENCE → COMMERCIAL INSTRUMENT → SETTLEMENT</div>
+  <div class="grid">
+    <article class="card"><h3>Bounties remain a price signal</h3><p>A conventional bounty states a possible price before the engineering work begins. ENTITY can record that promise and later connect acceptance to settlement, but the bounty is only one acquisition and pricing mechanism.</p></article>
+    <article class="card"><h3>Acceptance can exist before pricing</h3><p>A contribution can be created, lineage-recorded, reviewed, tested and accepted by an unrelated upstream project even when no bounty exists. That acceptance provides externally verifiable evidence of the contribution and its technical adoption; it does not by itself establish a monetary price.</p></article>
+    <article class="card"><h3>Economic consequence is a separate stage</h3><p>Support, sponsored fixes, implementation work, enterprise integration, security remediation, certified builds, analytics, future contractual rights or other agreed commercial relationships can be recorded later without rewriting the original contribution history.</p></article>
+  </div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Verified contribution record</div>
+  <h2>What ENTITY can preserve about an accepted contribution.</h2>
+  <div class="grid two">
+    <article class="card"><h3>Technical and provenance evidence</h3><p>Problem identity, contributor identity, exact change-set, timestamps, Git identities, review history, CI/security results, upstream acceptance, accepted commit and reconstructable evidence can be bound into a persistent lineage.</p></article>
+    <article class="card"><h3>Rights and economic context</h3><p>The ledger can preserve the upstream licence, contribution class, any pre-negotiated commercial terms, realized cash, settlement evidence and later downstream consequences while keeping those facts distinct from provenance itself.</p></article>
+  </div>
+  <div class="notice"><strong>Important distinction:</strong> an accepted contribution is evidence that an unrelated upstream project accepted the work. It is not, by itself, a valuation, invoice, royalty, ownership transfer or obligation to pay BTG.</div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Live public examples</div>
+  <h2>Vector and Memnox are now accepted ENTITY-recorded examples.</h2>
+  <p class="section-intro">Each card below is generated from machine-readable ENTITY contribution evidence and refreshed against live upstream GitHub state. The page deliberately distinguishes verified technical acceptance from commercial settlement.</p>
+  <p id="ledger-load-status" class="section-intro">Loading the machine-readable contribution ledger…</p>
+  <div id="contribution-ledger" class="grid two"><div class="notice">Loading contribution evidence…</div></div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Evidence boundaries</div>
+  <h2>Technical acceptance, recorded ENTITY state and economic settlement remain separate facts.</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Field</th><th>Meaning</th><th>Authority</th></tr>
+    <tr><td>ENTITY evidence state</td><td><code>PREPARED</code>, <code>VALIDATED_DIFF</code>, <code>UPSTREAM_PR</code>, <code>UPSTREAM_ACCEPTED_RECORDED</code>, <code>SETTLED</code>, or another state actually captured by the evidence chain</td><td>Published ENTITY evidence record</td></tr>
+    <tr><td>Live technical state</td><td>PR open, review state, CI state, merged/accepted, closed-unmerged, or changes requested</td><td>Current upstream GitHub evidence</td></tr>
+    <tr><td>Contribution-value status</td><td>Whether externally accepted technical work is evidenced; this does not assign a monetary valuation</td><td>ENTITY evidence + upstream acceptance</td></tr>
+    <tr><td>Economic state</td><td>Pro-bono, contingent, funded or settled, with realized cash and settlement shown separately</td><td>ENTITY record + settlement evidence</td></tr>
+    <tr><td>Rights context</td><td>Upstream licence and any separately agreed commercial rights remain controlling</td><td>External project terms + recorded agreements/evidence</td></tr>
+  </table></div>
+  <div class="notice"><strong>Claim boundary:</strong> the website does not manufacture a state transition, price, payment, ownership right, royalty or debt. Live GitHub observations may advance before a later ENTITY evidence capture records the same event.</div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Commercial pathways</div>
+  <h2>Verified contribution history can support commerce without retroactively changing open-source rights.</h2>
+  <div class="grid">
+    <article class="card"><h3>Sponsored or pre-negotiated work</h3><p>A project, sponsor or enterprise can define compensation before engineering starts. ENTITY can bind the agreed criteria to the later accepted contribution and settlement evidence.</p></article>
+    <article class="card"><h3>Services around accepted expertise</h3><p>BTG can separately contract for implementation, support, integration, remediation, certification or related engineering where a customer chooses to purchase those services.</p></article>
+    <article class="card"><h3>Contribution portfolios and analytics</h3><p>Repeated accepted work can form a verifiable technical history that can support reputation, qualification, analytics and future contracting without claiming that the upstream source code itself became proprietary BTG property.</p></article>
+  </div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Designed for scale</div>
+  <h2>The same evidence path can support the next contribution and the hundredth.</h2>
+  <p class="section-intro">Published acceptance receipts under <code>ENTITY/evidence/bounty/</code> are discovered automatically. Despite the historical directory name, records may be bounty-backed or pro-bono. Actual ENTITY evidence supersedes bootstrap metadata, and live GitHub observations enrich the public view without changing the sealed historical record.</p>
+  <div class="grid">
+    <article class="card"><h3>Pre-priced work</h3><p>Funded or promised work can enter with an advertised or contracted value while settlement remains independently evidenced.</p></article>
+    <article class="card"><h3>Unpriced accepted work</h3><p>Pro-bono contributions can still accumulate externally verifiable provenance, review, CI, acceptance and downstream history while realized cash correctly remains zero.</p></article>
+    <article class="card"><h3>Later economic consequence</h3><p>Where evidence supports it, later contracts, sponsorship, services, downstream usage or other commercial events can be linked to the contribution lineage rather than being inferred from the merge alone.</p></article>
+  </div>
+</section>
+
+<section class="section compact">
+  <div class="notice"><strong>Rights boundary:</strong> ENTITY provenance records contribution history; it does not convert an upstream project's source into BTG-owned property, override an open-source licence, or create payment rights that were never agreed.</div>
+  <div class="actions"><a class="button" href="./contributions.json">Open machine-readable ledger</a><a class="button secondary" href="https://github.com/blackmore-technology-group/ENTITY/issues/100">ENTITY experiment #100</a><a class="button secondary" href="./">Evidence ladder</a></div>
+</section>
+
+<footer class="footer"><div class="footer-inner"><div><a class="brand" href="../">ENTITY <span>/ BTG</span></a><p>Public evidence before claims.</p></div><div><h4>Evidence</h4><a href="./">Evidence ladder</a><a href="./contributions.json">Contribution JSON</a></div><div><h4>ENTITY</h4><a href="https://github.com/blackmore-technology-group/ENTITY/issues/100">Experiment #100</a><a href="https://github.com/blackmore-technology-group/ENTITY/pull/102">Evidence harness #102</a></div><div><h4>Build</h4><a href="../build/">Developers</a><a href="../developer/">Documentation</a></div></div><div class="legal">The live upstream repository remains authoritative for current review, CI and merge events. ENTITY evidence remains authoritative for the state actually recorded under ENTITY lineage. Commercial rights and settlement require their own evidence.</div></footer>
+<script src="../assets/site.js"></script>
+<script src="../assets/contribution-ledger.js"></script>
+</body>
+</html>
