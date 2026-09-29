@@ -3,156 +3,243 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>About ENTITY · Digital Authority, Provenance, Rights and Recovery Infrastructure</title>
-  <meta name="description" content="ENTITY is Blackmore Technology Group's Canadian-designed, provider-independent digital authority protocol for persistent identity, delegated authority, provenance, rights, evidence, portable state, recovery, economic consequence and trusted application interoperability.">
+  <title>About ENTITY · Sovereign Digital Authority, Data and Economic Infrastructure</title>
+  <meta name="description" content="ENTITY is Blackmore Technology Group's Canadian-designed sovereign digital authority, governed information, rights, evidence, transaction, economic and recovery infrastructure.">
   <link rel="canonical" href="https://blackmore-technology-group.github.io/ENTITY-DOCS/about/">
   <link rel="stylesheet" href="../assets/site.css">
+  <style>
+    .about-lead{max-width:940px}.primitive-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:26px 0}.primitive{border:1px solid #4a432e;background:linear-gradient(180deg,#15130d,#0d0f13);border-radius:12px;padding:18px 12px;text-align:center}.primitive strong{display:block;color:var(--accent2);font-size:17px;letter-spacing:.08em}.primitive span{display:block;color:var(--muted);font-size:12px;margin-top:4px}.chip-list{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.chip{border:1px solid #343941;background:#0d0f13;border-radius:999px;padding:6px 10px;color:#cbd0d5;font-size:12px;font-weight:700;letter-spacing:.025em}.capability-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:28px}.capability-grid .card{min-height:190px}.capability-grid .card h3{color:var(--accent2)}.metric-band{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px}.metric{border:1px solid #3a3e45;border-radius:12px;background:#0b0d11;padding:18px}.metric strong{display:block;color:var(--accent2);font-size:25px}.metric span{color:var(--muted);font-size:13px}.stack-line{font-weight:800;color:#eef0f1}.boundary{font-size:13px;color:#9ca3aa;margin-top:12px}@media(max-width:1000px){.capability-grid{grid-template-columns:repeat(2,1fr)}.primitive-grid{grid-template-columns:repeat(3,1fr)}.metric-band{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.capability-grid,.primitive-grid,.metric-band{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
-<header class="site-header"><div class="site-nav"><a class="brand" href="../">ENTITY <span>/ BTG</span></a><nav class="site-links"><a href="../technology/">Technology</a><a href="../build/">Developers</a><a href="../evidence/">Evidence</a><a href="../research-hub/">Research</a><a href="../collaborate/">Partners</a><a href="../about/">About</a><a class="nav-cta" href="https://github.com/blackmore-technology-group/ENTITY">GitHub</a></nav><a class="mobile-only" href="../developer/">Docs</a></div></header>
+<header class="site-header"><div class="site-nav"><a class="brand" href="../">ENTITY <span>/ BTG</span></a><nav class="site-links"><a href="../technology/">Technology</a><a href="../build/">Developers</a><a href="../evidence/">Evidence</a><a href="../research-hub/">Research</a><a href="../collaborate/">Partners</a><a href="../about/" aria-current="page">About</a><a class="nav-cta" href="https://github.com/blackmore-technology-group/ENTITY">GitHub</a></nav><a class="mobile-only" href="../developer/">Docs</a></div></header>
 
 <section class="page-hero">
-  <div class="eyebrow">About ENTITY</div>
-  <h1>Persistent digital authority that can survive the application that created it.</h1>
-  <p>ENTITY is a Canadian-designed, provider-independent digital authority protocol created by Blackmore Technology Group Limited. It is designed to keep identity, delegated authority, provenance, rights, evidence, governed information, portable state, recovery and economic consequence understandable and verifiable even when applications, infrastructure providers, custodians or AI systems change.</p>
+  <div class="eyebrow">What ENTITY actually is</div>
+  <h1>One sovereign fabric for identity, authority, information, rights, evidence and economic consequence.</h1>
+  <p class="about-lead">ENTITY is a Canadian-designed digital authority and operating infrastructure created by Blackmore Technology Group Limited. Its codebase is built to govern people, organizations, AI agents, datasets, software, devices, physical assets and transactions through persistent identity, explicit authority, machine-readable rights, verifiable events, causal provenance, economic state and provider-independent recovery.</p>
+  <div class="actions"><a class="button" href="../technology/">Explore the architecture</a><a class="button secondary" href="../evidence/real-world.html">See real-world evidence</a><a class="button secondary" href="https://github.com/blackmore-technology-group/ENTITY">Inspect the source</a></div>
 </section>
 
 <section class="section compact">
-  <div class="notice"><strong>The shortest definition:</strong> ENTITY is the authority layer that answers <em>who or what is this, who is allowed to act, what information or rights are involved, where did they come from, what evidence supports them, what changed, and can the resulting state be independently recovered and verified?</em></div>
-</section>
-
-<section class="section">
-  <div class="eyebrow">The problem</div>
-  <h2>Modern digital systems usually keep authority trapped inside providers.</h2>
-  <p class="section-intro">Accounts live in one platform, permissions in another, data lineage in logs, licence terms in documents, AI decisions in model output, and recovery in proprietary backups. When those systems change, the meaning of the digital state can become difficult to reconstruct.</p>
-  <div class="grid">
-    <article class="card"><h3>Identity is not enough</h3><p>Knowing which account acted does not prove what authority it held, who delegated that authority, what limits applied, or whether the authority survived a platform migration.</p></article>
-    <article class="card"><h3>Provenance is not ownership</h3><p>Knowing where information came from does not automatically establish permission, legal ownership, commercial rights, truth, or entitlement. Those concepts must remain explicit and separately evidenced.</p></article>
-    <article class="card"><h3>AI should not mint authority</h3><p>An AI system can reason about evidence or recommend actions, but the model itself should not become the source of identity, permission, ownership, rights or settlement.</p></article>
+  <div class="notice"><strong>The shortest useful definition:</strong> ENTITY is a sovereign digital control plane for deciding <em>what exists, who or what may act, what rights apply, what happened, what evidence supports it, what value or obligation resulted, and whether the governed state can survive the application or provider that originally held it.</em></div>
+  <div class="metric-band">
+    <div class="metric"><strong>5</strong><span>core primitives</span></div>
+    <div class="metric"><strong>16</strong><span>governed object classes</span></div>
+    <div class="metric"><strong>12</strong><span>machine-readable right actions</span></div>
+    <div class="metric"><strong>6</strong><span>economic value states</span></div>
   </div>
 </section>
 
 <section class="section">
-  <div class="eyebrow">The ENTITY mental model</div>
-  <h2>Authority first. Information, rights, evidence and value attach to that authority.</h2>
-  <div class="flow">IDENTITY → AUTHORITY → INFORMATION → RIGHTS → PROVENANCE → EVIDENCE → GOVERNED EVENT → ECONOMIC CONSEQUENCE → RECOVERY</div>
+  <div class="eyebrow">The five primitives</div>
+  <h2>ENTITY reduces a very large digital system to five governed building blocks.</h2>
+  <p class="section-intro">Across identity, data, AI, commerce, evidence and recovery, the implementation preserves the same five primitives so applications do not need to invent a new trust model for every domain.</p>
+  <div class="primitive-grid">
+    <div class="primitive"><strong>ENTITY</strong><span>what exists</span></div>
+    <div class="primitive"><strong>AUTHORITY</strong><span>who may act</span></div>
+    <div class="primitive"><strong>RIGHT</strong><span>what may be done</span></div>
+    <div class="primitive"><strong>EVENT</strong><span>what happened</span></div>
+    <div class="primitive"><strong>VALUE</strong><span>what consequence followed</span></div>
+  </div>
+  <div class="flow">ENTITY → AUTHORITY → RIGHT → EVENT → VALUE</div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">What can exist inside the fabric</div>
+  <h2>ENTITY is not limited to users or files.</h2>
+  <p class="section-intro">The universal transaction fabric has native object classes for digital, institutional and real-world subjects.</p>
+  <div class="chip-list">
+    <span class="chip">PERSON</span><span class="chip">ORGANIZATION</span><span class="chip">AI AGENT</span><span class="chip">DATASET</span><span class="chip">DOCUMENT</span><span class="chip">MODEL</span><span class="chip">SOFTWARE</span><span class="chip">API</span><span class="chip">DEVICE</span><span class="chip">VEHICLE</span><span class="chip">BUILDING</span><span class="chip">RESEARCH</span><span class="chip">DIGITAL TWIN</span><span class="chip">FINANCIAL INSTRUMENT</span><span class="chip">PHYSICAL ASSET</span><span class="chip">OTHER</span>
+  </div>
   <div class="grid two">
-    <article class="card"><h3>Persistent identity and delegated authority</h3><p>ENTITY can represent persistent actors, applications, organizations and other governed entities, together with explicit delegation, authorization boundaries and verifiable authority relationships.</p></article>
-    <article class="card"><h3>Governed information and provenance</h3><p>Information can be bound to exact lineage, source relationships, derivations, evidence and reconstructable state without treating provenance alone as proof of truth or ownership.</p></article>
-    <article class="card"><h3>Rights and permitted uses</h3><p>Rights can be represented separately from the bytes themselves: for example inspection, access, query, training, derivation, redistribution, commercialization or sublicensing where those rights legitimately exist.</p></article>
-    <article class="card"><h3>Evidence, consequence and recovery</h3><p>ENTITY can connect an event to its evidence, technical or economic consequence, receipts and recovery state so a later system can verify what happened rather than trusting a database row or application screen.</p></article>
+    <article class="card"><h3>Authority is explicit</h3><p>Delegated authority can be bounded to actions such as act, sign, access data, execute, purchase, license, settle, publish, resolve, delegate or control. Delegations can expire and be revoked; implicit privilege escalation is prohibited.</p></article>
+    <article class="card"><h3>Rights are separate from authority</h3><p>Rights can cover inspect, read, copy, derive, train, infer, execute, modify, redistribute, commercialize, control or transfer, with purpose, jurisdiction, duration and economic constraints. Access is not treated as ownership.</p></article>
+  </div>
+  <div class="flow">POTENTIAL → OFFER → CONTRACTED → ACCRUED → SETTLED → REALIZED</div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Implemented capability map</div>
+  <h2>The repository is a platform, not a single protocol library.</h2>
+  <div class="capability-grid">
+    <article class="card"><h3>Identity & registry</h3><p>Persistent entities, signed proofs, append-only claims, protocol graphs, typed relationships, audit history and controlled mutations.</p></article>
+    <article class="card"><h3>Policy & delegated authority</h3><p>Explicit permissions, scoped delegation, revocation, policy evaluation, purpose restrictions and fail-closed authorization.</p></article>
+    <article class="card"><h3>Encrypted data vaults</h3><p>Owner-controlled AES-256-GCM content storage with metadata-only ledger state, deletion, cryptographic erasure and retention states.</p></article>
+    <article class="card"><h3>BTDU information universe</h3><p>Governed atoms, bonds, exact information objects, relationships, derivations, indexes, repository manifests, economic topology and exact reconstruction.</p></article>
+    <article class="card"><h3>ADAM state engine</h3><p>Deterministic atomic state transformation, event replay, recovery and execution coordination underneath BTDU.</p></article>
+    <article class="card"><h3>NIKI causal intelligence</h3><p>Bounded causal reasoning over approved models and governed evidence. NIKI may reason, but activation authority remains ENTITY.</p></article>
+    <article class="card"><h3>Universal transaction fabric</h3><p>Objects, authorities, rights, events, provenance, value records, attestations, trust policies, resolution and settlement bridges in one fabric.</p></article>
+    <article class="card"><h3>Economic exchange</h3><p>Venues, rights instruments, listings, disclosures, order books, call auctions, RFQs, trades, clearing, entitlements, usage and payment attestations.</p></article>
+    <article class="card"><h3>Economic participation</h3><p>Treasuries, originator participation policies, reserves, contractual participation, service revenue, economic obligations and verified settlement records.</p></article>
+    <article class="card"><h3>Market recovery</h3><p>Provider-independent logical snapshots of market, entitlement and participation state with semantic hashes and controlled restore.</p></article>
+    <article class="card"><h3>Verifiable reality</h3><p>Evidence objects, typed claim states, external anchors and causal economic graphs that keep attribution, evidence and truth claims separate.</p></article>
+    <article class="card"><h3>Privacy & retention</h3><p>Purpose-bound grants, use caps, expiry, revocation, selective disclosure, retention schedules, legal holds and evidenced destruction.</p></article>
+    <article class="card"><h3>Sovereign domains</h3><p>Entity-owned domains, signed node authority, service manifests, provider migration, resolution, presence, recovery and revocation.</p></article>
+    <article class="card"><h3>Federated & offline operation</h3><p>Core, regional, edge, satellite and offline topology; signed partition checkpoints, vector clocks, bounded offline envelopes and fail-closed conflicts.</p></article>
+    <article class="card"><h3>Passports & adoption</h3><p>Rights passports and global passports that bind existing authority, rights, evidence, jurisdiction, custody, provenance and economic context without replacing them.</p></article>
+    <article class="card"><h3>Operations & qualification</h3><p>Backup, migration, recovery, scale, telemetry, transaction evidence, updates, release gates, clean-room kits, conformance and qualification tooling.</p></article>
   </div>
 </section>
 
 <section class="section">
-  <div class="eyebrow">The technology stack</div>
-  <h2>ENTITY is the authority system. The surrounding components have deliberately separate jobs.</h2>
+  <div class="eyebrow">Governed information + deterministic state + bounded intelligence</div>
+  <h2>BTDU, ADAM and NIKI have different jobs by design.</h2>
   <div class="grid">
-    <article class="card"><h3>ENTITY</h3><p><strong>Authority, identity, rights, provenance, evidence, economic state and recovery.</strong> ENTITY defines the governed relationships and the evidence required to verify them.</p></article>
-    <article class="card"><h3>BTDU</h3><p><strong>Blackmore Technology Data Universe.</strong> BTDU 3.4.2 is the governed information layer used to preserve exact information objects, relationships, lineage and reconstructable state under ENTITY authority. Controlled BTDU benchmark campaigns have also measured substantial storage reduction while preserving exact recovery.</p></article>
-    <article class="card"><h3>ADAM</h3><p><strong>Deterministic state transformation and replay.</strong> ADAM applies and recovers governed state transitions. It does not independently decide who owns something or who is authorized.</p></article>
-    <article class="card"><h3>NIKI</h3><p><strong>Reasoning inside authority boundaries.</strong> NIKI can reason over governed evidence and information, but it is not allowed to create authority, ownership, rights or settlement merely because a model inferred them.</p></article>
+    <article class="card"><h3>ENTITY — authority</h3><p><span class="stack-line">Identity, authority, rights, evidence and economics.</span> ENTITY determines the governed relationships and the evidence required to rely on them.</p></article>
+    <article class="card"><h3>ADAM — state</h3><p><span class="stack-line">Deterministic transformation and replay.</span> ADAM is the atom/bond state engine that applies and recovers governed transitions.</p></article>
+    <article class="card"><h3>BTDU — information</h3><p><span class="stack-line">Governed information topology.</span> BTDU binds exact content, atoms, bonds, derivations, indexes, repository state and economic relationships under ENTITY authority.</p></article>
+    <article class="card"><h3>NIKI — reasoning</h3><p><span class="stack-line">Causal intelligence inside explicit boundaries.</span> NIKI receives bounded projections and approved causal models; it does not manufacture permission, ownership or settlement.</p></article>
   </div>
-  <div class="notice"><strong>Separation matters:</strong> reasoning can change; providers can change; applications can change. The authority and evidence chain is intended to remain independently understandable.</div>
 </section>
 
 <section class="section">
-  <div class="eyebrow">BTDU measured engineering results</div>
-  <h2>Storage reduction and exact destruction recovery have both been tested.</h2>
-  <p class="section-intro">BTDU is not only intended to retain lineage. Controlled engineering campaigns have tested whether governed information can be represented more compactly and whether the accepted state can still be recovered exactly after the original working source is no longer available.</p>
+  <div class="eyebrow">Measured BTDU engineering results</div>
+  <h2>Compact representation without giving up exact recovery.</h2>
   <div class="grid two">
-    <article class="card"><h3>97% lower storage in the tested benchmark</h3><p>In the controlled BTDU benchmark referenced by the v3.4.x engineering campaign, the tested representation required approximately <strong>97% less storage</strong> than the comparison baseline while preserving the information needed by that workload. This is a measured result for that test configuration, not a universal compression guarantee for every dataset or workload.</p></article>
-    <article class="card"><h3>100% exact recovery in the qualified destruction test</h3><p>BTDU cold-recovery qualification demonstrated complete reconstruction of the qualified accepted source and evidence after removing dependence on the original working source. In the Memnox #46 qualification, the source clone, Git, GitHub and network were not used; the archive, manifest and upstream-acceptance proof reconstructed exactly, and all <strong>865 of 865</strong> tracked Git blobs verified with zero missing paths, zero extra paths and zero mismatches.</p></article>
+    <article class="card"><h3>97% lower storage in the tested benchmark</h3><p>In the controlled BTDU benchmark from the v3.4.x engineering campaign, the tested representation required approximately <strong>97% less storage</strong> than the comparison baseline while preserving the information required by that workload.</p></article>
+    <article class="card"><h3>100% exact recovery in the qualified destruction test</h3><p>The qualified Memnox cold-recovery campaign reconstructed the accepted source archive, manifest and acceptance proof from sealed BTDU state without the source clone, Git, GitHub or network. All <strong>865 of 865</strong> tracked Git blobs matched with zero missing, extra or mismatched paths.</p></article>
   </div>
-  <div class="flow">INGEST → GOVERNED BTDU STATE → ORIGINAL WORKSPACE NOT REQUIRED → COLD RECOVERY → EXACT HASH / BLOB VERIFICATION</div>
-  <div class="notice"><strong>Claim boundary:</strong> “97%” refers to the controlled storage benchmark that produced that measurement. “100% recovery” refers to exact recovery of the qualified test corpus and evidence, not a claim that every conceivable damaged or incomplete system state is automatically recoverable.</div>
+  <div class="flow">INGEST → GOVERNED BTDU STATE → ORIGINAL WORKSPACE REMOVED FROM THE RECOVERY PATH → COLD RECOVERY → EXACT HASH / BLOB VERIFICATION</div>
+  <p class="boundary">Claim boundary: 97% is the measured result of the controlled benchmark, not a universal compression guarantee. 100% recovery describes the qualified corpus and evidence path, not every conceivable damaged system.</p>
 </section>
 
 <section class="section">
-  <div class="eyebrow">Data and economic infrastructure</div>
-  <h2>ENTITY is designed to make digital rights economically legible—not to pretend copies of data are scarce.</h2>
-  <p class="section-intro">Digital information can be copied. The economically meaningful object is often the governed right to do something with that information. ENTITY therefore separates the information itself from authority, usage rights, provenance, evidence, licences, settlement and downstream consequence.</p>
+  <div class="eyebrow">Data as productive capital</div>
+  <h2>ENTITY separates information from the economic rights surrounding it.</h2>
+  <p class="section-intro">The implementation explicitly rejects the idea that copied bytes must be artificially scarce. Economic scarcity can instead exist in bounded rights, entitlements, capacity, duration, jurisdiction, usage quantity, derivation, participation and transferability.</p>
   <div class="flow">DCO → INSTRUMENT → LISTING → DISCLOSURE → ORDER / RFQ / AUCTION → PRICE DISCOVERY → TRADE → CLEARING → SETTLEMENT → ENTITLEMENT → USAGE → DERIVED OUTPUT → ECONOMIC CONSEQUENCE</div>
   <div class="grid">
-    <article class="card"><h3>Rights, not just copies</h3><p>A governed object can describe what a party may inspect, access, query, train on, derive from, redistribute, commercialize or sublicense—subject to the actual rights and licences that exist.</p></article>
-    <article class="card"><h3>Value can follow proof</h3><p>A contribution or information asset does not need a bounty or pre-existing price in order to have provenance and acceptance evidence. Commercial terms can be created separately and later connected to the verified history.</p></article>
-    <article class="card"><h3>Settlement remains evidence</h3><p>ENTITY does not infer payment from technical acceptance. Revenue, royalties, sponsorship, entitlement or other economic outcomes require their own evidence and recorded settlement state.</p></article>
+    <article class="card"><h3>Rights-based instruments</h3><p>The Exchange Protocol supports spot licences, subscriptions, compute-to-data, procurement, contribution instruments and secondary licences.</p></article>
+    <article class="card"><h3>Multiple market mechanisms</h3><p>Order-book, call-auction and RFQ execution models are implemented alongside signed listings, orders, quotes, cancellations, surveillance and entitlements.</p></article>
+    <article class="card"><h3>Evidence before settlement claims</h3><p>Payment attestations and authorized settlement verifiers are separate from a trade record. Technical acceptance, an obligation and actual settlement remain distinct states.</p></article>
   </div>
-  <div class="actions"><a class="button" href="../evidence/real-world.html">See the verified contribution economy</a></div>
 </section>
 
 <section class="section">
-  <div class="eyebrow">Real-world evidence</div>
-  <h2>ENTITY is now being exercised against events outside BTG's own software.</h2>
-  <p class="section-intro">The public contribution ledger records external software work through exact lineage, review, CI, upstream acceptance and economic state. Vector and Memnox are current examples where unrelated upstream projects accepted BTG-authored contributions and the resulting evidence was recorded through ENTITY.</p>
+  <div class="eyebrow">Economic participation without a token</div>
+  <h2>ENTITY can represent participation and revenue without imposing a protocol tax or cryptocurrency.</h2>
   <div class="grid two">
-    <article class="card"><h3>What that demonstrates</h3><p>ENTITY can bind a real external problem, contributor, exact change-set, review evidence, CI result, accepted upstream state and later recovery evidence into one persistent contribution history.</p></article>
-    <article class="card"><h3>What that does not demonstrate</h3><p>Upstream acceptance does not create an invoice, royalty, ownership transfer or automatic monetary valuation. Commercial consequence remains a separate evidenced stage.</p></article>
+    <article class="card"><h3>Contractual participation</h3><p>Originator and treasury profiles can record validly established reserve units, primary participation, secondary royalty terms, derivative participation and service revenue. Terms must exist legitimately; provenance does not create them retroactively.</p></article>
+    <article class="card"><h3>Service economy</h3><p>The participation layer recognizes listing, execution, clearing, settlement, market data, certification, managed infrastructure, API and index-licence services, with separate obligations and settlement evidence.</p></article>
   </div>
-  <div class="actions"><a class="button" href="../evidence/real-world.html">Open live contribution ledger</a><a class="button secondary" href="../evidence/">Evidence ladder</a></div>
+  <div class="notice"><strong>Economic boundary:</strong> ENTITY can record value states and economically relevant evidence, but an asserted amount is not automatically market value, accounting fair value, legal entitlement or settled cash.</div>
 </section>
 
 <section class="section">
-  <div class="eyebrow">What ENTITY is not</div>
-  <h2>ENTITY is infrastructure, not a claim that one technology replaces everything else.</h2>
+  <div class="eyebrow">Verifiable reality</div>
+  <h2>ENTITY does not make reality indisputable. It makes claims attributable, contestable and evidence-bound.</h2>
+  <div class="chip-list"><span class="chip">UNKNOWN</span><span class="chip">OBSERVED</span><span class="chip">ASSERTED</span><span class="chip">INFERRED</span><span class="chip">ATTESTED</span><span class="chip">EXTERNALLY VERIFIED</span><span class="chip">ADJUDICATED</span><span class="chip">DISPUTED</span><span class="chip">REVOKED</span></div>
   <div class="grid">
-    <article class="card"><h3>Not a cryptocurrency</h3><p>ENTITY can represent economic rights, value events and settlement evidence, but it is not defined by a token or speculative asset.</p></article>
-    <article class="card"><h3>Not merely a blockchain</h3><p>The core objective is verifiable authority, provenance, rights and recoverable state. A particular ledger technology is not the definition of the protocol.</p></article>
-    <article class="card"><h3>Not an AI model</h3><p>Models can operate within ENTITY-governed boundaries, but reasoning output is not automatically authority or truth.</p></article>
-    <article class="card"><h3>Not just a database</h3><p>A database stores state for an application. ENTITY is concerned with preserving the meaning, authority, evidence and recovery of governed state across applications and providers.</p></article>
-    <article class="card"><h3>Not automatic ownership</h3><p>Registration, ingestion, provenance or canonical lineage does not manufacture ownership of third-party information or override an upstream licence.</p></article>
-    <article class="card"><h3>Not automatic value</h3><p>ENTITY can preserve evidence needed to support valuation or settlement, but it does not declare a monetary value merely because something was recorded.</p></article>
+    <article class="card"><h3>Evidence is typed</h3><p>Evidence can include sensor observations, documents, registry records, lab results, payment records, images, API responses, certificates and court records.</p></article>
+    <article class="card"><h3>External anchors are explicit</h3><p>Government registries, sensor networks, bank settlement, labs, supply-chain systems, corporate registries, courts and certificate authorities can be referenced without becoming automatic ENTITY authority.</p></article>
+    <article class="card"><h3>Causal economic lineage</h3><p>Source data can be traced through rights, licences, usage, derived assets, products, transactions, revenue, settlement and contributors using an evidence-bound acyclic graph.</p></article>
   </div>
+  <div class="notice"><strong>Truth boundary:</strong> a valid signature proves attribution and integrity; it does not automatically prove objective truth. Protocol verification, trust-policy satisfaction and external evidence remain distinct from factual certainty.</div>
 </section>
 
 <section class="section">
-  <div class="eyebrow">Provider independence and sovereignty</div>
-  <h2>“Sovereign” means the governed state is not intended to depend on one provider account.</h2>
-  <p class="section-intro">ENTITY's sovereignty language refers to portable, independently verifiable digital authority and recoverable state. It does not imply governmental sovereignty, government endorsement, legal immunity or jurisdictional supremacy.</p>
-  <div class="grid two">
-    <article class="card"><h3>Portable state</h3><p>Authority and evidence should be exportable, recoverable and independently verifiable rather than disappearing when a vendor account, application or cloud service is unavailable.</p></article>
-    <article class="card"><h3>Interoperability objective</h3><p>Protocol conformance is intended to allow unrelated implementations to reproduce the same governed result from public protocol material. Independent external interoperability remains a separate evidence gate and is not assumed merely because BTG-controlled implementations agree.</p></article>
-  </div>
-</section>
-
-<section class="section compact">
-  <div class="grid two">
-    <article class="card"><h3>Open source</h3><p>The core ENTITY repository is published under Apache-2.0 so outside developers and organizations can inspect, test, reproduce, fork and independently implement public protocol material.</p><a href="https://github.com/blackmore-technology-group/ENTITY">Source repository →</a></article>
-    <article class="card"><h3>Stewardship</h3><p>Blackmore Technology Group maintains the reference implementation, public documentation, controlled reproducibility baselines and current canonical protocol lineage.</p><a href="https://github.com/blackmore-technology-group">BTG GitHub organization →</a></article>
-  </div>
-</section>
-
-<section class="section">
-  <div class="eyebrow">Canonical origin</div>
-  <h2>Origin is provenance—not automatic ownership.</h2>
-  <div class="flow">Shawn Blackmore → Blackmore Technology Group → ENTITY</div>
-  <p class="section-intro">The canonical lineage preserves the project's origin and stewardship history. Under the current canonical-status rules, replacing the root originator, replacing BTG as steward or removing the verified origin lineage means a derivative should not be described as canonical ENTITY.</p>
-  <div class="notice">Canonical origin does not automatically give BTG ownership of downstream user assets, datasets, derivatives or payments. It does not create an automatic protocol royalty or transfer upstream ownership merely because data is registered, ingested, mirrored, verified or processed through ENTITY.</div>
-</section>
-
-<section class="section">
-  <div class="eyebrow">Development and evidence model</div>
-  <h2>Public engineering, explicit evidence boundaries.</h2>
-  <div class="split"><div><ul class="checklist"><li>public core repository</li><li>public release history</li><li>sealed conformance material</li><li>BTG-controlled multi-language implementation baselines</li><li>external verification challenges</li><li>independent implementation path</li><li>security and recovery qualification</li><li>controlled storage-efficiency benchmarks</li><li>destruction/cold-recovery qualification</li><li>public real-world contribution evidence</li><li>public documentation and research resources</li></ul></div><div class="notice">BTG-controlled test results are engineering evidence. They are not represented as unrelated third-party validation. Outside reproduction, independent implementation, security review, institutional pilots and commercial adoption remain separate evidence classes.</div></div>
-</section>
-
-<section class="section">
-  <div class="eyebrow">Current state</div>
-  <h2>ENTITY v3.4.3</h2>
-  <p class="section-intro">The current supported runtime is ENTITY v3.4.3. The BTDU component remains 3.4.2. Historical evidence, hashes, receipts and qualification artifacts remain preserved rather than being silently rewritten by later documentation.</p>
+  <div class="eyebrow">Privacy, custody and jurisdiction</div>
+  <h2>Control follows the governed object instead of being silently delegated to the storage provider.</h2>
   <div class="grid">
-    <article class="card"><h3>Current runtime</h3><p><strong>v3.4.3</strong><br>Supported ENTITY runtime and current public release.</p><a href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.3">Release →</a></article>
-    <article class="card"><h3>BTDU component</h3><p><strong>3.4.2</strong><br>Governed information and reconstructable state component used by the current runtime, with controlled benchmark and cold-recovery qualification evidence preserved separately.</p><a href="../research-hub/">Research boundary →</a></article>
-    <article class="card"><h3>Historical evidence</h3><p><strong>v3.4.2 campaign</strong><br>Immutable predecessor evidence remains available for verification and comparison.</p><a href="../v342/">Historical archive →</a></article>
+    <article class="card"><h3>Purpose-bound access</h3><p>Controllers can issue signed grants for specific purposes and actions with expiry, use caps and revocation. Every authorized use can bind its own evidence hash.</p></article>
+    <article class="card"><h3>Selective retention</h3><p>Retention policy supports payload deletion, source redaction, external-copy destruction and legal holds while preserving evidence commitments.</p></article>
+    <article class="card"><h3>Provider-neutral custody</h3><p>ENTITY locators support AWS S3, Azure Blob, Google Cloud Storage, Snowflake, Databricks, PostgreSQL, SQL Server, local filesystems and HTTP APIs without treating custody as authority.</p></article>
+    <article class="card"><h3>Jurisdiction overlays</h3><p>Versioned jurisdiction and domain profiles can allow, require or prohibit actions with precedence, effective dates, supersession, conflict detection and fail-closed evaluation. They are policy evidence, not legal determinations.</p></article>
   </div>
 </section>
 
 <section class="section">
-  <div class="eyebrow">Explore ENTITY</div>
-  <div class="actions"><a class="button" href="../technology/">Technology architecture</a><a class="button secondary" href="../evidence/real-world.html">Real-world evidence</a><a class="button secondary" href="../build/">Developers</a><a class="button secondary" href="../evidence/">Evidence</a><a class="button secondary" href="../collaborate/">Partnerships</a></div>
+  <div class="eyebrow">Sovereign networking and continuity</div>
+  <h2>ENTITY is designed to continue when networks partition and providers change.</h2>
+  <div class="grid">
+    <article class="card"><h3>Entity-owned domains</h3><p>Domains bind names, authorized nodes, service manifests, scopes, access classes, revocations and provider migrations to the Entity root rather than to a hosting vendor.</p></article>
+    <article class="card"><h3>Federated nodes</h3><p>Commissioned nodes publish signed domains and services and can establish encrypted direct sessions. Network participation requires owner commissioning; the network itself does not become sovereign authority.</p></article>
+    <article class="card"><h3>Offline and partitioned operation</h3><p>Core, regional, edge, satellite and offline nodes can publish signed causal checkpoints. Vector clocks identify converged, dominant or conflicting state; divergent concurrent state is not silently resolved by last-writer-wins.</p></article>
+    <article class="card"><h3>Cryptographic agility</h3><p>Crypto suites can be versioned through governed activation, deprecation and retirement, including dual-sign transition windows and explicit downgrade resistance.</p></article>
+  </div>
 </section>
 
-<footer class="footer"><div class="footer-inner"><div><a class="brand" href="../">ENTITY <span>/ BTG</span></a><p>Designed in Canada by Blackmore Technology Group Limited.</p></div><div><h4>Company</h4><a href="https://github.com/blackmore-technology-group">BTG GitHub</a><a href="../collaborate/">Partnerships</a></div><div><h4>Project</h4><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY source</a><a href="../developer/">Documentation</a></div><div><h4>Trust</h4><a href="../evidence/">Evidence</a><a href="../security/">Security</a></div></div><div class="legal">Canadian-designed does not imply certification, endorsement or adoption by the Government of Canada or any provincial government. ENTITY's use of “sovereign” refers to provider-independent digital authority and recoverable state, not governmental sovereignty.</div></footer>
+<section class="section">
+  <div class="eyebrow">Portable passports and interoperability</div>
+  <h2>Authority, rights and evidence can travel without pretending every external standard means the same thing.</h2>
+  <div class="grid">
+    <article class="card"><h3>Rights passports</h3><p>Signed immutable versions bind rights, authority references, jurisdiction, semantics, custody, provenance, disclosure, privacy profiles, economic terms and legal classification around an existing ENTITY object.</p></article>
+    <article class="card"><h3>Global passports</h3><p>A single portable envelope can compose rights passports, profile stacks, evidence, provenance, jurisdiction, standards mappings, economic state, industry context, protocol origin and BTDU bindings.</p></article>
+    <article class="card"><h3>Standards adapters</h3><p>Explicit adapters cover ODRL, W3C Verifiable Credentials, DID, Gaia-X and IDS. Repository requirements also define scoped interoperability with C2PA and standard SBOM formats. Mapping is evidence—not silent semantic equivalence or certification.</p></article>
+  </div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Industry implementation packages</div>
+  <h2>The same core semantics are packaged for very different operating environments.</h2>
+  <div class="grid">
+    <article class="card"><h3>Healthcare</h3><p>Clinical datasets, documents, models and medical devices with HL7 FHIR and DICOM mappings and restricted/purpose-bound privacy defaults.</p></article>
+    <article class="card"><h3>Finance</h3><p>Financial instruments, trades, settlement records and market data with ISO 20022, FIX and LEI mappings.</p></article>
+    <article class="card"><h3>Manufacturing</h3><p>Machines, digital twins, firmware, telemetry and maintenance records with OPC-UA and Asset Administration Shell mappings.</p></article>
+    <article class="card"><h3>AI</h3><p>Training data, corpora, models, weights, evaluations, agents and outputs with SPDX, CycloneDX and NIST AI RMF mappings.</p></article>
+    <article class="card"><h3>Robotics</h3><p>Robots, controllers, models, software, telemetry and action records with ROS 2 and Open-RMF mappings.</p></article>
+    <article class="card"><h3>Public defence context</h3><p>Public/unclassified assets, data, software and custody records with originator-control mappings; the package explicitly prohibits classified-material ingestion.</p></article>
+  </div>
+  <p class="boundary">These packages configure ENTITY semantics for industry use. They do not themselves constitute regulatory compliance, legal approval or certification.</p>
+</section>
+
+<section class="section">
+  <div class="eyebrow">SDK and adoption surface</div>
+  <h2>ENTITY is intended to be consumed as infrastructure, not rebuilt by every application team.</h2>
+  <p class="section-intro">The repository carries Android, Apple, Web and Windows SDK surfaces, open/reference SDKs, ecosystem and global-passport SDKs, principal binding, schemas and reference clients. The adoption facade exposes rights passports, authorization, exchange actions, settlement, positions and market data while preserving the authority of the underlying components.</p>
+  <div class="chip-list"><span class="chip">WINDOWS</span><span class="chip">WEB</span><span class="chip">APPLE</span><span class="chip">ANDROID</span><span class="chip">OPEN SDK</span><span class="chip">REFERENCE CLIENTS</span><span class="chip">GLOBAL PASSPORT SDK</span><span class="chip">PRINCIPAL BINDING</span></div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Real-world proof path</div>
+  <h2>The system is being exercised against work outside BTG's own repositories.</h2>
+  <p class="section-intro">Vector and Memnox are public examples where BTG-authored fixes were reviewed and accepted by unrelated upstream projects, then captured through ENTITY lineage and recovery evidence.</p>
+  <div class="flow">EXTERNAL PROBLEM → BTG CHANGE → EXACT LINEAGE → PUBLIC PR → INDEPENDENT REVIEW / CI → UPSTREAM ACCEPTANCE → ENTITY EVIDENCE → BTDU RECOVERY → ECONOMIC CONSEQUENCE WHEN EVIDENCED</div>
+  <div class="actions"><a class="button" href="../evidence/real-world.html">Open the live contribution ledger</a></div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Engineering evidence</div>
+  <h2>The implementation is surrounded by release, conformance, recovery and scale tooling.</h2>
+  <div class="grid two">
+    <article class="card"><h3>Current v3.4.3 self-qualification</h3><p>The v3.4.3 release manifest records <strong>279/279</strong> full-source tests passing and <strong>76/76</strong> tests passing for the issue-28 remediation module. BTDU remains component version 3.4.2 unchanged in that remediation.</p></article>
+    <article class="card"><h3>Broader qualification surface</h3><p>The repository contains clean-room kit builders, conformance campaigns, crypto/privacy qualification, scale and soak qualification, market-scale checks, recursive-closure qualification, global-passport verification, polyglot verification and industry-package verification.</p></article>
+  </div>
+  <div class="notice"><strong>Evidence boundary:</strong> BTG-controlled tests and clean-room baselines are engineering evidence, not unrelated third-party certification. Independent external interoperability, security review, institutional adoption and commercial settlement remain separate evidence classes.</div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">What ENTITY deliberately refuses to collapse</div>
+  <h2>The boundaries are part of the architecture.</h2>
+  <div class="grid">
+    <article class="card"><h3>Not a cryptocurrency</h3><p>No token is required. The economic participation profile explicitly defines zero protocol tax and derives value from rights, contractual terms and services.</p></article>
+    <article class="card"><h3>Not merely a blockchain</h3><p>The architecture is about authority, rights, events, evidence and recoverable state; a particular ledger technology is not the definition of ENTITY.</p></article>
+    <article class="card"><h3>Not an AI authority</h3><p>NIKI and other AI agents can act only inside authority granted elsewhere. Model inference does not mint rights, ownership or settlement.</p></article>
+    <article class="card"><h3>Not a truth oracle</h3><p>Evidence and cryptographic verification make claims attributable and testable, not automatically true.</p></article>
+    <article class="card"><h3>Not provider ownership</h3><p>Cloud, database, custody and topology providers do not become the owner or sovereign authority merely because they host bytes or services.</p></article>
+    <article class="card"><h3>Not automatic legal or market value</h3><p>Provenance does not manufacture ownership, a licence does not imply every right, and an asserted amount does not become fair value or settled money without its own evidence.</p></article>
+  </div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Canonical origin and open infrastructure</div>
+  <h2>Origin is preserved without turning provenance into ownership.</h2>
+  <div class="flow">Shawn Blackmore → Blackmore Technology Group Limited → ENTITY</div>
+  <div class="grid two">
+    <article class="card"><h3>Canonical lineage</h3><p>The canonical-status layer preserves ENTITY's origin and BTG stewardship. Removing or replacing that lineage changes canonical status; it does not grant BTG ownership of third-party assets, data or source code.</p></article>
+    <article class="card"><h3>Open source</h3><p>The core repository is public under Apache-2.0 so developers and organizations can inspect, test, reproduce, fork and independently implement published protocol material.</p><a href="https://github.com/blackmore-technology-group/ENTITY">ENTITY source repository →</a></article>
+  </div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Current public runtime line</div>
+  <h2>ENTITY v3.4.3 / BTDU 3.4.2</h2>
+  <p class="section-intro">ENTITY v3.4.3 is the current public runtime line. Its bounded remediation did not change the BTDU implementation, which remains 3.4.2. Historical releases, hashes, receipts and qualification artifacts remain preserved rather than being silently rewritten.</p>
+  <div class="actions"><a class="button" href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.4.3">Current release</a><a class="button secondary" href="../technology/">Technology architecture</a><a class="button secondary" href="../evidence/">Evidence</a><a class="button secondary" href="../build/">Build with ENTITY</a></div>
+</section>
+
+<footer class="footer"><div class="footer-inner"><div><a class="brand" href="../">ENTITY <span>/ BTG</span></a><p>Canadian-designed sovereign digital authority, information and economic infrastructure.</p></div><div><h4>Understand</h4><a href="../technology/">Technology</a><a href="../evidence/real-world.html">Real-world evidence</a></div><div><h4>Build</h4><a href="../build/">Developers</a><a href="../developer/">Documentation</a></div><div><h4>Trust</h4><a href="../evidence/">Evidence</a><a href="../security/">Security</a></div></div><div class="legal">Canadian-designed does not imply certification, endorsement or adoption by the Government of Canada or any provincial government. “Sovereign” refers to provider-independent digital authority and recoverable state, not governmental sovereignty. Legal effect, regulatory classification, ownership, fair value and settlement remain dependent on applicable law, agreements and evidence outside the protocol itself.</div></footer>
 <script src="../assets/site.js"></script>
 </body>
 </html>
