@@ -1,0 +1,42 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Recipe · Standards Mapping</title><link rel="stylesheet" href="../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Recipes</a><a href="market-recovery.html">Previous</a><a href="../standards/">Standards reference</a></nav><main><div class="eyebrow">Recipe 9</div><h1>Map ODRL and capture VC/DID evidence without importing authority</h1><pre>from pathlib import Path
+import importlib.util
+
+ROOT=Path.cwd()
+def load_source(path,name):
+    spec=importlib.util.spec_from_file_location(name,ROOT/path)
+    mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+
+m=load_source("src/36_Adoption_Layer/standards_adapters.py","entity_standards")
+
+odrl={
+  "permission":[{
+    "target":"dataset-123",
+    "action":["read","derive"],
+    "duty":[{"action":"attribute"}]
+  }],
+  "prohibition":[{"target":"dataset-123","action":"redistribute"}]
+}
+mapping=m.StandardsAdapters.import_odrl(odrl)
+assert mapping["silent_semantic_equivalence"] is False
+assert mapping["external_standard_is_not_entity_authority"] is True
+print(mapping["mapped_rights"])
+
+vc={
+  "issuer":"did:example:issuer",
+  "credentialSubject":{"id":"did:example:subject"},
+  "proof":{"type":"ExampleProof"}
+}
+vc_evidence=m.StandardsAdapters.credential_evidence(vc)
+assert vc_evidence["credential_is_evidence_not_entity_authority"] is True
+
+did_doc={"id":"did:example:subject","verificationMethod":[]}
+did_evidence=m.StandardsAdapters.did_evidence(did_doc)
+assert did_evidence["external_identifier_is_not_entity_authority"] is True
+
+roundtrip=m.StandardsAdapters.export_odrl(mapping["mapped_rights"],"dataset-123")
+print(roundtrip)</pre><h2>Data-space crosswalk</h2><pre>crosswalk=m.StandardsAdapters.dataspace_mapping(
+    "GAIA_X", gaia_x_document,
+    policy_refs=["policy:example"],
+    semantic_crosswalk_refs=["crosswalk:v1"],
+)
+assert crosswalk["silent_semantic_equivalence"] is False</pre><p>Supported adapters currently include ODRL, W3C VC, DID, GAIA-X and IDS. Translation/crosswalk evidence never grants ENTITY authority by itself.</p><div class="actions"><a class="button" href="index.html">Cookbook home →</a><a class="button secondary" href="../tutorials/core/standards-adoption.html">Standards tutorial</a></div></main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
