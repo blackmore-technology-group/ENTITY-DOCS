@@ -43,6 +43,13 @@
     <summary>BTG-authored upstream pull request</summary>
   </entry>
   <entry>
+    <title>blackmore-technology-group/ENTITY: created branch community/developer-user-board</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:22608799351</id>
+    <updated>2026-09-29T16:45:33Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
     <title>Memnox/memnox PR #86: fix(policy): validate time window inputs</title>
     <link href="https://github.com/Memnox/memnox/pull/86"/>
     <id>urn:btg-github-news:external-pr:Memnox/memnox:86</id>
