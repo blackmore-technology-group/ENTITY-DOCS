@@ -5,8 +5,15 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-09-30T21:07:44Z</updated>
+  <updated>2026-09-30T22:31:38Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>Fork created: blackmore-technology-group/sotto</title>
+    <link href="https://github.com/blackmore-technology-group/sotto"/>
+    <id>urn:btg-github-news:fork:16142272717</id>
+    <updated>2026-09-30T22:31:38Z</updated>
+    <summary>Fork lineage from getsotto/sotto</summary>
+  </entry>
   <entry>
     <title>2AMLogic/gf180-surge PR #251: SXT-015: make params digest override-sensitive</title>
     <link href="https://github.com/2AMLogic/gf180-surge/pull/251"/>
