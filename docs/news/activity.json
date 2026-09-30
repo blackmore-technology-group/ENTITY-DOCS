@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-09-30T19:49:39.427966Z",
+  "generated_at_utc": "2026-09-30T20:24:26.493131Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -14,7 +14,7 @@
     "recent_external_prs": 7,
     "entity_evidence_records": 2,
     "retained_previous_activity_items": 37,
-    "activity_items": 37
+    "activity_items": 38
   },
   "repositories": [
     {
@@ -28,8 +28,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-09-30T19:25:16Z",
-      "pushed_at": "2026-09-30T19:25:12Z"
+      "updated_at": "2026-09-30T19:50:03Z",
+      "pushed_at": "2026-09-30T19:49:59Z"
     },
     {
       "name": "promise-to-proof",
@@ -454,6 +454,19 @@
       "entity_ingested": false,
       "entity_state": null,
       "entity_record_url": null
+    },
+    {
+      "id": "create:22622925173",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-09-30T18:11:37Z",
+      "title": "blackmore-technology-group/promise-to-proof: created branch feat/51-evidence-record-v1",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/promise-to-proof",
+      "url": "https://github.com/blackmore-technology-group/promise-to-proof",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
     },
     {
       "id": "fork:16124428159",
