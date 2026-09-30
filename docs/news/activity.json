@@ -1,22 +1,50 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-09-30T15:53:34.105605Z",
+  "generated_at_utc": "2026-09-30T16:27:49.978218Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
   "editorial_boundary": "Engineering/activity ledger, not marketing copy. Source state controls status.",
   "history_retention": "Previously observed public activity is append-retained from the first automated sync; current repository, release and pull-request state is refreshed from GitHub on every run.",
   "stats": {
-    "public_repositories": 23,
+    "public_repositories": 25,
     "original_public_repositories": 18,
-    "public_forks": 5,
+    "public_forks": 7,
     "release_records": 13,
-    "recent_external_prs": 3,
+    "recent_external_prs": 5,
     "entity_evidence_records": 2,
     "retained_previous_activity_items": 23,
-    "activity_items": 23
+    "activity_items": 29
   },
   "repositories": [
+    {
+      "name": "cve-lite-cli",
+      "full_name": "blackmore-technology-group/cve-lite-cli",
+      "url": "https://github.com/blackmore-technology-group/cve-lite-cli",
+      "description": "Fast, developer-friendly JS/TS dependency vulnerability scanner with local lockfile scanning, OSV matching, direct vs transitive visibility, --fix, JSON output, and practical remediation guidance.",
+      "fork": true,
+      "upstream": "OWASP/cve-lite-cli",
+      "archived": false,
+      "default_branch": "main",
+      "language": null,
+      "created_at": "2026-09-30T15:58:23Z",
+      "updated_at": "2026-09-30T15:58:23Z",
+      "pushed_at": "2026-09-30T16:02:59Z"
+    },
+    {
+      "name": "chainlearn-api",
+      "full_name": "blackmore-technology-group/chainlearn-api",
+      "url": "https://github.com/blackmore-technology-group/chainlearn-api",
+      "description": "Backend API for ChainLearn — course management, user progress, and Stellar integration.",
+      "fork": true,
+      "upstream": "ChainLearnOfficial/chainlearn-api",
+      "archived": false,
+      "default_branch": "main",
+      "language": null,
+      "created_at": "2026-09-30T15:58:49Z",
+      "updated_at": "2026-09-30T15:58:50Z",
+      "pushed_at": "2026-09-30T15:59:48Z"
+    },
     {
       "name": "ENTITY-DOCS",
       "full_name": "blackmore-technology-group/ENTITY-DOCS",
@@ -28,8 +56,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-09-30T15:28:45Z",
-      "pushed_at": "2026-09-30T15:28:40Z"
+      "updated_at": "2026-09-30T15:53:58Z",
+      "pushed_at": "2026-09-30T15:53:54Z"
     },
     {
       "name": "aws-durable-execution-sdk-js",
@@ -341,6 +369,90 @@
     }
   ],
   "items": [
+    {
+      "id": "external-pr:OWASP/cve-lite-cli:1258",
+      "type": "EXTERNAL_FIX",
+      "occurred_at": "2026-09-30T16:04:01Z",
+      "title": "OWASP/cve-lite-cli PR #1258: chore(cli): use flag constants in validation conflicts",
+      "summary": "BTG-authored upstream pull request",
+      "repository": "OWASP/cve-lite-cli",
+      "url": "https://github.com/OWASP/cve-lite-cli/pull/1258",
+      "status": "UPSTREAM_OPEN",
+      "source": "GITHUB_PR_SEARCH",
+      "head_sha": "e2e23c3a7135395da72fbbdcd2071dd9845ef768",
+      "entity_ingested": false,
+      "entity_state": null,
+      "entity_record_url": null
+    },
+    {
+      "id": "pr-event:16116176319",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-09-30T16:04:00Z",
+      "title": "OWASP/cve-lite-cli PR #1258:",
+      "summary": "GitHub PR event: opened",
+      "repository": "OWASP/cve-lite-cli",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:16115919247",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-09-30T16:00:38Z",
+      "title": "ChainLearnOfficial/chainlearn-api PR #541:",
+      "summary": "GitHub PR event: opened",
+      "repository": "ChainLearnOfficial/chainlearn-api",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "external-pr:ChainLearnOfficial/chainlearn-api:541",
+      "type": "EXTERNAL_FIX",
+      "occurred_at": "2026-09-30T16:00:38Z",
+      "title": "ChainLearnOfficial/chainlearn-api PR #541: fix(users): validate profile updates at service boundary",
+      "summary": "BTG-authored upstream pull request",
+      "repository": "ChainLearnOfficial/chainlearn-api",
+      "url": "https://github.com/ChainLearnOfficial/chainlearn-api/pull/541",
+      "status": "UPSTREAM_OPEN",
+      "source": "GITHUB_PR_SEARCH",
+      "head_sha": "31b8e85c44f2bb2547d8e5c541e98102d6c66e32",
+      "entity_ingested": false,
+      "entity_state": null,
+      "entity_record_url": null
+    },
+    {
+      "id": "fork:16115781444",
+      "type": "FORK",
+      "occurred_at": "2026-09-30T15:58:49Z",
+      "title": "Fork created: blackmore-technology-group/chainlearn-api",
+      "summary": "Fork lineage from ChainLearnOfficial/chainlearn-api",
+      "repository": "blackmore-technology-group/chainlearn-api",
+      "upstream": "ChainLearnOfficial/chainlearn-api",
+      "url": "https://github.com/blackmore-technology-group/chainlearn-api",
+      "status": "PUBLIC_FORK",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "fork:16115747777",
+      "type": "FORK",
+      "occurred_at": "2026-09-30T15:58:23Z",
+      "title": "Fork created: blackmore-technology-group/cve-lite-cli",
+      "summary": "Fork lineage from OWASP/cve-lite-cli",
+      "repository": "blackmore-technology-group/cve-lite-cli",
+      "upstream": "OWASP/cve-lite-cli",
+      "url": "https://github.com/blackmore-technology-group/cve-lite-cli",
+      "status": "PUBLIC_FORK",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
     {
       "id": "external-pr:aws/aws-durable-execution-sdk-js:935",
       "type": "EXTERNAL_FIX",
