@@ -1,22 +1,50 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-09-30T17:50:43.585810Z",
+  "generated_at_utc": "2026-09-30T18:26:41.036334Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
   "editorial_boundary": "Engineering/activity ledger, not marketing copy. Source state controls status.",
   "history_retention": "Previously observed public activity is append-retained from the first automated sync; current repository, release and pull-request state is refreshed from GitHub on every run.",
   "stats": {
-    "public_repositories": 26,
+    "public_repositories": 27,
     "original_public_repositories": 18,
-    "public_forks": 8,
+    "public_forks": 9,
     "release_records": 13,
-    "recent_external_prs": 6,
+    "recent_external_prs": 7,
     "entity_evidence_records": 2,
-    "retained_previous_activity_items": 30,
-    "activity_items": 33
+    "retained_previous_activity_items": 33,
+    "activity_items": 36
   },
   "repositories": [
+    {
+      "name": "promise-to-proof",
+      "full_name": "blackmore-technology-group/promise-to-proof",
+      "url": "https://github.com/blackmore-technology-group/promise-to-proof",
+      "description": "Agent skills for carrying software requirements from promise to implementation and proof.",
+      "fork": true,
+      "upstream": "grove/promise-to-proof",
+      "archived": false,
+      "default_branch": "main",
+      "language": null,
+      "created_at": "2026-09-30T17:58:41Z",
+      "updated_at": "2026-09-30T17:58:41Z",
+      "pushed_at": "2026-09-30T18:11:37Z"
+    },
+    {
+      "name": "ENTITY-DOCS",
+      "full_name": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "description": "Complete operator, developer, protocol, economic, security and generated reference documentation for ENTITY v3.4.0.",
+      "fork": false,
+      "upstream": null,
+      "archived": false,
+      "default_branch": "main",
+      "language": "Python",
+      "created_at": "2026-09-25T14:57:27Z",
+      "updated_at": "2026-09-30T17:51:04Z",
+      "pushed_at": "2026-09-30T17:51:00Z"
+    },
     {
       "name": "gf180-surge",
       "full_name": "blackmore-technology-group/gf180-surge",
@@ -30,20 +58,6 @@
       "created_at": "2026-09-30T17:37:58Z",
       "updated_at": "2026-09-30T17:37:58Z",
       "pushed_at": "2026-09-30T17:43:30Z"
-    },
-    {
-      "name": "ENTITY-DOCS",
-      "full_name": "blackmore-technology-group/ENTITY-DOCS",
-      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
-      "description": "Complete operator, developer, protocol, economic, security and generated reference documentation for ENTITY v3.4.0.",
-      "fork": false,
-      "upstream": null,
-      "archived": false,
-      "default_branch": "main",
-      "language": "Python",
-      "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-09-30T17:25:15Z",
-      "pushed_at": "2026-09-30T17:25:11Z"
     },
     {
       "name": "cve-lite-cli",
@@ -384,6 +398,63 @@
   ],
   "items": [
     {
+      "id": "external-pr:aws/aws-durable-execution-sdk-js:935",
+      "type": "EXTERNAL_FIX",
+      "occurred_at": "2026-09-30T18:17:01Z",
+      "title": "aws/aws-durable-execution-sdk-js PR #935: fix: export synthetic execution root in fallback traces",
+      "summary": "BTG-authored upstream pull request",
+      "repository": "aws/aws-durable-execution-sdk-js",
+      "url": "https://github.com/aws/aws-durable-execution-sdk-js/pull/935",
+      "status": "UPSTREAM_OPEN",
+      "source": "GITHUB_PR_SEARCH",
+      "head_sha": "adfa3633d594ea74b30d351f31a4e668874b2954",
+      "entity_ingested": false,
+      "entity_state": null,
+      "entity_record_url": null
+    },
+    {
+      "id": "pr-event:16125391656",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-09-30T18:12:22Z",
+      "title": "grove/promise-to-proof PR #58:",
+      "summary": "GitHub PR event: opened",
+      "repository": "grove/promise-to-proof",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "external-pr:grove/promise-to-proof:58",
+      "type": "EXTERNAL_FIX",
+      "occurred_at": "2026-09-30T18:12:22Z",
+      "title": "grove/promise-to-proof PR #58: Define normalized P2P Evidence Record v1",
+      "summary": "BTG-authored upstream pull request",
+      "repository": "grove/promise-to-proof",
+      "url": "https://github.com/grove/promise-to-proof/pull/58",
+      "status": "UPSTREAM_OPEN",
+      "source": "GITHUB_PR_SEARCH",
+      "head_sha": "7518503f54edfc41ef990d5b286ade39b6927095",
+      "entity_ingested": false,
+      "entity_state": null,
+      "entity_record_url": null
+    },
+    {
+      "id": "fork:16124428159",
+      "type": "FORK",
+      "occurred_at": "2026-09-30T17:58:41Z",
+      "title": "Fork created: blackmore-technology-group/promise-to-proof",
+      "summary": "Fork lineage from grove/promise-to-proof",
+      "repository": "blackmore-technology-group/promise-to-proof",
+      "upstream": "grove/promise-to-proof",
+      "url": "https://github.com/blackmore-technology-group/promise-to-proof",
+      "status": "PUBLIC_FORK",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
       "id": "external-pr:2AMLogic/gf180-surge:251",
       "type": "EXTERNAL_FIX",
       "occurred_at": "2026-09-30T17:44:13Z",
@@ -508,21 +579,6 @@
       "source": "GITHUB_PUBLIC_EVENT",
       "entity_ingested": false,
       "entity_state": null
-    },
-    {
-      "id": "external-pr:aws/aws-durable-execution-sdk-js:935",
-      "type": "EXTERNAL_FIX",
-      "occurred_at": "2026-09-30T10:30:14Z",
-      "title": "aws/aws-durable-execution-sdk-js PR #935: fix: export synthetic execution root in fallback traces",
-      "summary": "BTG-authored upstream pull request",
-      "repository": "aws/aws-durable-execution-sdk-js",
-      "url": "https://github.com/aws/aws-durable-execution-sdk-js/pull/935",
-      "status": "UPSTREAM_OPEN",
-      "source": "GITHUB_PR_SEARCH",
-      "head_sha": "adfa3633d594ea74b30d351f31a4e668874b2954",
-      "entity_ingested": false,
-      "entity_state": null,
-      "entity_record_url": null
     },
     {
       "id": "pr-event:16028879506",

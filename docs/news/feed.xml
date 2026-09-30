@@ -5,8 +5,29 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-09-30T17:44:13Z</updated>
+  <updated>2026-09-30T18:17:01Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>aws/aws-durable-execution-sdk-js PR #935: fix: export synthetic execution root in fallback traces</title>
+    <link href="https://github.com/aws/aws-durable-execution-sdk-js/pull/935"/>
+    <id>urn:btg-github-news:external-pr:aws/aws-durable-execution-sdk-js:935</id>
+    <updated>2026-09-30T18:17:01Z</updated>
+    <summary>BTG-authored upstream pull request</summary>
+  </entry>
+  <entry>
+    <title>grove/promise-to-proof PR #58: Define normalized P2P Evidence Record v1</title>
+    <link href="https://github.com/grove/promise-to-proof/pull/58"/>
+    <id>urn:btg-github-news:external-pr:grove/promise-to-proof:58</id>
+    <updated>2026-09-30T18:12:22Z</updated>
+    <summary>BTG-authored upstream pull request</summary>
+  </entry>
+  <entry>
+    <title>Fork created: blackmore-technology-group/promise-to-proof</title>
+    <link href="https://github.com/blackmore-technology-group/promise-to-proof"/>
+    <id>urn:btg-github-news:fork:16124428159</id>
+    <updated>2026-09-30T17:58:41Z</updated>
+    <summary>Fork lineage from grove/promise-to-proof</summary>
+  </entry>
   <entry>
     <title>2AMLogic/gf180-surge PR #251: SXT-015: make params digest override-sensitive</title>
     <link href="https://github.com/2AMLogic/gf180-surge/pull/251"/>
@@ -48,13 +69,6 @@
     <id>urn:btg-github-news:fork:16115747777</id>
     <updated>2026-09-30T15:58:23Z</updated>
     <summary>Fork lineage from OWASP/cve-lite-cli</summary>
-  </entry>
-  <entry>
-    <title>aws/aws-durable-execution-sdk-js PR #935: fix: export synthetic execution root in fallback traces</title>
-    <link href="https://github.com/aws/aws-durable-execution-sdk-js/pull/935"/>
-    <id>urn:btg-github-news:external-pr:aws/aws-durable-execution-sdk-js:935</id>
-    <updated>2026-09-30T10:30:14Z</updated>
-    <summary>BTG-authored upstream pull request</summary>
   </entry>
   <entry>
     <title>blackmore-technology-group/ENTITY: created branch community/developer-user-board</title>
