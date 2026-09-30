@@ -1,22 +1,36 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-09-30T17:24:43.646672Z",
+  "generated_at_utc": "2026-09-30T17:50:43.585810Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
   "editorial_boundary": "Engineering/activity ledger, not marketing copy. Source state controls status.",
   "history_retention": "Previously observed public activity is append-retained from the first automated sync; current repository, release and pull-request state is refreshed from GitHub on every run.",
   "stats": {
-    "public_repositories": 25,
+    "public_repositories": 26,
     "original_public_repositories": 18,
-    "public_forks": 7,
+    "public_forks": 8,
     "release_records": 13,
-    "recent_external_prs": 5,
+    "recent_external_prs": 6,
     "entity_evidence_records": 2,
-    "retained_previous_activity_items": 29,
-    "activity_items": 30
+    "retained_previous_activity_items": 30,
+    "activity_items": 33
   },
   "repositories": [
+    {
+      "name": "gf180-surge",
+      "full_name": "blackmore-technology-group/gf180-surge",
+      "url": "https://github.com/blackmore-technology-group/gf180-surge",
+      "description": "Surge XT subset polyphonic synthesis engine with effects on gf180mcu — 2AM Logic canary block",
+      "fork": true,
+      "upstream": "2AMLogic/gf180-surge",
+      "archived": false,
+      "default_branch": "main",
+      "language": null,
+      "created_at": "2026-09-30T17:37:58Z",
+      "updated_at": "2026-09-30T17:37:58Z",
+      "pushed_at": "2026-09-30T17:43:30Z"
+    },
     {
       "name": "ENTITY-DOCS",
       "full_name": "blackmore-technology-group/ENTITY-DOCS",
@@ -28,8 +42,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-09-30T16:52:12Z",
-      "pushed_at": "2026-09-30T16:52:08Z"
+      "updated_at": "2026-09-30T17:25:15Z",
+      "pushed_at": "2026-09-30T17:25:11Z"
     },
     {
       "name": "cve-lite-cli",
@@ -369,6 +383,48 @@
     }
   ],
   "items": [
+    {
+      "id": "external-pr:2AMLogic/gf180-surge:251",
+      "type": "EXTERNAL_FIX",
+      "occurred_at": "2026-09-30T17:44:13Z",
+      "title": "2AMLogic/gf180-surge PR #251: SXT-015: make params digest override-sensitive",
+      "summary": "BTG-authored upstream pull request",
+      "repository": "2AMLogic/gf180-surge",
+      "url": "https://github.com/2AMLogic/gf180-surge/pull/251",
+      "status": "UPSTREAM_OPEN",
+      "source": "GITHUB_PR_SEARCH",
+      "head_sha": "d9a0405673bf86c3731f8d4c25373037d389f8ab",
+      "entity_ingested": false,
+      "entity_state": null,
+      "entity_record_url": null
+    },
+    {
+      "id": "pr-event:16123394415",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-09-30T17:44:09Z",
+      "title": "2AMLogic/gf180-surge PR #251:",
+      "summary": "GitHub PR event: opened",
+      "repository": "2AMLogic/gf180-surge",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "fork:16122960799",
+      "type": "FORK",
+      "occurred_at": "2026-09-30T17:37:58Z",
+      "title": "Fork created: blackmore-technology-group/gf180-surge",
+      "summary": "Fork lineage from 2AMLogic/gf180-surge",
+      "repository": "blackmore-technology-group/gf180-surge",
+      "upstream": "2AMLogic/gf180-surge",
+      "url": "https://github.com/blackmore-technology-group/gf180-surge",
+      "status": "PUBLIC_FORK",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
     {
       "id": "external-pr:OWASP/cve-lite-cli:1258",
       "type": "EXTERNAL_FIX",
