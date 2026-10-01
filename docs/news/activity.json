@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-01T02:51:22.914764Z",
+  "generated_at_utc": "2026-10-01T03:25:04.611219Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -13,8 +13,8 @@
     "release_records": 13,
     "recent_external_prs": 13,
     "entity_evidence_records": 2,
-    "retained_previous_activity_items": 73,
-    "activity_items": 77
+    "retained_previous_activity_items": 77,
+    "activity_items": 82
   },
   "repositories": [
     {
@@ -28,8 +28,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-01T02:50:37Z",
-      "pushed_at": "2026-10-01T02:50:32Z"
+      "updated_at": "2026-10-01T02:57:27Z",
+      "pushed_at": "2026-10-01T02:57:23Z"
     },
     {
       "name": "pycubrid",
@@ -467,6 +467,71 @@
     }
   ],
   "items": [
+    {
+      "id": "pr-event:16154710563",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T02:57:23Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #53:",
+      "summary": "GitHub PR event: merged",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "MERGED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:16154693040",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T02:57:00Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #53:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:22651131646",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-01T02:56:34Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS: created branch docs/finalize-replay-renders-20261001",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:16154596510",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T02:54:43Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #52:",
+      "summary": "GitHub PR event: merged",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "MERGED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:16154567877",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T02:54:10Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #52:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
     {
       "id": "pr-event:16154410803",
       "type": "PULL_REQUEST",
