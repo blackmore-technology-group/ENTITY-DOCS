@@ -1,0 +1,48 @@
+{
+  "actual": {
+    "bond_bytes": 4000000000,
+    "bond_sha256": "17403382dd33f2ae573d1c35f91584530de57e0e3c2a13b6d7b7a7094a2c2f9e",
+    "bonds": 250000000,
+    "entities": 50000000,
+    "index_bytes": 400000000,
+    "index_seconds": 5.479545300011523,
+    "index_sha256": "c7aa7fa07ed15b597064b345dd2f925b4636a5d6c82dd79483f117b80e583e93",
+    "mean_query_us": 9901.2698,
+    "median_query_us": 10533.15,
+    "p95_query_us": 20285.76,
+    "query_correct": true,
+    "query_samples": 1000,
+    "record_bytes": 16,
+    "total_bytes": 4400000000,
+    "write_MBps": 70.33957043105302,
+    "write_seconds": 56.866994999931194
+  },
+  "memory": {
+    "after_queries": {
+      "pagefile": 425525248,
+      "peak_pagefile": 503664640,
+      "peak_working_set": 268582912,
+      "working_set": 199401472
+    },
+    "after_write": {
+      "pagefile": 374947840,
+      "peak_pagefile": 463581184,
+      "peak_working_set": 228581376,
+      "working_set": 148574208
+    },
+    "start": {
+      "pagefile": 254705664,
+      "peak_pagefile": 254705664,
+      "peak_working_set": 28413952,
+      "working_set": 28413952
+    }
+  },
+  "pass": true,
+  "qualification": "ENTITY storage proof 2026-10-01",
+  "vector_baseline": {
+    "dimension": 768,
+    "float_bytes": 4,
+    "representation_saving_fraction": 0.9713541666666666,
+    "vector_bytes": 153600000000
+  }
+}
