@@ -61,6 +61,36 @@
       "slug": "v343-security-fail-closed",
       "test": 6,
       "video": "videos/test-06-v343-security-fail-closed.webm"
+    },
+    {
+      "bytes": 664132,
+      "codec": "VP80",
+      "fps": 24.0,
+      "frames": 258,
+      "sha256": "F9C6772282C354B66A52FFCE433C601B5E44DC5AA4880D118C2CFC3B55EE9DA8",
+      "slug": "v343-identity-authority-rights",
+      "test": 7,
+      "video": "videos/test-07-v343-identity-authority-rights.webm"
+    },
+    {
+      "bytes": 622955,
+      "codec": "VP80",
+      "fps": 24.0,
+      "frames": 258,
+      "sha256": "261F835F5C8DE6B36E8856E9FC63ADB734B332E9AA2B1F23EA21B96CA1E96F21",
+      "slug": "v343-economic-fabric",
+      "test": 8,
+      "video": "videos/test-08-v343-economic-fabric.webm"
+    },
+    {
+      "bytes": 602269,
+      "codec": "VP80",
+      "fps": 24.0,
+      "frames": 258,
+      "sha256": "085067B2F4138E70B7EDAF5E622046626C8C3C1373670908140B231B1967F645",
+      "slug": "v343-adam-integration",
+      "test": 9,
+      "video": "videos/test-09-v343-adam-integration.webm"
     }
   ]
 }

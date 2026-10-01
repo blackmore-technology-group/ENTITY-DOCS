@@ -102,6 +102,57 @@
       "video_fps": 24.0,
       "video_frames": 260,
       "video_sha256": "0B62DAD6B85C58D07CA901B665ACD6DD8981197EC3DD98FA360BD8181F53E199"
+    },
+    {
+      "release": "v3.4.3",
+      "result": "v343_identity_authority_rights_result.json",
+      "result_sha256": "C5B73BBF1F6ED4AC86D7B200B27DA4DD86D725130BC76CCB457906CB712B6BBB",
+      "script": "run_v343_identity_authority_rights.ps1",
+      "script_sha256": "AC091C363EB3E20A74E8A2C4785DCA231CE82501E8CCF2067194D7D46757040E",
+      "slug": "v343-identity-authority-rights",
+      "source_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+      "test": 7,
+      "transcript": "v343_identity_authority_rights.txt",
+      "transcript_sha256": "851E3D082114DB36488247E8A2ED92AB6F82E6316181B09DEC7E9BE65302C621",
+      "video": "videos/test-07-v343-identity-authority-rights.webm",
+      "video_bytes": 664132,
+      "video_fps": 24.0,
+      "video_frames": 258,
+      "video_sha256": "F9C6772282C354B66A52FFCE433C601B5E44DC5AA4880D118C2CFC3B55EE9DA8"
+    },
+    {
+      "release": "v3.4.3",
+      "result": "v343_economic_fabric_result.json",
+      "result_sha256": "F7BDD8383CD10133F6BAA74BF8D4F40588E2736D6E4FE37EFE44516159A1EA15",
+      "script": "run_v343_economic_fabric.ps1",
+      "script_sha256": "C297D7E19789AA59C0F07706DB943A57FAC2A9E9011B9A5E2F78F5CED150CDA9",
+      "slug": "v343-economic-fabric",
+      "source_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+      "test": 8,
+      "transcript": "v343_economic_fabric_convergence.txt",
+      "transcript_sha256": "A2394784AFB493CFECDC57742C6A16C27384072DBCA1DDD517FF99731493E079",
+      "video": "videos/test-08-v343-economic-fabric.webm",
+      "video_bytes": 622955,
+      "video_fps": 24.0,
+      "video_frames": 258,
+      "video_sha256": "261F835F5C8DE6B36E8856E9FC63ADB734B332E9AA2B1F23EA21B96CA1E96F21"
+    },
+    {
+      "release": "v3.4.3",
+      "result": "v343_adam_integration_result.json",
+      "result_sha256": "0BF0253F7C7E94590324B3B7DF5EC274D7B27FED04F900B3C5EEAF46A0C42B5B",
+      "script": "run_v343_adam_integration.ps1",
+      "script_sha256": "7B879C1C2DBE9F4742D34BFD4EB8B684D7965B0F74CC73542464302BFD079ED2",
+      "slug": "v343-adam-integration",
+      "source_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+      "test": 9,
+      "transcript": "v343_adam_integration.txt",
+      "transcript_sha256": "D61BD84E5AF5155DEB3C1F7C2ECE07C27272F360820BF334775019BFBDE859BD",
+      "video": "videos/test-09-v343-adam-integration.webm",
+      "video_bytes": 602269,
+      "video_fps": 24.0,
+      "video_frames": 258,
+      "video_sha256": "085067B2F4138E70B7EDAF5E622046626C8C3C1373670908140B231B1967F645"
     }
   ]
 }

@@ -1,0 +1,14 @@
+{
+  "adam_runtime_sha256": "10D14EE7A10D4C9D8150CD22FF3913A221D89203B75835E7310102CE13A21EB0",
+  "adam_source": "ADAM_v1_0_COMPLETE_SOFTWARE_REFERENCE_RC2",
+  "commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+  "duration_seconds": 20.36,
+  "exit_code": 0,
+  "passed": 13,
+  "python": "3.11.9",
+  "release": "v3.4.3",
+  "schema": "entity-test-result-v1",
+  "skipped": 0,
+  "status": "PASS",
+  "test": 9
+}
