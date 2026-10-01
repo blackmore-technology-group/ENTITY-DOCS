@@ -1,0 +1,76 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Export and verify a portable sovereign bundle - ENTITY Code Tutorial</title><meta name="description" content="portable bundle integrity and tamper rejection"><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation?"></header><div id="results"></div><div class="layout"><nav><h3>Code tutorials</h3><a href="index.html">Code tutorial home</a><a href="identity-signing.html">1 - Create, verify and sign with an ENTITY identity</a><a href="authority-rights-provenance.html">2 - Exercise authority, rights and provenance</a><a href="portable-bundle-verification.html">3 - Export and verify a portable sovereign bundle</a><a href="evidence-trust-threshold.html">4 - Require two independent attestations</a><a href="btdu-cli.html">5 - Initialize BTDU and verify the ADAM dependency boundary</a><h3>Learning</h3><a href="../index.html">Tutorial home</a><a href="../core/">Core curriculum</a><a href="../../recipes/">Developer recipes</a></nav><main><div class="eyebrow">Code tutorial 3 - tested</div><h1>Export and verify a portable sovereign bundle</h1><p class="lede">Portable bundle integrity and tamper rejection. Verified against ENTITY main commit <code>5be325437a63c2efaee0dc3caaae9ab0cd0773d9</code> using disposable tutorial state.</p><p><a href="examples/portable_bundle_verification.py">Download/view the exact source</a> - <a href="transcripts/portable_bundle_verification.txt">Open the recorded transcript</a> - <a href="EXECUTION_RECORD_20261001.json">Execution record</a></p><h2>Run it</h2><pre>$env:ENTITY_ROOT="C:\path\to\ENTITY"
+python portable_bundle_verification.py</pre><h2>Exact source used</h2><pre>﻿from pathlib import Path
+import os
+import copy
+import hashlib
+import importlib.util
+import shutil
+
+ROOT = Path(os.environ.get("ENTITY_ROOT", Path.cwd())).resolve()
+STATE = ROOT / ".tutorial-test-state" / "bundle-verification"
+if STATE.exists():
+    shutil.rmtree(STATE)
+
+def load_source(relative_path: str, module_name: str):
+    spec = importlib.util.spec_from_file_location(module_name, ROOT / relative_path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+identity_mod = load_source(
+    "src/01_Core_Runtime/identity/canonical_identity.py", "entity_identity"
+)
+fabric_mod = load_source(
+    "src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py",
+    "entity_fabric",
+)
+identity = identity_mod.EntityIdentityVault(STATE)
+owner = identity.create("Bundle Owner", "organization")
+researcher = identity.create("Bundle Researcher", "person")
+fabric = fabric_mod.UniversalTransactionFabric(STATE, identity)
+digest = hashlib.sha256(b"portable tutorial object").hexdigest()
+obj = fabric.register_object(
+    owner["entity_id"], "DOCUMENT", "Portable Tutorial Object",
+    content_sha256=digest,
+)
+fabric.grant_right(
+    obj["object_id"], owner["entity_id"], researcher["entity_id"],
+    ["READ"], constraints={"purposes": ["tutorial"]},
+)
+bundle = fabric.export_bundle(obj["object_id"])
+verification = fabric.verify_bundle(bundle)
+assert verification["valid"] is True
+assert verification["primitive_set_complete"] is True
+assert verification["provider_independent"] is True
+
+# Negative control: change governed data without recomputing signatures/hash.
+tampered = copy.deepcopy(bundle)
+tampered["objects"][0]["title"] = "Tampered title"
+tampered_result = fabric.verify_bundle(tampered)
+assert tampered_result["valid"] is False
+assert "semantic_hash_invalid" in tampered_result["failures"]
+
+print(f"ROOT_OBJECT={obj['object_id']}")
+print(f"SEMANTIC_SHA256={bundle['semantic_sha256']}")
+print(f"VERIFIED_MANIFESTS={verification['verified_manifest_count']}")
+print("PORTABLE_BUNDLE_VERIFICATION=PASS")
+print("TAMPER_NEGATIVE_CONTROL=BLOCKED")
+print("CLAIM_BOUNDARY=verification proves bundle integrity/signatures, not external truth")
+
+</pre><h2>Recorded run</h2><pre>ENTITY source commit: 5be325437a63c2efaee0dc3caaae9ab0cd0773d9
+Recorded on: 2026-09-30 (America/Vancouver)
+Command:
+  $env:ENTITY_ROOT='E:\ENTITY_ACTIVE\ENTITY_TUTORIAL_TEST'
+  E:\ENTITY_ACTIVE\PYTHON311_EMBED\python.exe portable_bundle_verification.py
+
+Output:
+ROOT_OBJECT=obj3-119781c6426c7a554c61619ade13e5b4a83374c5
+SEMANTIC_SHA256=183483f3ead4b012f4634103971e71c0f651cb96f854a19d3bbc833704b05ba9
+VERIFIED_MANIFESTS=1
+PORTABLE_BUNDLE_VERIFICATION=PASS
+TAMPER_NEGATIVE_CONTROL=BLOCKED
+CLAIM_BOUNDARY=verification proves bundle integrity/signatures, not external truth
+
+Note: generated identifiers and hashes may differ on each run while the documented invariants must remain the same.
+</pre><div class="callout"><strong>Claim boundary:</strong> This example proves the documented code path and its explicit invariants in the recorded environment. It does not independently prove external facts, ownership, payment, market value or production certification.</div><div class="actions"><a class="button" href="index.html">Code tutorial home</a><a class="button secondary" href="../core/">Core curriculum</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>

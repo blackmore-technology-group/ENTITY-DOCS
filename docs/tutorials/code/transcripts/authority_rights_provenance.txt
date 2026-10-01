@@ -1,0 +1,18 @@
+﻿ENTITY source commit: 5be325437a63c2efaee0dc3caaae9ab0cd0773d9
+Recorded on: 2026-09-30 (America/Vancouver)
+Command:
+  $env:ENTITY_ROOT='E:\ENTITY_ACTIVE\ENTITY_TUTORIAL_TEST'
+  E:\ENTITY_ACTIVE\PYTHON311_EMBED\python.exe authority_rights_provenance.py
+
+Output:
+SOURCE_OBJECT=obj3-e425b1f4674253b3fe621a7ff15132afcfdb4b24
+DERIVED_OBJECT=obj3-e7b003543bb036b1a8d6ddb552052c83d5ec118f
+LICENSE_AUTHORITY=PASS
+UNGRANTED_SETTLE_AUTHORITY=BLOCKED
+TRAIN_RIGHT=PASS
+UNGRANTED_COMMERCIALIZE_RIGHT=BLOCKED
+PROVENANCE_EDGE=prov3-4f9c6fcdbc9a92ac747376e5fa0ff86645aab425
+VALUE_DISTRIBUTION=70_SOURCE/30_DERIVED
+CLAIM_BOUNDARY=provenance is not ownership; allocation is deterministic model output
+
+Note: generated identifiers and hashes may differ on each run while the documented invariants must remain the same.

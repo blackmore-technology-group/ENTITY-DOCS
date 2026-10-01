@@ -1,0 +1,15 @@
+﻿ENTITY source commit: 5be325437a63c2efaee0dc3caaae9ab0cd0773d9
+Recorded on: 2026-09-30 (America/Vancouver)
+Command:
+  $env:ENTITY_ROOT='E:\ENTITY_ACTIVE\ENTITY_TUTORIAL_TEST'
+  E:\ENTITY_ACTIVE\PYTHON311_EMBED\python.exe portable_bundle_verification.py
+
+Output:
+ROOT_OBJECT=obj3-119781c6426c7a554c61619ade13e5b4a83374c5
+SEMANTIC_SHA256=183483f3ead4b012f4634103971e71c0f651cb96f854a19d3bbc833704b05ba9
+VERIFIED_MANIFESTS=1
+PORTABLE_BUNDLE_VERIFICATION=PASS
+TAMPER_NEGATIVE_CONTROL=BLOCKED
+CLAIM_BOUNDARY=verification proves bundle integrity/signatures, not external truth
+
+Note: generated identifiers and hashes may differ on each run while the documented invariants must remain the same.

@@ -1,0 +1,25 @@
+﻿ENTITY source commit: 5be325437a63c2efaee0dc3caaae9ab0cd0773d9
+Recorded on: 2026-09-30 (America/Vancouver)
+Command sequence:
+  $env:ENTITY_ROOT='C:\path\to\ENTITY'
+  python examples/btdu_bootstrap.py
+  python tools/entity_btdu_cli.py --entity-state .tutorial-btdu/entity --btdu-state .tutorial-btdu/btdu --adam-root PATH_TO_VERIFIED_ADAM_V1_ROOT --owner-entity-id GENERATED_ENT2_ID --git-bin git init
+  python tools/entity_btdu_cli.py --entity-state .tutorial-btdu/entity --btdu-state .tutorial-btdu/btdu --adam-root PATH_TO_VERIFIED_ADAM_V1_ROOT --owner-entity-id GENERATED_ENT2_ID --git-bin git status
+
+Recorded status summary:
+BTDU_STATUS=PASS
+BTDU_VERSION=3.4.2
+ATOMIC_RUNTIME=PASS
+AUTHORITY_ROOT=ENTITY
+EXECUTOR_STATE_ENGINE=ADAM
+SOVEREIGN_ENTITY_ID=ent2-xbxnzay6mliebrj3yh7zpn7hjiogu3mj6d7r5wuvcylhgvlhwg7a
+OBJECTS=0
+PROBLEMS=
+
+Dependency negative control:
+  --adam-root src/11_ADAM/full_runtime
+Result:
+  FileNotFoundError: Full ADAM v1.0 source is required. Set ENTITY_ADAM_V1_ROOT to the verified ADAM_v1_0_COMPLETE_SOFTWARE_REFERENCE_RC2 source root.
+
+After using a verified source root containing adam_v1/runtime.py, init and status both passed.
+Claim boundary: tutorial PASS does not satisfy the ADAM software reference's unresolved external certification gates.

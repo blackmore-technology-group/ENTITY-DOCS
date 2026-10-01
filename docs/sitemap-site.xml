@@ -61,4 +61,10 @@
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/security/</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/about/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/contact/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/</loc><changefreq>weekly</changefreq><priority>0.98</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/identity-signing.html</loc><changefreq>weekly</changefreq><priority>0.96</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/authority-rights-provenance.html</loc><changefreq>weekly</changefreq><priority>0.96</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/portable-bundle-verification.html</loc><changefreq>weekly</changefreq><priority>0.96</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/evidence-trust-threshold.html</loc><changefreq>weekly</changefreq><priority>0.96</priority></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/btdu-cli.html</loc><changefreq>weekly</changefreq><priority>0.96</priority></url>
 </urlset>

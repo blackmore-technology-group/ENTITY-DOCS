@@ -1,31 +1,31 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Recipe · BTDU CLI</title><link rel="stylesheet" href="../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Recipes</a><a href="attestation-trust.html">Previous</a><a href="passports.html">Next →</a></nav><main><div class="eyebrow">Recipe 5</div><h1>Initialize BTDU, ingest a pinned repository and reconstruct exact bytes</h1><p>Run from the ENTITY repository root and use disposable state paths. The BTDU CLI requires a valid ENTITY state, BTDU state and the pinned ADAM runtime.</p><h2>Initialize and verify state</h2><pre>python tools/entity_btdu_cli.py \
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENTITY Recipe · BTDU CLI</title><link rel="stylesheet" href="../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div><div class="layout"><nav><a href="index.html">← Recipes</a><a href="attestation-trust.html">Previous</a><a href="passports.html">Next →</a></nav><main><div class="eyebrow">Recipe 5</div><h1>Initialize BTDU, ingest a pinned repository and reconstruct exact bytes</h1><p>Run from the ENTITY repository root and use disposable state paths. The BTDU CLI requires a valid ENTITY state, BTDU state and the pinned ADAM runtime.</p><div class="callout"><strong>ADAM prerequisite:</strong> <code>--adam-root</code> must point to the verified <code>ADAM_v1_0_COMPLETE_SOFTWARE_REFERENCE_RC2</code> source root. The wrapper directory <code>src/11_ADAM/full_runtime</code> is not itself that source root.</div><h2>Initialize and verify state</h2><pre>python tools/entity_btdu_cli.py \
   --entity-state .recipe-state/entity \
   --btdu-state .recipe-state/btdu \
-  --adam-root src/11_ADAM/full_runtime \
+  --adam-root PATH_TO_VERIFIED_ADAM_V1_ROOT \
   --git-bin git \
   init
 
 python tools/entity_btdu_cli.py \
   --entity-state .recipe-state/entity \
   --btdu-state .recipe-state/btdu \
-  --adam-root src/11_ADAM/full_runtime \
+  --adam-root PATH_TO_VERIFIED_ADAM_V1_ROOT \
   --git-bin git \
   status</pre><h2>Ingest a repository at an immutable commit</h2><pre>git -C PATH_TO_REPO rev-parse HEAD
 
 python tools/entity_btdu_cli.py \
   --entity-state .recipe-state/entity \
   --btdu-state .recipe-state/btdu \
-  --adam-root src/11_ADAM/full_runtime \
+  --adam-root PATH_TO_VERIFIED_ADAM_V1_ROOT \
   --git-bin git \
   ingest-repo PATH_TO_REPO \
   --provenance git://owner/repository@EXACT_COMMIT</pre><p>Save the returned repository manifest/object reference and atomic root.</p><h2>Inspect bounded context</h2><pre>python tools/entity_btdu_cli.py \
   --entity-state .recipe-state/entity \
   --btdu-state .recipe-state/btdu \
-  --adam-root src/11_ADAM/full_runtime \
+  --adam-root PATH_TO_VERIFIED_ADAM_V1_ROOT \
   context OBJECT_REF</pre><h2>Reconstruct and hash</h2><pre>python tools/entity_btdu_cli.py \
   --entity-state .recipe-state/entity \
   --btdu-state .recipe-state/btdu \
-  --adam-root src/11_ADAM/full_runtime \
+  --adam-root PATH_TO_VERIFIED_ADAM_V1_ROOT \
   reconstruct OBJECT_REF reconstructed.bin
 
 python -c "import hashlib,pathlib; p=pathlib.Path('reconstructed.bin'); print(hashlib.sha256(p.read_bytes()).hexdigest())"</pre><div class="callout"><strong>Qualification rule:</strong> do not bypass an authorization, signature, root or reconstruction mismatch. A failed verifier is a failed operation.</div><div class="actions"><a class="button" href="passports.html">Passport recipe →</a><a class="button secondary" href="../developer/cli-reference.html">CLI reference</a></div></main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
