@@ -110,6 +110,66 @@
       "video_mime": "video/webm",
       "fallback_video": "videos/tutorial-09-market-orderbook-pending.mp4",
       "fallback_video_sha256": "8AD6DA955F3070C1D73970ED35E1A3C0A69CB6AF6C535B7EF64825A5794D7E08"
+    },
+    {
+      "slug": "retention-legal-hold",
+      "title": "Preserve retention evidence and enforce legal hold",
+      "script": "examples/retention_legal_hold.py",
+      "transcript": "transcripts/retention_legal_hold.txt",
+      "transcript_sha256": "1A7C9495AD350779717B1CBE84BBCEF81DDCB0A2C4A0C9EA9ACB37F415053BCA",
+      "video": "videos/tutorial-10-retention-legal-hold.webm",
+      "video_sha256": "E5D2DB28F2C5DE1559966B731ADE7F297042C579E8720C35DB0FB3C684D85257",
+      "video_kind": "TERMINAL_REPLAY_FROM_EXACT_SOURCE_AND_RECORDED_EXECUTION",
+      "video_frames": 378,
+      "video_fps": 24.0,
+      "video_bytes": 1557772,
+      "video_codec": "VP8",
+      "video_mime": "video/webm"
+    },
+    {
+      "slug": "confidential-provenance",
+      "title": "Encrypt confidential provenance metadata",
+      "script": "examples/confidential_provenance.py",
+      "transcript": "transcripts/confidential_provenance.txt",
+      "transcript_sha256": "A1B4394677C2E25BC86DEED23DF242477B320D96C33BF47EBD2048827A111F88",
+      "video": "videos/tutorial-11-confidential-provenance.webm",
+      "video_sha256": "A243A359406C6E8DDA734F01D5298646E9BF40029BD2156FEE6DAEE67E71D130",
+      "video_kind": "TERMINAL_REPLAY_FROM_EXACT_SOURCE_AND_RECORDED_EXECUTION",
+      "video_frames": 378,
+      "video_fps": 24.0,
+      "video_bytes": 1491533,
+      "video_codec": "VP8",
+      "video_mime": "video/webm"
+    },
+    {
+      "slug": "standards-mapping",
+      "title": "Map ODRL, VC and DID without importing authority",
+      "script": "examples/standards_mapping.py",
+      "transcript": "transcripts/standards_mapping.txt",
+      "transcript_sha256": "CA9CA4948A011C25D8F769627FCFB2F7D9C13F0F847B13947F46D1A296C116B8",
+      "video": "videos/tutorial-12-standards-mapping.webm",
+      "video_sha256": "86D37B6CDCE8CEAF7E24CCAE543C9BD0969287EFEBE1546E56ABF302AEE5853B",
+      "video_kind": "TERMINAL_REPLAY_FROM_EXACT_SOURCE_AND_RECORDED_EXECUTION",
+      "video_frames": 378,
+      "video_fps": 24.0,
+      "video_bytes": 1419069,
+      "video_codec": "VP8",
+      "video_mime": "video/webm"
+    },
+    {
+      "slug": "recovery-quorum",
+      "title": "Require a 2-of-3 recovery quorum",
+      "script": "examples/recovery_quorum.py",
+      "transcript": "transcripts/recovery_quorum.txt",
+      "transcript_sha256": "4CDB894D98A8F86D98C23109E4DA778EAA4868E25ED729E912D72B258BCD3130",
+      "video": "videos/tutorial-13-recovery-quorum.webm",
+      "video_sha256": "546716ADAFBA3117FE1312E1648BB9869C05911C8DDD2E6C29D3A5E634F9DAA7",
+      "video_kind": "TERMINAL_REPLAY_FROM_EXACT_SOURCE_AND_RECORDED_EXECUTION",
+      "video_frames": 378,
+      "video_fps": 24.0,
+      "video_bytes": 1708216,
+      "video_codec": "VP8",
+      "video_mime": "video/webm"
     }
   ],
   "script_sha256": {
@@ -121,7 +181,11 @@
     "vault_purpose_access.py": "F2537D87540836B0094FDCF929990E17B6298F37C24B8B096A029B86A6DBB273",
     "rights_global_passport.py": "B44D048E7EC308A5533415C7CC76984BBB2050177812945433405F4830E6EF49",
     "offline_partition_conflict.py": "8DF1D29AFC9A199890318C2E94DE0B9CCB41956737EF198B043220677A2E3878",
-    "market_orderbook_pending.py": "9601E6FB3E685970933F23C04C12CCE36558649C299B586E60B80AD98C9A9FA0"
+    "market_orderbook_pending.py": "9601E6FB3E685970933F23C04C12CCE36558649C299B586E60B80AD98C9A9FA0",
+    "retention_legal_hold.py": "BED0CB0F0FB9773FA4777491CE00B663956F127C2B1B133F3BE6908CC59B9D1A",
+    "confidential_provenance.py": "A9A89539495C592243216DF71224510EB17D3950FB82B97C7A2C77F622878C22",
+    "standards_mapping.py": "E3D364A939BE4532239ACB54865869EAE6B50CB8B441AED8F408B48ADFCA22FB",
+    "recovery_quorum.py": "6C4E4BB20646D7E13C1921F948CDF95A2A9FCF6F41F8F4E226AAA486F72B2050"
   },
   "btdu_dependency_guard": {
     "integration_layer_rejected_as_adam_source_root": true,

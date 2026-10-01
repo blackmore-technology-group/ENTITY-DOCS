@@ -1,0 +1,30 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Require a 2-of-3 recovery quorum - ENTITY Code Tutorial</title><meta name="description" content="Create a recovery policy, block an unauthorized approver and require two authorized approvals before readiness."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation..."></header><div id="results"></div><div class="layout"><nav><h3>Code tutorials</h3><a href="index.html">Code tutorial home</a><a href="identity-signing.html">1 - Create, verify and sign with an ENTITY identity</a><a href="authority-rights-provenance.html">2 - Exercise authority, rights and provenance</a><a href="portable-bundle-verification.html">3 - Export and verify a portable sovereign bundle</a><a href="evidence-trust-threshold.html">4 - Require two independent attestations</a><a href="btdu-cli.html">5 - Initialize BTDU and verify the ADAM dependency boundary</a><a href="vault-purpose-access.html">6 - Encrypt bytes and enforce one-use purpose access</a><a href="rights-global-passport.html">7 - Issue and verify rights and global passports</a><a href="offline-partition-conflict.html">8 - Detect a divergent offline partition conflict</a><a href="market-orderbook-pending.html">9 - Execute a rights trade without pretending payment occurred</a><a href="retention-legal-hold.html">10 - Preserve retention evidence and enforce legal hold</a><a href="confidential-provenance.html">11 - Encrypt confidential provenance metadata</a><a href="standards-mapping.html">12 - Map ODRL, VC and DID without importing authority</a><a href="recovery-quorum.html">13 - Require a 2-of-3 recovery quorum</a><h3>Learning</h3><a href="../index.html">Tutorial home</a><a href="../core/">Core curriculum</a><a href="../../recipes/">Developer recipes</a></nav><main><div class="eyebrow">Code tutorial 13 - tested</div><h1>Require a 2-of-3 recovery quorum</h1><p class="lede">Create a recovery policy, block an unauthorized approver and require two authorized approvals before readiness.</p><div class="callout"><strong>Verified against:</strong> ENTITY main commit <code>5be325437a63c2efaee0dc3caaae9ab0cd0773d9</code>. Disposable tutorial state only.</div><h2>Watch the tutorial</h2><video controls preload="metadata" style="width:100%;max-width:960px"><source src="videos/tutorial-13-recovery-quorum.webm" type="video/webm">Your browser does not support embedded WebM video.</video><p>This VP8 WebM terminal replay is generated from the exact published source and recorded execution shown below.</p><h2>Run it yourself</h2><pre>$env:ENTITY_ROOT="C:\path	o\ENTITY"
+python examples/recovery_quorum.py</pre><h2>Exact source</h2><pre>from pathlib import Path
+import importlib.util, os, shutil
+ROOT=Path(os.environ.get(&quot;ENTITY_ROOT&quot;,Path.cwd())).resolve()
+STATE=ROOT/&quot;.tutorial-test-state&quot;/&quot;recovery-quorum&quot;
+if STATE.exists(): shutil.rmtree(STATE)
+def load_source(path,name):
+    spec=importlib.util.spec_from_file_location(name,ROOT/path); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+identity_mod=load_source(&quot;src/01_Core_Runtime/identity/canonical_identity.py&quot;,&quot;entity_identity&quot;)
+hardening=load_source(&quot;src/32_V3_Hardening/hardening_profiles.py&quot;,&quot;entity_hardening&quot;)
+identity=identity_mod.EntityIdentityVault(STATE)
+target=identity.create(&quot;Recovery Target&quot;,&quot;organization&quot;)
+a=identity.create(&quot;Approver A&quot;,&quot;person&quot;); b=identity.create(&quot;Approver B&quot;,&quot;person&quot;); c=identity.create(&quot;Approver C&quot;,&quot;person&quot;); outsider=identity.create(&quot;Outsider&quot;,&quot;person&quot;)
+q=hardening.RecoveryQuorum(STATE,identity)
+q.set_policy(target[&quot;entity_id&quot;],[a[&quot;entity_id&quot;],b[&quot;entity_id&quot;],c[&quot;entity_id&quot;]],2)
+req=q.request(target[&quot;entity_id&quot;],&quot;tutorial recovery&quot;)
+q.approve(req[&quot;request_id&quot;],a[&quot;entity_id&quot;]); first=q.ready(req[&quot;request_id&quot;]); assert first[&quot;ready&quot;] is False
+blocked=&quot;NOT_BLOCKED&quot;
+try: q.approve(req[&quot;request_id&quot;],outsider[&quot;entity_id&quot;])
+except PermissionError: blocked=&quot;BLOCKED&quot;
+q.approve(req[&quot;request_id&quot;],b[&quot;entity_id&quot;]); second=q.ready(req[&quot;request_id&quot;])
+assert blocked==&quot;BLOCKED&quot; and second[&quot;ready&quot;] is True and second[&quot;approval_count&quot;]==2
+print(&quot;RECOVERY_POLICY=2_OF_3&quot;); print(&quot;ONE_APPROVAL_READY=FALSE&quot;); print(&quot;UNAUTHORIZED_APPROVER=BLOCKED&quot;); print(&quot;TWO_APPROVALS_READY=TRUE&quot;)
+print(&quot;CLAIM_BOUNDARY=quorum readiness authorizes recovery workflow; it does not itself restore external systems&quot;)
+</pre><h2>Recorded output</h2><pre>RECOVERY_POLICY=2_OF_3
+ONE_APPROVAL_READY=FALSE
+UNAUTHORIZED_APPROVER=BLOCKED
+TWO_APPROVALS_READY=TRUE
+CLAIM_BOUNDARY=quorum readiness authorizes recovery workflow; it does not itself restore external systems
+</pre><div class="callout"><strong>Claim boundary:</strong> The recorded result proves this tutorial operation executed against the pinned source. It does not establish external truth, ownership, production certification or third-party adoption.</div><div class="actions"><a class="button" href="index.html">Code tutorial home</a><a class="button secondary" href="../index.html">Tutorial home</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>

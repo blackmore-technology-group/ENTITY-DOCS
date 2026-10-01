@@ -1,0 +1,4 @@
+CONFIDENTIAL_EDGE=PASS
+COMMITMENT_VERIFY=PASS
+WRONG_KEY_REVEAL=BLOCKED
+CLAIM_BOUNDARY=encrypted metadata commitment is provenance evidence, not universal truth

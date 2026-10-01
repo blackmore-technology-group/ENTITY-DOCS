@@ -1,0 +1,4 @@
+DESTRUCTION=PASS
+COMMITMENT_PRESERVED=PASS
+LEGAL_HOLD_DESTRUCTION=BLOCKED
+CLAIM_BOUNDARY=retention evidence does not prove remote copies were erased
