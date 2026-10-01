@@ -1,0 +1,11 @@
+{
+  "schema": "entity-v343-economy-regression-v1",
+  "tests": [
+    "tests/test_v3_economic_participation.py",
+    "tests/test_v3_hardening_exchange.py",
+    "tests/test_v3_exchange_convergence.py",
+    "tests/test_v343_issue28_regressions.py"
+  ],
+  "exit_code": 0,
+  "pass": true
+}

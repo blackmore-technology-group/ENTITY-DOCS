@@ -1,0 +1,92 @@
+{
+  "artifacts": [
+    {
+      "bytes": 6279,
+      "path": "economy-value-20261001.html",
+      "sha256": "CA7479E2FEED9C4589649C6433F90FB8B50D824AF47E70CD438ACB11BF941501"
+    },
+    {
+      "bytes": 658,
+      "path": "examples/run_economy_regression_20261001.py",
+      "sha256": "13F34D7D05AD084434907B7EB4684E315C7496051BA8A24038D3D75EB0D47EE0"
+    },
+    {
+      "bytes": 20106,
+      "path": "examples/economy_value_scenarios_20261001.py",
+      "sha256": "940A90B690D3E50A906F4792BFD9EDD91374CF49E319A4BDB10B276634D83E1C"
+    },
+    {
+      "bytes": 283,
+      "path": "results/economy_regression_20261001.json",
+      "sha256": "310723EF7E3F9563B7760F005917FF2178D77680EB89594C637AC467CEB6381E"
+    },
+    {
+      "bytes": 6729,
+      "path": "results/economy_value_scenarios_20261001.json",
+      "sha256": "F9A308CCF845D4A68DCD95ED59CFE7175C838357D63D97BAA19A0E0D0F0F43B3"
+    },
+    {
+      "bytes": 843,
+      "path": "results/economy_regression_video_metadata_20261001.json",
+      "sha256": "51A1C0AA37AF92C5CC8E0762E0C264EF6613430FD72BC8D684010E9394C8CE41"
+    },
+    {
+      "bytes": 868,
+      "path": "results/economy_value_video_metadata_20261001.json",
+      "sha256": "59E39E84C57AAE8C21AC67B4309BBFDB4657D7BC00F1AD7466DBDA9AC0C330E0"
+    },
+    {
+      "bytes": 191,
+      "path": "transcripts/economy_regression_20261001.txt",
+      "sha256": "6A009C84729C9646032F782B2AEC4F520ECCDAF4073A431C3E701DEE66EB7336"
+    },
+    {
+      "bytes": 3774,
+      "path": "transcripts/economy_value_scenarios_20261001.txt",
+      "sha256": "7121206BEAAF1814E20084170A2E0CD072BF5BB7C61D2F2C5477B2D62FD9B3D8"
+    },
+    {
+      "bytes": 1798069,
+      "path": "videos/test-18a-economy-regression.webm",
+      "sha256": "2C3D5BD436B79442185A7B6C7830177A2F1E9FA7FF50BBA89071A83668E3762D"
+    },
+    {
+      "bytes": 688953,
+      "path": "videos/test-18b-economy-value-scenarios.webm",
+      "sha256": "01B5ED4C16B3D978880ADD526A13D484E27FFA9154BC9AEB66BF65360B1447C5"
+    }
+  ],
+  "claim_boundary": "Proves that ENTITY can represent, bind, accumulate, distribute, reconcile and preserve synthetic economic consequences attached to data rights under explicit policies and test transactions. It does not prove market demand, fair market value, revenue, receivables, cash balances, investment returns, or legal enforceability.",
+  "docs_base_commit": "bc8186b73ddf5e438c0e16e3aa7a6d44fade3b53",
+  "recorded_date": "2026-10-01",
+  "regression": {
+    "exit_code": 0,
+    "pass": true,
+    "schema": "entity-v343-economy-regression-v1",
+    "tests": [
+      "tests/test_v3_economic_participation.py",
+      "tests/test_v3_hardening_exchange.py",
+      "tests/test_v3_exchange_convergence.py",
+      "tests/test_v343_issue28_regressions.py"
+    ]
+  },
+  "runtime_release": "v3.4.3",
+  "scenario_summary": {
+    "dco_count": 4,
+    "execution_models_exercised": [
+      "ORDER_BOOK",
+      "RFQ",
+      "CALL_AUCTION"
+    ],
+    "pass": true,
+    "portfolio_summary": {
+      "accrued_cad_units": 1500,
+      "eopp_obligations_total_cad_units": 12362,
+      "multi_contributor_distribution_events_cad_units": 16000,
+      "settled_attested_cad_units": 10862,
+      "synthetic_recorded_economic_allocations_or_obligations_cad_units": 28362
+    },
+    "scenario_count": 12
+  },
+  "schema": "entity-test18-full-economy-value-suite-v1"
+}
