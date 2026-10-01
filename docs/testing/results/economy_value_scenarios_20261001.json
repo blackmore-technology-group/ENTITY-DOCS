@@ -1,0 +1,216 @@
+{
+  "amount_semantics": "integer CAD-denominated synthetic test units; not real money movement unless explicitly described as a synthetic external-settlement attestation",
+  "claim_boundary": "Proves that ENTITY can represent, bind, accumulate, distribute, reconcile and preserve synthetic economic consequences attached to data rights under explicit policies and test transactions. It does not prove market demand, fair market value, revenue, receivables, cash balances, investment returns, or legal enforceability.",
+  "currency": "CAD",
+  "dco_count": 4,
+  "execution_models_exercised": [
+    "ORDER_BOOK",
+    "RFQ",
+    "CALL_AUCTION"
+  ],
+  "pass": true,
+  "portfolio_summary": {
+    "accrued_cad_units": 1500,
+    "eopp_obligations_total_cad_units": 12362,
+    "multi_contributor_distribution_events_cad_units": 16000,
+    "settled_attested_cad_units": 10862,
+    "synthetic_recorded_economic_allocations_or_obligations_cad_units": 28362
+  },
+  "runtime_release": "v3.4.3",
+  "scenario_count": 12,
+  "scenarios": [
+    {
+      "metrics": {
+        "dco_id": "obj3-44b4291249564fe82f3d562b7823defed988422a",
+        "instrument_id": "inst3-5081fb223b03a1f672082339",
+        "originator_units": 800,
+        "protocol_tax_bps": 0,
+        "treasury_reserve_units": 200
+      },
+      "pass": true,
+      "scenario": "01_dco_issue_and_reserve"
+    },
+    {
+      "metrics": {
+        "bps": 2500,
+        "buyer_entitlement_units": 100,
+        "external_settlement_attested": true,
+        "gross_cad_units": 20000,
+        "treasury_obligation_cad_units": 5000
+      },
+      "pass": true,
+      "scenario": "02_primary_sale_value_accumulation"
+    },
+    {
+      "metrics": {
+        "bps": 150,
+        "buyer2_units": 25,
+        "external_settlement_attested": true,
+        "gross_cad_units": 7500,
+        "originator_royalty_cad_units": 112,
+        "seller_remaining_units": 75
+      },
+      "pass": true,
+      "scenario": "03_secondary_resale_originator_royalty"
+    },
+    {
+      "metrics": {
+        "accrued_cad_units": 750,
+        "bps": 100,
+        "gross_events_cad_units": [
+          100000,
+          250000,
+          75000
+        ],
+        "originator_participation_cad_units": [
+          1000,
+          2500,
+          750
+        ],
+        "settled_cad_units": 3500
+      },
+      "pass": true,
+      "scenario": "04_derivative_revenue_participation"
+    },
+    {
+      "metrics": {
+        "accrued_cad_units": 750,
+        "provider_asserted_receivable": true,
+        "service_receivables_cad_units": [
+          500,
+          1250,
+          750
+        ],
+        "settled_cad_units": 1750
+      },
+      "pass": true,
+      "scenario": "05_service_revenue_accumulation"
+    },
+    {
+      "metrics": {
+        "distribution_cad_units": {
+          "contributor_a": 2000,
+          "contributor_b": 1000,
+          "originator": 7000
+        },
+        "gross_cad_units": 10000,
+        "trade_time_rule_bound": true
+      },
+      "pass": true,
+      "scenario": "06_multi_contributor_trade_distribution"
+    },
+    {
+      "metrics": {
+        "distribution_cad_units": {
+          "contributor_a": 1500,
+          "contributor_b": 900,
+          "originator": 3600
+        },
+        "gross_cad_units": 6000,
+        "later_rule_change_did_not_rewrite_trade": true,
+        "quantity": 5,
+        "quote_price": 1200
+      },
+      "pass": true,
+      "scenario": "07_rfq_negotiated_trade_and_rule_binding"
+    },
+    {
+      "metrics": {
+        "buyer1_units": 60,
+        "buyer2_units": 40,
+        "clearing_price": 80,
+        "contractual_distribution_example": {
+          "ent2-2mndyewithcfdgexrfodr2evmfcedj45544xwrzsfxggln35hsja": 1600,
+          "ent2-scj6qio2p7ylabd2s67oad6cblvy2rkhxqfzf6fme2m55lnzag6a": 6400
+        },
+        "distribution_is_calculation_not_settlement_event": true,
+        "executed_volume": 100,
+        "gross_cad_units": 8000
+      },
+      "pass": true,
+      "scenario": "08_call_auction_price_discovery"
+    },
+    {
+      "metrics": {
+        "copy_blocked": true,
+        "entitlement_units": 1,
+        "ownership_of_underlying_transferred": false,
+        "train_usage_units": 3
+      },
+      "pass": true,
+      "scenario": "09_compute_to_data_entitlement_enforcement"
+    },
+    {
+      "metrics": {
+        "future_obligation_cad_units": 250,
+        "future_trade_bps": 5000,
+        "future_trade_gross_cad_units": 500,
+        "no_retroactive_economic_rights": true,
+        "prior_obligation_cad_units": 250,
+        "prior_trade_bps": 2500,
+        "prior_trade_gross_cad_units": 1000
+      },
+      "pass": true,
+      "scenario": "10_policy_versioning_no_retroactive_rewrite"
+    },
+    {
+      "metrics": {
+        "duplicate_derivative_blocked": true,
+        "oversell_blocked": true,
+        "tampered_signature_blocked": true,
+        "unauthorized_settlement_blocked": true,
+        "wrong_currency_blocked": true
+      },
+      "pass": true,
+      "scenario": "11_value_integrity_fail_closed_matrix"
+    },
+    {
+      "metrics": {
+        "economic_event_count": 10,
+        "eopp_accrued_cad_units": 1500,
+        "eopp_obligations_total_cad_units": 12362,
+        "eopp_settled_attested_cad_units": 10862,
+        "exchange_counts": {
+          "clearing": 7,
+          "entitlements": 7,
+          "instruments": 3,
+          "listings": 3,
+          "orders": 12,
+          "quotes": 1,
+          "revenue_rule_sets": 3,
+          "rfq_acceptances": 1,
+          "rfqs": 1,
+          "trade_revenue_bindings": 7,
+          "trades": 7,
+          "usage": 1
+        },
+        "indicative_mark": {
+          "indicative_only": true,
+          "marks": [
+            {
+              "currency": "CAD",
+              "indicative_amount_units": 50000,
+              "instrument_id": "inst3-5081fb223b03a1f672082339",
+              "observed_unit_price": 250,
+              "price_source": "LAST",
+              "units": 200
+            }
+          ],
+          "not_accounting_fair_value": true,
+          "not_protocol_generated_value": true,
+          "schema": "entity-v3-treasury-indicative-mark-v1",
+          "treasury_id": "treasury3-f30c846747cced7f9cba3f80"
+        },
+        "indicative_mark_is_not_accounting_fair_value": true,
+        "multi_contributor_trade_distributions_cad_units": 16000,
+        "snapshot_id": "treasnap3-69fb611b747794ba20887429",
+        "synthetic_recorded_economic_allocations_or_obligations_cad_units": 28362
+      },
+      "pass": true,
+      "scenario": "12_portfolio_accumulation_and_snapshot"
+    }
+  ],
+  "schema": "entity-v343-developer-economy-scenario-suite-v1",
+  "source_tree": "E:\\ENTITY_ACTIVE\\ENTITY_V3_4_3_RELEASE_SRC\\ENTITY-3.4.3",
+  "synthetic_only": true
+}
