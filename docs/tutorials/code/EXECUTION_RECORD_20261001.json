@@ -49,11 +49,16 @@
       "script": "examples/vault_purpose_access.py",
       "transcript": "transcripts/vault_purpose_access.txt",
       "transcript_sha256": "4C558F96FAF68DB7DA0CB74FEB2C2412A458884C994405F14258AF9349D43783",
-      "video": "videos/tutorial-06-vault-purpose-access.mp4",
-      "video_sha256": "C8E17A427AF842A18B43D5CCB59009D1DE46CE2DDA7959F8C828C5B36104FBDB",
+      "video": "videos/tutorial-06-vault-purpose-access.webm",
+      "video_sha256": "5E95933AF0907A3357DFC124720EB0C329CA70FCAEFD1D41514A4D78CD1EC943",
       "video_kind": "TERMINAL_REPLAY_FROM_EXACT_SOURCE_AND_RECORDED_EXECUTION",
       "video_frames": 384,
-      "video_fps": 24.0
+      "video_fps": 24.0,
+      "video_bytes": 1784613,
+      "video_codec": "VP8",
+      "video_mime": "video/webm",
+      "fallback_video": "videos/tutorial-06-vault-purpose-access.mp4",
+      "fallback_video_sha256": "C8E17A427AF842A18B43D5CCB59009D1DE46CE2DDA7959F8C828C5B36104FBDB"
     },
     {
       "slug": "rights-global-passport",
@@ -61,11 +66,16 @@
       "script": "examples/rights_global_passport.py",
       "transcript": "transcripts/rights_global_passport.txt",
       "transcript_sha256": "8A767AC36764C001D12C75AC32116BA152ADAD1D52635B291FFD6E420D761446",
-      "video": "videos/tutorial-07-rights-global-passport.mp4",
-      "video_sha256": "9753373B6D76DFA93F13CB9FB538BEDA7E8668B4606B25E6DD17E9F154D3A881",
+      "video": "videos/tutorial-07-rights-global-passport.webm",
+      "video_sha256": "6E836240019E9D0B16440D305AA22ECCADD4CE68400262A5EB7ED5D37C7DD9C2",
       "video_kind": "TERMINAL_REPLAY_FROM_EXACT_SOURCE_AND_RECORDED_EXECUTION",
       "video_frames": 384,
-      "video_fps": 24.0
+      "video_fps": 24.0,
+      "video_bytes": 2073948,
+      "video_codec": "VP8",
+      "video_mime": "video/webm",
+      "fallback_video": "videos/tutorial-07-rights-global-passport.mp4",
+      "fallback_video_sha256": "9753373B6D76DFA93F13CB9FB538BEDA7E8668B4606B25E6DD17E9F154D3A881"
     },
     {
       "slug": "offline-partition-conflict",
@@ -73,11 +83,16 @@
       "script": "examples/offline_partition_conflict.py",
       "transcript": "transcripts/offline_partition_conflict.txt",
       "transcript_sha256": "C899DAEE5E83C139EE4A46DDEB4CE63C11FC90009131533328BB63FDAED6A0E0",
-      "video": "videos/tutorial-08-offline-partition-conflict.mp4",
-      "video_sha256": "2F19F6C00E83EFE6B9A52230329FF18FE63E155AF29FF1166ABFB10E891B9888",
+      "video": "videos/tutorial-08-offline-partition-conflict.webm",
+      "video_sha256": "09C9432DFDE1A08441F6D9AE4FC78B72FF728832369F9EA41BC9A10B452A9A2C",
       "video_kind": "TERMINAL_REPLAY_FROM_EXACT_SOURCE_AND_RECORDED_EXECUTION",
       "video_frames": 384,
-      "video_fps": 24.0
+      "video_fps": 24.0,
+      "video_bytes": 1953385,
+      "video_codec": "VP8",
+      "video_mime": "video/webm",
+      "fallback_video": "videos/tutorial-08-offline-partition-conflict.mp4",
+      "fallback_video_sha256": "2F19F6C00E83EFE6B9A52230329FF18FE63E155AF29FF1166ABFB10E891B9888"
     },
     {
       "slug": "market-orderbook-pending",
@@ -85,11 +100,16 @@
       "script": "examples/market_orderbook_pending.py",
       "transcript": "transcripts/market_orderbook_pending.txt",
       "transcript_sha256": "690A38458930CBAAD13AD8DA360950094E32AF52F0131493B607F4F2D3186296",
-      "video": "videos/tutorial-09-market-orderbook-pending.mp4",
-      "video_sha256": "8AD6DA955F3070C1D73970ED35E1A3C0A69CB6AF6C535B7EF64825A5794D7E08",
+      "video": "videos/tutorial-09-market-orderbook-pending.webm",
+      "video_sha256": "3FCD41F310AB4AA066EF691BA015E85AB0BD10081DDB544A413801927AF61994",
       "video_kind": "TERMINAL_REPLAY_FROM_EXACT_SOURCE_AND_RECORDED_EXECUTION",
       "video_frames": 384,
-      "video_fps": 24.0
+      "video_fps": 24.0,
+      "video_bytes": 2140513,
+      "video_codec": "VP8",
+      "video_mime": "video/webm",
+      "fallback_video": "videos/tutorial-09-market-orderbook-pending.mp4",
+      "fallback_video_sha256": "8AD6DA955F3070C1D73970ED35E1A3C0A69CB6AF6C535B7EF64825A5794D7E08"
     }
   ],
   "script_sha256": {
