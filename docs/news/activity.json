@@ -1,20 +1,20 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-01T03:25:04.611219Z",
+  "generated_at_utc": "2026-10-01T03:52:33.356320Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
   "editorial_boundary": "Engineering/activity ledger, not marketing copy. Source state controls status.",
   "history_retention": "Previously observed public activity is append-retained from the first automated sync; current repository, release and pull-request state is refreshed from GitHub on every run.",
   "stats": {
-    "public_repositories": 32,
+    "public_repositories": 33,
     "original_public_repositories": 18,
-    "public_forks": 14,
+    "public_forks": 15,
     "release_records": 13,
     "recent_external_prs": 13,
     "entity_evidence_records": 2,
-    "retained_previous_activity_items": 77,
-    "activity_items": 82
+    "retained_previous_activity_items": 82,
+    "activity_items": 85
   },
   "repositories": [
     {
@@ -28,8 +28,22 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-01T02:57:27Z",
-      "pushed_at": "2026-10-01T02:57:23Z"
+      "updated_at": "2026-10-01T03:34:39Z",
+      "pushed_at": "2026-10-01T03:34:35Z"
+    },
+    {
+      "name": "yomihon",
+      "full_name": "blackmore-technology-group/yomihon",
+      "url": "https://github.com/blackmore-technology-group/yomihon",
+      "description": "A local, single-user reading room for a personal Markdown vault. Renders notes, links, and diagnostics as calm pages.",
+      "fork": true,
+      "upstream": "Koopa0/yomihon",
+      "archived": false,
+      "default_branch": "main",
+      "language": null,
+      "created_at": "2026-10-01T03:28:33Z",
+      "updated_at": "2026-10-01T03:28:33Z",
+      "pushed_at": "2026-10-01T03:28:16Z"
     },
     {
       "name": "pycubrid",
@@ -467,6 +481,60 @@
     }
   ],
   "items": [
+    {
+      "id": "pr-event:16156362392",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T03:34:35Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #54:",
+      "summary": "GitHub PR event: merged",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "MERGED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:16156332845",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T03:33:56Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #54:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:22653410471",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-01T03:33:11Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS: created branch docs/entity-testing-20261001",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "external-pr:ChainLearnOfficial/chainlearn-api:541",
+      "type": "EXTERNAL_FIX",
+      "occurred_at": "2026-10-01T03:28:39Z",
+      "title": "ChainLearnOfficial/chainlearn-api PR #541: fix(users): validate profile updates at service boundary",
+      "summary": "BTG-authored upstream pull request",
+      "repository": "ChainLearnOfficial/chainlearn-api",
+      "url": "https://github.com/ChainLearnOfficial/chainlearn-api/pull/541",
+      "status": "UPSTREAM_CLOSED_UNMERGED",
+      "source": "GITHUB_PR_SEARCH",
+      "head_sha": "31b8e85c44f2bb2547d8e5c541e98102d6c66e32",
+      "entity_ingested": false,
+      "entity_state": null,
+      "entity_record_url": null
+    },
     {
       "id": "pr-event:16154710563",
       "type": "PULL_REQUEST",
@@ -1221,21 +1289,6 @@
       "source": "GITHUB_PUBLIC_EVENT",
       "entity_ingested": false,
       "entity_state": null
-    },
-    {
-      "id": "external-pr:ChainLearnOfficial/chainlearn-api:541",
-      "type": "EXTERNAL_FIX",
-      "occurred_at": "2026-09-30T16:00:38Z",
-      "title": "ChainLearnOfficial/chainlearn-api PR #541: fix(users): validate profile updates at service boundary",
-      "summary": "BTG-authored upstream pull request",
-      "repository": "ChainLearnOfficial/chainlearn-api",
-      "url": "https://github.com/ChainLearnOfficial/chainlearn-api/pull/541",
-      "status": "UPSTREAM_OPEN",
-      "source": "GITHUB_PR_SEARCH",
-      "head_sha": "31b8e85c44f2bb2547d8e5c541e98102d6c66e32",
-      "entity_ingested": false,
-      "entity_state": null,
-      "entity_record_url": null
     },
     {
       "id": "fork:16115781444",

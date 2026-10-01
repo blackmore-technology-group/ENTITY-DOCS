@@ -5,8 +5,22 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-01T02:56:34Z</updated>
+  <updated>2026-10-01T03:33:11Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>blackmore-technology-group/ENTITY-DOCS: created branch docs/entity-testing-20261001</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
+    <id>urn:btg-github-news:create:22653410471</id>
+    <updated>2026-10-01T03:33:11Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
+    <title>ChainLearnOfficial/chainlearn-api PR #541: fix(users): validate profile updates at service boundary</title>
+    <link href="https://github.com/ChainLearnOfficial/chainlearn-api/pull/541"/>
+    <id>urn:btg-github-news:external-pr:ChainLearnOfficial/chainlearn-api:541</id>
+    <updated>2026-10-01T03:28:39Z</updated>
+    <summary>BTG-authored upstream pull request</summary>
+  </entry>
   <entry>
     <title>blackmore-technology-group/ENTITY-DOCS: created branch docs/finalize-replay-renders-20261001</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
@@ -180,13 +194,6 @@
     <link href="https://github.com/OWASP/cve-lite-cli/pull/1258"/>
     <id>urn:btg-github-news:external-pr:OWASP/cve-lite-cli:1258</id>
     <updated>2026-09-30T16:04:01Z</updated>
-    <summary>BTG-authored upstream pull request</summary>
-  </entry>
-  <entry>
-    <title>ChainLearnOfficial/chainlearn-api PR #541: fix(users): validate profile updates at service boundary</title>
-    <link href="https://github.com/ChainLearnOfficial/chainlearn-api/pull/541"/>
-    <id>urn:btg-github-news:external-pr:ChainLearnOfficial/chainlearn-api:541</id>
-    <updated>2026-09-30T16:00:38Z</updated>
     <summary>BTG-authored upstream pull request</summary>
   </entry>
   <entry>
