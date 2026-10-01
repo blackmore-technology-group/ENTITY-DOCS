@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-01T09:26:17.128368Z",
+  "generated_at_utc": "2026-10-01T09:52:59.444875Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -13,10 +13,24 @@
     "release_records": 13,
     "recent_external_prs": 14,
     "entity_evidence_records": 2,
-    "retained_previous_activity_items": 97,
-    "activity_items": 98
+    "retained_previous_activity_items": 98,
+    "activity_items": 101
   },
   "repositories": [
+    {
+      "name": "ENTITY-DOCS",
+      "full_name": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "description": "Complete operator, developer, protocol, economic, security and generated reference documentation for ENTITY v3.4.0.",
+      "fork": false,
+      "upstream": null,
+      "archived": false,
+      "default_branch": "main",
+      "language": "Python",
+      "created_at": "2026-09-25T14:57:27Z",
+      "updated_at": "2026-10-01T09:26:47Z",
+      "pushed_at": "2026-10-01T09:26:43Z"
+    },
     {
       "name": "yomihon",
       "full_name": "blackmore-technology-group/yomihon",
@@ -30,20 +44,6 @@
       "created_at": "2026-10-01T03:28:33Z",
       "updated_at": "2026-10-01T03:28:33Z",
       "pushed_at": "2026-10-01T08:59:09Z"
-    },
-    {
-      "name": "ENTITY-DOCS",
-      "full_name": "blackmore-technology-group/ENTITY-DOCS",
-      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
-      "description": "Complete operator, developer, protocol, economic, security and generated reference documentation for ENTITY v3.4.0.",
-      "fork": false,
-      "upstream": null,
-      "archived": false,
-      "default_branch": "main",
-      "language": "Python",
-      "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-01T08:53:23Z",
-      "pushed_at": "2026-10-01T08:53:19Z"
     },
     {
       "name": "pycubrid",
@@ -482,6 +482,34 @@
   ],
   "items": [
     {
+      "id": "external-pr:Koopa0/yomihon:852",
+      "type": "EXTERNAL_FIX",
+      "occurred_at": "2026-10-01T09:41:28Z",
+      "title": "Koopa0/yomihon PR #852: fix: make no-frontmatter status face follow contract",
+      "summary": "BTG-authored upstream pull request",
+      "repository": "Koopa0/yomihon",
+      "url": "https://github.com/Koopa0/yomihon/pull/852",
+      "status": "UPSTREAM_MERGED",
+      "source": "GITHUB_PR_SEARCH",
+      "head_sha": "ca96bbbc0a0fb459f4f4888baae88731eda9382f",
+      "entity_ingested": false,
+      "entity_state": null,
+      "entity_record_url": null
+    },
+    {
+      "id": "pr-event:16176895592",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T09:41:28Z",
+      "title": "Koopa0/yomihon PR #852:",
+      "summary": "GitHub PR event: merged",
+      "repository": "Koopa0/yomihon",
+      "url": null,
+      "status": "MERGED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
       "id": "external-pr:grove/promise-to-proof:58",
       "type": "EXTERNAL_FIX",
       "occurred_at": "2026-10-01T09:16:14Z",
@@ -492,21 +520,6 @@
       "status": "UPSTREAM_OPEN",
       "source": "GITHUB_PR_SEARCH",
       "head_sha": "7518503f54edfc41ef990d5b286ade39b6927095",
-      "entity_ingested": false,
-      "entity_state": null,
-      "entity_record_url": null
-    },
-    {
-      "id": "external-pr:Koopa0/yomihon:852",
-      "type": "EXTERNAL_FIX",
-      "occurred_at": "2026-10-01T08:59:10Z",
-      "title": "Koopa0/yomihon PR #852: fix: make no-frontmatter status face follow contract",
-      "summary": "BTG-authored upstream pull request",
-      "repository": "Koopa0/yomihon",
-      "url": "https://github.com/Koopa0/yomihon/pull/852",
-      "status": "UPSTREAM_OPEN",
-      "source": "GITHUB_PR_SEARCH",
-      "head_sha": "ca96bbbc0a0fb459f4f4888baae88731eda9382f",
       "entity_ingested": false,
       "entity_state": null,
       "entity_record_url": null
@@ -763,6 +776,19 @@
       "entity_state": null
     },
     {
+      "id": "create:22678079275",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-01T02:51:35Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS: created branch docs/tutorial-replay-videos-20261001",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
       "id": "pr-event:16154410803",
       "type": "PULL_REQUEST",
       "occurred_at": "2026-10-01T02:50:32Z",
@@ -784,6 +810,19 @@
       "repository": "blackmore-technology-group/ENTITY-DOCS",
       "url": null,
       "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:22677954706",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-01T02:49:53Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS: created branch docs/entity-tutorials-10-13",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "status": "CREATED",
       "source": "GITHUB_PUBLIC_EVENT",
       "entity_ingested": false,
       "entity_state": null

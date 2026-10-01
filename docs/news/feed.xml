@@ -5,20 +5,20 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-01T09:16:14Z</updated>
+  <updated>2026-10-01T09:41:28Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>Koopa0/yomihon PR #852: fix: make no-frontmatter status face follow contract</title>
+    <link href="https://github.com/Koopa0/yomihon/pull/852"/>
+    <id>urn:btg-github-news:external-pr:Koopa0/yomihon:852</id>
+    <updated>2026-10-01T09:41:28Z</updated>
+    <summary>BTG-authored upstream pull request</summary>
+  </entry>
   <entry>
     <title>grove/promise-to-proof PR #58: Define normalized P2P Evidence Record v1</title>
     <link href="https://github.com/grove/promise-to-proof/pull/58"/>
     <id>urn:btg-github-news:external-pr:grove/promise-to-proof:58</id>
     <updated>2026-10-01T09:16:14Z</updated>
-    <summary>BTG-authored upstream pull request</summary>
-  </entry>
-  <entry>
-    <title>Koopa0/yomihon PR #852: fix: make no-frontmatter status face follow contract</title>
-    <link href="https://github.com/Koopa0/yomihon/pull/852"/>
-    <id>urn:btg-github-news:external-pr:Koopa0/yomihon:852</id>
-    <updated>2026-10-01T08:59:10Z</updated>
     <summary>BTG-authored upstream pull request</summary>
   </entry>
   <entry>
@@ -61,6 +61,20 @@
     <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
     <id>urn:btg-github-news:create:22651131646</id>
     <updated>2026-10-01T02:56:34Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
+    <title>blackmore-technology-group/ENTITY-DOCS: created branch docs/tutorial-replay-videos-20261001</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
+    <id>urn:btg-github-news:create:22678079275</id>
+    <updated>2026-10-01T02:51:35Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
+    <title>blackmore-technology-group/ENTITY-DOCS: created branch docs/entity-tutorials-10-13</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
+    <id>urn:btg-github-news:create:22677954706</id>
+    <updated>2026-10-01T02:49:53Z</updated>
     <summary>Public GitHub creation event</summary>
   </entry>
   <entry>
