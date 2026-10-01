@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-01T21:23:32.490655Z",
+  "generated_at_utc": "2026-10-01T21:51:53.084050Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -14,23 +14,9 @@
     "recent_external_prs": 14,
     "entity_evidence_records": 2,
     "retained_previous_activity_items": 150,
-    "activity_items": 150
+    "activity_items": 153
   },
   "repositories": [
-    {
-      "name": "ENTITY-DOCS",
-      "full_name": "blackmore-technology-group/ENTITY-DOCS",
-      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
-      "description": "Complete operator, developer, protocol, economic, security and generated reference documentation for ENTITY v3.4.0.",
-      "fork": false,
-      "upstream": null,
-      "archived": false,
-      "default_branch": "main",
-      "language": "Python",
-      "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-01T20:51:41Z",
-      "pushed_at": "2026-10-01T20:51:36Z"
-    },
     {
       "name": "ENTITY",
       "full_name": "blackmore-technology-group/ENTITY",
@@ -42,8 +28,22 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-18T00:20:03Z",
-      "updated_at": "2026-10-01T15:06:47Z",
-      "pushed_at": "2026-10-01T15:06:43Z"
+      "updated_at": "2026-10-01T21:35:04Z",
+      "pushed_at": "2026-10-01T21:35:01Z"
+    },
+    {
+      "name": "ENTITY-DOCS",
+      "full_name": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "description": "Complete operator, developer, protocol, economic, security and generated reference documentation for ENTITY v3.4.0.",
+      "fork": false,
+      "upstream": null,
+      "archived": false,
+      "default_branch": "main",
+      "language": "Python",
+      "created_at": "2026-09-25T14:57:27Z",
+      "updated_at": "2026-10-01T21:24:03Z",
+      "pushed_at": "2026-10-01T21:23:59Z"
     },
     {
       "name": "mcp-gateway",
@@ -495,6 +495,45 @@
     }
   ],
   "items": [
+    {
+      "id": "pr-event:16231173672",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T21:34:58Z",
+      "title": "blackmore-technology-group/ENTITY PR #118:",
+      "summary": "GitHub PR event: merged",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": null,
+      "status": "MERGED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:16231061450",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T21:33:13Z",
+      "title": "blackmore-technology-group/ENTITY PR #118:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:22731087212",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-01T21:32:52Z",
+      "title": "blackmore-technology-group/ENTITY: created branch fix/rfq-eopp-117",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
     {
       "id": "pr-event:16220616165",
       "type": "PULL_REQUEST",

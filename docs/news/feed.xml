@@ -5,8 +5,15 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-01T19:04:33Z</updated>
+  <updated>2026-10-01T21:32:52Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>blackmore-technology-group/ENTITY: created branch fix/rfq-eopp-117</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:22731087212</id>
+    <updated>2026-10-01T21:32:52Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
   <entry>
     <title>blackmore-technology-group/ENTITY-DOCS: created branch docs/global-market-proof-20261001-v3</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
