@@ -17,6 +17,8 @@ const GUIDE_INDEX=[
   {title:'ENTITY Economic Fabric',section:'Tutorials · Core',url:'tutorials/core/economic-fabric.html',text:'DCO instrument listing disclosure order RFQ auction trade clearing settlement entitlement usage revenue'},
   {title:'Provider-Independent Recovery',section:'Tutorials · Core',url:'tutorials/core/recovery-portability.html',text:'sovereign bundle market recovery semantic hashes clean restore provider independent'},
   {title:'Standards & Industry Adoption',section:'Tutorials · Core',url:'tutorials/core/standards-adoption.html',text:'ODRL W3C VC DID GAIA-X IDS FHIR DICOM ISO20022 FIX OPC-UA NIST AI RMF ROS2'},
+  {title:'ENTITY Real-World Engineering Case Studies',section:'Tutorials - Case Studies',url:'tutorials/case-studies/',text:'external engineering reproducible terminal records upstream pull requests ENTITY lineage'},
+  {title:'PyCUBRID #367 Timeout Validation',section:'Tutorials - Case Studies',url:'tutorials/case-studies/pycubrid-367.html',text:'timeout validation resource acquisition sync async regression PR 576'},
   {title:'ENTITY Code Tutorials',section:'Tutorials - Code',url:'tutorials/code/',text:'runnable tested Python examples recorded command transcripts negative controls'},
   {title:'Identity & Signing Code Tutorial',section:'Tutorials - Code',url:'tutorials/code/identity-signing.html',text:'ent2 manifest verify sign rotate key continuity'},
   {title:'Authority Rights Provenance Code Tutorial',section:'Tutorials - Code',url:'tutorials/code/authority-rights-provenance.html',text:'authority rights negative controls provenance deterministic distribution'},
