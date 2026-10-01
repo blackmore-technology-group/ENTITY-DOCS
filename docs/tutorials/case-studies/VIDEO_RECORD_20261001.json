@@ -1,17 +1,17 @@
 {
   "schema": "entity-docs-case-study-video-publication-v1",
-  "generated_at_utc": "2026-10-01T02:49:34.142707+00:00",
+  "generated_at_utc": "2026-10-01T02:54:48.862655+00:00",
   "campaign": "pycubrid-367",
   "generation_mode": "POST_FINALIZATION_REPRODUCIBLE_REPLAY",
   "mp4": {
     "path": "docs/tutorials/case-studies/videos/pycubrid-367-replay.mp4",
-    "bytes": 1183547,
-    "sha256": "71D383D439D1106C9CD2EB20DEED4FCD2B628425AD9FA65F3FA8A94989F26ED1"
+    "bytes": 1012791,
+    "sha256": "78FD87325C101CABF674EA93EA83A8E207E3A4F01D797798A7A53901BE0C6576"
   },
   "webm": {
     "path": "docs/tutorials/case-studies/videos/pycubrid-367-replay.webm",
-    "bytes": 335647,
-    "sha256": "4DB43FFC76F9573609E614A02DBF1A640574EB5964603AB550D530A012C9D746"
+    "bytes": 341288,
+    "sha256": "BAF73D41A9F588CC02B0349D52848598212AE6F9A1DC0ABBD5396D1C7155590E"
   },
   "claim_boundary": "This replay is derived from sealed command/output evidence and is not the original live campaign capture.",
   "source_evidence_transcript_sha256": "656B3957C496D88DDC009B2E3DD37E7897DE552C64C33DDD665D09A1649EFD15",
