@@ -85,6 +85,13 @@
     <summary>Public GitHub creation event</summary>
   </entry>
   <entry>
+    <title>blackmore-technology-group/ENTITY-DOCS: created branch docs/entity-testing-runtime-20261001</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
+    <id>urn:btg-github-news:create:22735441799</id>
+    <updated>2026-10-01T13:33:25Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
     <title>speedyk-005/yasbd-lib PR #348: Fix sentence-boundary detection when terminators occur inside single/double backtick-delimited or doubled-apostrophe quoted text</title>
     <link href="https://github.com/speedyk-005/yasbd-lib/pull/348"/>
     <id>urn:btg-github-news:external-pr:speedyk-005/yasbd-lib:348</id>
@@ -335,6 +342,13 @@
     <id>urn:btg-github-news:external-pr:OWASP/cve-lite-cli:1258</id>
     <updated>2026-09-30T16:04:01Z</updated>
     <summary>BTG-authored upstream pull request</summary>
+  </entry>
+  <entry>
+    <title>blackmore-technology-group/cve-lite-cli: created branch chore/issue-1254-flag-constants</title>
+    <link href="https://github.com/blackmore-technology-group/cve-lite-cli"/>
+    <id>urn:btg-github-news:create:22735442352</id>
+    <updated>2026-09-30T15:59:45Z</updated>
+    <summary>Public GitHub creation event</summary>
   </entry>
   <entry>
     <title>Fork created: blackmore-technology-group/chainlearn-api</title>
