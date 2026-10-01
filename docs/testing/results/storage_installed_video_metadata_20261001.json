@@ -1,0 +1,16 @@
+{
+  "end_utc": "2026-10-01T16:23:10.347777+00:00",
+  "exit_code": 0,
+  "name": "ENTITY Installed Storage Proof",
+  "script": "E:\\ENTITY_ACTIVE\\ENTITY_STORAGE_PROOF_20261001\\installed_storage_proof.py",
+  "script_sha256": "3CB7ACF32809CEABE57065F122F1D7A552485573215CFEDB6604279B49CAFC96",
+  "start_utc": "2026-10-01T16:22:43.482880+00:00",
+  "transcript": "E:\\ENTITY_ACTIVE\\ENTITY_STORAGE_PROOF_20261001\\transcripts\\installed-storage-proof.txt",
+  "transcript_sha256": "AFD92380AA8A6F27AA5530F2D62B3CA21CC4CA3072F9AD009A04AB8E609F2023",
+  "video": "E:\\ENTITY_ACTIVE\\ENTITY_STORAGE_PROOF_20261001\\videos\\installed-storage-proof.webm",
+  "video_bytes": 683704,
+  "video_sha256": "090B8BD91D6517AA9B8E50DCFD5484F3B46EC406A614746DAAA741B870AD2EC8",
+  "watch_paths": [
+    "E:\\ENTITY_ACTIVE\\ENTITY_STORAGE_PROOF_20261001\\installed\\INSTALLED_STORAGE_PROOF_RESULT.json"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "claim_boundary": "The 97.1354166667% result is a controlled compact bond+index representation comparison against a 768-d float32 vector baseline. Installed ADAM storage is workload-dependent and can expand on unique/high-entropy data; this is not universal compression.",
+  "entity_main_commit": "33eb9bd53870126a84c9c5529183faa5d0289a45",
+  "installed": {
+    "checks_passed": 20,
+    "checks_total": 20,
+    "high_entropy_expansion_percent": 20.240402221679688,
+    "transcript_sha256": "AFD92380AA8A6F27AA5530F2D62B3CA21CC4CA3072F9AD009A04AB8E609F2023",
+    "video_sha256": "090B8BD91D6517AA9B8E50DCFD5484F3B46EC406A614746DAAA741B870AD2EC8",
+    "workloads": [
+      {
+        "exact_view": true,
+        "factored_bytes": 85123,
+        "mode": "repetitive",
+        "reduction_percent": 49.31223799542683,
+        "restart_recovery": true,
+        "sqlite_bytes": 167936
+      },
+      {
+        "exact_view": true,
+        "factored_bytes": 121083,
+        "mode": "mixed",
+        "reduction_percent": 7.621002197265625,
+        "restart_recovery": true,
+        "sqlite_bytes": 131072
+      },
+      {
+        "exact_view": true,
+        "factored_bytes": 446453,
+        "mode": "unique",
+        "reduction_percent": -75.80212008568549,
+        "restart_recovery": true,
+        "sqlite_bytes": 253952
+      }
+    ]
+  },
+  "level3": {
+    "bond_bytes": 4000000000,
+    "bond_sha256": "17403382dd33f2ae573d1c35f91584530de57e0e3c2a13b6d7b7a7094a2c2f9e",
+    "bonds": 250000000,
+    "entities": 50000000,
+    "index_bytes": 400000000,
+    "index_sha256": "c7aa7fa07ed15b597064b345dd2f925b4636a5d6c82dd79483f117b80e583e93",
+    "query_correct": true,
+    "query_samples": 1000,
+    "reduction_percent": 97.13541666666666,
+    "total_bytes": 4400000000,
+    "transcript_sha256": "68AA60462F83BB8C6FDFA55DC6EDF0008A8175FC86F77C09C289C509CA7D8D01",
+    "vector_baseline_bytes": 153600000000,
+    "video_sha256": "ABEB2A86D422D3011FC2232FD577AC900FE4781747268754C71D410750D7DD78"
+  },
+  "schema": "entity-storage-proof-20261001-v1",
+  "status": "PASS"
+}
