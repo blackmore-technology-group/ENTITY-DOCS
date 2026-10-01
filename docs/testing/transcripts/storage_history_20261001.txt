@@ -1,0 +1,6 @@
+HISTORY_UNIQUE updates=0 sqlite_current=24576 factored_current=16886 factored_reduction=31.290690% journal=458532 journal_x_sqlite=18.658 time_travel=True pass=True
+HISTORY_UNIQUE updates=1 sqlite_current=28672 factored_current=24616 factored_reduction=14.146205% journal=820187 journal_x_sqlite=28.606 time_travel=True pass=True
+HISTORY_UNIQUE updates=3 sqlite_current=28672 factored_current=38576 factored_reduction=-34.542411% journal=1544095 journal_x_sqlite=53.854 time_travel=True pass=True
+HISTORY_UNIQUE updates=10 sqlite_current=28672 factored_current=89815 factored_reduction=-213.249860% journal=4071396 journal_x_sqlite=141.999 time_travel=True pass=True
+HISTORY_UNIQUE updates=25 sqlite_current=28672 factored_current=172345 factored_reduction=-501.091657% journal=9402621 journal_x_sqlite=327.937 time_travel=True pass=True
+HISTORY_UNIQUE_CURVE_PASS=True

@@ -1,0 +1,9 @@
+CARDINALITY values=1 records=3000 sqlite=266240 factored=153941 reduction=42.179612% journal=6656498 pass=True
+CARDINALITY values=3 records=3000 sqlite=266240 factored=156114 reduction=41.363431% journal=6657624 pass=True
+CARDINALITY values=10 records=3000 sqlite=266240 factored=155915 reduction=41.438176% journal=6661565 pass=True
+CARDINALITY values=30 records=3000 sqlite=266240 factored=161486 reduction=39.345703% journal=6672825 pass=True
+CARDINALITY values=100 records=3000 sqlite=266240 factored=172086 reduction=35.364333% journal=6705185 pass=True
+CARDINALITY values=300 records=3000 sqlite=266240 factored=201982 reduction=24.135367% journal=6789585 pass=True
+CARDINALITY values=1000 records=3000 sqlite=266240 factored=282860 reduction=-6.242488% journal=7015485 pass=True
+CARDINALITY values=3000 records=3000 sqlite=266240 factored=466177 reduction=-75.096529% journal=7581485 pass=True
+CARDINALITY_CURVE_PASS=True FIRST_NON_SAVING_CARDINALITY=1000

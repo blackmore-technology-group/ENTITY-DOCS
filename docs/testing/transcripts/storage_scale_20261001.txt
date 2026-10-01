@@ -1,0 +1,13 @@
+SCALE mode=repetitive records=100 sqlite=24576 factored=12014 reduction=51.114909% journal=238772 compacted=13201 pass=True
+SCALE mode=mixed records=100 sqlite=20480 factored=14989 reduction=26.811523% journal=246750 compacted=16176 pass=True
+SCALE mode=unique records=100 sqlite=28672 factored=35852 reduction=-25.041853% journal=300473 compacted=37039 pass=True
+SCALE mode=repetitive records=500 sqlite=69632 factored=33820 reduction=51.430377% journal=1125044 compacted=35008 pass=True
+SCALE mode=mixed records=500 sqlite=57344 factored=46072 reduction=19.656808% journal=1158492 compacted=47260 pass=True
+SCALE mode=unique records=500 sqlite=98304 factored=153295 reduction=-55.939738% journal=1441945 compacted=154484 pass=True
+SCALE mode=repetitive records=1500 sqlite=167936 factored=84526 reduction=49.667731% journal=3339044 compacted=85715 pass=True
+SCALE mode=mixed records=1500 sqlite=131072 factored=120276 reduction=8.236694% journal=3435933 compacted=121465 pass=True
+SCALE mode=unique records=1500 sqlite=253952 factored=446130 reduction=-75.674931% journal=4293945 compacted=447319 pass=True
+SCALE mode=repetitive records=5000 sqlite=520192 factored=258331 reduction=50.339298% journal=11088044 compacted=259521 pass=True
+SCALE mode=mixed records=5000 sqlite=401408 factored=385099 reduction=4.062948% journal=11407839 compacted=386289 pass=True
+SCALE mode=unique records=5000 sqlite=806912 factored=1469460 reduction=-82.109078% journal=14275945 compacted=1470651 pass=True
+SCALE_CURVE_PASS=True

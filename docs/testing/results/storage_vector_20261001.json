@@ -1,0 +1,119 @@
+{
+  "break_even_dimension": 22.0,
+  "claim_boundary": "Arithmetic crossover derived from the freshly measured 4.4 GB compact representation; vector baseline assumes one float32 vector per entity and excludes vector-database metadata/index overhead.",
+  "entities": 50000000,
+  "measured_entity_bytes": 4400000000,
+  "pass": true,
+  "rows": [
+    {
+      "dimension": 16,
+      "entities": 50000000,
+      "entity_vs_vector_reduction_percent": -37.5,
+      "float_bytes": 4,
+      "measured_entity_bytes": 4400000000,
+      "relation": "VECTOR_SMALLER",
+      "vector_bytes": 3200000000
+    },
+    {
+      "dimension": 22,
+      "entities": 50000000,
+      "entity_vs_vector_reduction_percent": 0.0,
+      "float_bytes": 4,
+      "measured_entity_bytes": 4400000000,
+      "relation": "EQUAL",
+      "vector_bytes": 4400000000
+    },
+    {
+      "dimension": 32,
+      "entities": 50000000,
+      "entity_vs_vector_reduction_percent": 31.25,
+      "float_bytes": 4,
+      "measured_entity_bytes": 4400000000,
+      "relation": "ENTITY_SMALLER",
+      "vector_bytes": 6400000000
+    },
+    {
+      "dimension": 64,
+      "entities": 50000000,
+      "entity_vs_vector_reduction_percent": 65.625,
+      "float_bytes": 4,
+      "measured_entity_bytes": 4400000000,
+      "relation": "ENTITY_SMALLER",
+      "vector_bytes": 12800000000
+    },
+    {
+      "dimension": 128,
+      "entities": 50000000,
+      "entity_vs_vector_reduction_percent": 82.8125,
+      "float_bytes": 4,
+      "measured_entity_bytes": 4400000000,
+      "relation": "ENTITY_SMALLER",
+      "vector_bytes": 25600000000
+    },
+    {
+      "dimension": 256,
+      "entities": 50000000,
+      "entity_vs_vector_reduction_percent": 91.40625,
+      "float_bytes": 4,
+      "measured_entity_bytes": 4400000000,
+      "relation": "ENTITY_SMALLER",
+      "vector_bytes": 51200000000
+    },
+    {
+      "dimension": 384,
+      "entities": 50000000,
+      "entity_vs_vector_reduction_percent": 94.27083333333333,
+      "float_bytes": 4,
+      "measured_entity_bytes": 4400000000,
+      "relation": "ENTITY_SMALLER",
+      "vector_bytes": 76800000000
+    },
+    {
+      "dimension": 512,
+      "entities": 50000000,
+      "entity_vs_vector_reduction_percent": 95.703125,
+      "float_bytes": 4,
+      "measured_entity_bytes": 4400000000,
+      "relation": "ENTITY_SMALLER",
+      "vector_bytes": 102400000000
+    },
+    {
+      "dimension": 768,
+      "entities": 50000000,
+      "entity_vs_vector_reduction_percent": 97.13541666666667,
+      "float_bytes": 4,
+      "measured_entity_bytes": 4400000000,
+      "relation": "ENTITY_SMALLER",
+      "vector_bytes": 153600000000
+    },
+    {
+      "dimension": 1024,
+      "entities": 50000000,
+      "entity_vs_vector_reduction_percent": 97.8515625,
+      "float_bytes": 4,
+      "measured_entity_bytes": 4400000000,
+      "relation": "ENTITY_SMALLER",
+      "vector_bytes": 204800000000
+    },
+    {
+      "dimension": 1536,
+      "entities": 50000000,
+      "entity_vs_vector_reduction_percent": 98.56770833333333,
+      "float_bytes": 4,
+      "measured_entity_bytes": 4400000000,
+      "relation": "ENTITY_SMALLER",
+      "vector_bytes": 307200000000
+    },
+    {
+      "dimension": 3072,
+      "entities": 50000000,
+      "entity_vs_vector_reduction_percent": 99.28385416666667,
+      "float_bytes": 4,
+      "measured_entity_bytes": 4400000000,
+      "relation": "ENTITY_SMALLER",
+      "vector_bytes": 614400000000
+    }
+  ],
+  "scenario": "vector-dimension-crossover",
+  "source_measured_result": "E:\\ENTITY_ACTIVE\\ENTITY_STORAGE_PROOF_20261001\\level3\\LEVEL3_STORAGE_PROOF_RESULT.json"
+}

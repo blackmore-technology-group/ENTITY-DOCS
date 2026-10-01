@@ -1,0 +1,207 @@
+{
+  "claim_boundary": "Developer storage evidence for these measured/specified scenarios. Results are workload- and baseline-dependent; they do not establish universal compression or database replacement.",
+  "headline_findings": {
+    "cardinality_first_non_saving": 1000,
+    "fanout_reduction_range_percent": [
+      89.32291666666667,
+      99.21875
+    ],
+    "history_unique_updates_25_factored_expansion_percent": 501.09165736607144,
+    "scale_mixed_5000_reduction_percent": 4.062948421556122,
+    "scale_repetitive_5000_reduction_percent": 50.33929779773622,
+    "scale_unique_5000_expansion_percent": 82.10907756979695,
+    "temporal_cycle_gap_reproduced": true,
+    "vector_break_even_dimension": 22.0
+  },
+  "recorded_utc": "2026-10-01T16:56:30Z",
+  "scenarios": [
+    {
+      "claim_boundary": "Measured single-node ADAM v0.41 current-state factoring versus vacuumed SQLite for these generated workloads; not universal database compression.",
+      "metadata": {
+        "bytes": 844,
+        "path": "scale-curve.metadata.json",
+        "sha256": "E26EEFCE28580DF310D3C69B633905CE178E52CEE3CFC3BDCFE9BF6FD35724AA"
+      },
+      "name": "scale_curve",
+      "result": {
+        "bytes": 6009,
+        "path": "scale_curve/SCALE_CURVE_RESULT.json",
+        "sha256": "B047309CE33CDE34828BAF27066F104C62454286BBAE55B4A4C4513C276A7AE8"
+      },
+      "result_pass": true,
+      "scenario": "storage-scale-curve",
+      "script": {
+        "bytes": 2914,
+        "path": "scale_curve.py",
+        "sha256": "699556ADA672982DEEB096B79966B0CB41F2F30BD15CAB5265E1F6EE2DA801F0"
+      },
+      "transcript": {
+        "bytes": 1527,
+        "path": "scale-curve.txt",
+        "sha256": "30518824591AC1B7D0C251BC932EF1000555EEA7861758172BB9FB974A698270"
+      },
+      "video": {
+        "bytes": 8711135,
+        "path": "scale-curve.webm",
+        "sha256": "8792666FF13DF55FAC09D980A6D209127C567C9784E1677A99C73EBA534984CF"
+      }
+    },
+    {
+      "claim_boundary": "Measures value reuse/cardinality sensitivity for one fixed synthetic project schema; break-even is workload-specific.",
+      "metadata": {
+        "bytes": 880,
+        "path": "cardinality-curve.metadata.json",
+        "sha256": "F87D4D957BC48EB52B5251F6FD51AA39D0387324FA30F2A86A40B3BE349CCC13"
+      },
+      "name": "cardinality_curve",
+      "result": {
+        "bytes": 4123,
+        "path": "cardinality_curve/CARDINALITY_CURVE_RESULT.json",
+        "sha256": "C74B3A78EE45D7D7DBE3CD39AB7A8C23CC3C7E7599BEE9F69244DAC7A7322687"
+      },
+      "result_pass": true,
+      "scenario": "storage-cardinality-break-even",
+      "script": {
+        "bytes": 3242,
+        "path": "cardinality_curve.py",
+        "sha256": "E08E76873907CCF77ECAC2EDE6E41581718290FD668ACE14A65F7C129A8D34B3"
+      },
+      "transcript": {
+        "bytes": 972,
+        "path": "cardinality-curve.txt",
+        "sha256": "58E15DB7A40DE0FBDD44DFB4BE132BE61F0AF3A88BCCEA400048514A5A322B09"
+      },
+      "video": {
+        "bytes": 4534899,
+        "path": "cardinality-curve.webm",
+        "sha256": "7A6773E669E1A28283BEE1B2DF51B6FDDE2D497E6B11F0361F2C8EF574CC9F77"
+      }
+    },
+    {
+      "claim_boundary": "Fixed-bond synthetic compact representation measuring actual bond/index bytes as entity fanout changes; vector comparison uses one 768-d float32 vector per entity and is not a universal workload model.",
+      "metadata": {
+        "bytes": 858,
+        "path": "fanout-curve.metadata.json",
+        "sha256": "F4EA3A87DED00FA7215794CA3C86C6FE97C01A27946630C269D20DF72781FA35"
+      },
+      "name": "fanout_curve",
+      "result": {
+        "bytes": 3706,
+        "path": "fanout_curve/FANOUT_CURVE_RESULT.json",
+        "sha256": "63E1EC87D68166EC4544C327232CCA55A11C651AE62B3EA769C7AC98311AA889"
+      },
+      "result_pass": true,
+      "scenario": "storage-fanout-density-curve",
+      "script": {
+        "bytes": 3251,
+        "path": "fanout_curve.py",
+        "sha256": "4C50E155F04D08CBB6C6BE7C85E8249725CB8ACCD6E251FE9095A1491ACC2985"
+      },
+      "transcript": {
+        "bytes": 748,
+        "path": "fanout-curve.txt",
+        "sha256": "D34BC1FC93AADF20C88A0BDDCA034FF54A3E0186A149B07CDB8F335D0B76B19A"
+      },
+      "video": {
+        "bytes": 1245631,
+        "path": "fanout-curve.webm",
+        "sha256": "9167642B0C82200B1258E9B9300CFA33EDFC4D99885723EE857F892FE3A10F73"
+      }
+    },
+    {
+      "claim_boundary": "Arithmetic crossover derived from the freshly measured 4.4 GB compact representation; vector baseline assumes one float32 vector per entity and excludes vector-database metadata/index overhead.",
+      "metadata": {
+        "bytes": 905,
+        "path": "vector-dimension-curve.metadata.json",
+        "sha256": "B073DB3254062F51CE9C317ECAC494B92C4D7BB3BFC0BAC37BB1B63FAF9F4C05"
+      },
+      "name": "vector_dimension_curve",
+      "result": {
+        "bytes": 3719,
+        "path": "vector_dimension_curve/VECTOR_DIMENSION_CURVE_RESULT.json",
+        "sha256": "638A8C265A08CEE59F0B0431B071D6808E675E9AEDCA6F8E0B71F1C98577E1BF"
+      },
+      "result_pass": true,
+      "scenario": "vector-dimension-crossover",
+      "script": {
+        "bytes": 1613,
+        "path": "vector_dimension_curve.py",
+        "sha256": "4E9A32023EB86077FA3C1E9CC7DEDF3A768386F0456ED40EE27CAF9318C8AE4C"
+      },
+      "transcript": {
+        "bytes": 1293,
+        "path": "vector-dimension-curve.txt",
+        "sha256": "8E2F58CF08EF372C7DE869F971F2705DDD540F4AC3EE5F930BB3C5DAFC48C179"
+      },
+      "video": {
+        "bytes": 456941,
+        "path": "vector-dimension-curve.webm",
+        "sha256": "72638F831EF73CE498107CBADD78C5124834D5E09E86408F7655E8E456BB4D3C"
+      }
+    },
+    {
+      "claim_boundary": "Uses monotonic unique update values so deterministic bond IDs are not revisited. Measures retained history cost versus a SQLite current-state-only baseline; not universal temporal storage efficiency.",
+      "metadata": {
+        "bytes": 905,
+        "path": "history-unique-curve.metadata.json",
+        "sha256": "6CF5B0276F1EED0ECD10B2A2FD62BF29863662344AD7DC1515935C4282C37744"
+      },
+      "name": "history_unique_curve",
+      "result": {
+        "bytes": 2987,
+        "path": "history_unique_curve/HISTORY_UNIQUE_CURVE_RESULT.json",
+        "sha256": "20C0D7569CA90194D1C1A70FB396AE2373661B941CCAF79F62571780A8B7B14F"
+      },
+      "result_pass": true,
+      "scenario": "storage-history-provenance-cost-unique-updates",
+      "script": {
+        "bytes": 3663,
+        "path": "history_unique_curve.py",
+        "sha256": "DA39CF5BE24C8B36FF28313B94E2309F07373E2C98209289A465A3F3F089B972"
+      },
+      "transcript": {
+        "bytes": 875,
+        "path": "history-unique-curve.txt",
+        "sha256": "3B910BF3C6D065C1F68DDFE5FF6A0E183F99EAC5B4754FC6F01C30EE994DE8F0"
+      },
+      "video": {
+        "bytes": 4994406,
+        "path": "history-unique-curve.webm",
+        "sha256": "97964A18C60FD341809333B1BF18DFDF51AD5A0A095C08BD373A002A36A2A91E"
+      }
+    },
+    {
+      "claim_boundary": "Reproduces a v0.41 temporal-history limitation when a deterministic bond identity is revoked and later reused; current-state integrity can still pass while an earlier interval is no longer reconstructable.",
+      "metadata": {
+        "bytes": 919,
+        "path": "temporal-cycle-regression.metadata.json",
+        "sha256": "1ADF16724285F0CF2CD5508B2FDAC50308EAFD915CEEF29420B441B833C88B20"
+      },
+      "name": "temporal_cycle_regression",
+      "result": {
+        "bytes": 1129,
+        "path": "temporal_cycle_regression/TEMPORAL_CYCLE_REGRESSION_RESULT.json",
+        "sha256": "0787F8ED187D0B8F3F4803B81B84B44F9A2FEAC836756852CCDFF1A0AF7938B8"
+      },
+      "result_pass": null,
+      "scenario": "temporal-cycle-regression",
+      "script": {
+        "bytes": 2173,
+        "path": "temporal_cycle_regression.py",
+        "sha256": "580580767696FE56E421F57AFCA0C4268BAAB22A28D7C2B4AECDD1D5E067E2AC"
+      },
+      "transcript": {
+        "bytes": 592,
+        "path": "temporal-cycle-regression.txt",
+        "sha256": "B16559B85BA6E3EC3C24A1154DDF83D127570D149CF9C106204183C12F859B79"
+      },
+      "video": {
+        "bytes": 267336,
+        "path": "temporal-cycle-regression.webm",
+        "sha256": "C06C007D0919C449EA7668813F6177EB68F62ED8B3CBD530BA621925449D946B"
+      }
+    }
+  ],
+  "schema": "entity-storage-developer-scenario-suite-v1",
+  "suite_root": "E:\\ENTITY_ACTIVE\\ENTITY_STORAGE_SCENARIOS_20261001"
+}
