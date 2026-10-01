@@ -1,0 +1,16 @@
+{
+  "commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+  "duration_seconds": 13.65,
+  "exit_code": 0,
+  "modules": [
+    "test_v3_adoption_layer.py",
+    "test_v3_global_conformance.py",
+    "test_v3_protocol_origin_lineage.py"
+  ],
+  "passed": 24,
+  "python": "3.11.9",
+  "release": "v3.4.3",
+  "schema": "entity-test-result-v1",
+  "status": "PASS",
+  "test": 12
+}

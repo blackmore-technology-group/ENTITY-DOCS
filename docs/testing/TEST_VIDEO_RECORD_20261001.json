@@ -91,6 +91,36 @@
       "slug": "v343-adam-integration",
       "test": 9,
       "video": "videos/test-09-v343-adam-integration.webm"
+    },
+    {
+      "bytes": 653155,
+      "codec": "VP80",
+      "fps": 24.0,
+      "frames": 258,
+      "sha256": "5E721D335D9463DD7E791448A054D26C979E6F07DB1140FD5B51A8DD01688BC0",
+      "slug": "v343-portable-export-scope",
+      "test": 10,
+      "video": "videos/test-10-v343-portable-export-scope.webm"
+    },
+    {
+      "bytes": 703337,
+      "codec": "VP80",
+      "fps": 24.0,
+      "frames": 258,
+      "sha256": "1FFAD886132BEC294670427AB4C64A260B91F0E98B0027A9008019A752D7D6DC",
+      "slug": "v343-public-causal-niki",
+      "test": 11,
+      "video": "videos/test-11-v343-public-causal-niki.webm"
+    },
+    {
+      "bytes": 784387,
+      "codec": "VP80",
+      "fps": 24.0,
+      "frames": 258,
+      "sha256": "CD07A0E4B5435550E38FDF3BBD2E660CE2A3DCABBD386C65248497C5048F7DAB",
+      "slug": "v343-adoption-global-origin",
+      "test": 12,
+      "video": "videos/test-12-v343-adoption-global-origin.webm"
     }
   ]
 }
