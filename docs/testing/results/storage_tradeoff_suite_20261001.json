@@ -1,0 +1,129 @@
+{
+  "claim_boundary": "Developer storage evidence for these measured scenarios. Static compression, queryability, incremental update behavior and provenance are different properties; no universal storage or performance claim is made.",
+  "hash_basis": "canonical Git index blob bytes",
+  "headline_findings": {
+    "archive_lookup_median_us": {
+      "entity": 2954.05,
+      "gzip_full_decompress": 2216.35,
+      "sqlite": 256.2,
+      "xz_full_decompress": 4524.85
+    },
+    "compression_repetitive_bytes": {
+      "bzip2_9": 11063,
+      "entity_factored": 258330,
+      "gzip9": 27108,
+      "sqlite": 520192,
+      "xz_lzma9": 5268
+    },
+    "dedup_packed_reduction_percent": {
+      "0": -4.522466659545898,
+      "25": 21.46894931793213,
+      "50": 47.5145697593689,
+      "75": 73.74682426452637,
+      "90": 90.12261629104614,
+      "98": 98.32174777984619
+    },
+    "single_record_update": {
+      "entity_journal_append_bytes": 1112,
+      "gzip_archive_bytes": 50765,
+      "xz_archive_bytes": 37104
+    }
+  },
+  "recorded_utc": "2026-10-01T17:28:30Z",
+  "scenarios": [
+    {
+      "claim_boundary": "Compares physical byte counts for the same generated 5,000-record datasets. gzip/bzip2/XZ are compressed canonical NDJSON blobs, while SQLite and ADAM are structured stores with different query/history semantics; byte comparisons do not imply feature equivalence.",
+      "name": "compression",
+      "pass": true,
+      "result": {
+        "bytes": 2326,
+        "path": "results/storage_compression_baselines_20261001.json",
+        "sha256": "55D6C36641568A4A782D11E473D224A477877557EF0C05D612E1168A616ECA04"
+      },
+      "scenario": "storage-conventional-compression-baselines",
+      "script": {
+        "bytes": 3039,
+        "path": "examples/storage_compression_baselines_20261001.py",
+        "sha256": "38DB888CF587D27BE4C6276BBEF59ED544A5E741561D6A14F1B7C2C4BC2201E0"
+      },
+      "transcript": {
+        "bytes": 360,
+        "path": "transcripts/storage_compression_baselines_20261001.txt",
+        "sha256": "D610856D1DDC9A03D4E2184B8F507ED52E1941BBB5780A95CD7EF577D5D5C887"
+      },
+      "video": {
+        "bytes": 2624753,
+        "path": "videos/test-17a-conventional-compression-baselines.webm",
+        "sha256": "42432054B189F283E435F1041A05316A9FDAB9376570902E037A828FE6484591"
+      },
+      "video_metadata": {
+        "bytes": 894,
+        "path": "results/storage_compression_video_metadata_20261001.json",
+        "sha256": "EC563FC1D355CF9FE00C5BDBC06C97FD3FF0510A6B16E2D4091513D906D69AB4"
+      }
+    },
+    {
+      "claim_boundary": "Measures exact-content chunk reuse for 64 synthetic 128 KiB objects with repeated whole-object payloads. unique_chunk_payload_bytes isolates payload deduplication; packed state and journal include object recipes/metadata/history overhead. This is not a universal file-compression result.",
+      "name": "exact_dedup",
+      "pass": true,
+      "result": {
+        "bytes": 3538,
+        "path": "results/storage_exact_dedup_20261001.json",
+        "sha256": "817668E9A22099342DB0E10C6818859BA151AD5899A99BDBEC5FE6D543EE2E42"
+      },
+      "scenario": "exact-content-addressed-dedup-curve",
+      "script": {
+        "bytes": 2901,
+        "path": "examples/storage_exact_dedup_20261001.py",
+        "sha256": "3124E83AAF6576DF725E659A424ED929D688CA44690DF5B59527F86ADAC9BED7"
+      },
+      "transcript": {
+        "bytes": 883,
+        "path": "transcripts/storage_exact_dedup_20261001.txt",
+        "sha256": "84014CC0BE898AF4BDADCD42966F113651CAFD9BA74C291F645811C96B8D32BD"
+      },
+      "video": {
+        "bytes": 962056,
+        "path": "videos/test-17b-exact-content-dedup-curve.webm",
+        "sha256": "9265D1D4DC07EC330600B5614838CD0159AA97FE262EDF2A2BBB4EE1B9BEFE56"
+      },
+      "video_metadata": {
+        "bytes": 864,
+        "path": "results/storage_exact_dedup_video_metadata_20261001.json",
+        "sha256": "CA635DDBB7A871778A36A90554D4E45B1D3FAAA11356F802EF77C821B2559713"
+      }
+    },
+    {
+      "claim_boundary": "Single-machine sequential microbenchmark on one 5,000-record mixed dataset. Compressed-archive lookup intentionally models whole-archive decompression without a separate index; other compressed/indexed formats may behave differently. Timings are illustrative, not production performance claims.",
+      "name": "archive_live_store",
+      "pass": true,
+      "result": {
+        "bytes": 1338,
+        "path": "results/storage_archive_live_store_20261001.json",
+        "sha256": "3CC8D90ED921B44958D697882998E16D98A06D57437ABE1244E71FB43DEEC565"
+      },
+      "scenario": "archive-vs-live-store-tradeoff",
+      "script": {
+        "bytes": 4655,
+        "path": "examples/storage_archive_live_store_20261001.py",
+        "sha256": "A1546FB335A26ED19835D0775C016B1A14BC9680B0B0F418EB2A197DAD12E9DF"
+      },
+      "transcript": {
+        "bytes": 201,
+        "path": "transcripts/storage_archive_live_store_20261001.txt",
+        "sha256": "55EED46C04AA458C9B01B970D2C0C5C000ED65FC9B9CDBFEB0A2A4DC2DD16E58"
+      },
+      "video": {
+        "bytes": 533149,
+        "path": "videos/test-17c-archive-live-store-tradeoff.webm",
+        "sha256": "A597C90D12AD1979BA788EE8E4B8CA4D3A94E87EB7F9CF12BC652DF562BFD41B"
+      },
+      "video_metadata": {
+        "bytes": 919,
+        "path": "results/storage_archive_live_store_video_metadata_20261001.json",
+        "sha256": "BE28C689CFDD81ADECECACD3E3A7F1DBF05AD217840114D45FF3830E30FCEF62"
+      }
+    }
+  ],
+  "schema": "entity-storage-tradeoff-suite-v1"
+}

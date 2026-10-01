@@ -1,0 +1,3 @@
+LOOKUP_MEDIAN_US sqlite=256.2 adam=2954.1 gzip=2216.4 xz=4524.9
+UPDATE gzip_archive_bytes=50765 xz_archive_bytes=37104 adam_journal_append_bytes=1112 restart=True
+ARCHIVE_LIVE_STORE_TRADEOFF_PASS=True

@@ -1,0 +1,16 @@
+{
+  "end_utc": "2026-10-01T17:28:04.923863+00:00",
+  "exit_code": 0,
+  "name": "ENTITY Archive vs Live Store Tradeoff",
+  "script": "E:\\ENTITY_ACTIVE\\ENTITY_STORAGE_SCENARIOS_20261001\\archive_live_store_tradeoff.py",
+  "script_sha256": "A1546FB335A26ED19835D0775C016B1A14BC9680B0B0F418EB2A197DAD12E9DF",
+  "start_utc": "2026-10-01T17:27:38.937124+00:00",
+  "transcript": "E:\\ENTITY_ACTIVE\\ENTITY_STORAGE_SCENARIOS_20261001\\archive-live-store-tradeoff.txt",
+  "transcript_sha256": "AE39821C73F942BD46EF926CBAFD6A51B5A07B093A255DBB5B5675E8C6C87859",
+  "video": "E:\\ENTITY_ACTIVE\\ENTITY_STORAGE_SCENARIOS_20261001\\archive-live-store-tradeoff.webm",
+  "video_bytes": 533149,
+  "video_sha256": "A597C90D12AD1979BA788EE8E4B8CA4D3A94E87EB7F9CF12BC652DF562BFD41B",
+  "watch_paths": [
+    "E:\\ENTITY_ACTIVE\\ENTITY_STORAGE_SCENARIOS_20261001\\archive_live_store_tradeoff\\ARCHIVE_LIVE_STORE_TRADEOFF_RESULT.json"
+  ]
+}

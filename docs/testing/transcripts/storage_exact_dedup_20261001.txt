@@ -1,0 +1,7 @@
+DEDUP target=0% unique=64 raw=8388608 chunks=8388608 chunk_reduction=0.000% packed=8767980 packed_reduction=-4.522% journal=9980233 pass=True
+DEDUP target=25% unique=48 raw=8388608 chunks=6291456 chunk_reduction=25.000% packed=6587662 packed_reduction=21.469% journal=7705843 pass=True
+DEDUP target=50% unique=32 raw=8388608 chunks=4194304 chunk_reduction=50.000% packed=4402797 packed_reduction=47.515% journal=5402317 pass=True
+DEDUP target=75% unique=16 raw=8388608 chunks=2097152 chunk_reduction=75.000% packed=2202276 packed_reduction=73.747% journal=3083690 pass=True
+DEDUP target=90% unique=6 raw=8388608 chunks=786432 chunk_reduction=90.625% packed=828575 packed_reduction=90.123% journal=1632567 pass=True
+DEDUP target=98% unique=1 raw=8388608 chunks=131072 chunk_reduction=98.438% packed=140782 packed_reduction=98.322% journal=838084 pass=True
+EXACT_DEDUP_CURVE_PASS=True

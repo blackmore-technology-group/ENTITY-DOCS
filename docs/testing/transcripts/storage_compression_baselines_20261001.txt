@@ -1,0 +1,4 @@
+COMPRESSION mode=repetitive raw=791336 sqlite=520192 gzip=27108 bzip2=11063 xz=5268 factored=258330 pass=True
+COMPRESSION mode=mixed raw=674195 sqlite=401408 gzip=50705 bzip2=29926 xz=36880 factored=385858 pass=True
+COMPRESSION mode=unique raw=1069667 sqlite=806912 gzip=349604 bzip2=290620 xz=278412 factored=1469623 pass=True
+COMPRESSION_BASELINES_PASS=True
