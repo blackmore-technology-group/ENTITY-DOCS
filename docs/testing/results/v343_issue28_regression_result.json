@@ -1,0 +1,10 @@
+{
+  "commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+  "duration_seconds": 52.39,
+  "exit_code": 0,
+  "passed": 76,
+  "release": "v3.4.3",
+  "schema": "entity-test-result-v1",
+  "status": "PASS",
+  "test": 5
+}

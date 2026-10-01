@@ -31,6 +31,36 @@
       "slug": "memnox-cold-recovery",
       "test": 3,
       "video": "videos/test-03-memnox-cold-recovery.webm"
+    },
+    {
+      "bytes": 847686,
+      "codec": "VP80",
+      "fps": 24.0,
+      "frames": 260,
+      "sha256": "95E13081E49A332D7F6633C5BCDA6E1138DEC2FAE5AE50CC9A1FF87296372693",
+      "slug": "v343-full-regression",
+      "test": 4,
+      "video": "videos/test-04-v343-full-regression.webm"
+    },
+    {
+      "bytes": 606616,
+      "codec": "VP80",
+      "fps": 24.0,
+      "frames": 260,
+      "sha256": "84D595C28BAED76FEFFF0AC297FB2EB454BF3459509A88AA68F68223332F6BAA",
+      "slug": "v343-issue28-regression",
+      "test": 5,
+      "video": "videos/test-05-v343-issue28-regression.webm"
+    },
+    {
+      "bytes": 689122,
+      "codec": "VP80",
+      "fps": 24.0,
+      "frames": 260,
+      "sha256": "0B62DAD6B85C58D07CA901B665ACD6DD8981197EC3DD98FA360BD8181F53E199",
+      "slug": "v343-security-fail-closed",
+      "test": 6,
+      "video": "videos/test-06-v343-security-fail-closed.webm"
     }
   ]
 }

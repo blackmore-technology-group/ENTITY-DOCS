@@ -1,0 +1,9 @@
+ss....ssss...                                                            [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_v342_ecosystem_runtime.py:59: verified ADAM source required
+SKIPPED [1] tests\test_v342_ecosystem_runtime.py:47: verified ADAM source required
+SKIPPED [1] tests\test_v3_btdu.py:35: verified ADAM source required for BTDU integration tests
+SKIPPED [1] tests\test_v3_btdu.py:29: verified ADAM source required for BTDU integration tests
+SKIPPED [1] tests\test_v3_btdu.py:26: verified ADAM source required for BTDU integration tests
+SKIPPED [1] tests\test_v3_btdu.py:31: verified ADAM source required for BTDU integration tests
+7 passed, 6 skipped in 1.18s
