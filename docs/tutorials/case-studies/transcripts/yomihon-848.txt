@@ -1,0 +1,60 @@
+YOMIHON #848 - REPRODUCIBLE ENGINEERING REPLAY
+Repository: Koopa0/yomihon
+Issue: #848
+Baseline: dabb04ae74fe969e3a423894ec9f10a86a2fb759
+Submitted commit: 6b3698336313966ce09570eeb8270a7976809bad
+
+SCREEN GATE: PASS 100/100
+No competing PR or contributor claim at pre-code revalidation.
+
+RED REGRESSION
+PS> go test ./internal/note -run TestNoFrontmatterStatusFaceFollowsContract -count=1
+--- FAIL: TestNoFrontmatterStatusFaceFollowsContract/required
+required/status panel missing "沒有 frontmatter（契約要求必須有）。"
+required/seal bar missing "沒有 frontmatter（契約要求必須有）。"
+required/status panel missing "No frontmatter (the contract requires one)."
+required/seal bar missing "No frontmatter (the contract requires one)."
+[exit=1]
+
+FIX
+Read the declaration through internal/schema Contract.RequiresFrontmatter().
+Carry FrontmatterRequired through the production note handler into NoteView.
+Use bilingual wording from internal/wording.
+Both reader-visible status faces select wording from the canonical contract declaration.
+No judge golden data or status-write semantics changed.
+
+MUTATION PROOF
+Temporarily remove the FrontmatterRequired branch from noFrontmatterLine.
+PS> go test ./internal/ui/pages -run TestNoFrontmatterStatusFaceFollowsContract -count=1
+--- FAIL: TestNoFrontmatterStatusFaceFollowsContract/required
+Required wording count became 0 while legal wording was rendered.
+MUTATION_TEST_EXIT=1
+MUTATION_RESTORED=YES
+
+FINAL FOCUSED GREEN
+PS> go test ./internal/ui/pages -run TestNoFrontmatterStatusFaceFollowsContract -count=1
+ok github.com/koopa0/yomihon/internal/ui/pages
+[exit=0]
+
+STATIC CHECK
+PS> go vet ./internal/note ./internal/ui/pages
+VET_EXIT=0
+PS> git diff --check
+DIFFCHECK_EXIT=0
+
+WINDOWS BASELINE COMPARISON
+PS> go test -json ./internal/note ./internal/ui/pages -count=1
+Untouched upstream failing tests: 66
+Patched branch failing tests: 66
+New failures on patched branch: 0
+Baseline-only failures: 0
+The shared failures are pre-existing Windows/platform behavior.
+
+SUBMISSION
+Commit: 6b3698336313966ce09570eeb8270a7976809bad
+PR: https://github.com/Koopa0/yomihon/pull/852
+PR state at evidence capture: OPEN / BLOCKED / no checks scheduled yet
+make verify: NOT RUN locally - GNU Make unavailable on this Windows workstation
+Full repository CI remains authoritative.
+
+Replay complete. Full terminal transcript, diff, validation summary and hashes are retained in the case-study evidence package.

@@ -1,0 +1,74 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Yomihon #848 - contract-declared status truthfulness - ENTITY Case Study</title><meta name="description" content="A real external engineering campaign: make reader-visible frontmatter status wording follow the canonical vault contract, prove the regression red, verify the fix, submit PR #852, and preserve the ENTITY lineage."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation..."></header><div id="results"></div><div class="layout"><nav><h3>Case studies</h3><a href="index.html">Case-study home</a><a href="../external-contribution-lineage.html">Lineage tutorial</a><a href="../code/">Code tutorials</a><a href="../index.html">Tutorial home</a></nav><main>
+<div class="eyebrow">Real-world qualification - external engineering</div><h1>Yomihon #848 - contract-declared status truthfulness</h1>
+<p class="lede">A real external engineering campaign: make reader-visible status wording derive from the canonical vault contract instead of duplicated presentation-layer policy.</p>
+<div class="callout"><strong>Evidence boundary:</strong> At evidence capture, PR #852 was open and GitHub workflow approval was pending. Upstream acceptance, payment and market value are not claimed.</div>
+<div class="flow">ISSUE -> PRE-CODE ENTITY ANCHOR -> RED TEST -> FIX -> MUTATION PROOF -> UPSTREAM PR -> ENTITY LINEAGE -> DCO</div>
+<h2>The defect</h2><p>With <code>no_frontmatter_is_legal = false</code>, the page correctly reported missing frontmatter as a contract violation while the status face still told the reader that no frontmatter was legal.</p>
+<h2>The engineering change</h2><p>The page now receives whether the loaded contract requires frontmatter, uses that canonical declaration to choose bilingual status wording, and keeps the existing legal wording only when the contract actually permits missing frontmatter.</p>
+<h2>Validation</h2><p>The new page test was observed red against the original behavior, then green after the fix. A deliberate mutation removing the contract-driven branch made the same test red again. Focused Go test, <code>go vet</code>, formatting and diff checks passed; the broader Windows comparison introduced zero new failures versus the exact upstream baseline.</p>
+<h2>Watch the engineering replay</h2><video controls preload="metadata" style="width:100%;max-width:960px"><source src="videos/yomihon-848-replay.webm" type="video/webm"><source src="videos/yomihon-848-replay.mp4" type="video/mp4">Your browser does not support HTML5 video.</video><p>This is a reproducible replay generated from the sealed command/output record. The transcript and evidence hashes remain authoritative.</p><p><a href="VIDEO_RECORD_YOMIHON_848_20261001.json">Replay video hash record</a></p>
+<h2>Recorded terminal replay</h2><pre>YOMIHON #848 - REPRODUCIBLE ENGINEERING REPLAY
+Repository: Koopa0/yomihon
+Issue: #848
+Baseline: dabb04ae74fe969e3a423894ec9f10a86a2fb759
+Submitted commit: 6b3698336313966ce09570eeb8270a7976809bad
+
+SCREEN GATE: PASS 100/100
+No competing PR or contributor claim at pre-code revalidation.
+
+RED REGRESSION
+PS&gt; go test ./internal/note -run TestNoFrontmatterStatusFaceFollowsContract -count=1
+--- FAIL: TestNoFrontmatterStatusFaceFollowsContract/required
+required/status panel missing &quot;沒有 frontmatter（契約要求必須有）。&quot;
+required/seal bar missing &quot;沒有 frontmatter（契約要求必須有）。&quot;
+required/status panel missing &quot;No frontmatter (the contract requires one).&quot;
+required/seal bar missing &quot;No frontmatter (the contract requires one).&quot;
+[exit=1]
+
+FIX
+Read the declaration through internal/schema Contract.RequiresFrontmatter().
+Carry FrontmatterRequired through the production note handler into NoteView.
+Use bilingual wording from internal/wording.
+Both reader-visible status faces select wording from the canonical contract declaration.
+No judge golden data or status-write semantics changed.
+
+MUTATION PROOF
+Temporarily remove the FrontmatterRequired branch from noFrontmatterLine.
+PS&gt; go test ./internal/ui/pages -run TestNoFrontmatterStatusFaceFollowsContract -count=1
+--- FAIL: TestNoFrontmatterStatusFaceFollowsContract/required
+Required wording count became 0 while legal wording was rendered.
+MUTATION_TEST_EXIT=1
+MUTATION_RESTORED=YES
+
+FINAL FOCUSED GREEN
+PS&gt; go test ./internal/ui/pages -run TestNoFrontmatterStatusFaceFollowsContract -count=1
+ok github.com/koopa0/yomihon/internal/ui/pages
+[exit=0]
+
+STATIC CHECK
+PS&gt; go vet ./internal/note ./internal/ui/pages
+VET_EXIT=0
+PS&gt; git diff --check
+DIFFCHECK_EXIT=0
+
+WINDOWS BASELINE COMPARISON
+PS&gt; go test -json ./internal/note ./internal/ui/pages -count=1
+Untouched upstream failing tests: 66
+Patched branch failing tests: 66
+New failures on patched branch: 0
+Baseline-only failures: 0
+The shared failures are pre-existing Windows/platform behavior.
+
+SUBMISSION
+Commit: 6b3698336313966ce09570eeb8270a7976809bad
+PR: https://github.com/Koopa0/yomihon/pull/852
+PR state at evidence capture: OPEN / BLOCKED / no checks scheduled yet
+make verify: NOT RUN locally - GNU Make unavailable on this Windows workstation
+Full repository CI remains authoritative.
+
+Replay complete. Full terminal transcript, diff, validation summary and hashes are retained in the case-study evidence package.
+</pre><p><a href="transcripts/yomihon-848.txt">Open the plain-text command transcript</a></p>
+<h2>ENTITY lineage and replacement-cost basis</h2><table><tr><th>Campaign anchor</th><td><code>obj3-1ce33239d2af2788d4873adc4d100d06e49ec420</code></td></tr><tr><th>Case-study object</th><td><code>obj3-4b64e8c81be5187cdc81ae5eedaad2c29bac1ef6</code></td></tr><tr><th>BTG derived control</th><td><code>obj3-338876fa921366736ab9068cdc131e74b7b6f8db</code></td></tr><tr><th>Derived Global Passport</th><td><code>gpassport3-b176d0581925c55e88e6ba15</code></td></tr><tr><th>DCO wrapper</th><td><code>obj3-eca0368bf59a7df918bb20ec75f9840707d92f5e</code></td></tr><tr><th>EEP instrument</th><td><code>inst3-bd8812666e08f2894fe03638</code></td></tr><tr><th>Contribution weight</th><td>10,000 bps / 100%</td></tr><tr><th>Management replacement-cost basis</th><td><strong>CAD $9,795</strong></td></tr></table>
+<p>The CAD $9,795 amount is a BTG management replacement-cost estimate used as an initial lineage basis. It is not fair market value, revenue, a receivable or an independent appraisal. ENTITY keeps later offers, transactions, settlement and realized value as separate evidence.</p>
+<h2>Sealed evidence</h2><table><tr><th>PR head</th><td><code>6b3698336313966ce09570eeb8270a7976809bad</code></td></tr><tr><th>Case-study manifest SHA-256</th><td><code>930066047837DE99F19C9FC68218CEABEA74626D7228701EF1BA21212F26AE93</code></td></tr><tr><th>Derived asset receipt SHA-256</th><td><code>44B967E0618DAFB2B6BCA894E7FDBDDD909148155D486AA6FD695E4B44998A37</code></td></tr><tr><th>Replacement-cost lineage evidence SHA-256</th><td><code>B0958111794A3A8157AFE8B3E2AD0A2C51963A26F4D536258A07A2C2B4AAD49C</code></td></tr></table>
+<div class="actions"><a class="button secondary" href="https://github.com/Koopa0/yomihon/issues/848">Upstream issue</a><a class="button" href="https://github.com/Koopa0/yomihon/pull/852">Upstream pull request</a><a class="button secondary" href="../external-contribution-lineage.html">Lineage method</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>

@@ -12,6 +12,6 @@ A case study should contain:
 - the truthful current upstream state;
 - the resulting ENTITY provenance/lineage identifiers.
 
-The command/output record is authoritative. Video is optional and does not replace reproducible evidence.
+The command/output record is authoritative. A finalized public case study also requires video: use live capture when available, otherwise publish an explicitly identified replay from the sealed transcript. Video never replaces reproducible evidence.
 
 Case studies are evidence demonstrations, not the primary ENTITY learning path. Beginner learning remains under `docs/tutorials/code/` and the core curriculum.
