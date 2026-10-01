@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Map ODRL, VC and DID without importing authority - ENTITY Code Tutorial</title><meta name="description" content="Translate ODRL rights and capture VC/DID evidence while preserving ENTITY&#x27;s authority boundary."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation..."></header><div id="results"></div><div class="layout"><nav><h3>Code tutorials</h3><a href="index.html">Code tutorial home</a><a href="identity-signing.html">1 - Create, verify and sign with an ENTITY identity</a><a href="authority-rights-provenance.html">2 - Exercise authority, rights and provenance</a><a href="portable-bundle-verification.html">3 - Export and verify a portable sovereign bundle</a><a href="evidence-trust-threshold.html">4 - Require two independent attestations</a><a href="btdu-cli.html">5 - Initialize BTDU and verify the ADAM dependency boundary</a><a href="vault-purpose-access.html">6 - Encrypt bytes and enforce one-use purpose access</a><a href="rights-global-passport.html">7 - Issue and verify rights and global passports</a><a href="offline-partition-conflict.html">8 - Detect a divergent offline partition conflict</a><a href="market-orderbook-pending.html">9 - Execute a rights trade without pretending payment occurred</a><a href="retention-legal-hold.html">10 - Preserve retention evidence and enforce legal hold</a><a href="confidential-provenance.html">11 - Encrypt confidential provenance metadata</a><a href="standards-mapping.html">12 - Map ODRL, VC and DID without importing authority</a><a href="recovery-quorum.html">13 - Require a 2-of-3 recovery quorum</a><h3>Learning</h3><a href="../index.html">Tutorial home</a><a href="../core/">Core curriculum</a><a href="../../recipes/">Developer recipes</a></nav><main><div class="eyebrow">Code tutorial 12 - tested</div><h1>Map ODRL, VC and DID without importing authority</h1><p class="lede">Translate ODRL rights and capture VC/DID evidence while preserving ENTITY&#x27;s authority boundary.</p><div class="callout"><strong>Verified against:</strong> ENTITY main commit <code>5be325437a63c2efaee0dc3caaae9ab0cd0773d9</code>. Disposable tutorial state only.</div><h2>Watch the tutorial</h2><video controls preload="metadata" style="width:100%;max-width:960px"><source src="videos/tutorial-12-standards-mapping.webm" type="video/webm">Your browser does not support embedded WebM video.</video><p>This VP8 WebM terminal replay is generated from the exact published source and recorded execution shown below.</p><h2>Run it yourself</h2><pre>$env:ENTITY_ROOT="C:\path	o\ENTITY"
+python examples/standards_mapping.py</pre><h2>Exact source</h2><pre>from pathlib import Path
+import importlib.util, os
+ROOT=Path(os.environ.get(&quot;ENTITY_ROOT&quot;,Path.cwd())).resolve()
+def load_source(path,name):
+    spec=importlib.util.spec_from_file_location(name,ROOT/path); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+m=load_source(&quot;src/36_Adoption_Layer/standards_adapters.py&quot;,&quot;entity_standards&quot;)
+odrl={&quot;permission&quot;:[{&quot;target&quot;:&quot;dataset-123&quot;,&quot;action&quot;:[&quot;read&quot;,&quot;derive&quot;],&quot;duty&quot;:[{&quot;action&quot;:&quot;attribute&quot;}]}],&quot;prohibition&quot;:[{&quot;target&quot;:&quot;dataset-123&quot;,&quot;action&quot;:&quot;redistribute&quot;}]}
+mapping=m.StandardsAdapters.import_odrl(odrl)
+assert mapping[&quot;silent_semantic_equivalence&quot;] is False
+assert mapping[&quot;external_standard_is_not_entity_authority&quot;] is True
+vc={&quot;issuer&quot;:&quot;did:example:issuer&quot;,&quot;credentialSubject&quot;:{&quot;id&quot;:&quot;did:example:subject&quot;},&quot;proof&quot;:{&quot;type&quot;:&quot;ExampleProof&quot;}}
+vc_evidence=m.StandardsAdapters.credential_evidence(vc)
+did_evidence=m.StandardsAdapters.did_evidence({&quot;id&quot;:&quot;did:example:subject&quot;,&quot;verificationMethod&quot;:[]})
+assert vc_evidence[&quot;credential_is_evidence_not_entity_authority&quot;] is True
+assert did_evidence[&quot;external_identifier_is_not_entity_authority&quot;] is True
+roundtrip=m.StandardsAdapters.export_odrl(mapping[&quot;mapped_rights&quot;],&quot;dataset-123&quot;)
+print(&quot;ODRL_IMPORT=PASS&quot;); print(f&quot;MAPPED_RIGHTS={len(mapping[&#x27;mapped_rights&#x27;])}&quot;)
+print(&quot;VC_AS_EVIDENCE=PASS&quot;); print(&quot;DID_AS_EVIDENCE=PASS&quot;); print(&quot;ODRL_EXPORT=PASS&quot; if roundtrip else &quot;ODRL_EXPORT=FAIL&quot;)
+print(&quot;EXTERNAL_STANDARD_AUTHORITY=BLOCKED&quot;)
+</pre><h2>Recorded output</h2><pre>ODRL_IMPORT=PASS
+MAPPED_RIGHTS=2
+VC_AS_EVIDENCE=PASS
+DID_AS_EVIDENCE=PASS
+ODRL_EXPORT=PASS
+EXTERNAL_STANDARD_AUTHORITY=BLOCKED
+</pre><div class="callout"><strong>Claim boundary:</strong> The recorded result proves this tutorial operation executed against the pinned source. It does not establish external truth, ownership, production certification or third-party adoption.</div><div class="actions"><a class="button" href="index.html">Code tutorial home</a><a class="button secondary" href="../index.html">Tutorial home</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>

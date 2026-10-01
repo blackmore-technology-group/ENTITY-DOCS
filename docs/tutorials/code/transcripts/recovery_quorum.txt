@@ -1,0 +1,5 @@
+RECOVERY_POLICY=2_OF_3
+ONE_APPROVAL_READY=FALSE
+UNAUTHORIZED_APPROVER=BLOCKED
+TWO_APPROVALS_READY=TRUE
+CLAIM_BOUNDARY=quorum readiness authorizes recovery workflow; it does not itself restore external systems

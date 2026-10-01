@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Encrypt confidential provenance metadata - ENTITY Code Tutorial</title><meta name="description" content="Record private lineage metadata, reveal it with the correct key and prove a wrong key fails closed."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation..."></header><div id="results"></div><div class="layout"><nav><h3>Code tutorials</h3><a href="index.html">Code tutorial home</a><a href="identity-signing.html">1 - Create, verify and sign with an ENTITY identity</a><a href="authority-rights-provenance.html">2 - Exercise authority, rights and provenance</a><a href="portable-bundle-verification.html">3 - Export and verify a portable sovereign bundle</a><a href="evidence-trust-threshold.html">4 - Require two independent attestations</a><a href="btdu-cli.html">5 - Initialize BTDU and verify the ADAM dependency boundary</a><a href="vault-purpose-access.html">6 - Encrypt bytes and enforce one-use purpose access</a><a href="rights-global-passport.html">7 - Issue and verify rights and global passports</a><a href="offline-partition-conflict.html">8 - Detect a divergent offline partition conflict</a><a href="market-orderbook-pending.html">9 - Execute a rights trade without pretending payment occurred</a><a href="retention-legal-hold.html">10 - Preserve retention evidence and enforce legal hold</a><a href="confidential-provenance.html">11 - Encrypt confidential provenance metadata</a><a href="standards-mapping.html">12 - Map ODRL, VC and DID without importing authority</a><a href="recovery-quorum.html">13 - Require a 2-of-3 recovery quorum</a><h3>Learning</h3><a href="../index.html">Tutorial home</a><a href="../core/">Core curriculum</a><a href="../../recipes/">Developer recipes</a></nav><main><div class="eyebrow">Code tutorial 11 - tested</div><h1>Encrypt confidential provenance metadata</h1><p class="lede">Record private lineage metadata, reveal it with the correct key and prove a wrong key fails closed.</p><div class="callout"><strong>Verified against:</strong> ENTITY main commit <code>5be325437a63c2efaee0dc3caaae9ab0cd0773d9</code>. Disposable tutorial state only.</div><h2>Watch the tutorial</h2><video controls preload="metadata" style="width:100%;max-width:960px"><source src="videos/tutorial-11-confidential-provenance.webm" type="video/webm">Your browser does not support embedded WebM video.</video><p>This VP8 WebM terminal replay is generated from the exact published source and recorded execution shown below.</p><h2>Run it yourself</h2><pre>$env:ENTITY_ROOT="C:\path	o\ENTITY"
+python examples/confidential_provenance.py</pre><h2>Exact source</h2><pre>from pathlib import Path
+import importlib.util, hashlib, os, shutil
+ROOT=Path(os.environ.get(&quot;ENTITY_ROOT&quot;,Path.cwd())).resolve()
+STATE=ROOT/&quot;.tutorial-test-state&quot;/&quot;confidential-provenance&quot;
+if STATE.exists(): shutil.rmtree(STATE)
+def load_source(path,name):
+    spec=importlib.util.spec_from_file_location(name,ROOT/path); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+identity_mod=load_source(&quot;src/01_Core_Runtime/identity/canonical_identity.py&quot;,&quot;entity_identity&quot;)
+privacy=load_source(&quot;src/35_Global_Infrastructure/privacy_provenance.py&quot;,&quot;entity_privacy&quot;)
+identity=identity_mod.EntityIdentityVault(STATE); owner=identity.create(&quot;Provenance Owner&quot;,&quot;organization&quot;)
+ledger=privacy.ConfidentialProvenanceLedger(STATE,identity)
+key=hashlib.sha256(b&quot;tutorial-confidential-key&quot;).digest()
+edge=ledger.add_edge(owner[&quot;entity_id&quot;],&quot;dataset:A&quot;,&quot;model:B&quot;,&quot;DERIVED_FROM&quot;,hashlib.sha256(b&quot;evidence&quot;).hexdigest(),metadata={&quot;private_detail&quot;:&quot;sensitive lineage&quot;},encryption_key=key)
+revealed=ledger.reveal_metadata(edge[&quot;edge_id&quot;],key)
+assert revealed[&quot;commitment_valid&quot;] and revealed[&quot;metadata&quot;][&quot;private_detail&quot;]==&quot;sensitive lineage&quot;
+wrong=&quot;NOT_BLOCKED&quot;
+try: ledger.reveal_metadata(edge[&quot;edge_id&quot;],hashlib.sha256(b&quot;wrong-key&quot;).digest())
+except Exception: wrong=&quot;BLOCKED&quot;
+assert wrong==&quot;BLOCKED&quot;
+print(&quot;CONFIDENTIAL_EDGE=PASS&quot;); print(&quot;COMMITMENT_VERIFY=PASS&quot;); print(&quot;WRONG_KEY_REVEAL=BLOCKED&quot;)
+print(&quot;CLAIM_BOUNDARY=encrypted metadata commitment is provenance evidence, not universal truth&quot;)
+</pre><h2>Recorded output</h2><pre>CONFIDENTIAL_EDGE=PASS
+COMMITMENT_VERIFY=PASS
+WRONG_KEY_REVEAL=BLOCKED
+CLAIM_BOUNDARY=encrypted metadata commitment is provenance evidence, not universal truth
+</pre><div class="callout"><strong>Claim boundary:</strong> The recorded result proves this tutorial operation executed against the pinned source. It does not establish external truth, ownership, production certification or third-party adoption.</div><div class="actions"><a class="button" href="index.html">Code tutorial home</a><a class="button secondary" href="../index.html">Tutorial home</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>

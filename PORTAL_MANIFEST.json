@@ -67,9 +67,9 @@
     "docs/tutorials/core/recovery-portability.html",
     "docs/tutorials/core/standards-adoption.html"
   ],
-  "code_tutorial_path": ["docs/tutorials/code/identity-signing.html","docs/tutorials/code/authority-rights-provenance.html","docs/tutorials/code/portable-bundle-verification.html","docs/tutorials/code/evidence-trust-threshold.html","docs/tutorials/code/btdu-cli.html","docs/tutorials/code/vault-purpose-access.html","docs/tutorials/code/rights-global-passport.html","docs/tutorials/code/offline-partition-conflict.html","docs/tutorials/code/market-orderbook-pending.html"],
+  "code_tutorial_path": ["docs/tutorials/code/identity-signing.html","docs/tutorials/code/authority-rights-provenance.html","docs/tutorials/code/portable-bundle-verification.html","docs/tutorials/code/evidence-trust-threshold.html","docs/tutorials/code/btdu-cli.html","docs/tutorials/code/vault-purpose-access.html","docs/tutorials/code/rights-global-passport.html","docs/tutorials/code/offline-partition-conflict.html","docs/tutorials/code/market-orderbook-pending.html","docs/tutorials/code/retention-legal-hold.html","docs/tutorials/code/confidential-provenance.html","docs/tutorials/code/standards-mapping.html","docs/tutorials/code/recovery-quorum.html"],
   "code_tutorial_execution_record": "docs/tutorials/code/EXECUTION_RECORD_20261001.json",
-  "code_tutorial_model": "Executable source-grounded tutorials with recorded command transcripts and fail-closed negative controls; generated identifiers may vary while documented invariants must hold.",
+  "code_tutorial_model": "Executable source-grounded tutorials with recorded command transcripts, browser-safe terminal replays for tutorials 6-13, and fail-closed negative controls; generated identifiers may vary while documented invariants must hold.",
   "recipe_path": [
     "docs/recipes/source-loader.html",
     "docs/recipes/identity-signing.html",
