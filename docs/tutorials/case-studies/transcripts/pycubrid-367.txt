@@ -1,0 +1,35 @@
+# BTG external fix case study: pycubrid-367
+# repository=cubrid-lab/pycubrid issue=367
+# started=2026-10-01T01:45:48.908712Z
+
+## NOTE · problem
+Invalid negative, NaN and infinite timeout values reached connection setup instead of failing before transport/resource acquisition.
+
+## NOTE · engineering
+A shared validator was added to common connection initialization so sync and async paths reject invalid timeout values before socket acquisition while preserving None, zero and finite positive values.
+
+## NOTE · validation
+Original red regression: 20 failed / 10 passed. After fix: 30/30 focused tests passed. Broad offline validation: 2980 passed, 10 skipped, 11 failures reproduced identically on untouched upstream SHA; coverage 97.67%.
+
+## replay-head @ 2026-10-01T01:46:58.742874Z
+PS> <BTG_WORKSPACE>\TOOLS\PortableGit\cmd\git.exe rev-parse HEAD
+bd9e7121d5e30bfea576e4dbe4a0eb210bb7c6b4
+
+[exit=0]
+
+## replay-focused-tests @ 2026-10-01T01:47:07.905928Z
+PS> .\.venv\Scripts\python.exe -m pytest -q tests\test_timeout_validation.py
+============================= test session starts =============================
+platform win32 -- Python 3.10.11, pytest-9.1.1, pluggy-1.6.0
+benchmark: 5.3.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: <CAMPAIGN_WORKSPACE>
+configfile: pyproject.toml
+plugins: hypothesis-6.168.3, platformdirs-4.12.2, asyncio-1.4.0, benchmark-5.3.0, cov-7.1.0
+asyncio: mode=strict, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 30 items
+
+tests\test_timeout_validation.py ..............................          [100%]
+
+============================= 30 passed in 0.29s ==============================
+
+[exit=0]

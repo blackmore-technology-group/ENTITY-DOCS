@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PyCUBRID #367 - validate timeouts before resource acquisition - ENTITY Case Study</title><meta name="description" content="A real external engineering campaign: reproduce invalid timeout behavior, add a shared sync/async pre-transport validation control, verify the fix, submit upstream PR #576, then preserve the resulting ENTITY lineage."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation..."></header><div id="results"></div><div class="layout"><nav><h3>Case studies</h3><a href="index.html">Case-study home</a><a href="../external-contribution-lineage.html">Lineage tutorial</a><a href="../code/">Code tutorials</a><a href="../index.html">Tutorial home</a></nav><main><div class="eyebrow">Real-world qualification - external engineering</div><h1>PyCUBRID #367 - validate timeouts before resource acquisition</h1><p class="lede">A real external engineering campaign: reproduce invalid timeout behavior, add a shared sync/async pre-transport validation control, verify the fix, submit upstream PR #576, then preserve the resulting ENTITY lineage.</p><div class="callout"><strong>Evidence boundary:</strong> This page is generated from command/output records and sealed campaign evidence. Upstream acceptance, payment and market value are stated only when separately evidenced.</div><div class="flow">ISSUE -> PRE-CODE ENTITY ANCHOR -> RED TEST -> FIX -> GREEN VALIDATION -> UPSTREAM PR -> ENTITY LINEAGE</div><h2>The defect</h2><p>Invalid negative, NaN and infinite timeout values reached connection setup instead of failing before transport/resource acquisition.</p><h2>The engineering change</h2><p>A shared validator was added to common connection initialization so sync and async paths reject invalid timeout values before socket acquisition while preserving None, zero and finite positive values.</p><h2>Validation</h2><p>Original red regression: 20 failed / 10 passed. After fix: 30/30 focused tests passed. Broad offline validation: 2980 passed, 10 skipped, 11 failures reproduced identically on untouched upstream SHA; coverage 97.67%.</p><h2>Recorded terminal replay</h2><p>The command record below is a reproducible replay against the recorded campaign workspace. Original campaign results remain preserved in the sealed evidence package.</p><pre># BTG external fix case study: pycubrid-367
+# repository=cubrid-lab/pycubrid issue=367
+# started=2026-10-01T01:45:48.908712Z
+
+## NOTE · problem
+Invalid negative, NaN and infinite timeout values reached connection setup instead of failing before transport/resource acquisition.
+
+## NOTE · engineering
+A shared validator was added to common connection initialization so sync and async paths reject invalid timeout values before socket acquisition while preserving None, zero and finite positive values.
+
+## NOTE · validation
+Original red regression: 20 failed / 10 passed. After fix: 30/30 focused tests passed. Broad offline validation: 2980 passed, 10 skipped, 11 failures reproduced identically on untouched upstream SHA; coverage 97.67%.
+
+## replay-head @ 2026-10-01T01:46:58.742874Z
+PS&gt; &lt;BTG_WORKSPACE&gt;\TOOLS\PortableGit\cmd\git.exe rev-parse HEAD
+bd9e7121d5e30bfea576e4dbe4a0eb210bb7c6b4
+
+[exit=0]
+
+## replay-focused-tests @ 2026-10-01T01:47:07.905928Z
+PS&gt; .\.venv\Scripts\python.exe -m pytest -q tests\test_timeout_validation.py
+============================= test session starts =============================
+platform win32 -- Python 3.10.11, pytest-9.1.1, pluggy-1.6.0
+benchmark: 5.3.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: &lt;CAMPAIGN_WORKSPACE&gt;
+configfile: pyproject.toml
+plugins: hypothesis-6.168.3, platformdirs-4.12.2, asyncio-1.4.0, benchmark-5.3.0, cov-7.1.0
+asyncio: mode=strict, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 30 items
+
+tests\test_timeout_validation.py ..............................          [100%]
+
+============================= 30 passed in 0.29s ==============================
+
+[exit=0]
+</pre><p><a href="transcripts/pycubrid-367.txt">Open the plain-text command transcript</a></p><h2>Evidence identifiers</h2><table><tr><th>Campaign</th><td><code>pycubrid-367</code></td></tr><tr><th>Repository</th><td><code>cubrid-lab/pycubrid</code></td></tr><tr><th>Issue</th><td>#367</td></tr><tr><th>Launch receipt SHA-256</th><td><code>A2C5D231C4AE1192C39D99980658C2D16913DC6B9E0C95EBE545D96EA693AFFE</code></td></tr><tr><th>Transcript SHA-256</th><td><code>656B3957C496D88DDC009B2E3DD37E7897DE552C64C33DDD665D09A1649EFD15</code></td></tr></table><h2>Sealed supporting artifacts</h2><table><tr><th>Artifact</th><th>SHA-256</th></tr><tr><td>implementation_evidence.json</td><td><code>606470BA19C81690E00C6549A285AE6D12D17BBF248B77965C467ACEC548F83C</code></td></tr><tr><td>pycubrid-367-entity-derived-timeout-control-receipt.json</td><td><code>D42E2F2C2D2B14C57DFF6C2AE9E834D0A23E943D82842625DC0088250638D8C1</code></td></tr><tr><td>pr-576.diff</td><td><code>06F30D19D81518E630D8309AD43FC43FE816CD6B3F2C1C9169860B93157C1E08</code></td></tr></table><div class="actions"><a class="button secondary" href="https://github.com/cubrid-lab/pycubrid/issues/367">Upstream issue</a><a class="button" href="https://github.com/cubrid-lab/pycubrid/pull/576">Upstream pull request</a><a class="button secondary" href="../external-contribution-lineage.html">Lineage method</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>
