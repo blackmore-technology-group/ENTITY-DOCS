@@ -153,6 +153,57 @@
       "video_fps": 24.0,
       "video_frames": 258,
       "video_sha256": "085067B2F4138E70B7EDAF5E622046626C8C3C1373670908140B231B1967F645"
+    },
+    {
+      "release": "v3.4.3",
+      "result": "v343_portable_export_scope_result.json",
+      "result_sha256": "6CFD4E7ECF4B41F489B7771F97056E2F74455423033BC6A0D87441B24D913297",
+      "script": "run_v343_portable_export_scope.ps1",
+      "script_sha256": "8C7ECDFACC23CC0D0D98129B7D8075C2B70DA4A41ED2D7A676E978CE90D25A48",
+      "slug": "v343-portable-export-scope",
+      "source_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+      "test": 10,
+      "transcript": "v343_portable_export_scope.txt",
+      "transcript_sha256": "D32156B404F9D9F9E574354B94EA883AC351DD712A91C9629B87FD0FC46ECAB9",
+      "video": "videos/test-10-v343-portable-export-scope.webm",
+      "video_bytes": 653155,
+      "video_fps": 24.0,
+      "video_frames": 258,
+      "video_sha256": "5E721D335D9463DD7E791448A054D26C979E6F07DB1140FD5B51A8DD01688BC0"
+    },
+    {
+      "release": "v3.4.3",
+      "result": "v343_public_causal_niki_result.json",
+      "result_sha256": "0B03D8B5DC9E6F5CD8112751923C8D8B5F7333A1B3646416AC091003579B384F",
+      "script": "run_v343_public_causal_niki.ps1",
+      "script_sha256": "C5F49029EEBA9AC22CC64B53FA2FAD1BF6CB25EB61262A7D2B50C226449B0494",
+      "slug": "v343-public-causal-niki",
+      "source_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+      "test": 11,
+      "transcript": "v343_public_causal_niki.txt",
+      "transcript_sha256": "C73556A3B567EA952E134FF84FEFE865AFE88DC76DB47FD439F66C39529B202B",
+      "video": "videos/test-11-v343-public-causal-niki.webm",
+      "video_bytes": 703337,
+      "video_fps": 24.0,
+      "video_frames": 258,
+      "video_sha256": "1FFAD886132BEC294670427AB4C64A260B91F0E98B0027A9008019A752D7D6DC"
+    },
+    {
+      "release": "v3.4.3",
+      "result": "v343_adoption_global_origin_result.json",
+      "result_sha256": "25F6F64864AD94508F9F7887DBE6BCF6C58DC2D55A73CB5D18A8393625EBC9CB",
+      "script": "run_v343_adoption_global_origin.ps1",
+      "script_sha256": "9D2E6B8743F6DED8EB9F17B0376A23367D61CD4ACA250A15F4EDC3E0D76E972E",
+      "slug": "v343-adoption-global-origin",
+      "source_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+      "test": 12,
+      "transcript": "v343_adoption_global_origin.txt",
+      "transcript_sha256": "831597778D44D39E593A1D872B7159061BD401D17833A2E79CCD7E7F2C1FF0A7",
+      "video": "videos/test-12-v343-adoption-global-origin.webm",
+      "video_bytes": 784387,
+      "video_fps": 24.0,
+      "video_frames": 258,
+      "video_sha256": "CD07A0E4B5435550E38FDF3BBD2E660CE2A3DCABBD386C65248497C5048F7DAB"
     }
   ]
 }

@@ -1,0 +1,7 @@
+PIN_COMMIT=528b70aabd05b1e930b77e4933f157731e47274f
+PIN_TAG=v3.4.3
+PYTHON=Python 3.11.9
+COMMAND=pytest -q tests/test_portable_export_scope.py
+.                                                                        [100%]
+1 passed in 1.81s
+PYTEST_EXIT=0
