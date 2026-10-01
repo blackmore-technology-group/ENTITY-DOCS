@@ -1,0 +1,23 @@
+{
+  "schema": "entity-recorded-test-result-v1",
+  "test": "memnox-cold-recovery",
+  "recorded_date": "2026-10-01",
+  "status": "PASS",
+  "repository": "Memnox/memnox",
+  "qualified_commit": "9c788e73b53f7e1f6ed1662d77f91debecdcc18f",
+  "sealed_adam_root": "cb2cb81120d0270aeb6704cb9fbf61d1838367eb283f98522c2d6c7a7cabb8d3",
+  "sealed_log_bytes": 541037384,
+  "tracked_git_blobs_expected": 865,
+  "tracked_git_blobs_verified": 865,
+  "missing_paths": 0,
+  "extra_paths": 0,
+  "git_blob_mismatches": 0,
+  "git_invoked": false,
+  "github_invoked": false,
+  "network_required": false,
+  "source_clone_read": false,
+  "recovered_archive_sha256": "40FFD74F238A77A935CDBB02035EC35A4EA6BB57CF59771919A60459288924EE",
+  "recovered_manifest_sha256": "AE2088197857896D0369881FB98B432C840B75CDE0A5F41A5CCD979B8A6A7CC3",
+  "recovered_acceptance_receipt_sha256": "EDBD4596E589F612E17CB6B72ED65E25B5D4F854A65D3434E12958E3391800C0",
+  "claim_boundary": "PASS applies to this qualified 865-blob corpus and sealed BTDU recovery path; it is not a universal recovery guarantee."
+}

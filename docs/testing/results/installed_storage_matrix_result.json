@@ -1,0 +1,458 @@
+{
+  "checks": [
+    {
+      "detail": {
+        "bytes": 0,
+        "chunks": 1,
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "name": "exact_roundtrip_0",
+      "pass": true
+    },
+    {
+      "detail": {
+        "bytes": 2100,
+        "chunks": 1,
+        "hash": "85d704e7b67d3737a92cae3e50e4041f9711807f841547c72b396d72750e2115"
+      },
+      "name": "exact_roundtrip_1",
+      "pass": true
+    },
+    {
+      "detail": {
+        "bytes": 5120,
+        "chunks": 2,
+        "hash": "4345361085c730756d843f13849c50a996fe2f1fac3a7ac05fb063bb743a423e"
+      },
+      "name": "exact_roundtrip_2",
+      "pass": true
+    },
+    {
+      "detail": {
+        "bytes": 8192,
+        "chunks": 7,
+        "hash": "51bf19abed92d6a9ac6191aa58dab984a4d0d2421aef539ef7944b716cacd416"
+      },
+      "name": "exact_roundtrip_3",
+      "pass": true
+    },
+    {
+      "detail": {
+        "bytes": 337,
+        "chunks": 1,
+        "hash": "5fa19aa4c8245bb67f7fab07f0fff6216061dc5492203e93dc4422a4140927be"
+      },
+      "name": "exact_roundtrip_4",
+      "pass": true
+    },
+    {
+      "detail": {
+        "root": "f6c4eae6d25c76fca4588a072de59e16737a0db239883ae55f61d22cbe5ad183"
+      },
+      "name": "semantic_roundtrip",
+      "pass": true
+    },
+    {
+      "detail": {
+        "_id": "513c6a2e366dcf9e82be3e48ee6fe38fd7c7bb85a58d7f849fe105bd095a2a70",
+        "_key": "P-204",
+        "_type": "project",
+        "budget": 100000,
+        "cost": 105000,
+        "location": "Christina Lake",
+        "status": "active"
+      },
+      "name": "rebond_current_view",
+      "pass": true
+    },
+    {
+      "detail": {
+        "_id": "513c6a2e366dcf9e82be3e48ee6fe38fd7c7bb85a58d7f849fe105bd095a2a70",
+        "_key": "P-204",
+        "_type": "project",
+        "budget": 100000,
+        "cost": 90000,
+        "location": "Grand Forks",
+        "status": "active"
+      },
+      "name": "time_travel_view",
+      "pass": true
+    },
+    {
+      "detail": [
+        {
+          "_id": "513c6a2e366dcf9e82be3e48ee6fe38fd7c7bb85a58d7f849fe105bd095a2a70",
+          "_key": "P-204",
+          "_type": "project",
+          "budget": 100000,
+          "cost": 105000,
+          "location": "Christina Lake",
+          "status": "active"
+        },
+        {
+          "_id": "738cd0996f84c8804001cf883199533ec6bcb608dc0e79f5dc8cb2a728af2bfc",
+          "_key": "P-205",
+          "_type": "project",
+          "budget": 100000,
+          "cost": 120000,
+          "location": "Boundary",
+          "status": "active"
+        }
+      ],
+      "name": "direct_atomic_compute",
+      "pass": true
+    },
+    {
+      "detail": {
+        "csv": 267,
+        "json": 196,
+        "markdown": 109
+      },
+      "name": "multi_form_construction",
+      "pass": true
+    },
+    {
+      "detail": {
+        "current_version": 2,
+        "stale_version": 1
+      },
+      "name": "mvcc_conflict_rejection",
+      "pass": true
+    },
+    {
+      "detail": [
+        {
+          "accepted": true,
+          "estimated_compound_bytes": 648,
+          "estimated_gain_bytes": 1322,
+          "estimated_raw_bytes": 1970,
+          "fields": [
+            "budget",
+            "cost",
+            "location",
+            "project_id",
+            "status"
+          ],
+          "name": "PROJECT_PATTERN_1_budget_cost_location_project_id_status",
+          "reason": "accepted: repeated structure reduces estimated representation cost",
+          "support": 30
+        }
+      ],
+      "name": "learned_compound_promotion",
+      "pass": true
+    },
+    {
+      "detail": {
+        "atoms": 34,
+        "bad_compounds": [],
+        "bonds": 10,
+        "checkpoint_root": "0000000000000000000000000000000000000000000000000000000000000000",
+        "checkpoint_sequence": 0,
+        "compounds": 9,
+        "dangling": [],
+        "journal_bytes": 32979,
+        "pass": true,
+        "recovered_torn_bytes": 0,
+        "root_hash": "deb896d29ad0d1eb055009d5ed343998ea851eff36cb2e4a9d82c3ef33ad802d",
+        "sequence": 10
+      },
+      "name": "universe_integrity",
+      "pass": true
+    },
+    {
+      "detail": {
+        "atoms": 34,
+        "bad_compounds": [],
+        "bonds": 10,
+        "checkpoint_root": "0000000000000000000000000000000000000000000000000000000000000000",
+        "checkpoint_sequence": 0,
+        "compounds": 9,
+        "dangling": [],
+        "journal_bytes": 32979,
+        "pass": true,
+        "recovered_torn_bytes": 0,
+        "root_hash": "deb896d29ad0d1eb055009d5ed343998ea851eff36cb2e4a9d82c3ef33ad802d",
+        "sequence": 10
+      },
+      "name": "restart_persistence",
+      "pass": true
+    },
+    {
+      "detail": {
+        "atoms": 34,
+        "bad_compounds": [],
+        "bonds": 10,
+        "checkpoint_root": "0000000000000000000000000000000000000000000000000000000000000000",
+        "checkpoint_sequence": 0,
+        "compounds": 9,
+        "dangling": [],
+        "journal_bytes": 32979,
+        "pass": true,
+        "recovered_torn_bytes": 13,
+        "root_hash": "deb896d29ad0d1eb055009d5ed343998ea851eff36cb2e4a9d82c3ef33ad802d",
+        "sequence": 10
+      },
+      "name": "torn_tail_recovery",
+      "pass": true
+    },
+    {
+      "detail": {
+        "log_bytes": 32979
+      },
+      "name": "tamper_rejection",
+      "pass": true
+    },
+    {
+      "detail": {
+        "accepted_compounds": 1,
+        "adam_authoritative_compacted_tree_bytes": 86313,
+        "adam_authoritative_journal_bytes": 3341498,
+        "adam_compact_state_bytes": 3301774,
+        "adam_native_factored_state_bytes": 85124,
+        "adam_native_packed_state_bytes": 109841,
+        "atoms": 1637,
+        "authoritative_compacted_vs_sqlite_reduction_percent": 48.6036347179878,
+        "bonds": 9000,
+        "checkpoint_restart_pass": true,
+        "compact_vs_sqlite_reduction_percent": -1866.0906535823171,
+        "compounds": 1,
+        "ingest_seconds": 0.7125340000493452,
+        "integrity": true,
+        "journal_vs_sqlite_reduction_percent": -1889.744902820122,
+        "logical_json_bytes": 235900,
+        "mode": "repetitive",
+        "native_factored_vs_sqlite_reduction_percent": 49.3116425304878,
+        "native_packed_vs_sqlite_reduction_percent": 34.59353563262195,
+        "records": 1500,
+        "sqlite_current_bytes": 167936,
+        "views_equal": true
+      },
+      "name": "workload_repetitive_correctness",
+      "pass": true
+    },
+    {
+      "detail": {
+        "accepted_compounds": 1,
+        "adam_authoritative_compacted_tree_bytes": 122273,
+        "adam_authoritative_journal_bytes": 3439091,
+        "adam_compact_state_bytes": 3385277,
+        "adam_native_factored_state_bytes": 121084,
+        "adam_native_packed_state_bytes": 145386,
+        "atoms": 2342,
+        "authoritative_compacted_vs_sqlite_reduction_percent": 6.713104248046875,
+        "bonds": 9000,
+        "checkpoint_restart_pass": true,
+        "compact_vs_sqlite_reduction_percent": -2482.7613830566406,
+        "compounds": 1,
+        "ingest_seconds": 0.7189261999446899,
+        "integrity": true,
+        "journal_vs_sqlite_reduction_percent": -2523.8182067871094,
+        "logical_json_bytes": 199006,
+        "mode": "mixed",
+        "native_factored_vs_sqlite_reduction_percent": 7.6202392578125,
+        "native_packed_vs_sqlite_reduction_percent": -10.92071533203125,
+        "records": 1500,
+        "sqlite_current_bytes": 131072,
+        "views_equal": true
+      },
+      "name": "workload_mixed_correctness",
+      "pass": true
+    },
+    {
+      "detail": {
+        "accepted_compounds": 1,
+        "adam_authoritative_compacted_tree_bytes": 447784,
+        "adam_authoritative_journal_bytes": 4296387,
+        "adam_compact_state_bytes": 4136971,
+        "adam_native_factored_state_bytes": 446595,
+        "adam_native_packed_state_bytes": 474378,
+        "atoms": 7622,
+        "authoritative_compacted_vs_sqlite_reduction_percent": -76.32623487903226,
+        "bonds": 9000,
+        "checkpoint_restart_pass": true,
+        "compact_vs_sqlite_reduction_percent": -1529.036589591734,
+        "compounds": 1,
+        "ingest_seconds": 0.9213268999010324,
+        "integrity": true,
+        "journal_vs_sqlite_reduction_percent": -1591.8106571320563,
+        "logical_json_bytes": 319400,
+        "mode": "unique",
+        "native_factored_vs_sqlite_reduction_percent": -75.85803616431451,
+        "native_packed_vs_sqlite_reduction_percent": -86.79829259072581,
+        "records": 1500,
+        "sqlite_current_bytes": 253952,
+        "views_equal": true
+      },
+      "name": "workload_unique_correctness",
+      "pass": true
+    },
+    {
+      "detail": {
+        "logical": 262144,
+        "physical": 308739
+      },
+      "name": "high_entropy_exactness",
+      "pass": true
+    }
+  ],
+  "checks_passed": 20,
+  "checks_total": 20,
+  "claim_boundary": "This is a runnable single-node development prototype proving exact atomization, recursive semantic compounds, event-sourced rebonding, history, direct graph computation, multi-form construction, deterministic compound promotion, restart recovery and tamper detection. It does not prove universal semantic understanding, production performance, multi-node consensus, universal storage reduction or replacement of all databases.",
+  "completed_utc": "2026-10-01T02:55:43Z",
+  "core_verification": {
+    "atoms": 34,
+    "bad_compounds": [],
+    "bonds": 10,
+    "checkpoint_root": "0000000000000000000000000000000000000000000000000000000000000000",
+    "checkpoint_sequence": 0,
+    "compounds": 9,
+    "dangling": [],
+    "journal_bytes": 32979,
+    "pass": true,
+    "recovered_torn_bytes": 13,
+    "root_hash": "deb896d29ad0d1eb055009d5ed343998ea851eff36cb2e4a9d82c3ef33ad802d",
+    "sequence": 10
+  },
+  "duration_seconds": 16.96352243423462,
+  "entity_view_latency_us": {
+    "mean": 2.9265,
+    "median": 2.8,
+    "p95": 2.9
+  },
+  "format": "ADAM-v0.41-full-development-audit",
+  "gaps": [
+    {
+      "finding": "The prototype can atomize exact bytes, recursive JSON and typed entity facts, but images, audio, arbitrary programs and ambiguous natural language still require domain codecs or learned perception models.",
+      "gap": "Universal semantic atomization is not solved",
+      "severity": "CRITICAL"
+    },
+    {
+      "finding": "The event log is single-authority and single-process. v0.39 Raft/BFT/sharding code was not fully available in this environment, so v0.40 does not yet prove multi-node safety, failover or sovereignty placement.",
+      "gap": "No distributed consensus integration",
+      "severity": "CRITICAL"
+    },
+    {
+      "finding": "The brain discovers repeated schemas and validates promotion, but does not yet learn arbitrary bonding laws or emergent compounds with a neural or program-synthesis model.",
+      "gap": "Learned chemistry is heuristic",
+      "severity": "HIGH"
+    },
+    {
+      "finding": "The authoritative event journal deliberately retains signed history. Compact current state may be smaller, while the full journal can be larger than SQLite; the audit reports both rather than hiding this cost.",
+      "gap": "History and signatures can dominate storage",
+      "severity": "HIGH"
+    },
+    {
+      "finding": "Atom- and bond-level access control is not implemented. Combining individually visible atoms can reveal a restricted compound, so authorization must govern closure and inference, not only direct reads.",
+      "gap": "Inference security",
+      "severity": "HIGH"
+    },
+    {
+      "finding": "Rebonding and MVCC exist, but a formal typed reaction language with domain invariants, reversibility and conservation proofs remains to be built.",
+      "gap": "Reaction and conservation-law language incomplete",
+      "severity": "HIGH"
+    },
+    {
+      "finding": "Direct graph computation is demonstrated through Python predicates and an over-budget query, not a complete declarative optimizer or distributed execution engine.",
+      "gap": "Query language is minimal",
+      "severity": "MEDIUM"
+    },
+    {
+      "finding": "The prototype persists an unencrypted Ed25519 private key. Production requires HSM/KMS integration, key rotation and multi-authority governance.",
+      "gap": "Private-key handling is development-only",
+      "severity": "MEDIUM"
+    },
+    {
+      "finding": "Content addressing and historical authority complicate deletion. Reachability, retention, redaction and cryptographic erasure policies are not implemented.",
+      "gap": "Garbage collection and legal deletion",
+      "severity": "MEDIUM"
+    },
+    {
+      "finding": "Python and per-transaction fsync prioritize auditability. Performance requires packed indexes, batching, native code, incremental dataflow and workload-specific materialization.",
+      "gap": "No production performance claim",
+      "severity": "MEDIUM"
+    }
+  ],
+  "high_entropy": {
+    "expansion_percent": 17.774581909179688,
+    "logical_bytes": 262144,
+    "physical_tree_bytes": 308739
+  },
+  "overall_pass": true,
+  "records_per_workload": 1500,
+  "started_utc": "2026-10-01T02:55:26Z",
+  "version": "0.40.0.dev1",
+  "workloads": [
+    {
+      "accepted_compounds": 1,
+      "adam_authoritative_compacted_tree_bytes": 86313,
+      "adam_authoritative_journal_bytes": 3341498,
+      "adam_compact_state_bytes": 3301774,
+      "adam_native_factored_state_bytes": 85124,
+      "adam_native_packed_state_bytes": 109841,
+      "atoms": 1637,
+      "authoritative_compacted_vs_sqlite_reduction_percent": 48.6036347179878,
+      "bonds": 9000,
+      "checkpoint_restart_pass": true,
+      "compact_vs_sqlite_reduction_percent": -1866.0906535823171,
+      "compounds": 1,
+      "ingest_seconds": 0.7125340000493452,
+      "integrity": true,
+      "journal_vs_sqlite_reduction_percent": -1889.744902820122,
+      "logical_json_bytes": 235900,
+      "mode": "repetitive",
+      "native_factored_vs_sqlite_reduction_percent": 49.3116425304878,
+      "native_packed_vs_sqlite_reduction_percent": 34.59353563262195,
+      "records": 1500,
+      "sqlite_current_bytes": 167936,
+      "views_equal": true
+    },
+    {
+      "accepted_compounds": 1,
+      "adam_authoritative_compacted_tree_bytes": 122273,
+      "adam_authoritative_journal_bytes": 3439091,
+      "adam_compact_state_bytes": 3385277,
+      "adam_native_factored_state_bytes": 121084,
+      "adam_native_packed_state_bytes": 145386,
+      "atoms": 2342,
+      "authoritative_compacted_vs_sqlite_reduction_percent": 6.713104248046875,
+      "bonds": 9000,
+      "checkpoint_restart_pass": true,
+      "compact_vs_sqlite_reduction_percent": -2482.7613830566406,
+      "compounds": 1,
+      "ingest_seconds": 0.7189261999446899,
+      "integrity": true,
+      "journal_vs_sqlite_reduction_percent": -2523.8182067871094,
+      "logical_json_bytes": 199006,
+      "mode": "mixed",
+      "native_factored_vs_sqlite_reduction_percent": 7.6202392578125,
+      "native_packed_vs_sqlite_reduction_percent": -10.92071533203125,
+      "records": 1500,
+      "sqlite_current_bytes": 131072,
+      "views_equal": true
+    },
+    {
+      "accepted_compounds": 1,
+      "adam_authoritative_compacted_tree_bytes": 447784,
+      "adam_authoritative_journal_bytes": 4296387,
+      "adam_compact_state_bytes": 4136971,
+      "adam_native_factored_state_bytes": 446595,
+      "adam_native_packed_state_bytes": 474378,
+      "atoms": 7622,
+      "authoritative_compacted_vs_sqlite_reduction_percent": -76.32623487903226,
+      "bonds": 9000,
+      "checkpoint_restart_pass": true,
+      "compact_vs_sqlite_reduction_percent": -1529.036589591734,
+      "compounds": 1,
+      "ingest_seconds": 0.9213268999010324,
+      "integrity": true,
+      "journal_vs_sqlite_reduction_percent": -1591.8106571320563,
+      "logical_json_bytes": 319400,
+      "mode": "unique",
+      "native_factored_vs_sqlite_reduction_percent": -75.85803616431451,
+      "native_packed_vs_sqlite_reduction_percent": -86.79829259072581,
+      "records": 1500,
+      "sqlite_current_bytes": 253952,
+      "views_equal": true
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "generated": "2026-10-01",
+  "schema": "entity-testing-video-record-v1",
+  "tests": [
+    {
+      "bytes": 2318091,
+      "codec": "VP80",
+      "fps": 24.0,
+      "frames": 536,
+      "sha256": "87C228CFD932748FA53297DC07F547CA0D6B4E5487529E79B73E9534A96EB028",
+      "slug": "level3-storage",
+      "test": 1,
+      "video": "videos/test-01-level3-storage.webm"
+    },
+    {
+      "bytes": 1416698,
+      "codec": "VP80",
+      "fps": 24.0,
+      "frames": 412,
+      "sha256": "CBDE3F2F2DE4574691C5165D8B3983D5CF605A5689503CABBD8B95B35B47DE23",
+      "slug": "installed-storage-matrix",
+      "test": 2,
+      "video": "videos/test-02-installed-storage-matrix.webm"
+    },
+    {
+      "bytes": 3260868,
+      "codec": "VP80",
+      "fps": 24.0,
+      "frames": 682,
+      "sha256": "687D7E3280AF604E825C14F7D6EE1EF07556592401FC33D288A2EB98B6AC736A",
+      "slug": "memnox-cold-recovery",
+      "test": 3,
+      "video": "videos/test-03-memnox-cold-recovery.webm"
+    }
+  ]
+}

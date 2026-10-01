@@ -97,11 +97,11 @@
   <div class="eyebrow">Measured BTDU engineering results</div>
   <h2>Compact representation without giving up exact recovery.</h2>
   <div class="grid two">
-    <article class="card"><h3>97% lower storage in the tested benchmark</h3><p>In the controlled BTDU benchmark from the v3.4.x engineering campaign, the tested representation required approximately <strong>97% less storage</strong> than the comparison baseline while preserving the information required by that workload.</p></article>
-    <article class="card"><h3>100% exact recovery in the qualified destruction test</h3><p>The qualified Memnox cold-recovery campaign reconstructed the accepted source archive, manifest and acceptance proof from sealed BTDU state without the source clone, Git, GitHub or network. All <strong>865 of 865</strong> tracked Git blobs matched with zero missing, extra or mismatched paths.</p></article>
+    <article class="card"><h3>97.14% lower in the reproduced Level-3 benchmark</h3><p>The fresh 2026-10-01 run generated <strong>250 million bonds</strong> for 50 million entities. The compact bond-plus-index representation was <strong>4.4 GB</strong> versus <strong>153.6 GB</strong> for the tested 768-dimension float32 vector baseline: <strong>97.1354167% lower</strong>. All 1,000 sampled lookups were correct and the regenerated artifact hashes matched the historical qualification.</p></article>
+    <article class="card"><h3>100% exact recovery in the qualified destruction test</h3><p>The fresh 2026-10-01 Memnox rerun reconstructed the accepted source archive, manifest and acceptance receipt from sealed ADAM/BTDU state. All <strong>865 of 865</strong> tracked Git blobs matched with zero missing, extra or mismatched paths; Git, GitHub, network and the source clone were not used.</p></article>
   </div>
   <div class="flow">INGEST → GOVERNED BTDU STATE → ORIGINAL WORKSPACE REMOVED FROM THE RECOVERY PATH → COLD RECOVERY → EXACT HASH / BLOB VERIFICATION</div>
-  <p class="boundary">Claim boundary: 97% is the measured result of the controlled benchmark, not a universal compression guarantee. 100% recovery describes the qualified corpus and evidence path, not every conceivable damaged system.</p>
+  <p class="boundary">Claim boundary: 97.1354167% is the measured result of the specified Level-3 comparison against a 768-dimension float32 vector baseline, not a universal compression guarantee. 100% recovery describes the qualified 865-blob corpus and evidence path, not every conceivable damaged system.</p><div class="actions"><a class="button" href="../testing/">Open recorded tests</a></div>
 </section>
 
 <section class="section">
