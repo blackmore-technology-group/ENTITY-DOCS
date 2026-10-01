@@ -1,0 +1,88 @@
+{
+  "claim_boundary": "Controlled multi-market scenario proof only. It demonstrates one DCO participating across four venue/currency configurations with repeated primary, secondary, derivative, RFQ, contributor distribution, settlement and VALUE-state records. It does not prove real-world demand, FX conversion, participant domicile, legal enforceability, fair market value, liquidity, or actual cash revenue.",
+  "contributor_distributions_per_currency": {
+    "CAD": {
+      "contributor_a": 2750,
+      "contributor_b": 1450,
+      "originator": 8800
+    },
+    "EUR": {
+      "contributor_a": 1860,
+      "contributor_b": 972,
+      "originator": 6048
+    },
+    "JPY": {
+      "contributor_a": 78000,
+      "contributor_b": 40800,
+      "originator": 253200
+    },
+    "USD": {
+      "contributor_a": 2600,
+      "contributor_b": 1360,
+      "originator": 8440
+    }
+  },
+  "cross_currency_total_asserted": false,
+  "currencies": [
+    "CAD",
+    "USD",
+    "EUR",
+    "JPY"
+  ],
+  "date": "2026-10-01",
+  "dco_id": "obj3-6250a40a2e2a82a2e59a6d902bc0ea28087dfdac",
+  "files": {
+    "examples/global_market_scenarios_20261001.py": {
+      "bytes": 16008,
+      "sha256": "C566094872FF919BFE6B73FD8475A8B49887E5CF879A9D17399626B2133F5D66"
+    },
+    "global-market-scenarios-20261001.html": {
+      "bytes": 5530,
+      "sha256": "A862576123F3B14FEE03B369315549FEFC0AA5527977FAF92C5A212E5F3C839B"
+    },
+    "results/global_market_scenarios_20261001.json": {
+      "bytes": 14916,
+      "sha256": "F989564A388D5FD14874C9D8A309F37F968370900AB1FDC2F666ED46FDC12C9F"
+    },
+    "results/global_market_scenarios_video_metadata_20261001.json": {
+      "bytes": 863,
+      "sha256": "F7F3ED29DC9BAAAA4F7B9328B0CD5D33F5558F028D67F85055DE1C84EDCFBED1"
+    },
+    "transcripts/global_market_scenarios_20261001.txt": {
+      "bytes": 6641,
+      "sha256": "B8FDE54115AA62949E4D7DD76D6665E653023BEF496C955E1BCC165B9766CA5C"
+    },
+    "videos/test-20-global-market-scenarios.webm": {
+      "bytes": 932130,
+      "sha256": "2A8F3BC2405D6CA9B0FD5851F012ABC05E499A762AF5A1711CAFEF5CC356F27C"
+    }
+  },
+  "final_multicurrency_position": {
+    "CAD": {
+      "ACCRUED": 1000,
+      "SETTLED": 3310
+    },
+    "EUR": {
+      "ACCRUED": 1100,
+      "SETTLED": 2623
+    },
+    "JPY": {
+      "ACCRUED": 12000,
+      "SETTLED": 74440
+    },
+    "USD": {
+      "ACCRUED": 1200,
+      "SETTLED": 3768
+    }
+  },
+  "global_market_mechanics_proven_in_controlled_scenarios": true,
+  "market_count": 4,
+  "pass": true,
+  "real_cash_revenue_proven": false,
+  "real_market_demand_proven": false,
+  "rfq_eopp_known_gap_issue": "https://github.com/blackmore-technology-group/ENTITY/issues/117",
+  "runtime_release": "v3.4.3",
+  "scenario_count": 13,
+  "schema": "entity-docs-test20-global-market-suite-v1",
+  "test": 20
+}
