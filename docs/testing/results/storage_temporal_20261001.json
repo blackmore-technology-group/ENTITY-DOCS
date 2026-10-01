@@ -1,0 +1,37 @@
+{
+  "actual_historical_view_after_cycles": {
+    "_id": "0a01152898bb82aed9ffedfbded2f2f81855d14a19fa802ef56e86e3eac25112",
+    "_key": "P-1",
+    "_type": "project",
+    "cost": 100,
+    "note": "initial"
+  },
+  "claim_boundary": "Reproduces a v0.41 temporal-history limitation when a deterministic bond identity is revoked and later reused; current-state integrity can still pass while an earlier interval is no longer reconstructable.",
+  "differences": {
+    "status": {
+      "actual": null,
+      "expected": "active"
+    }
+  },
+  "expected_initial_view": {
+    "_id": "0a01152898bb82aed9ffedfbded2f2f81855d14a19fa802ef56e86e3eac25112",
+    "_key": "P-1",
+    "_type": "project",
+    "cost": 100,
+    "note": "initial",
+    "status": "active"
+  },
+  "gap_reproduced": true,
+  "initial_seq": 1,
+  "integrity": true,
+  "latest_view": {
+    "_id": "0a01152898bb82aed9ffedfbded2f2f81855d14a19fa802ef56e86e3eac25112",
+    "_key": "P-1",
+    "_type": "project",
+    "cost": 110,
+    "note": "update-0",
+    "status": "approved"
+  },
+  "scenario": "temporal-cycle-regression",
+  "updates": 10
+}

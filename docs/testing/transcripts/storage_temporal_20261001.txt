@@ -1,0 +1,6 @@
+TEMPORAL_CYCLE_GAP_REPRODUCED=True
+INTEGRITY_PASS=True
+EXPECTED_INITIAL={"_id": "0a01152898bb82aed9ffedfbded2f2f81855d14a19fa802ef56e86e3eac25112", "_key": "P-1", "_type": "project", "cost": 100, "note": "initial", "status": "active"}
+ACTUAL_AT_INITIAL_SEQ={"_id": "0a01152898bb82aed9ffedfbded2f2f81855d14a19fa802ef56e86e3eac25112", "_key": "P-1", "_type": "project", "cost": 100, "note": "initial"}
+DIFFERENCES={"status": {"actual": null, "expected": "active"}}
+CLAIM_BOUNDARY=known v0.41 interval-history limitation under repeated bond identity; not a current-state integrity failure
