@@ -1,5 +1,5 @@
 {
-  "commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+  "commit": "33eb9bd53870126a84c9c5529183faa5d0289a45",
   "duration_seconds": 143.15,
   "exit_code": 0,
   "modules": [
@@ -19,5 +19,10 @@
   "release": "v3.4.3",
   "schema": "entity-test-result-v1",
   "status": "PASS",
-  "test": 6
+  "test": 6,
+  "base_release": "v3.4.3",
+  "base_release_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+  "remediation_pr": 115,
+  "transcript": "transcripts/v343_windows_lifecycle_remediation_security_fail_closed.txt",
+  "transcript_sha256": "717DEAE6F6B788F66150BA89A3B1925B861E2CB842FBC204D7B2FF507FB821E8"
 }

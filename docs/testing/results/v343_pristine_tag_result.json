@@ -1,0 +1,30 @@
+{
+  "schema": "entity-test-result-v1",
+  "test": 14,
+  "status": "QUALIFIED_WITH_ENVIRONMENT_BOUNDARY",
+  "release": "v3.4.3",
+  "commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+  "pristine_python310": {
+    "passed": 275,
+    "skipped": 5,
+    "subtests_passed": 27,
+    "exit_code": 0,
+    "source_clean_after": true
+  },
+  "pristine_security_subset_python310": {
+    "passed": 95,
+    "exit_code": 0,
+    "source_clean_after": true
+  },
+  "python311_dependency_complete_reproduction": {
+    "passed": 249,
+    "failed": 31,
+    "subtests_passed": 27,
+    "exit_code": 1,
+    "source_clean_after": true,
+    "failure_mechanism": "Windows SQLite handles remained open during TemporaryDirectory cleanup (WinError 32)"
+  },
+  "remediation_pr": 115,
+  "remediation_merge_commit": "33eb9bd53870126a84c9c5529183faa5d0289a45",
+  "claim_boundary": "The immutable v3.4.3 tag is preserved. The 281/180 Python 3.11 qualification applies to the post-tag Windows SQLite lifecycle remediation merged by PR #115, not to the pristine tag alone."
+}

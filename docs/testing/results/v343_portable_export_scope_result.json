@@ -1,5 +1,5 @@
 {
-  "commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+  "commit": "33eb9bd53870126a84c9c5529183faa5d0289a45",
   "duration_seconds": 1.81,
   "exit_code": 0,
   "passed": 1,
@@ -7,5 +7,11 @@
   "release": "v3.4.3",
   "schema": "entity-test-result-v1",
   "status": "PASS",
-  "test": 10
+  "test": 10,
+  "source_commit": "33eb9bd53870126a84c9c5529183faa5d0289a45",
+  "base_release": "v3.4.3",
+  "base_release_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+  "remediation_pr": 115,
+  "transcript": "transcripts/v343_main_portable_export_scope.txt",
+  "transcript_sha256": "4BA073C318D9ADE99887518BDB092AC6D7AB623DBB1B45EE6BEBC96E1A0ACD9C"
 }

@@ -1,5 +1,5 @@
 {
-  "commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+  "commit": "33eb9bd53870126a84c9c5529183faa5d0289a45",
   "duration_seconds": 86.0,
   "exit_code": 0,
   "passed": 76,
@@ -7,5 +7,11 @@
   "release": "v3.4.3",
   "schema": "entity-test-result-v1",
   "status": "PASS",
-  "test": 5
+  "test": 5,
+  "source_commit": "33eb9bd53870126a84c9c5529183faa5d0289a45",
+  "base_release": "v3.4.3",
+  "base_release_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+  "remediation_pr": 115,
+  "transcript": "transcripts/v343_main_issue28.txt",
+  "transcript_sha256": "4EB93307036468B9429CF11F703A1FF2CD7B623EB901CC8514B3C37A6EB7444B"
 }
