@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-01T12:56:37.353085Z",
+  "generated_at_utc": "2026-10-01T13:29:09.572106Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -14,9 +14,23 @@
     "recent_external_prs": 14,
     "entity_evidence_records": 2,
     "retained_previous_activity_items": 102,
-    "activity_items": 102
+    "activity_items": 106
   },
   "repositories": [
+    {
+      "name": "yasbd-lib",
+      "full_name": "blackmore-technology-group/yasbd-lib",
+      "url": "https://github.com/blackmore-technology-group/yasbd-lib",
+      "description": "A high-accuracy, rule-based Sentence Boundary Detector (SBD) with a drop-in adapter for pysbd, delivering faster and more accurate sentence segmentation.",
+      "fork": true,
+      "upstream": "speedyk-005/yasbd-lib",
+      "archived": false,
+      "default_branch": "main",
+      "language": null,
+      "created_at": "2026-09-30T23:25:31Z",
+      "updated_at": "2026-09-30T23:25:31Z",
+      "pushed_at": "2026-10-01T13:28:08Z"
+    },
     {
       "name": "ENTITY-DOCS",
       "full_name": "blackmore-technology-group/ENTITY-DOCS",
@@ -28,8 +42,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-01T12:32:16Z",
-      "pushed_at": "2026-10-01T12:32:11Z"
+      "updated_at": "2026-10-01T13:16:44Z",
+      "pushed_at": "2026-10-01T13:16:41Z"
     },
     {
       "name": "sotto",
@@ -128,20 +142,6 @@
       "created_at": "2026-09-24T14:27:10Z",
       "updated_at": "2026-09-30T23:43:34Z",
       "pushed_at": "2026-09-30T23:43:30Z"
-    },
-    {
-      "name": "yasbd-lib",
-      "full_name": "blackmore-technology-group/yasbd-lib",
-      "url": "https://github.com/blackmore-technology-group/yasbd-lib",
-      "description": "A high-accuracy, rule-based Sentence Boundary Detector (SBD) with a drop-in adapter for pysbd, delivering faster and more accurate sentence segmentation.",
-      "fork": true,
-      "upstream": "speedyk-005/yasbd-lib",
-      "archived": false,
-      "default_branch": "main",
-      "language": null,
-      "created_at": "2026-09-30T23:25:31Z",
-      "updated_at": "2026-09-30T23:25:31Z",
-      "pushed_at": "2026-09-30T23:40:42Z"
     },
     {
       "name": "promise-to-proof",
@@ -482,6 +482,47 @@
   ],
   "items": [
     {
+      "id": "external-pr:speedyk-005/yasbd-lib:348",
+      "type": "EXTERNAL_FIX",
+      "occurred_at": "2026-10-01T13:28:09Z",
+      "title": "speedyk-005/yasbd-lib PR #348: fix: detect boundaries in backtick-delimited quotes",
+      "summary": "BTG-authored upstream pull request",
+      "repository": "speedyk-005/yasbd-lib",
+      "url": "https://github.com/speedyk-005/yasbd-lib/pull/348",
+      "status": "UPSTREAM_OPEN",
+      "source": "GITHUB_PR_SEARCH",
+      "head_sha": "33ee2faf2d265703467f7bfe031bcfc3d5afb62a",
+      "entity_ingested": false,
+      "entity_state": null,
+      "entity_record_url": null
+    },
+    {
+      "id": "pr-event:16192380160",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T13:16:39Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #58:",
+      "summary": "GitHub PR event: merged",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "MERGED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:16192326992",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T13:16:03Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #58:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
       "id": "external-pr:getsotto/sotto:462",
       "type": "EXTERNAL_FIX",
       "occurred_at": "2026-10-01T11:10:33Z",
@@ -553,21 +594,6 @@
       "entity_state": null
     },
     {
-      "id": "external-pr:speedyk-005/yasbd-lib:348",
-      "type": "EXTERNAL_FIX",
-      "occurred_at": "2026-10-01T06:45:54Z",
-      "title": "speedyk-005/yasbd-lib PR #348: fix: detect boundaries in backtick-delimited quotes",
-      "summary": "BTG-authored upstream pull request",
-      "repository": "speedyk-005/yasbd-lib",
-      "url": "https://github.com/speedyk-005/yasbd-lib/pull/348",
-      "status": "UPSTREAM_OPEN",
-      "source": "GITHUB_PR_SEARCH",
-      "head_sha": "1224fa2725ffd7611ef1ecf7a288dd55a18168bb",
-      "entity_ingested": false,
-      "entity_state": null,
-      "entity_record_url": null
-    },
-    {
       "id": "pr-event:16165878289",
       "type": "PULL_REQUEST",
       "occurred_at": "2026-10-01T06:30:58Z",
@@ -633,6 +659,19 @@
       "entity_state": null
     },
     {
+      "id": "create:22692167613",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-01T06:20:49Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS: created branch docs/yomihon-848-case-study",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
       "id": "pr-event:16163411470",
       "type": "PULL_REQUEST",
       "occurred_at": "2026-10-01T06:13:52Z",
@@ -654,6 +693,19 @@
       "repository": "blackmore-technology-group/ENTITY-DOCS",
       "url": null,
       "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:22693314423",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-01T06:12:35Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS: created branch docs/v343-testing-20261001",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "status": "CREATED",
       "source": "GITHUB_PUBLIC_EVENT",
       "entity_ingested": false,
       "entity_state": null
