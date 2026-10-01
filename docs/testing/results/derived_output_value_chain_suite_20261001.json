@@ -1,0 +1,49 @@
+{
+  "artifacts": [
+    {
+      "bytes": 4383,
+      "path": "derived-value-chain-20261001.html",
+      "sha256": "6F0A3F893B806859394551C9E4E721A783D92CCB315A70788D82239255BBF600"
+    },
+    {
+      "bytes": 5807,
+      "path": "examples/derived_output_value_chain_20261001.py",
+      "sha256": "410CC894B685DFC6577E0C1739ECF5FC103BCCABA5CC982617D7CBBE5B95613F"
+    },
+    {
+      "bytes": 1583,
+      "path": "results/derived_output_value_chain_20261001.json",
+      "sha256": "3AFBBAD038DAA99A323EF4BA5CEBFA78CE58B91A170096B36525346B7C7A292E"
+    },
+    {
+      "bytes": 873,
+      "path": "results/derived_output_value_chain_video_metadata_20261001.json",
+      "sha256": "0428DC99A27F34AD8D8FFB4C4FDF44DC0C6D81350AFB536B8648480F3C75EDFD"
+    },
+    {
+      "bytes": 1485,
+      "path": "transcripts/derived_output_value_chain_20261001.txt",
+      "sha256": "E042DC846CB1116CE2A2BD3C894B4CE04D0FF2104384DB8067872E03EDA97FCA"
+    },
+    {
+      "bytes": 237149,
+      "path": "videos/test-19-derived-output-value-chain.webm",
+      "sha256": "8F9E82C44EDF1E94B91EE6BB4A5A18342182102D1442D171D1EB61DF3A08663F"
+    }
+  ],
+  "claim_boundary": "Synthetic proof of explicit rights, authorized use, derived-object provenance, contribution distribution and derivative participation. Contribution weights are declared test inputs, not universal truth; settlement verification is attestation, not proof of real cash movement or market value.",
+  "docs_base_commit": "7acd87529ca52fc0071579ba6d1683d6b688a613",
+  "recorded_date": "2026-10-01",
+  "result_summary": {
+    "authorized_use_events": 2,
+    "cycle_blocked": true,
+    "derived_object_id": "obj3-9e45bab8e4d471d2ff385c2853e831f34bbf9038",
+    "pass": true,
+    "rights_grants": 2,
+    "settled_attested_cad_units": 5000,
+    "source_dcos": 2,
+    "synthetic_derived_gross_cad_units": 50000
+  },
+  "runtime_release": "v3.4.3",
+  "schema": "entity-test19-derived-output-value-chain-suite-v1"
+}
