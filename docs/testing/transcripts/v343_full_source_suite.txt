@@ -1,6 +1,14 @@
-...................ss................................................... [ 25%]
-.........................................ssss........................... [ 51%]
+PIN_COMMIT=528b70aabd05b1e930b77e4933f157731e47274f
+PIN_TAG=v3.4.3
+QUALIFICATION_SITE=E:\ENTITY_ACTIVE\ENTITY_TESTING_20261001\qualification_site_v343
+ENTITY_ADAM_V1_ROOT=E:\T343\genesis_master\11_ADAM\full_runtime\vendor\ADAM_v1_0_COMPLETE_SOFTWARE_REFERENCE_RC2
+ADAM_RUNTIME_SHA256=10D14EE7A10D4C9D8150CD22FF3913A221D89203B75835E7310102CE13A21EB0
+PYTHON=Python 3.11.9
+COMMAND=pytest -q tests (isolated qualification site)
+........................................................................ [ 25%]
+........................................................................ [ 51%]
 ............................................. [ 67%]
 ........................................................................ [ 92%]
 ....................                                                     [100%]
-275 passed, 6 skipped, 27 subtests passed in 162.03s (0:02:42)
+281 passed, 27 subtests passed in 240.67s (0:04:00)
+PYTEST_EXIT=0

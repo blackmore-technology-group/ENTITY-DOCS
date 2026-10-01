@@ -1,3 +1,8 @@
+PIN_COMMIT=528b70aabd05b1e930b77e4933f157731e47274f
+PIN_TAG=v3.4.3
+PYTHON=Python 3.11.9
+COMMAND=pytest -q tests/test_v343_issue28_regressions.py
 ........................................................................ [ 94%]
 ....                                                                     [100%]
-76 passed in 52.39s
+76 passed in 86.00s (0:01:25)
+PYTEST_EXIT=0
