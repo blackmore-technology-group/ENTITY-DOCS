@@ -67,7 +67,7 @@
     "docs/tutorials/core/recovery-portability.html",
     "docs/tutorials/core/standards-adoption.html"
   ],
-  "code_tutorial_path": ["docs/tutorials/code/identity-signing.html","docs/tutorials/code/authority-rights-provenance.html","docs/tutorials/code/portable-bundle-verification.html","docs/tutorials/code/evidence-trust-threshold.html","docs/tutorials/code/btdu-cli.html"],
+  "code_tutorial_path": ["docs/tutorials/code/identity-signing.html","docs/tutorials/code/authority-rights-provenance.html","docs/tutorials/code/portable-bundle-verification.html","docs/tutorials/code/evidence-trust-threshold.html","docs/tutorials/code/btdu-cli.html","docs/tutorials/code/vault-purpose-access.html","docs/tutorials/code/rights-global-passport.html","docs/tutorials/code/offline-partition-conflict.html","docs/tutorials/code/market-orderbook-pending.html"],
   "code_tutorial_execution_record": "docs/tutorials/code/EXECUTION_RECORD_20261001.json",
   "code_tutorial_model": "Executable source-grounded tutorials with recorded command transcripts and fail-closed negative controls; generated identifiers may vary while documented invariants must hold.",
   "recipe_path": [
@@ -148,7 +148,7 @@
     "ENTITY-MANUFACTURING":"0d1e7ea844b1074f7671e667a4a2727052c0ebc8",
     "ENTITY-ROBOTICS":"f1ff62e3953b11d3078461cd8beffb56363bf3b6"
   },
-  "curated_search_entries": 86,
+  "curated_search_entries": 90,
   "runtime_discovery_overlays": ["ENTITY Code Tutorials","ENTITY Core Tutorials","Authority & Delegation","Rights & Constraints","Encrypted Vault & Purpose Access","Evidence, Attestations & Trust","Provenance & Value","BTDU, ADAM & NIKI","Rights & Global Passports","Privacy, Retention & Evidenced Destruction","Federated, Edge & Offline Operation","ENTITY Economic Fabric","Provider-Independent Recovery","Standards & Industry Adoption","ENTITY Developer Recipes","Identity & Signing Recipe","Object Authority Rights Recipe","Vault & Purpose Access Recipe","Attestation & Trust Recipe","BTDU CLI Recipe","Passports Recipe","Offline & Partition Recipe","Market Recovery Recipe","Standards Mapping Recipe","ENTITY Community Board","Blackmore Technology GitHub Footprint NEWS","Complete ENTITY Capability Map","ENTITY Market Fabric","ENTITY Market Recovery","External Economic Lineage","BTDU Storage & Destruction Recovery Evidence"],
   "historical_generated_reference_inventory": {"source_release":"v3.4.0","source_commit":"6a45a62984b8278ddbcd65e51d2d441878837457","file_reference_pages":599,"symbol_reference_pages":1922,"total_html_pages":2603,"status":"historical baseline only; not asserted as current counts"},
   "claim_boundary": "Current release, immutable release identifiers, repository-head, capability, core-tutorial, recipe, scenario, case-study, community, NEWS and discovery fields describe the public documentation state. Legacy generated reference counts and historical qualification remain explicitly historical. This manifest does not alter ENTITY protocol semantics, runtime qualification, immutable release evidence, upstream rights, settlement evidence or historical tags."

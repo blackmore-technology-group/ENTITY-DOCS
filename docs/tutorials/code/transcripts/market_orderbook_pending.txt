@@ -1,0 +1,18 @@
+ENTITY source commit: 5be325437a63c2efaee0dc3caaae9ab0cd0773d9
+Recorded on: 2026-09-30 (America/Vancouver)
+Command:
+  $env:ENTITY_ROOT='E:\ENTITY_ACTIVE\ENTITY_TUTORIAL_TEST'
+  E:\ENTITY_ACTIVE\PYTHON311_EMBED\python.exe market_orderbook_pending.py
+
+Output:
+VENUE=venue3-b326bdd78031fecbf0ec65d2
+INSTRUMENT=inst3-f86196eff0fcf339ad0241a6
+TRADE=trade3-7754ac9d163224051826248f
+TRADE_STATUS=EXECUTED
+CLEARING_STATUS=PENDING
+EXTERNAL_PAYMENT_VERIFIED=FALSE
+BUYER_ENTITLEMENT_BEFORE_SETTLEMENT=0
+MARKET_DATA_OBSERVATION_NOT_VALUATION=TRUE
+CLAIM_BOUNDARY=execution does not prove payment or transfer underlying ownership
+
+Note: generated identifiers and hashes may differ on each run while the documented invariants must remain the same.

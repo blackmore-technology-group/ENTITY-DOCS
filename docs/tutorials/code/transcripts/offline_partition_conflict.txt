@@ -1,0 +1,15 @@
+ENTITY source commit: 5be325437a63c2efaee0dc3caaae9ab0cd0773d9
+Recorded on: 2026-09-30 (America/Vancouver)
+Command:
+  $env:ENTITY_ROOT='E:\ENTITY_ACTIVE\ENTITY_TUTORIAL_TEST'
+  E:\ENTITY_ACTIVE\PYTHON311_EMBED\python.exe offline_partition_conflict.py
+
+Output:
+OFFLINE_ENVELOPE=offline3-d2b013f0dd3ff3d72bee42d0
+OFFLINE_SIGNATURE_VERIFY=PASS
+PARTITION_MERGE=CONCURRENT_DIVERGENT_STATE
+AUTOMATIC_LAST_WRITER_WINS=BLOCKED
+CONFLICT_ID=partitionconflict3-1287c0275dd6337d999740bd
+CLAIM_BOUNDARY=causal conflict detection preserves ambiguity instead of inventing convergence
+
+Note: generated identifiers and hashes may differ on each run while the documented invariants must remain the same.

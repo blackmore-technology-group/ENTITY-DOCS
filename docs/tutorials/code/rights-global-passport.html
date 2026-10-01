@@ -1,0 +1,38 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Issue and verify rights and global passports - ENTITY Code Tutorial</title><meta name="description" content="Issue a rights passport for a governed dataset, register a global profile, then wrap both into a verifiable global passport."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation..."></header><div id="results"></div><div class="layout"><nav><h3>Code tutorials</h3><a href="index.html">Code tutorial home</a><a href="identity-signing.html">1 - Create, verify and sign with an ENTITY identity</a><a href="authority-rights-provenance.html">2 - Exercise authority, rights and provenance</a><a href="portable-bundle-verification.html">3 - Export and verify a portable sovereign bundle</a><a href="evidence-trust-threshold.html">4 - Require two independent attestations</a><a href="btdu-cli.html">5 - Initialize BTDU and verify the ADAM dependency boundary</a><a href="vault-purpose-access.html">6 - Encrypt bytes and enforce one-use purpose access</a><a href="rights-global-passport.html">7 - Issue and verify rights and global passports</a><a href="offline-partition-conflict.html">8 - Detect a divergent offline partition conflict</a><a href="market-orderbook-pending.html">9 - Execute a rights trade without pretending payment occurred</a><h3>Learning</h3><a href="../index.html">Tutorial home</a><a href="../core/">Core curriculum</a><a href="../../recipes/">Developer recipes</a></nav><main><div class="eyebrow">Code tutorial 7 - tested</div><h1>Issue and verify rights and global passports</h1><p class="lede">Issue a rights passport for a governed dataset, register a global profile, then wrap both into a verifiable global passport.</p><div class="callout"><strong>Verified against:</strong> ENTITY main commit <code>5be325437a63c2efaee0dc3caaae9ab0cd0773d9</code>. The run uses disposable tutorial state only.</div><h2>Watch the tutorial</h2><video controls preload="metadata" style="width:100%;max-width:960px" src="videos/tutorial-07-rights-global-passport.mp4">Your browser does not support embedded video.</video><p>This MP4 is a terminal replay built from the exact published source and recorded execution for tutorial 7. The full source and transcript remain available below for reproduction.</p><h2>Run it yourself</h2><pre>$env:ENTITY_ROOT="C:\path\to\ENTITY"
+python rights_global_passport.py</pre><p><a href="examples/rights_global_passport.py">Download/view the exact Python example</a> - <a href="transcripts/rights_global_passport.txt">Recorded terminal transcript</a> - <a href="EXECUTION_RECORD_20261001.json">Execution record</a></p><h2>Exact source used</h2><pre>from pathlib import Path
+import importlib.util, hashlib, os, shutil
+ROOT=Path(os.environ.get(&quot;ENTITY_ROOT&quot;, Path.cwd())).resolve(); STATE=ROOT/&quot;.tutorial-test-state&quot;/&quot;rights-global-passport&quot;
+if STATE.exists(): shutil.rmtree(STATE)
+def load_source(path,name):
+    spec=importlib.util.spec_from_file_location(name,ROOT/path); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+identity_mod=load_source(&quot;src/01_Core_Runtime/identity/canonical_identity.py&quot;,&quot;entity_identity&quot;)
+fabric_mod=load_source(&quot;src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py&quot;,&quot;entity_fabric&quot;)
+rights_mod=load_source(&quot;src/36_Adoption_Layer/rights_passport.py&quot;,&quot;entity_rights_passport&quot;)
+profiles_mod=load_source(&quot;src/38_Global_Passports/profile_registry.py&quot;,&quot;entity_profiles&quot;)
+global_mod=load_source(&quot;src/38_Global_Passports/global_passport.py&quot;,&quot;entity_global_passport&quot;)
+identity=identity_mod.EntityIdentityVault(STATE); owner=identity.create(&quot;Tutorial Owner&quot;,&quot;organization&quot;)
+fabric=fabric_mod.UniversalTransactionFabric(STATE,identity); obj=fabric.register_object(owner[&quot;entity_id&quot;],&quot;DATASET&quot;,&quot;Tutorial Passport Dataset&quot;)
+rights=rights_mod.RightsPassportRegistry(STATE,identity,fabric); rp=rights.issue(owner[&quot;entity_id&quot;],obj[&quot;object_id&quot;],rights=[{&quot;effect&quot;:&quot;ALLOW&quot;,&quot;actions&quot;:[&quot;READ&quot;],&quot;conditions&quot;:{},&quot;obligations&quot;:[],&quot;right_refs&quot;:[]}],privacy_profile=&quot;SELECTIVE_DISCLOSURE&quot;)
+assert rights.verify(rp)[&quot;valid&quot;] is True
+profiles=profiles_mod.GlobalProfileRegistry(STATE,identity); schema_sha=hashlib.sha256(b&quot;tutorial-global-profile-v1&quot;).hexdigest(); profile=profiles.register(owner[&quot;entity_id&quot;],&quot;entity-profile:tutorial-global&quot;,&quot;1.0&quot;,&quot;GLOBAL&quot;,schema_sha256=schema_sha,object_types=[&quot;DATASET&quot;],required_evidence_types=[&quot;DOCUMENT&quot;],policy={&quot;tutorial&quot;:True})
+assert profiles.verify(profile)[&quot;valid&quot;] is True
+global_registry=global_mod.GlobalPassportRegistry(STATE,identity,fabric,rights,profiles); gp=global_registry.issue(owner[&quot;entity_id&quot;],obj[&quot;object_id&quot;],rp[&quot;passport_id&quot;],profile_refs=[profile[&quot;profile_ref&quot;]],economic_state={&quot;state&quot;:&quot;POTENTIAL&quot;,&quot;amount_units&quot;:0,&quot;currency&quot;:&quot;CAD&quot;})
+assert global_registry.verify(gp)[&quot;valid&quot;] is True
+print(f&quot;OBJECT={obj[&#x27;object_id&#x27;]}&quot;); print(f&quot;RIGHTS_PASSPORT={rp[&#x27;passport_id&#x27;]}&quot;); print(f&quot;GLOBAL_PASSPORT={gp[&#x27;passport_id&#x27;]}&quot;); print(&quot;RIGHTS_PASSPORT_VERIFY=PASS&quot;); print(&quot;GLOBAL_PASSPORT_VERIFY=PASS&quot;); print(&quot;ECONOMIC_STATE=POTENTIAL_0_CAD&quot;); print(&quot;CLAIM_BOUNDARY=passport composition does not create new authority or realized value&quot;)
+</pre><h2>Recorded successful run</h2><pre>ENTITY source commit: 5be325437a63c2efaee0dc3caaae9ab0cd0773d9
+Recorded on: 2026-09-30 (America/Vancouver)
+Command:
+  $env:ENTITY_ROOT=&#x27;E:\ENTITY_ACTIVE\ENTITY_TUTORIAL_TEST&#x27;
+  E:\ENTITY_ACTIVE\PYTHON311_EMBED\python.exe rights_global_passport.py
+
+Output:
+OBJECT=obj3-114e7662418966ad92a2305056a94f2a7e53b728
+RIGHTS_PASSPORT=passport3-9b48563799b064f3b911aafd
+GLOBAL_PASSPORT=gpassport3-143481d31036dd4d6aab60d1
+RIGHTS_PASSPORT_VERIFY=PASS
+GLOBAL_PASSPORT_VERIFY=PASS
+ECONOMIC_STATE=POTENTIAL_0_CAD
+CLAIM_BOUNDARY=passport composition does not create new authority or realized value
+
+Note: generated identifiers and hashes may differ on each run while the documented invariants must remain the same.
+</pre><h2>What this demonstrates</h2><ul><li>The rights passport verifies independently.</li><li>The profile verifies before it is referenced by the global passport.</li><li>The global passport verifies while economic state remains POTENTIAL 0 CAD.</li></ul><div class="callout"><strong>Claim boundary:</strong> Passport composition packages existing rights, profile and economic state; it does not create new authority or realized value.</div><div class="actions"><a class="button" href="index.html">Code tutorial home</a><a class="button secondary" href="../core/">Core curriculum</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>

@@ -1,6 +1,6 @@
 {
   "schema": "entity-docs-code-tutorial-execution-v1",
-  "recorded_at_utc": "2026-10-01T01:39:56.190389+00:00",
+  "recorded_at_utc": "2026-10-01T01:59:48.144626+00:00",
   "entity_source_commit": "5be325437a63c2efaee0dc3caaae9ab0cd0773d9",
   "environment": {
     "os": "Windows 11",
@@ -42,14 +42,66 @@
       "script": "examples/btdu_bootstrap.py",
       "transcript": "transcripts/btdu_cli.txt",
       "transcript_sha256": "1E1BE9F837C6F9BCFD21F448C01DEAA87830D0013FC90B12057117CDD284263D"
+    },
+    {
+      "slug": "vault-purpose-access",
+      "title": "Encrypt bytes and enforce one-use purpose access",
+      "script": "examples/vault_purpose_access.py",
+      "transcript": "transcripts/vault_purpose_access.txt",
+      "transcript_sha256": "4C558F96FAF68DB7DA0CB74FEB2C2412A458884C994405F14258AF9349D43783",
+      "video": "videos/tutorial-06-vault-purpose-access.mp4",
+      "video_sha256": "C8E17A427AF842A18B43D5CCB59009D1DE46CE2DDA7959F8C828C5B36104FBDB",
+      "video_kind": "TERMINAL_REPLAY_FROM_EXACT_SOURCE_AND_RECORDED_EXECUTION",
+      "video_frames": 384,
+      "video_fps": 24.0
+    },
+    {
+      "slug": "rights-global-passport",
+      "title": "Issue and verify rights and global passports",
+      "script": "examples/rights_global_passport.py",
+      "transcript": "transcripts/rights_global_passport.txt",
+      "transcript_sha256": "8A767AC36764C001D12C75AC32116BA152ADAD1D52635B291FFD6E420D761446",
+      "video": "videos/tutorial-07-rights-global-passport.mp4",
+      "video_sha256": "9753373B6D76DFA93F13CB9FB538BEDA7E8668B4606B25E6DD17E9F154D3A881",
+      "video_kind": "TERMINAL_REPLAY_FROM_EXACT_SOURCE_AND_RECORDED_EXECUTION",
+      "video_frames": 384,
+      "video_fps": 24.0
+    },
+    {
+      "slug": "offline-partition-conflict",
+      "title": "Detect a divergent offline partition conflict",
+      "script": "examples/offline_partition_conflict.py",
+      "transcript": "transcripts/offline_partition_conflict.txt",
+      "transcript_sha256": "C899DAEE5E83C139EE4A46DDEB4CE63C11FC90009131533328BB63FDAED6A0E0",
+      "video": "videos/tutorial-08-offline-partition-conflict.mp4",
+      "video_sha256": "2F19F6C00E83EFE6B9A52230329FF18FE63E155AF29FF1166ABFB10E891B9888",
+      "video_kind": "TERMINAL_REPLAY_FROM_EXACT_SOURCE_AND_RECORDED_EXECUTION",
+      "video_frames": 384,
+      "video_fps": 24.0
+    },
+    {
+      "slug": "market-orderbook-pending",
+      "title": "Execute a rights trade without pretending payment occurred",
+      "script": "examples/market_orderbook_pending.py",
+      "transcript": "transcripts/market_orderbook_pending.txt",
+      "transcript_sha256": "690A38458930CBAAD13AD8DA360950094E32AF52F0131493B607F4F2D3186296",
+      "video": "videos/tutorial-09-market-orderbook-pending.mp4",
+      "video_sha256": "8AD6DA955F3070C1D73970ED35E1A3C0A69CB6AF6C535B7EF64825A5794D7E08",
+      "video_kind": "TERMINAL_REPLAY_FROM_EXACT_SOURCE_AND_RECORDED_EXECUTION",
+      "video_frames": 384,
+      "video_fps": 24.0
     }
   ],
   "script_sha256": {
-    "authority_rights_provenance.py": "A61213E2BAD3FE087C35BC3696292692D15ACB6A9E49A7863B6B043A67007BBC",
+    "identity_signing.py": "6D13AC0C2EFA5368BF1D1C3FC17E2DA7DCE6F285027D58CA9648C493DFDC6EC2",
+    "authority_rights_provenance.py": "CECCC054452CFC00E6CFC7627E83A3F872D7EDE8F3293315E12C61C18F83149C",
+    "portable_bundle_verification.py": "60A7C02C42E3F515C18C7FCA5C75C19D90DD1DF9E8BF1E8284C6DDD626FA0BC3",
+    "evidence_trust_threshold.py": "F7DA775A4FBF82406F2D85E8100403DDA76D329894154F39B52794EE08659B33",
     "btdu_bootstrap.py": "D9F7ACFC58BE49023D521931F227F5679D140426017A8EC2EDA00CCF1E17FE30",
-    "evidence_trust_threshold.py": "615FAFDCB7A17ADD90B94037AEFAB13FE6A3CFCA187576777BA9A2896696F168",
-    "identity_signing.py": "4BD1A618AAEE891279B047F63381127DDC81185D35B6B10B8EBCA88B3751A669",
-    "portable_bundle_verification.py": "1CC4E863415E2695C93F8E2B287D5F50A0BD835606304A5EEB94BD52B914D9E4"
+    "vault_purpose_access.py": "F2537D87540836B0094FDCF929990E17B6298F37C24B8B096A029B86A6DBB273",
+    "rights_global_passport.py": "B44D048E7EC308A5533415C7CC76984BBB2050177812945433405F4830E6EF49",
+    "offline_partition_conflict.py": "8DF1D29AFC9A199890318C2E94DE0B9CCB41956737EF198B043220677A2E3878",
+    "market_orderbook_pending.py": "9601E6FB3E685970933F23C04C12CCE36558649C299B586E60B80AD98C9A9FA0"
   },
   "btdu_dependency_guard": {
     "integration_layer_rejected_as_adam_source_root": true,

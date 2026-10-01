@@ -1,0 +1,16 @@
+ENTITY source commit: 5be325437a63c2efaee0dc3caaae9ab0cd0773d9
+Recorded on: 2026-09-30 (America/Vancouver)
+Command:
+  $env:ENTITY_ROOT='E:\ENTITY_ACTIVE\ENTITY_TUTORIAL_TEST'
+  E:\ENTITY_ACTIVE\PYTHON311_EMBED\python.exe rights_global_passport.py
+
+Output:
+OBJECT=obj3-114e7662418966ad92a2305056a94f2a7e53b728
+RIGHTS_PASSPORT=passport3-9b48563799b064f3b911aafd
+GLOBAL_PASSPORT=gpassport3-143481d31036dd4d6aab60d1
+RIGHTS_PASSPORT_VERIFY=PASS
+GLOBAL_PASSPORT_VERIFY=PASS
+ECONOMIC_STATE=POTENTIAL_0_CAD
+CLAIM_BOUNDARY=passport composition does not create new authority or realized value
+
+Note: generated identifiers and hashes may differ on each run while the documented invariants must remain the same.

@@ -1,0 +1,45 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Execute a rights trade without pretending payment occurred - ENTITY Code Tutorial</title><meta name="description" content="Create a venue, rights instrument, disclosure and listing, match BUY/SELL orders, then prove execution remains distinct from settlement and external payment."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation..."></header><div id="results"></div><div class="layout"><nav><h3>Code tutorials</h3><a href="index.html">Code tutorial home</a><a href="identity-signing.html">1 - Create, verify and sign with an ENTITY identity</a><a href="authority-rights-provenance.html">2 - Exercise authority, rights and provenance</a><a href="portable-bundle-verification.html">3 - Export and verify a portable sovereign bundle</a><a href="evidence-trust-threshold.html">4 - Require two independent attestations</a><a href="btdu-cli.html">5 - Initialize BTDU and verify the ADAM dependency boundary</a><a href="vault-purpose-access.html">6 - Encrypt bytes and enforce one-use purpose access</a><a href="rights-global-passport.html">7 - Issue and verify rights and global passports</a><a href="offline-partition-conflict.html">8 - Detect a divergent offline partition conflict</a><a href="market-orderbook-pending.html">9 - Execute a rights trade without pretending payment occurred</a><h3>Learning</h3><a href="../index.html">Tutorial home</a><a href="../core/">Core curriculum</a><a href="../../recipes/">Developer recipes</a></nav><main><div class="eyebrow">Code tutorial 9 - tested</div><h1>Execute a rights trade without pretending payment occurred</h1><p class="lede">Create a venue, rights instrument, disclosure and listing, match BUY/SELL orders, then prove execution remains distinct from settlement and external payment.</p><div class="callout"><strong>Verified against:</strong> ENTITY main commit <code>5be325437a63c2efaee0dc3caaae9ab0cd0773d9</code>. The run uses disposable tutorial state only.</div><h2>Watch the tutorial</h2><video controls preload="metadata" style="width:100%;max-width:960px" src="videos/tutorial-09-market-orderbook-pending.mp4">Your browser does not support embedded video.</video><p>This MP4 is a terminal replay built from the exact published source and recorded execution for tutorial 9. The full source and transcript remain available below for reproduction.</p><h2>Run it yourself</h2><pre>$env:ENTITY_ROOT="C:\path\to\ENTITY"
+python market_orderbook_pending.py</pre><p><a href="examples/market_orderbook_pending.py">Download/view the exact Python example</a> - <a href="transcripts/market_orderbook_pending.txt">Recorded terminal transcript</a> - <a href="EXECUTION_RECORD_20261001.json">Execution record</a></p><h2>Exact source used</h2><pre>from pathlib import Path
+import importlib.util, hashlib, os, shutil, sqlite3
+ROOT=Path(os.environ.get(&quot;ENTITY_ROOT&quot;, Path.cwd())).resolve(); STATE=ROOT/&quot;.tutorial-test-state&quot;/&quot;market-orderbook&quot;
+if STATE.exists(): shutil.rmtree(STATE)
+def load_source(path,name):
+    spec=importlib.util.spec_from_file_location(name,ROOT/path); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+identity_mod=load_source(&quot;src/01_Core_Runtime/identity/canonical_identity.py&quot;,&quot;entity_identity&quot;)
+fabric_mod=load_source(&quot;src/30_Universal_Transaction_Fabric/canonical_universal_fabric.py&quot;,&quot;entity_fabric&quot;)
+exchange_mod=load_source(&quot;src/32_V3_Hardening/exchange_protocol.py&quot;,&quot;entity_exchange&quot;)
+identity=identity_mod.EntityIdentityVault(STATE)
+issuer=identity.create(&quot;Tutorial Issuer&quot;,&quot;organization&quot;); buyer=identity.create(&quot;Tutorial Buyer&quot;,&quot;organization&quot;); venue_op=identity.create(&quot;Tutorial Venue Operator&quot;,&quot;organization&quot;)
+fabric=fabric_mod.UniversalTransactionFabric(STATE,identity); obj=fabric.register_object(issuer[&quot;entity_id&quot;],&quot;DATASET&quot;,&quot;Tutorial Market Dataset&quot;)
+exchange=exchange_mod.ExchangeProtocol(STATE,identity,fabric)
+policy_sha=hashlib.sha256(b&quot;tutorial venue policy&quot;).hexdigest(); venue=exchange.create_venue(venue_op[&quot;entity_id&quot;],&quot;Tutorial Venue&quot;,&quot;CA&quot;,[&quot;ORDER_BOOK&quot;],policy_sha)
+instrument=exchange.define_instrument(issuer[&quot;entity_id&quot;],obj[&quot;object_id&quot;],&quot;SPOT_LICENSE&quot;,{&quot;actions&quot;:[&quot;READ&quot;,&quot;TRAIN&quot;],&quot;purpose&quot;:&quot;research&quot;},10,&quot;CAD&quot;,transferable=True)
+disclosure_sha=hashlib.sha256(b&quot;tutorial rights disclosure&quot;).hexdigest(); exchange.publish_disclosure(venue[&quot;venue_id&quot;],instrument[&quot;instrument_id&quot;],issuer[&quot;entity_id&quot;],&quot;RIGHTS_TERMS&quot;,disclosure_sha)
+exchange.list_instrument(venue[&quot;venue_id&quot;],instrument[&quot;instrument_id&quot;],issuer[&quot;entity_id&quot;],1,1,disclosure_sha)
+exchange.submit_order(venue[&quot;venue_id&quot;],instrument[&quot;instrument_id&quot;],buyer[&quot;entity_id&quot;],&quot;BUY&quot;,2,100,&quot;tutorial-buy-1&quot;)
+exchange.submit_order(venue[&quot;venue_id&quot;],instrument[&quot;instrument_id&quot;],issuer[&quot;entity_id&quot;],&quot;SELL&quot;,2,90,&quot;tutorial-sell-1&quot;)
+trades=exchange.match_order_book(venue[&quot;venue_id&quot;],instrument[&quot;instrument_id&quot;]); assert len(trades)==1; trade=trades[0]
+with sqlite3.connect(exchange.path) as db:
+    row=db.execute(&quot;SELECT status,external_verified FROM clearing WHERE trade_id=?&quot;,(trade[&quot;trade_id&quot;],)).fetchone()
+assert row[0]==&quot;PENDING&quot; and int(row[1])==0; assert exchange.balance(instrument[&quot;instrument_id&quot;],buyer[&quot;entity_id&quot;])==0
+market=exchange.market_data(venue[&quot;venue_id&quot;],instrument[&quot;instrument_id&quot;]); assert market[&quot;volume_units&quot;]==2 and market[&quot;market_data_is_observation_not_valuation&quot;] is True
+print(f&quot;VENUE={venue[&#x27;venue_id&#x27;]}&quot;); print(f&quot;INSTRUMENT={instrument[&#x27;instrument_id&#x27;]}&quot;); print(f&quot;TRADE={trade[&#x27;trade_id&#x27;]}&quot;); print(&quot;TRADE_STATUS=EXECUTED&quot;); print(&quot;CLEARING_STATUS=PENDING&quot;); print(&quot;EXTERNAL_PAYMENT_VERIFIED=FALSE&quot;); print(&quot;BUYER_ENTITLEMENT_BEFORE_SETTLEMENT=0&quot;); print(&quot;MARKET_DATA_OBSERVATION_NOT_VALUATION=TRUE&quot;); print(&quot;CLAIM_BOUNDARY=execution does not prove payment or transfer underlying ownership&quot;)
+</pre><h2>Recorded successful run</h2><pre>ENTITY source commit: 5be325437a63c2efaee0dc3caaae9ab0cd0773d9
+Recorded on: 2026-09-30 (America/Vancouver)
+Command:
+  $env:ENTITY_ROOT=&#x27;E:\ENTITY_ACTIVE\ENTITY_TUTORIAL_TEST&#x27;
+  E:\ENTITY_ACTIVE\PYTHON311_EMBED\python.exe market_orderbook_pending.py
+
+Output:
+VENUE=venue3-b326bdd78031fecbf0ec65d2
+INSTRUMENT=inst3-f86196eff0fcf339ad0241a6
+TRADE=trade3-7754ac9d163224051826248f
+TRADE_STATUS=EXECUTED
+CLEARING_STATUS=PENDING
+EXTERNAL_PAYMENT_VERIFIED=FALSE
+BUYER_ENTITLEMENT_BEFORE_SETTLEMENT=0
+MARKET_DATA_OBSERVATION_NOT_VALUATION=TRUE
+CLAIM_BOUNDARY=execution does not prove payment or transfer underlying ownership
+
+Note: generated identifiers and hashes may differ on each run while the documented invariants must remain the same.
+</pre><h2>What this demonstrates</h2><ul><li>A rights instrument is listed and matched through the order book.</li><li>The resulting trade is EXECUTED while clearing remains PENDING.</li><li>The buyer receives no entitlement before settlement and market data remains an observation, not a valuation.</li></ul><div class="callout"><strong>Claim boundary:</strong> Trade execution does not prove external payment, accounting fair value or transfer ownership of the underlying information.</div><div class="actions"><a class="button" href="index.html">Code tutorial home</a><a class="button secondary" href="../core/">Core curriculum</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>
