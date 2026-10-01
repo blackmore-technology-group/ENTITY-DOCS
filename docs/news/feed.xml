@@ -5,8 +5,15 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-01T01:25:56Z</updated>
+  <updated>2026-10-01T02:04:50Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>blackmore-technology-group/ENTITY-DOCS: created branch growth/external-fix-case-studies-20261001</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
+    <id>urn:btg-github-news:create:22647911464</id>
+    <updated>2026-10-01T02:04:50Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
   <entry>
     <title>cubrid-lab/pycubrid PR #576: fix: validate timeouts before socket creation</title>
     <link href="https://github.com/cubrid-lab/pycubrid/pull/576"/>
