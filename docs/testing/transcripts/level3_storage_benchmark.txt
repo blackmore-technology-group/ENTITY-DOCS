@@ -1,0 +1,48 @@
+{
+  "qualification": "ENTITY-v3.4.2 Atom Universe Level 3 scale corrected",
+  "actual": {
+    "bonds": 250000000,
+    "entities": 50000000,
+    "record_bytes": 16,
+    "bond_bytes": 4000000000,
+    "index_bytes": 400000000,
+    "total_bytes": 4400000000,
+    "bond_sha256": "17403382dd33f2ae573d1c35f91584530de57e0e3c2a13b6d7b7a7094a2c2f9e",
+    "index_sha256": "c7aa7fa07ed15b597064b345dd2f925b4636a5d6c82dd79483f117b80e583e93",
+    "write_seconds": 261.0570361999562,
+    "index_seconds": 15.120423400076106,
+    "write_MBps": 15.32232211866608,
+    "query_samples": 1000,
+    "query_correct": true,
+    "mean_query_us": 14166.8641,
+    "median_query_us": 11976.3,
+    "p95_query_us": 41611.645
+  },
+  "memory": {
+    "start": {
+      "working_set": 28450816,
+      "peak_working_set": 28450816,
+      "pagefile": 254279680,
+      "peak_pagefile": 254279680
+    },
+    "after_write": {
+      "working_set": 135852032,
+      "peak_working_set": 228581376,
+      "pagefile": 374415360,
+      "peak_pagefile": 463159296
+    },
+    "after_queries": {
+      "working_set": 190656512,
+      "peak_working_set": 256786432,
+      "pagefile": 425140224,
+      "peak_pagefile": 503201792
+    }
+  },
+  "rag_baseline": {
+    "dimension": 768,
+    "float_bytes": 4,
+    "vector_bytes": 153600000000,
+    "atomic_vs_vectors_saving_fraction": 0.9713541666666666
+  },
+  "pass": true
+}

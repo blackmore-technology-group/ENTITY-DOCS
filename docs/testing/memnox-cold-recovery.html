@@ -1,0 +1,92 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cold recover 865/865 Memnox source blobs from sealed BTDU state - ENTITY Testing</title><meta name="description" content="Recorded ENTITY qualification testing with exact source, terminal output, evidence video and claim boundaries."><link rel="stylesheet" href="../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation..."></header><div id="results"></div><div class="layout"><nav><h3>ENTITY Testing</h3><a href="index.html">Testing home</a><a href="level3-storage.html">1 - Reproduce the 97.14% Level-3 storage result</a><a href="installed-storage-matrix.html">2 - Measure the installed ADAM storage matrix</a><a href="memnox-cold-recovery.html">3 - Cold recover 865/865 Memnox source blobs from sealed BTDU state</a><h3>Learning</h3><a href="../tutorials/code/">Code tutorials</a><a href="../developer/testing.html">Developer testing manual</a><a href="../evidence/">Evidence</a></nav><main><div class="eyebrow">ENTITY test 3  |  recorded</div><h1>Cold recover 865/865 Memnox source blobs from sealed BTDU state</h1><p class="lede">Reconstruct the accepted TAR, source manifest and upstream-acceptance receipt from the sealed ADAM state, then stream all 865 TAR members and recompute their Git blob identifiers without Git, GitHub, network or the source clone.</p><div class="callout"><strong>Recorded result:</strong> MEMNOX_COLD_RECOVERY=PASS  |  865/865 blobs exact  |  0 missing  |  0 extra  |  0 mismatches  |  sealed log unchanged</div><h2>Watch the test</h2><video controls preload="metadata" style="width:100%;max-width:960px"><source src="videos/test-03-memnox-cold-recovery.webm" type="video/webm">Your browser does not support embedded WebM video.</video><p>This VP8 WebM evidence replay is generated from the exact published test source and recorded terminal output below.</p><h2>Run it yourself</h2><pre>python examples/memnox_cold_recovery_test.py</pre><h2>Exact test source</h2><pre>from pathlib import Path
+import hashlib, json, shutil, sqlite3, sys, tarfile
+
+ADAM_PACKAGE = Path(r&quot;E:\ENTITY_ACTIVE\BTG_BUILT_LOCALAPPDATA\BTG\ADAM_RC2\ADAM_v1_0_COMPLETE_SOFTWARE_REFERENCE_RC2&quot;)
+BASE = Path(r&quot;E:\ENTITY_ACTIVE\EXTERNAL_CONTRIBUTIONS\evidence\memnox-46\ENTITY_FULL_SOURCE_STATE\9c788e73b53f-40FFD74F238A77A9&quot;)
+RECEIPT = Path(r&quot;E:\ENTITY_ACTIVE\EXTERNAL_CONTRIBUTIONS\evidence\memnox-46\memnox-46-btdu-cold-recovery-qualified-receipt.json&quot;)
+OUT = Path(r&quot;E:\ENTITY_ACTIVE\ENTITY_TESTING_20261001\runs\memnox-cold-recovery&quot;)
+sys.path.insert(0, str(ADAM_PACKAGE))
+from adam_v41.universe import AtomicUniverse
+from adam_v41.exact import ExactCodec
+
+if OUT.exists(): shutil.rmtree(OUT)
+OUT.mkdir(parents=True)
+receipt = json.loads(RECEIPT.read_text(encoding=&quot;utf-8&quot;))
+sealed = BASE / &quot;adam&quot; / &quot;entity_atomic_universe&quot;
+log = sealed / &quot;universe.a41log&quot;
+log_size_before = log.stat().st_size
+u = AtomicUniverse(sealed)
+codec = ExactCodec(u)
+assert u.root_hash == receipt[&quot;signed_adam_verification&quot;][&quot;final_root&quot;]
+index = sqlite3.connect(BASE / &quot;btdu_index.sqlite&quot;)
+targets = {
+    &quot;archive&quot;: (&quot;memnox-accepted.tar&quot;, &quot;application/x-tar&quot;),
+    &quot;manifest&quot;: (&quot;memnox-accepted-source-manifest.json&quot;, &quot;application/json&quot;),
+    &quot;acceptance_receipt&quot;: (&quot;memnox-acceptance-receipt.json&quot;, &quot;application/json&quot;),
+}
+files = {}
+for name, (filename, media_type) in targets.items():
+    expected = receipt[&quot;cold_recovery&quot;][&quot;objects&quot;][name]
+    row = index.execute(
+        &quot;select evidence_object_id,content_sha256,size_bytes from objects where lower(content_sha256)=?&quot;,
+        (expected[&quot;sha256&quot;].lower(),),
+    ).fetchone()
+    assert row is not None
+    exact_object_id, indexed_sha, indexed_size = row
+    assert indexed_sha.lower() == expected[&quot;sha256&quot;].lower()
+    assert indexed_size == expected[&quot;bytes&quot;]
+    data = codec.reconstruct(exact_object_id)
+    assert len(data) == expected[&quot;bytes&quot;]
+    assert hashlib.sha256(data).hexdigest().upper() == expected[&quot;sha256&quot;]
+    dest = OUT / filename
+    dest.write_bytes(data)
+    files[name] = dest
+manifest = json.loads(files[&quot;manifest&quot;].read_text(encoding=&quot;utf-8&quot;))
+tree = OUT / &quot;tree&quot;
+tree.mkdir()
+with tarfile.open(files[&quot;archive&quot;], &quot;r:&quot;) as tf:
+    tf.extractall(tree, filter=&quot;data&quot;)
+expected = {e[&quot;path&quot;]: e for e in manifest[&quot;tracked_entries&quot;] if e[&quot;type&quot;] == &quot;blob&quot;}
+actual = {str(p.relative_to(tree)).replace(&quot;\\&quot;, &quot;/&quot;): p for p in tree.rglob(&quot;*&quot;) if p.is_file()}
+missing = sorted(set(expected) - set(actual))
+extra = sorted(set(actual) - set(expected))
+mismatched = []
+for path, entry in expected.items():
+    if path not in actual: continue
+    data = actual[path].read_bytes()
+    blob = hashlib.sha1(b&quot;blob &quot; + str(len(data)).encode(&quot;ascii&quot;) + b&quot;\0&quot; + data).hexdigest()
+    if blob != entry[&quot;object_sha1&quot;] or len(data) != entry[&quot;size&quot;]:
+        mismatched.append(path)
+verified = len(expected) - len(missing) - len(mismatched)
+assert not missing and not extra and not mismatched
+assert verified == receipt[&quot;cold_recovery&quot;][&quot;tracked_git_blobs_expected&quot;] == 865
+assert log.stat().st_size == log_size_before == receipt[&quot;signed_adam_verification&quot;][&quot;log_bytes_before&quot;]
+print(&quot;MEMNOX_COLD_RECOVERY=PASS&quot;)
+print(f&quot;SEALED_ADAM_ROOT={u.root_hash}&quot;)
+print(f&quot;TRACKED_GIT_BLOBS={verified}/{len(expected)}&quot;)
+print(f&quot;MISSING_PATHS={len(missing)}&quot;)
+print(f&quot;EXTRA_PATHS={len(extra)}&quot;)
+print(f&quot;GIT_BLOB_MISMATCHES={len(mismatched)}&quot;)
+print(&quot;GIT_INVOKED=FALSE&quot;)
+print(&quot;GITHUB_INVOKED=FALSE&quot;)
+print(&quot;NETWORK_REQUIRED=FALSE&quot;)
+print(&quot;SOURCE_CLONE_READ=FALSE&quot;)
+print(f&quot;SEALED_LOG_BYTES_UNCHANGED={log.stat().st_size}&quot;)
+print(&quot;CLAIM_BOUNDARY=PASS applies to this qualified 865-blob corpus and sealed BTDU recovery path&quot;)
+</pre><h2>Recorded output</h2><pre>LOADING_SEALED_ADAM=541037384
+RECOVERING_ARCHIVE=04a4f846ca1255b961ee369d24577b1bc2fb110a3406626bfe904c765123100f
+RECOVERING_MANIFEST=74af77c645f16f81536e25f6d8dbcc65c97358694cac430249a9a266331c0642
+RECOVERING_ACCEPTANCE_RECEIPT=674f4f43ecd455befbf72166112280697300ce772049f23c894d82c7a95512e2
+MEMNOX_COLD_RECOVERY=PASS
+SEALED_ADAM_ROOT=cb2cb81120d0270aeb6704cb9fbf61d1838367eb283f98522c2d6c7a7cabb8d3
+TRACKED_GIT_BLOBS=865/865
+MISSING_PATHS=0
+EXTRA_PATHS=0
+GIT_BLOB_MISMATCHES=0
+GIT_INVOKED=FALSE
+GITHUB_INVOKED=FALSE
+NETWORK_REQUIRED=FALSE
+SOURCE_CLONE_READ=FALSE
+SEALED_LOG_BYTES_UNCHANGED=541037384
+CLAIM_BOUNDARY=PASS applies to this qualified 865-blob corpus and sealed BTDU recovery path
+</pre><p><a href="results/memnox_cold_recovery_result.json">Raw result JSON  -> </a></p><div class="callout"><strong>Claim boundary:</strong> 100% describes this qualified 865-blob corpus and its sealed BTDU recovery path. It is not a claim that every damaged or incomplete system state is automatically recoverable.</div><div class="actions"><a class="button" href="index.html">Testing home</a><a class="button secondary" href="../developer/testing.html">Testing manual</a></div></main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>

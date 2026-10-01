@@ -2615,4 +2615,8 @@
 <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/rights-global-passport.html</loc></url>
 <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/offline-partition-conflict.html</loc></url>
 <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/market-orderbook-pending.html</loc></url>
-<url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/retention-legal-hold.html</loc></url><url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/confidential-provenance.html</loc></url><url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/standards-mapping.html</loc></url><url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/recovery-quorum.html</loc></url></urlset>
+<url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/retention-legal-hold.html</loc></url><url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/confidential-provenance.html</loc></url><url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/standards-mapping.html</loc></url><url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/recovery-quorum.html</loc></url>  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/testing/</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/testing/level3-storage.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/testing/installed-storage-matrix.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/testing/memnox-cold-recovery.html</loc></url>
+</urlset>

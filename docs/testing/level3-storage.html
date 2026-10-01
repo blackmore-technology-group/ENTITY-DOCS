@@ -1,0 +1,107 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reproduce the 97.14% Level-3 storage result - ENTITY Testing</title><meta name="description" content="Recorded ENTITY qualification testing with exact source, terminal output, evidence video and claim boundaries."><link rel="stylesheet" href="../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation..."></header><div id="results"></div><div class="layout"><nav><h3>ENTITY Testing</h3><a href="index.html">Testing home</a><a href="level3-storage.html">1 - Reproduce the 97.14% Level-3 storage result</a><a href="installed-storage-matrix.html">2 - Measure the installed ADAM storage matrix</a><a href="memnox-cold-recovery.html">3 - Cold recover 865/865 Memnox source blobs from sealed BTDU state</a><h3>Learning</h3><a href="../tutorials/code/">Code tutorials</a><a href="../developer/testing.html">Developer testing manual</a><a href="../evidence/">Evidence</a></nav><main><div class="eyebrow">ENTITY test 1  |  recorded</div><h1>Reproduce the 97.14% Level-3 storage result</h1><p class="lede">Generate 250 million compact bonds for 50 million entities, build the entity index, verify 1,000 sampled lookups and compare the measured 4.4 GB representation with a 768-dimension float32 vector baseline.</p><div class="callout"><strong>Recorded result:</strong> 250,000,000 bonds  |  50,000,000 entities  |  4.4 GB actual  |  153.6 GB vector baseline  |  97.1354167% reduction  |  PASS</div><h2>Watch the test</h2><video controls preload="metadata" style="width:100%;max-width:960px"><source src="videos/test-01-level3-storage.webm" type="video/webm">Your browser does not support embedded WebM video.</video><p>This VP8 WebM evidence replay is generated from the exact published test source and recorded terminal output below.</p><h2>Run it yourself</h2><pre>python examples/level3_storage_benchmark.py</pre><h2>Exact test source</h2><pre>from pathlib import Path
+import numpy as np, hashlib, json, time, ctypes, statistics
+from ctypes import wintypes
+OUT=Path(r&#x27;E:\ENTITY_ACTIVE\ENTITY_TESTING_20261001\runs\level3-storage&#x27;); OUT.mkdir(parents=True,exist_ok=True)
+BONDS=250_000_000; FANOUT=5; ENTITIES=BONDS//FANOUT; CHUNK=5_000_000; DT=np.dtype([(&#x27;source&#x27;,&#x27;&lt;u4&#x27;),(&#x27;predicate&#x27;,&#x27;&lt;u2&#x27;),(&#x27;flags&#x27;,&#x27;&lt;u2&#x27;),(&#x27;target&#x27;,&#x27;&lt;u8&#x27;)],align=False); REC=DT.itemsize
+bp=OUT/&#x27;bonds_250m.bin&#x27;; ip=OUT/&#x27;entity_index_50m.u64&#x27;; [p.unlink() for p in (bp,ip) if p.exists()]
+class PMC(ctypes.Structure): _fields_=[(&#x27;cb&#x27;,wintypes.DWORD),(&#x27;PageFaultCount&#x27;,wintypes.DWORD),(&#x27;PeakWorkingSetSize&#x27;,ctypes.c_size_t),(&#x27;WorkingSetSize&#x27;,ctypes.c_size_t),(&#x27;QuotaPeakPagedPoolUsage&#x27;,ctypes.c_size_t),(&#x27;QuotaPagedPoolUsage&#x27;,ctypes.c_size_t),(&#x27;QuotaPeakNonPagedPoolUsage&#x27;,ctypes.c_size_t),(&#x27;QuotaNonPagedPoolUsage&#x27;,ctypes.c_size_t),(&#x27;PagefileUsage&#x27;,ctypes.c_size_t),(&#x27;PeakPagefileUsage&#x27;,ctypes.c_size_t)]
+ps=ctypes.WinDLL(&#x27;psapi&#x27;,use_last_error=True); k=ctypes.WinDLL(&#x27;kernel32&#x27;,use_last_error=True); ps.GetProcessMemoryInfo.argtypes=[wintypes.HANDLE,ctypes.POINTER(PMC),wintypes.DWORD]; ps.GetProcessMemoryInfo.restype=wintypes.BOOL; k.GetCurrentProcess.restype=wintypes.HANDLE
+def mem():
+ x=PMC(); x.cb=ctypes.sizeof(PMC); ok=ps.GetProcessMemoryInfo(k.GetCurrentProcess(),ctypes.byref(x),x.cb)
+ if not ok: raise ctypes.WinError(ctypes.get_last_error())
+ return {&#x27;working_set&#x27;:x.WorkingSetSize,&#x27;peak_working_set&#x27;:x.PeakWorkingSetSize,&#x27;pagefile&#x27;:x.PagefileUsage,&#x27;peak_pagefile&#x27;:x.PeakPagefileUsage}
+start_mem=mem(); bh=hashlib.sha256(); t0=time.perf_counter()
+with open(bp,&#x27;wb&#x27;,buffering=8*1024*1024) as f:
+ for start in range(0,BONDS,CHUNK):
+  n=min(CHUNK,BONDS-start); ids=np.arange(start,start+n,dtype=np.uint64); a=np.empty(n,dtype=DT); a[&#x27;source&#x27;]=(ids//FANOUT).astype(np.uint32); a[&#x27;predicate&#x27;]=(ids%37).astype(np.uint16); a[&#x27;flags&#x27;]=1; a[&#x27;target&#x27;]=ids*np.uint64(6364136223846793005)+np.uint64(1442695040888963407); bh.update(a); a.tofile(f)
+write_sec=time.perf_counter()-t0; write_mem=mem(); ih=hashlib.sha256(); t1=time.perf_counter()
+with open(ip,&#x27;wb&#x27;,buffering=8*1024*1024) as f:
+ for start in range(0,ENTITIES,CHUNK):
+  n=min(CHUNK,ENTITIES-start); off=np.arange(start,start+n,dtype=np.uint64)*np.uint64(FANOUT*REC); ih.update(off); off.tofile(f)
+index_sec=time.perf_counter()-t1; bm=np.memmap(bp,dtype=DT,mode=&#x27;r&#x27;); im=np.memmap(ip,dtype=&#x27;&lt;u8&#x27;,mode=&#x27;r&#x27;); rng=np.random.default_rng(342); lat=[]; ok=True
+for s in rng.integers(0,ENTITIES,size=1000,dtype=np.int64):
+ q=time.perf_counter_ns(); rec0=int(im[int(s)])//REC; rows=bm[rec0:rec0+FANOUT]; _=int(rows[&#x27;target&#x27;][0]); lat.append((time.perf_counter_ns()-q)/1000); ok=ok and len(rows)==FANOUT and bool(np.all(rows[&#x27;source&#x27;]==s))
+query_mem=mem(); atomic=bp.stat().st_size+ip.stat().st_size; rag=ENTITIES*768*4; saving=1-atomic/rag; res={&#x27;qualification&#x27;:&#x27;ENTITY-v3.4.2 Atom Universe Level 3 scale corrected&#x27;,&#x27;actual&#x27;:{&#x27;bonds&#x27;:BONDS,&#x27;entities&#x27;:ENTITIES,&#x27;record_bytes&#x27;:REC,&#x27;bond_bytes&#x27;:bp.stat().st_size,&#x27;index_bytes&#x27;:ip.stat().st_size,&#x27;total_bytes&#x27;:atomic,&#x27;bond_sha256&#x27;:bh.hexdigest(),&#x27;index_sha256&#x27;:ih.hexdigest(),&#x27;write_seconds&#x27;:write_sec,&#x27;index_seconds&#x27;:index_sec,&#x27;write_MBps&#x27;:bp.stat().st_size/write_sec/1e6,&#x27;query_samples&#x27;:len(lat),&#x27;query_correct&#x27;:ok,&#x27;mean_query_us&#x27;:statistics.mean(lat),&#x27;median_query_us&#x27;:statistics.median(lat),&#x27;p95_query_us&#x27;:float(np.percentile(lat,95))},&#x27;memory&#x27;:{&#x27;start&#x27;:start_mem,&#x27;after_write&#x27;:write_mem,&#x27;after_queries&#x27;:query_mem},&#x27;rag_baseline&#x27;:{&#x27;dimension&#x27;:768,&#x27;float_bytes&#x27;:4,&#x27;vector_bytes&#x27;:rag,&#x27;atomic_vs_vectors_saving_fraction&#x27;:saving}}; res[&#x27;pass&#x27;]=bool(ok and BONDS&gt;=100_000_000 and saving&gt;=.90 and 0&lt;query_mem[&#x27;peak_working_set&#x27;]&lt;2_000_000_000); (OUT/&#x27;LEVEL3_SCALE_CORRECTED_RESULT.json&#x27;).write_text(json.dumps(res,indent=2,sort_keys=True)); print(json.dumps(res,indent=2))
+</pre><h2>Recorded output</h2><pre>{
+  &quot;qualification&quot;: &quot;ENTITY-v3.4.2 Atom Universe Level 3 scale corrected&quot;,
+  &quot;actual&quot;: {
+    &quot;bonds&quot;: 250000000,
+    &quot;entities&quot;: 50000000,
+    &quot;record_bytes&quot;: 16,
+    &quot;bond_bytes&quot;: 4000000000,
+    &quot;index_bytes&quot;: 400000000,
+    &quot;total_bytes&quot;: 4400000000,
+    &quot;bond_sha256&quot;: &quot;17403382dd33f2ae573d1c35f91584530de57e0e3c2a13b6d7b7a7094a2c2f9e&quot;,
+    &quot;index_sha256&quot;: &quot;c7aa7fa07ed15b597064b345dd2f925b4636a5d6c82dd79483f117b80e583e93&quot;,
+    &quot;write_seconds&quot;: 261.0570361999562,
+    &quot;index_seconds&quot;: 15.120423400076106,
+    &quot;write_MBps&quot;: 15.32232211866608,
+    &quot;query_samples&quot;: 1000,
+    &quot;query_correct&quot;: true,
+    &quot;mean_query_us&quot;: 14166.8641,
+    &quot;median_query_us&quot;: 11976.3,
+    &quot;p95_query_us&quot;: 41611.645
+  },
+  &quot;memory&quot;: {
+    &quot;start&quot;: {
+      &quot;working_set&quot;: 28450816,
+      &quot;peak_working_set&quot;: 28450816,
+      &quot;pagefile&quot;: 254279680,
+      &quot;peak_pagefile&quot;: 254279680
+    },
+    &quot;after_write&quot;: {
+      &quot;working_set&quot;: 135852032,
+      &quot;peak_working_set&quot;: 228581376,
+      &quot;pagefile&quot;: 374415360,
+      &quot;peak_pagefile&quot;: 463159296
+    },
+    &quot;after_queries&quot;: {
+      &quot;working_set&quot;: 190656512,
+      &quot;peak_working_set&quot;: 256786432,
+      &quot;pagefile&quot;: 425140224,
+      &quot;peak_pagefile&quot;: 503201792
+    }
+  },
+  &quot;rag_baseline&quot;: {
+    &quot;dimension&quot;: 768,
+    &quot;float_bytes&quot;: 4,
+    &quot;vector_bytes&quot;: 153600000000,
+    &quot;atomic_vs_vectors_saving_fraction&quot;: 0.9713541666666666
+  },
+  &quot;pass&quot;: true
+}
+</pre><h2>Historical requalification check</h2><p>The verifier compares the freshly regenerated bond and index SHA-256 values with the original historical Level-3 qualification artifacts.</p><pre>from pathlib import Path
+import json
+
+FRESH=Path(r&quot;E:\ENTITY_ACTIVE\ENTITY_TESTING_20261001\runs\level3-storage\LEVEL3_SCALE_CORRECTED_RESULT.json&quot;)
+HISTORICAL=Path(r&quot;E:\ADAM_ATOMIC_UNIVERSE_PROOF\LEVEL23_QUALIFICATION\level3_scale_corrected\LEVEL3_SCALE_CORRECTED_RESULT.json&quot;)
+fresh=json.loads(FRESH.read_text(encoding=&quot;utf-8&quot;))
+hist=json.loads(HISTORICAL.read_text(encoding=&quot;utf-8&quot;))
+a=fresh[&quot;actual&quot;]; h=hist[&quot;actual&quot;]; r=fresh[&quot;rag_baseline&quot;]
+assert fresh[&quot;pass&quot;] is True and a[&quot;query_correct&quot;] is True and a[&quot;query_samples&quot;] == 1000
+assert a[&quot;bonds&quot;] == 250_000_000 and a[&quot;entities&quot;] == 50_000_000
+assert a[&quot;total_bytes&quot;] == 4_400_000_000 and r[&quot;vector_bytes&quot;] == 153_600_000_000
+assert a[&quot;bond_sha256&quot;] == h[&quot;bond_sha256&quot;]
+assert a[&quot;index_sha256&quot;] == h[&quot;index_sha256&quot;]
+assert abs(r[&quot;atomic_vs_vectors_saving_fraction&quot;] - 0.9713541666666666) &lt; 1e-15
+print(&quot;STORAGE_REQUALIFICATION=PASS&quot;)
+print(f&quot;BONDS={a[&#x27;bonds&#x27;]}&quot;)
+print(f&quot;ENTITIES={a[&#x27;entities&#x27;]}&quot;)
+print(f&quot;BTDU_REPRESENTATION_BYTES={a[&#x27;total_bytes&#x27;]}&quot;)
+print(f&quot;RAG_768D_FLOAT32_BYTES={r[&#x27;vector_bytes&#x27;]}&quot;)
+print(f&quot;STORAGE_REDUCTION_PERCENT={100*r[&#x27;atomic_vs_vectors_saving_fraction&#x27;]:.10f}&quot;)
+print(f&quot;RETRIEVAL_SAMPLES_CORRECT={a[&#x27;query_samples&#x27;]}/{a[&#x27;query_samples&#x27;]}&quot;)
+print(&quot;BOND_SHA256_MATCH_HISTORICAL=PASS&quot;)
+print(&quot;INDEX_SHA256_MATCH_HISTORICAL=PASS&quot;)
+print(&quot;CLAIM_BOUNDARY=this is a controlled representation comparison, not universal compression&quot;)
+</pre><h2>Requalification output</h2><pre>STORAGE_REQUALIFICATION=PASS
+BONDS=250000000
+ENTITIES=50000000
+BTDU_REPRESENTATION_BYTES=4400000000
+RAG_768D_FLOAT32_BYTES=153600000000
+STORAGE_REDUCTION_PERCENT=97.1354166667
+RETRIEVAL_SAMPLES_CORRECT=1000/1000
+BOND_SHA256_MATCH_HISTORICAL=PASS
+INDEX_SHA256_MATCH_HISTORICAL=PASS
+CLAIM_BOUNDARY=this is a controlled representation comparison, not universal compression
+</pre><p><a href="results/level3_storage_result.json">Raw result JSON  -> </a></p><div class="callout"><strong>Claim boundary:</strong> This is a controlled representation benchmark against a 768-dimension float32 vector baseline. It is not a universal compression ratio, not a SQLite comparison and not a claim that every ENTITY workload uses this representation.</div><div class="actions"><a class="button" href="index.html">Testing home</a><a class="button secondary" href="../developer/testing.html">Testing manual</a></div></main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>

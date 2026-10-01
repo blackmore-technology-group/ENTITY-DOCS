@@ -1,0 +1,56 @@
+{
+  "docs_baseline_commit": "f18ac0c838c93718ec1664d00c3a05ebce72f18a",
+  "recorded_date": "2026-10-01",
+  "schema": "entity-recorded-testing-execution-v1",
+  "tests": [
+    {
+      "requalification_script": "examples/verify_level3_storage_result.py",
+      "requalification_script_sha256": "683D22C97CC5C5A5D6CB6417F2F2B56FC3215D47FDE7C25F4376757B33776AB5",
+      "requalification_transcript": "transcripts/level3_storage_verification.txt",
+      "requalification_transcript_sha256": "338B0765E430E5CA72BCC9FE00B35F16CC01F8D5C696EB86610947D93B6570E9",
+      "result": "level3_storage_result.json",
+      "result_sha256": "5F2DFF5C922F245EA7F9E2FD4609A266EF7E0BED06C3CA1E3DB363C006B9CEA2",
+      "script": "level3_storage_benchmark.py",
+      "script_sha256": "526D6EF3001547B28BF7AAD0F66AB3538EB751055AF71830634C4F2C5E9838B7",
+      "slug": "level3-storage",
+      "test": 1,
+      "transcript": "level3_storage_benchmark.txt",
+      "transcript_sha256": "4D8BAA6A410A76198D3F84A4A61EE3C9FA908AD27D180A394E65F1EEE23A3BB5",
+      "video": "videos/test-01-level3-storage.webm",
+      "video_bytes": 2318091,
+      "video_fps": 24.0,
+      "video_frames": 536,
+      "video_sha256": "87C228CFD932748FA53297DC07F547CA0D6B4E5487529E79B73E9534A96EB028"
+    },
+    {
+      "result": "installed_storage_matrix_result.json",
+      "result_sha256": "2156DCAA6DCFD7161FBBA119301D919162309C36E14532700358E94DF31F22C8",
+      "script": "storage_efficiency_test.py",
+      "script_sha256": "7565B2AC28341B80F5C1F30E21680E4299A8C59F2AA07326379197A3B868AA66",
+      "slug": "installed-storage-matrix",
+      "test": 2,
+      "transcript": "storage_efficiency_test.txt",
+      "transcript_sha256": "2561AEBE3E598499D4A0DCAE11EBB43D3C05B65C5BF5BA219D83EC38BE2556F4",
+      "video": "videos/test-02-installed-storage-matrix.webm",
+      "video_bytes": 1416698,
+      "video_fps": 24.0,
+      "video_frames": 412,
+      "video_sha256": "CBDE3F2F2DE4574691C5165D8B3983D5CF605A5689503CABBD8B95B35B47DE23"
+    },
+    {
+      "result": "memnox_cold_recovery_result.json",
+      "result_sha256": "D54958A383A68F96FEB08ADC710B2089D654B233B45703B673F747DA76103340",
+      "script": "memnox_cold_recovery_test.py",
+      "script_sha256": "FF26798C1CF4F726F93EDF93B0E92D39520D6BA3A7E71CEB28B1D5FD142FBE25",
+      "slug": "memnox-cold-recovery",
+      "test": 3,
+      "transcript": "memnox_cold_recovery_test.txt",
+      "transcript_sha256": "2E18680138A9EC977DFDBECCB154B59C5F73D5122607C9A0729911F0CF282B7B",
+      "video": "videos/test-03-memnox-cold-recovery.webm",
+      "video_bytes": 3260868,
+      "video_fps": 24.0,
+      "video_frames": 682,
+      "video_sha256": "687D7E3280AF604E825C14F7D6EE1EF07556592401FC33D288A2EB98B6AC736A"
+    }
+  ]
+}
