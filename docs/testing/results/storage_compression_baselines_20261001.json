@@ -1,0 +1,61 @@
+{
+  "claim_boundary": "Compares physical byte counts for the same generated 5,000-record datasets. gzip/bzip2/XZ are compressed canonical NDJSON blobs, while SQLite and ADAM are structured stores with different query/history semantics; byte comparisons do not imply feature equivalence.",
+  "pass": true,
+  "rows": [
+    {
+      "adam_factored_bytes": 258330,
+      "adam_factored_vs_bzip2_reduction_percent": -2235.0809002982915,
+      "adam_factored_vs_gzip_reduction_percent": -852.9659141212926,
+      "adam_factored_vs_sqlite_reduction_percent": 50.33949003444882,
+      "adam_factored_vs_xz_reduction_percent": -4803.7585421412305,
+      "adam_packed_bytes": 345432,
+      "bzip2_9_bytes": 11063,
+      "canonical_ndjson_bytes": 791336,
+      "exact_views": true,
+      "gzip9_bytes": 27108,
+      "mode": "repetitive",
+      "pass": true,
+      "records": 5000,
+      "restart_recovery": true,
+      "sqlite_bytes": 520192,
+      "xz_lzma9_bytes": 5268
+    },
+    {
+      "adam_factored_bytes": 385858,
+      "adam_factored_vs_bzip2_reduction_percent": -1189.373788678741,
+      "adam_factored_vs_gzip_reduction_percent": -660.9860960457548,
+      "adam_factored_vs_sqlite_reduction_percent": 3.87386399872449,
+      "adam_factored_vs_xz_reduction_percent": -946.2527114967462,
+      "adam_packed_bytes": 475496,
+      "bzip2_9_bytes": 29926,
+      "canonical_ndjson_bytes": 674195,
+      "exact_views": true,
+      "gzip9_bytes": 50705,
+      "mode": "mixed",
+      "pass": true,
+      "records": 5000,
+      "restart_recovery": true,
+      "sqlite_bytes": 401408,
+      "xz_lzma9_bytes": 36880
+    },
+    {
+      "adam_factored_bytes": 1469623,
+      "adam_factored_vs_bzip2_reduction_percent": -405.6854311472025,
+      "adam_factored_vs_gzip_reduction_percent": -320.36790196908504,
+      "adam_factored_vs_sqlite_reduction_percent": -82.1292780377538,
+      "adam_factored_vs_xz_reduction_percent": -427.8590721664296,
+      "adam_packed_bytes": 1569239,
+      "bzip2_9_bytes": 290620,
+      "canonical_ndjson_bytes": 1069667,
+      "exact_views": true,
+      "gzip9_bytes": 349604,
+      "mode": "unique",
+      "pass": true,
+      "records": 5000,
+      "restart_recovery": true,
+      "sqlite_bytes": 806912,
+      "xz_lzma9_bytes": 278412
+    }
+  ],
+  "scenario": "storage-conventional-compression-baselines"
+}

@@ -1,0 +1,44 @@
+{
+  "bytes": {
+    "adam_factored": 384539,
+    "canonical_ndjson": 674237,
+    "gzip9": 50710,
+    "sqlite": 401408,
+    "xz_lzma9": 37064
+  },
+  "claim_boundary": "Single-machine sequential microbenchmark on one 5,000-record mixed dataset. Compressed-archive lookup intentionally models whole-archive decompression without a separate index; other compressed/indexed formats may behave differently. Timings are illustrative, not production performance claims.",
+  "dataset": "mixed-5000",
+  "lookup_100": {
+    "adam_entity_view": {
+      "mean_us": 3020.743,
+      "median_us": 2954.05,
+      "p95_us": 3642.5
+    },
+    "gzip_full_decompress_then_line": {
+      "mean_us": 2481.901,
+      "median_us": 2216.3500000000004,
+      "p95_us": 2984.9
+    },
+    "sqlite": {
+      "mean_us": 266.28,
+      "median_us": 256.2,
+      "p95_us": 318.6
+    },
+    "xz_full_decompress_then_line": {
+      "mean_us": 4563.037,
+      "median_us": 4524.85,
+      "p95_us": 5279.2
+    }
+  },
+  "pass": true,
+  "scenario": "archive-vs-live-store-tradeoff",
+  "single_record_update": {
+    "adam_journal_append_bytes": 1112,
+    "adam_restart_verified": true,
+    "adam_update_us": 20153.0,
+    "gzip_recompress_us": 32620.9,
+    "gzip_recompressed_archive_bytes": 50765,
+    "xz_recompress_us": 166494.6,
+    "xz_recompressed_archive_bytes": 37104
+  }
+}
