@@ -1,0 +1,40 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Encrypt bytes and enforce one-use purpose access - ENTITY Code Tutorial</title><meta name="description" content="Store encrypted bytes, grant one bounded RESEARCH/READ use, consume it, then prove a second use fails closed."><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation..."></header><div id="results"></div><div class="layout"><nav><h3>Code tutorials</h3><a href="index.html">Code tutorial home</a><a href="identity-signing.html">1 - Create, verify and sign with an ENTITY identity</a><a href="authority-rights-provenance.html">2 - Exercise authority, rights and provenance</a><a href="portable-bundle-verification.html">3 - Export and verify a portable sovereign bundle</a><a href="evidence-trust-threshold.html">4 - Require two independent attestations</a><a href="btdu-cli.html">5 - Initialize BTDU and verify the ADAM dependency boundary</a><a href="vault-purpose-access.html">6 - Encrypt bytes and enforce one-use purpose access</a><a href="rights-global-passport.html">7 - Issue and verify rights and global passports</a><a href="offline-partition-conflict.html">8 - Detect a divergent offline partition conflict</a><a href="market-orderbook-pending.html">9 - Execute a rights trade without pretending payment occurred</a><h3>Learning</h3><a href="../index.html">Tutorial home</a><a href="../core/">Core curriculum</a><a href="../../recipes/">Developer recipes</a></nav><main><div class="eyebrow">Code tutorial 6 - tested</div><h1>Encrypt bytes and enforce one-use purpose access</h1><p class="lede">Store encrypted bytes, grant one bounded RESEARCH/READ use, consume it, then prove a second use fails closed.</p><div class="callout"><strong>Verified against:</strong> ENTITY main commit <code>5be325437a63c2efaee0dc3caaae9ab0cd0773d9</code>. The run uses disposable tutorial state only.</div><h2>Watch the tutorial</h2><video controls preload="metadata" style="width:100%;max-width:960px" src="videos/tutorial-06-vault-purpose-access.mp4">Your browser does not support embedded video.</video><p>This MP4 is a terminal replay built from the exact published source and recorded execution for tutorial 6. The full source and transcript remain available below for reproduction.</p><h2>Run it yourself</h2><pre>$env:ENTITY_ROOT="C:\path\to\ENTITY"
+python vault_purpose_access.py</pre><p><a href="examples/vault_purpose_access.py">Download/view the exact Python example</a> - <a href="transcripts/vault_purpose_access.txt">Recorded terminal transcript</a> - <a href="EXECUTION_RECORD_20261001.json">Execution record</a></p><h2>Exact source used</h2><pre>from pathlib import Path
+import importlib.util, hashlib, os, shutil, time
+ROOT=Path(os.environ.get(&quot;ENTITY_ROOT&quot;, Path.cwd())).resolve()
+STATE=ROOT/&quot;.tutorial-test-state&quot;/&quot;vault-purpose-access&quot;
+if STATE.exists(): shutil.rmtree(STATE)
+def load_source(path,name):
+    spec=importlib.util.spec_from_file_location(name,ROOT/path); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); return mod
+identity_mod=load_source(&quot;src/01_Core_Runtime/identity/canonical_identity.py&quot;,&quot;entity_identity&quot;)
+vault_mod=load_source(&quot;src/08_Data_Vaults/canonical_encrypted_vault.py&quot;,&quot;entity_vault&quot;)
+privacy_mod=load_source(&quot;src/35_Global_Infrastructure/privacy_provenance.py&quot;,&quot;entity_privacy&quot;)
+identity=identity_mod.EntityIdentityVault(STATE)
+owner=identity.create(&quot;Tutorial Owner&quot;,&quot;organization&quot;); reader=identity.create(&quot;Tutorial Reader&quot;,&quot;person&quot;)
+vault=vault_mod.EncryptedDataVault(STATE)
+item=vault.put_bytes(owner[&quot;entity_id&quot;],b&quot;confidential tutorial payload&quot;,media_type=&quot;text/plain&quot;,classification=&quot;PRIVATE&quot;)
+assert vault.read_bytes(owner[&quot;entity_id&quot;],item[&quot;vault_object_id&quot;]) == b&quot;confidential tutorial payload&quot;
+access=privacy_mod.PurposeBoundAccessRegistry(STATE,identity)
+grant=access.grant(owner[&quot;entity_id&quot;],reader[&quot;entity_id&quot;],item[&quot;vault_object_id&quot;],purposes=[&quot;RESEARCH&quot;],actions=[&quot;READ&quot;],expires_at_ms=int(time.time()*1000)+60000,max_uses=1)
+use_hash=hashlib.sha256(b&quot;tutorial-read-session&quot;).hexdigest(); use=access.authorize_use(grant[&quot;grant_id&quot;],reader[&quot;entity_id&quot;],&quot;RESEARCH&quot;,&quot;READ&quot;,use_hash)
+assert use[&quot;authorized&quot;] is True and use[&quot;remaining_uses&quot;] == 0
+second=&quot;NOT_BLOCKED&quot;
+try: access.authorize_use(grant[&quot;grant_id&quot;],reader[&quot;entity_id&quot;],&quot;RESEARCH&quot;,&quot;READ&quot;,use_hash)
+except PermissionError: second=&quot;BLOCKED&quot;
+assert second==&quot;BLOCKED&quot;
+print(f&quot;VAULT_OBJECT={item[&#x27;vault_object_id&#x27;]}&quot;); print(&quot;OWNER_READ=PASS&quot;); print(&quot;PURPOSE_BOUND_READ=PASS&quot;); print(&quot;SECOND_USE=BLOCKED&quot;); print(&quot;CLAIM_BOUNDARY=encrypted custody and bounded access do not establish ownership&quot;)
+</pre><h2>Recorded successful run</h2><pre>ENTITY source commit: 5be325437a63c2efaee0dc3caaae9ab0cd0773d9
+Recorded on: 2026-09-30 (America/Vancouver)
+Command:
+  $env:ENTITY_ROOT=&#x27;E:\ENTITY_ACTIVE\ENTITY_TUTORIAL_TEST&#x27;
+  E:\ENTITY_ACTIVE\PYTHON311_EMBED\python.exe vault_purpose_access.py
+
+Output:
+VAULT_OBJECT=vobj1-74a05f86789fa0ed8412e41748b36e24c5fa375d
+OWNER_READ=PASS
+PURPOSE_BOUND_READ=PASS
+SECOND_USE=BLOCKED
+CLAIM_BOUNDARY=encrypted custody and bounded access do not establish ownership
+
+Note: generated identifiers and hashes may differ on each run while the documented invariants must remain the same.
+</pre><h2>What this demonstrates</h2><ul><li>Encrypted bytes can be recovered by the owner.</li><li>The bounded purpose/action grant authorizes exactly one use.</li><li>A second use is rejected after the use cap is exhausted.</li></ul><div class="callout"><strong>Claim boundary:</strong> Encrypted custody and a purpose-bound access grant do not establish ownership of the subject.</div><div class="actions"><a class="button" href="index.html">Code tutorial home</a><a class="button secondary" href="../core/">Core curriculum</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>

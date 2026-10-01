@@ -1,0 +1,14 @@
+ENTITY source commit: 5be325437a63c2efaee0dc3caaae9ab0cd0773d9
+Recorded on: 2026-09-30 (America/Vancouver)
+Command:
+  $env:ENTITY_ROOT='E:\ENTITY_ACTIVE\ENTITY_TUTORIAL_TEST'
+  E:\ENTITY_ACTIVE\PYTHON311_EMBED\python.exe vault_purpose_access.py
+
+Output:
+VAULT_OBJECT=vobj1-74a05f86789fa0ed8412e41748b36e24c5fa375d
+OWNER_READ=PASS
+PURPOSE_BOUND_READ=PASS
+SECOND_USE=BLOCKED
+CLAIM_BOUNDARY=encrypted custody and bounded access do not establish ownership
+
+Note: generated identifiers and hashes may differ on each run while the documented invariants must remain the same.
