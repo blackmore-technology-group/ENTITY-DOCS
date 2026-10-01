@@ -1,0 +1,15 @@
+﻿ENTITY source commit: 5be325437a63c2efaee0dc3caaae9ab0cd0773d9
+Recorded on: 2026-09-30 (America/Vancouver)
+Command:
+  $env:ENTITY_ROOT='E:\ENTITY_ACTIVE\ENTITY_TUTORIAL_TEST'
+  E:\ENTITY_ACTIVE\PYTHON311_EMBED\python.exe evidence_trust_threshold.py
+
+Output:
+SUBJECT=obj3-1b9c8ad995428eae8d41eba4466a0c3ca2e595df
+ONE_ATTESTATION_POLICY=NOT_SATISFIED
+TWO_ATTESTATION_POLICY=SATISFIED
+VALID_ATTESTATIONS=2
+TRUTH_INFERRED=FALSE
+CLAIM_BOUNDARY=policy satisfaction evaluates evidence, not objective truth
+
+Note: generated identifiers and hashes may differ on each run while the documented invariants must remain the same.

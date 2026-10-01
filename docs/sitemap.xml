@@ -2603,4 +2603,10 @@
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/security/security-reporting.html</loc></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/security/signing-keys.html</loc></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/versions/index.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/identity-signing.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/authority-rights-provenance.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/portable-bundle-verification.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/evidence-trust-threshold.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/tutorials/code/btdu-cli.html</loc></url>
 </urlset>

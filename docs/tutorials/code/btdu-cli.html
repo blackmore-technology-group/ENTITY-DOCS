@@ -1,0 +1,53 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Initialize BTDU and verify the ADAM dependency boundary - ENTITY Code Tutorial</title><meta name="description" content="BTDU CLI initialization and fail-closed ADAM source verification"><link rel="stylesheet" href="../../assets/style.css"></head><body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation?"></header><div id="results"></div><div class="layout"><nav><h3>Code tutorials</h3><a href="index.html">Code tutorial home</a><a href="identity-signing.html">1 - Create, verify and sign with an ENTITY identity</a><a href="authority-rights-provenance.html">2 - Exercise authority, rights and provenance</a><a href="portable-bundle-verification.html">3 - Export and verify a portable sovereign bundle</a><a href="evidence-trust-threshold.html">4 - Require two independent attestations</a><a href="btdu-cli.html">5 - Initialize BTDU and verify the ADAM dependency boundary</a><h3>Learning</h3><a href="../index.html">Tutorial home</a><a href="../core/">Core curriculum</a><a href="../../recipes/">Developer recipes</a></nav><main><div class="eyebrow">Code tutorial 5 - tested</div><h1>Initialize BTDU and verify the ADAM dependency boundary</h1><p class="lede">Btdu cli initialization and fail-closed adam source verification. Verified against ENTITY main commit <code>5be325437a63c2efaee0dc3caaae9ab0cd0773d9</code> using disposable tutorial state.</p><p><a href="examples/btdu_bootstrap.py">Download/view the exact source</a> - <a href="transcripts/btdu_cli.txt">Open the recorded transcript</a> - <a href="EXECUTION_RECORD_20261001.json">Execution record</a></p><h2>Run it</h2><pre>python examples/btdu_bootstrap.py
+# then run tools/entity_btdu_cli.py init/status using the generated ent2 ID and verified ADAM source root</pre><h2>Exact source used</h2><pre>from pathlib import Path
+import importlib.util
+import shutil
+
+ROOT = Path(__file__).resolve().parent
+STATE = ROOT / ".tutorial-btdu" / "entity"
+if STATE.exists():
+    shutil.rmtree(STATE)
+
+def load_source(relative_path: str, module_name: str):
+    spec = importlib.util.spec_from_file_location(module_name, ROOT / relative_path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+identity_mod = load_source(
+    "src/01_Core_Runtime/identity/canonical_identity.py", "entity_identity"
+)
+vault = identity_mod.EntityIdentityVault(STATE)
+manifest = vault.create(
+    display_name="BTDU Tutorial Owner",
+    entity_type="organization",
+    aliases=["btdu-tutorial-owner"],
+    metadata={"purpose": "disposable BTDU tutorial"},
+)
+assert identity_mod.EntityIdentityVault.verify_manifest(manifest)
+print(manifest["entity_id"])
+</pre><h2>Recorded run</h2><pre>ENTITY source commit: 5be325437a63c2efaee0dc3caaae9ab0cd0773d9
+Recorded on: 2026-09-30 (America/Vancouver)
+Command sequence:
+  python examples/btdu_bootstrap.py
+  python tools/entity_btdu_cli.py --entity-state .tutorial-btdu/entity --btdu-state .tutorial-btdu/btdu --adam-root PATH_TO_VERIFIED_ADAM_V1_ROOT --owner-entity-id GENERATED_ENT2_ID --git-bin git init
+  python tools/entity_btdu_cli.py --entity-state .tutorial-btdu/entity --btdu-state .tutorial-btdu/btdu --adam-root PATH_TO_VERIFIED_ADAM_V1_ROOT --owner-entity-id GENERATED_ENT2_ID --git-bin git status
+
+Recorded status summary:
+BTDU_STATUS=PASS
+BTDU_VERSION=3.4.2
+ATOMIC_RUNTIME=PASS
+AUTHORITY_ROOT=ENTITY
+EXECUTOR_STATE_ENGINE=ADAM
+SOVEREIGN_ENTITY_ID=ent2-xbxnzay6mliebrj3yh7zpn7hjiogu3mj6d7r5wuvcylhgvlhwg7a
+OBJECTS=0
+PROBLEMS=
+
+Dependency negative control:
+  --adam-root src/11_ADAM/full_runtime
+Result:
+  FileNotFoundError: Full ADAM v1.0 source is required. Set ENTITY_ADAM_V1_ROOT to the verified ADAM_v1_0_COMPLETE_SOFTWARE_REFERENCE_RC2 source root.
+
+After using a verified source root containing adam_v1/runtime.py, init and status both passed.
+Claim boundary: tutorial PASS does not satisfy the ADAM software reference's unresolved external certification gates.</pre><div class="callout"><strong>Verified ADAM prerequisite:</strong> <code>--adam-root</code> must point to the verified ADAM v1.0 source root containing <code>adam_v1/runtime.py</code>. ENTITY's <code>src/11_ADAM/full_runtime</code> is an integration layer and correctly fails the dependency guard when used as the source root.</div><h2>Qualification boundary</h2><p>The recorded ADAM runtime identifies itself as <code>ADAM v1.0 Complete Software Reference / External Certification Required</code>. This tutorial does not convert unresolved external gates into completed certification.</p><div class="actions"><a class="button" href="index.html">Code tutorial home</a><a class="button secondary" href="../core/">Core curriculum</a></div></main></div><script>window.B="../../";</script><script src="../../assets/app.js"></script></body></html>

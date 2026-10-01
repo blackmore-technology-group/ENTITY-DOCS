@@ -1,0 +1,14 @@
+﻿ENTITY source commit: 5be325437a63c2efaee0dc3caaae9ab0cd0773d9
+Recorded on: 2026-09-30 (America/Vancouver)
+Command:
+  $env:ENTITY_ROOT='E:\ENTITY_ACTIVE\ENTITY_TUTORIAL_TEST'
+  E:\ENTITY_ACTIVE\PYTHON311_EMBED\python.exe identity_signing.py
+
+Output:
+ENTITY_ID=ent2-lzyx7673zwyufqsmlqqcrgoapijln53bojr6f2ybt5s6p4u7jffq
+MANIFEST_VERIFIED=PASS
+PAYLOAD_SIGNATURE=PASS
+KEY_ROTATION_CONTINUITY=PASS
+CLAIM_BOUNDARY=signature proves key control, not truth or ownership
+
+Note: generated identifiers and hashes may differ on each run while the documented invariants must remain the same.
