@@ -204,6 +204,23 @@
       "video_fps": 24.0,
       "video_frames": 258,
       "video_sha256": "CD07A0E4B5435550E38FDF3BBD2E660CE2A3DCABBD386C65248497C5048F7DAB"
+    },
+    {
+      "release": "v3.4.3",
+      "result": "v343_canonical_status_result.json",
+      "result_sha256": "542794D681A26978ABAEC8319F941623354AC3C0B6E16A4A744F7C9103176CAB",
+      "script": "run_v343_canonical_status.ps1",
+      "script_sha256": "441E071B5DC0C6107CA87AF582A8C3FDC8681B81A0F5CC983768F02D1CC5E60A",
+      "slug": "v343-canonical-status",
+      "source_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+      "test": 13,
+      "transcript": "v343_canonical_status.txt",
+      "transcript_sha256": "9681A1E96A1B27BFE0A1D4DB380EABF824BECC55B5A6399C5815D5B9B1348B5D",
+      "video": "videos/test-13-v343-canonical-status.webm",
+      "video_bytes": 687289,
+      "video_fps": 24.0,
+      "video_frames": 258,
+      "video_sha256": "4A3738C70B08EF018A7F164AD3567085483288BDF805F75E47DE2B11338DCA2A"
     }
   ]
 }
