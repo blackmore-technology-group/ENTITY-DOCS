@@ -1,0 +1,89 @@
+{
+  "schema": "entity-docs-transcript-replay-video-record-v1",
+  "generated_at_utc": "2026-10-01T02:49:34.104589+00:00",
+  "generation_mode": "DETERMINISTIC_TRANSCRIPT_REPLAY",
+  "render": "1280x720 5fps H.264 MP4 + VP9 WebM",
+  "tutorials": [
+    {
+      "tutorial": 1,
+      "slug": "identity-signing",
+      "transcript": "transcripts/identity_signing.txt",
+      "transcript_sha256": "4AA4594B45E06D86760870586F4AE1C3822C9B742E36AA9C2E64A488160F6D3A",
+      "mp4": {
+        "path": "docs/tutorials/code/videos/tutorial-01-identity-signing.mp4",
+        "bytes": 79210,
+        "sha256": "081494A33FC9D2DB9714A701DED4055CD50BCC2566EA952105CB325951789E2E"
+      },
+      "webm": {
+        "path": "docs/tutorials/code/videos/tutorial-01-identity-signing.webm",
+        "bytes": 75163,
+        "sha256": "A02EFFAE5EBFDBE53863F53F5AAD1496673680AAD2C0FC594F20B52050AB88B8"
+      }
+    },
+    {
+      "tutorial": 2,
+      "slug": "authority-rights-provenance",
+      "transcript": "transcripts/authority_rights_provenance.txt",
+      "transcript_sha256": "89010BA2DE11983FCF646B34BDC714C0235D8F882064684B76AD4A4BAEBA1CB1",
+      "mp4": {
+        "path": "docs/tutorials/code/videos/tutorial-02-authority-rights-provenance.mp4",
+        "bytes": 102682,
+        "sha256": "E7A67ED41FB1955F2BEA1DB7B935BF1D0AE30118D00E31117B414CD8F3D6801B"
+      },
+      "webm": {
+        "path": "docs/tutorials/code/videos/tutorial-02-authority-rights-provenance.webm",
+        "bytes": 96320,
+        "sha256": "D8803AE538E97DFA194782D2BCC9AFFF72FBCE351DB040A36F77FF356D3E5E6B"
+      }
+    },
+    {
+      "tutorial": 3,
+      "slug": "portable-bundle-verification",
+      "transcript": "transcripts/portable_bundle_verification.txt",
+      "transcript_sha256": "3ACC171DAF7EB13749EDA33D72228CA14B47E308528D0E6BA8F3E23D096D3C48",
+      "mp4": {
+        "path": "docs/tutorials/code/videos/tutorial-03-portable-bundle-verification.mp4",
+        "bytes": 90342,
+        "sha256": "ABE0D98B7A07150BEEF335B47C5C85ACFB4D5CC0F64D122B2DF5E9B64F79A5CB"
+      },
+      "webm": {
+        "path": "docs/tutorials/code/videos/tutorial-03-portable-bundle-verification.webm",
+        "bytes": 88823,
+        "sha256": "B97E265F2316744FDF27C4AA3CC91CE2006AA3C8B3D241D866217202D199B31B"
+      }
+    },
+    {
+      "tutorial": 4,
+      "slug": "evidence-trust-threshold",
+      "transcript": "transcripts/evidence_trust_threshold.txt",
+      "transcript_sha256": "14F9C074E9EE885D0CE97042E84E510482A3AB9F112B1D1342ADFEECADD55B41",
+      "mp4": {
+        "path": "docs/tutorials/code/videos/tutorial-04-evidence-trust-threshold.mp4",
+        "bytes": 81093,
+        "sha256": "A66DF58A868CB7404D01F9FBAB6A3BA60C16D973E0F70C7EE2FE987DA86947F3"
+      },
+      "webm": {
+        "path": "docs/tutorials/code/videos/tutorial-04-evidence-trust-threshold.webm",
+        "bytes": 79339,
+        "sha256": "E3AE9607B38D68D376DC241369E523C2196B39A4E028450C0A0AFDF80E25A8C9"
+      }
+    },
+    {
+      "tutorial": 5,
+      "slug": "btdu-cli",
+      "transcript": "transcripts/btdu_cli.txt",
+      "transcript_sha256": "1E1BE9F837C6F9BCFD21F448C01DEAA87830D0013FC90B12057117CDD284263D",
+      "mp4": {
+        "path": "docs/tutorials/code/videos/tutorial-05-btdu-cli.mp4",
+        "bytes": 468721,
+        "sha256": "90DDB1F9F286CDB38EF7C2F694DEFEFEBF184E9C0FA2514486695B596452560B"
+      },
+      "webm": {
+        "path": "docs/tutorials/code/videos/tutorial-05-btdu-cli.webm",
+        "bytes": 216785,
+        "sha256": "F8C16BBD26688095DDA545D3FB4F8DB4A3289537DEC46143951D8253F2D75E71"
+      }
+    }
+  ],
+  "claim_boundary": "These videos replay recorded tutorial transcripts; they are not claimed as original live screen captures."
+}
