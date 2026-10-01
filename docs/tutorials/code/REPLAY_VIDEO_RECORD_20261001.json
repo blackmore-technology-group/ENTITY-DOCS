@@ -1,6 +1,6 @@
 {
   "schema": "entity-docs-transcript-replay-video-record-v1",
-  "generated_at_utc": "2026-10-01T02:49:34.104589+00:00",
+  "generated_at_utc": "2026-10-01T02:54:48.831287+00:00",
   "generation_mode": "DETERMINISTIC_TRANSCRIPT_REPLAY",
   "render": "1280x720 5fps H.264 MP4 + VP9 WebM",
   "tutorials": [
@@ -11,13 +11,13 @@
       "transcript_sha256": "4AA4594B45E06D86760870586F4AE1C3822C9B742E36AA9C2E64A488160F6D3A",
       "mp4": {
         "path": "docs/tutorials/code/videos/tutorial-01-identity-signing.mp4",
-        "bytes": 79210,
-        "sha256": "081494A33FC9D2DB9714A701DED4055CD50BCC2566EA952105CB325951789E2E"
+        "bytes": 79082,
+        "sha256": "561E3684388BAC6E2468B941B9571C942EB386B077252937B2B48DA615ACA555"
       },
       "webm": {
         "path": "docs/tutorials/code/videos/tutorial-01-identity-signing.webm",
-        "bytes": 75163,
-        "sha256": "A02EFFAE5EBFDBE53863F53F5AAD1496673680AAD2C0FC594F20B52050AB88B8"
+        "bytes": 75729,
+        "sha256": "BB116368A82CE91A2209B61CBF9E458161B24B8C6813DB08CECF4E06D2092FBF"
       }
     },
     {
@@ -27,13 +27,13 @@
       "transcript_sha256": "89010BA2DE11983FCF646B34BDC714C0235D8F882064684B76AD4A4BAEBA1CB1",
       "mp4": {
         "path": "docs/tutorials/code/videos/tutorial-02-authority-rights-provenance.mp4",
-        "bytes": 102682,
-        "sha256": "E7A67ED41FB1955F2BEA1DB7B935BF1D0AE30118D00E31117B414CD8F3D6801B"
+        "bytes": 102613,
+        "sha256": "1805D7C4D707C77F847B2EA32186DD4FAFEEED211664E0ED43B867EA29F1F6F9"
       },
       "webm": {
         "path": "docs/tutorials/code/videos/tutorial-02-authority-rights-provenance.webm",
-        "bytes": 96320,
-        "sha256": "D8803AE538E97DFA194782D2BCC9AFFF72FBCE351DB040A36F77FF356D3E5E6B"
+        "bytes": 96620,
+        "sha256": "11A92657EFEC1392447D542D6F443D72B808E58C8112D5BEE7A488978599F60E"
       }
     },
     {
@@ -43,13 +43,13 @@
       "transcript_sha256": "3ACC171DAF7EB13749EDA33D72228CA14B47E308528D0E6BA8F3E23D096D3C48",
       "mp4": {
         "path": "docs/tutorials/code/videos/tutorial-03-portable-bundle-verification.mp4",
-        "bytes": 90342,
-        "sha256": "ABE0D98B7A07150BEEF335B47C5C85ACFB4D5CC0F64D122B2DF5E9B64F79A5CB"
+        "bytes": 90291,
+        "sha256": "7970B4CC1A091D10B8512362026CA15D7071E6B44F659C1B0F94B8FBF2B4A244"
       },
       "webm": {
         "path": "docs/tutorials/code/videos/tutorial-03-portable-bundle-verification.webm",
-        "bytes": 88823,
-        "sha256": "B97E265F2316744FDF27C4AA3CC91CE2006AA3C8B3D241D866217202D199B31B"
+        "bytes": 88510,
+        "sha256": "C4DEC0AE0DD5FDE453048FEA079D304AA26F0C8A07D38E193A5BAB9CCE399CB9"
       }
     },
     {
@@ -59,13 +59,13 @@
       "transcript_sha256": "14F9C074E9EE885D0CE97042E84E510482A3AB9F112B1D1342ADFEECADD55B41",
       "mp4": {
         "path": "docs/tutorials/code/videos/tutorial-04-evidence-trust-threshold.mp4",
-        "bytes": 81093,
-        "sha256": "A66DF58A868CB7404D01F9FBAB6A3BA60C16D973E0F70C7EE2FE987DA86947F3"
+        "bytes": 81039,
+        "sha256": "2B80C16E0643EC9700F7447E49A38E690CDD4CFE7E851673F8B9555EE4B5BA41"
       },
       "webm": {
         "path": "docs/tutorials/code/videos/tutorial-04-evidence-trust-threshold.webm",
-        "bytes": 79339,
-        "sha256": "E3AE9607B38D68D376DC241369E523C2196B39A4E028450C0A0AFDF80E25A8C9"
+        "bytes": 79108,
+        "sha256": "6426C547C7C5FDFD323F94EA73F8468486E06A4F8889919579AA69D1B83F0178"
       }
     },
     {
@@ -75,13 +75,13 @@
       "transcript_sha256": "1E1BE9F837C6F9BCFD21F448C01DEAA87830D0013FC90B12057117CDD284263D",
       "mp4": {
         "path": "docs/tutorials/code/videos/tutorial-05-btdu-cli.mp4",
-        "bytes": 468721,
-        "sha256": "90DDB1F9F286CDB38EF7C2F694DEFEFEBF184E9C0FA2514486695B596452560B"
+        "bytes": 502006,
+        "sha256": "96DA62671DBFCC168527A3C7B14B08C8B18DA0935FF006F4B9D898AC225DA303"
       },
       "webm": {
         "path": "docs/tutorials/code/videos/tutorial-05-btdu-cli.webm",
-        "bytes": 216785,
-        "sha256": "F8C16BBD26688095DDA545D3FB4F8DB4A3289537DEC46143951D8253F2D75E71"
+        "bytes": 225230,
+        "sha256": "1C524B337F379499A6566B9216096AFB9CCF8878900915FC396EC39226C9B828"
       }
     }
   ],
