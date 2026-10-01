@@ -1,5 +1,5 @@
 {
-  "commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+  "commit": "33eb9bd53870126a84c9c5529183faa5d0289a45",
   "duration_seconds": 42.8,
   "exit_code": 0,
   "passed": 56,
@@ -7,5 +7,11 @@
   "schema": "entity-test-result-v1",
   "status": "PASS",
   "subtests_passed": 27,
-  "test": 8
+  "test": 8,
+  "source_commit": "33eb9bd53870126a84c9c5529183faa5d0289a45",
+  "base_release": "v3.4.3",
+  "base_release_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+  "remediation_pr": 115,
+  "transcript": "transcripts/v343_main_economic_fabric.txt",
+  "transcript_sha256": "CBBFAA32E91D2BD18998F6FDB957A3FA764D1E532B920976EF273D4652840222"
 }

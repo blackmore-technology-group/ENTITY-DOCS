@@ -1,0 +1,27 @@
+{
+  "schema": "entity-testing-closeout-v1",
+  "recorded_date": "2026-10-01",
+  "base_release": "v3.4.3",
+  "base_release_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+  "windows_lifecycle_remediation_pr": 115,
+  "qualified_main_commit": "33eb9bd53870126a84c9c5529183faa5d0289a45",
+  "merged_main_full_suite": {
+    "passed": 281,
+    "subtests_passed": 27,
+    "skipped": 0,
+    "exit_code": 0,
+    "source_clean_after": true
+  },
+  "merged_main_security_suite": {
+    "passed": 180,
+    "exit_code": 0,
+    "source_clean_after": true
+  },
+  "pristine_tag_python310": {
+    "passed": 275,
+    "subtests_passed": 27,
+    "skipped": 5,
+    "exit_code": 0
+  },
+  "status": "PASS_WITH_EXPLICIT_SOURCE_BOUNDARIES"
+}
