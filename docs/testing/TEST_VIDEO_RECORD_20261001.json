@@ -121,6 +121,16 @@
       "slug": "v343-adoption-global-origin",
       "test": 12,
       "video": "videos/test-12-v343-adoption-global-origin.webm"
+    },
+    {
+      "bytes": 687289,
+      "codec": "VP80",
+      "fps": 24.0,
+      "frames": 258,
+      "sha256": "4A3738C70B08EF018A7F164AD3567085483288BDF805F75E47DE2B11338DCA2A",
+      "slug": "v343-canonical-status",
+      "test": 13,
+      "video": "videos/test-13-v343-canonical-status.webm"
     }
   ]
 }
