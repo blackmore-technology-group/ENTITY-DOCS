@@ -1,15 +1,21 @@
 {
   "commit": "528b70aabd05b1e930b77e4933f157731e47274f",
-  "duration_seconds": 37.05,
+  "duration_seconds": 143.15,
   "exit_code": 0,
   "modules": [
-    "test_v3_crypto_assurance.py",
     "test_repository_safety.py",
-    "test_portable_export_scope.py",
+    "test_v3_crypto_assurance.py",
+    "test_v3_btdu.py",
     "test_v3_hardening_exchange.py",
-    "test_v3_market_recovery.py"
+    "test_v3_market_recovery.py",
+    "test_v3_global_infrastructure.py",
+    "test_v3_global_passports.py",
+    "test_v3_data_economic_sovereignty.py",
+    "test_v343_issue28_regressions.py",
+    "test_v3_exchange_convergence.py"
   ],
-  "passed": 29,
+  "passed": 180,
+  "python": "3.11.9",
   "release": "v3.4.3",
   "schema": "entity-test-result-v1",
   "status": "PASS",

@@ -1,2 +1,10 @@
-.............................                                            [100%]
-29 passed in 37.05s
+PIN_COMMIT=528b70aabd05b1e930b77e4933f157731e47274f
+PIN_TAG=v3.4.3
+PYTHON=Python 3.11.9
+COLLECTED_SCOPE=10 security-boundary modules / 180 collected tests
+COMMAND=E:\ENTITY_ACTIVE\PYTHON311_EMBED\python.exe E:\ENTITY_ACTIVE\ENTITY_TESTING_20261001\runs\v343-runtime-regression\run_security_boundary.py
+........................................................................ [ 40%]
+........................................................................ [ 80%]
+....................................                                     [100%]
+180 passed in 143.15s (0:02:23)
+PYTEST_EXIT=0
