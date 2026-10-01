@@ -104,6 +104,7 @@ The active 30-day wall-clock qualification was not modified by v3.4.3.
 
 ## Start here
 
+- **Independent Node Program:** https://github.com/blackmore-technology-group/ENTITY/tree/main/independent-node
 - **Documentation portal:** https://blackmore-technology-group.github.io/ENTITY-DOCS/
 - **Canonical capability map:** https://blackmore-technology-group.github.io/ENTITY-DOCS/reference/capability-map.html
 - **Machine-readable capability map:** https://blackmore-technology-group.github.io/ENTITY-DOCS/reference/capability-map.json
