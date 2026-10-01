@@ -19,6 +19,7 @@ const GUIDE_INDEX=[
   {title:'Standards & Industry Adoption',section:'Tutorials · Core',url:'tutorials/core/standards-adoption.html',text:'ODRL W3C VC DID GAIA-X IDS FHIR DICOM ISO20022 FIX OPC-UA NIST AI RMF ROS2'},
   {title:'ENTITY Real-World Engineering Case Studies',section:'Tutorials - Case Studies',url:'tutorials/case-studies/',text:'external engineering reproducible terminal records upstream pull requests ENTITY lineage'},
   {title:'PyCUBRID #367 Timeout Validation',section:'Tutorials - Case Studies',url:'tutorials/case-studies/pycubrid-367.html',text:'timeout validation resource acquisition sync async regression PR 576'},
+  {title:'Yomihon #848 Contract Truthfulness',section:'Tutorials - Case Studies',url:'tutorials/case-studies/yomihon-848.html',text:'frontmatter canonical contract schema bilingual status truthfulness red regression mutation PR 852 replacement cost lineage'},
   {title:'ENTITY Code Tutorials',section:'Tutorials - Code',url:'tutorials/code/',text:'runnable tested Python examples recorded command transcripts negative controls'},
   {title:'Identity & Signing Code Tutorial',section:'Tutorials - Code',url:'tutorials/code/identity-signing.html',text:'ent2 manifest verify sign rotate key continuity'},
   {title:'Authority Rights Provenance Code Tutorial',section:'Tutorials - Code',url:'tutorials/code/authority-rights-provenance.html',text:'authority rights negative controls provenance deterministic distribution'},

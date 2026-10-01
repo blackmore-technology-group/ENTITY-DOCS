@@ -1,0 +1,18 @@
+{
+  "schema": "entity-docs-case-study-video-publication-v1",
+  "campaign": "yomihon-848",
+  "generation_mode": "POST_FINALIZATION_REPRODUCIBLE_REPLAY",
+  "mp4": {
+    "path": "docs/tutorials/case-studies/videos/yomihon-848-replay.mp4",
+    "bytes": 1589022,
+    "sha256": "520DB9A253B7D9817614FA74483C78D826D2DFC34569CFC2B0C1180B4FEE0E63"
+  },
+  "webm": {
+    "path": "docs/tutorials/case-studies/videos/yomihon-848-replay.webm",
+    "bytes": 439377,
+    "sha256": "01A79445B4674A84681D7325BAAB1FA982BD07E0700B3D219C87D8C0D06632C0"
+  },
+  "claim_boundary": "This replay is derived from sealed command/output evidence and is not the original live campaign capture.",
+  "source_evidence_transcript_sha256": "C0CA53576A09ECD685E8B2718AD2457E38665622A90FB509456397D99910A0C0",
+  "sanitized_render_transcript_sha256": "3998E3A92E0005118DE75455D124058C04079B68EE58BD15FCF6609735906511"
+}
