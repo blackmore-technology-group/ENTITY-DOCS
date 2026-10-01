@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-01T17:52:16.705664Z",
+  "generated_at_utc": "2026-10-01T18:29:15.544656Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -13,8 +13,8 @@
     "release_records": 13,
     "recent_external_prs": 14,
     "entity_evidence_records": 2,
-    "retained_previous_activity_items": 141,
-    "activity_items": 143
+    "retained_previous_activity_items": 143,
+    "activity_items": 147
   },
   "repositories": [
     {
@@ -28,8 +28,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-01T17:33:44Z",
-      "pushed_at": "2026-10-01T17:33:40Z"
+      "updated_at": "2026-10-01T18:26:07Z",
+      "pushed_at": "2026-10-01T18:26:03Z"
     },
     {
       "name": "ENTITY",
@@ -495,6 +495,58 @@
     }
   ],
   "items": [
+    {
+      "id": "pr-event:16217617386",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T18:26:02Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #72:",
+      "summary": "GitHub PR event: merged",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "MERGED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:16217595367",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T18:25:46Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #72:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:16216985108",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T18:17:43Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #71:",
+      "summary": "GitHub PR event: merged",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "MERGED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:16216953966",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-01T18:17:18Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #71:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
     {
       "id": "pr-event:16213658969",
       "type": "PULL_REQUEST",
