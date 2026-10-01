@@ -2619,4 +2619,7 @@
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/testing/level3-storage.html</loc></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/testing/installed-storage-matrix.html</loc></url>
   <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/testing/memnox-cold-recovery.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/testing/v343-full-regression.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/testing/v343-issue28-regression.html</loc></url>
+  <url><loc>https://blackmore-technology-group.github.io/ENTITY-DOCS/testing/v343-security-fail-closed.html</loc></url>
 </urlset>
