@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-02T03:51:42.466792Z",
+  "generated_at_utc": "2026-10-02T04:51:43.196589Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -14,7 +14,7 @@
     "recent_external_prs": 14,
     "entity_evidence_records": 2,
     "retained_previous_activity_items": 165,
-    "activity_items": 165
+    "activity_items": 168
   },
   "repositories": [
     {
@@ -28,8 +28,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-02T03:25:31Z",
-      "pushed_at": "2026-10-02T03:25:28Z"
+      "updated_at": "2026-10-02T04:25:08Z",
+      "pushed_at": "2026-10-02T04:25:04Z"
     },
     {
       "name": "ENTITY",
@@ -496,6 +496,32 @@
   ],
   "items": [
     {
+      "id": "pr-event:16249905774",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-02T04:25:04Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #76:",
+      "summary": "GitHub PR event: merged",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "MERGED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:16249886977",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-02T04:24:41Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #76:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
       "id": "pr-event:16240074489",
       "type": "PULL_REQUEST",
       "occurred_at": "2026-10-02T00:31:22Z",
@@ -738,6 +764,19 @@
       "repository": "blackmore-technology-group/ENTITY-DOCS",
       "url": null,
       "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:22756821645",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-01T17:32:58Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS: created branch docs/storage-tradeoffs-20261001",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "status": "CREATED",
       "source": "GITHUB_PUBLIC_EVENT",
       "entity_ingested": false,
       "entity_state": null
