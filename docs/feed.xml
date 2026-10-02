@@ -5,13 +5,20 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-02T08:07:14Z</updated>
+  <updated>2026-10-02T11:29:03Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
   <entry>
     <title>OWASP/cve-lite-cli PR #1258: chore(cli): use flag constants in validation conflicts</title>
     <link href="https://github.com/OWASP/cve-lite-cli/pull/1258"/>
     <id>urn:btg-github-news:external-pr:OWASP/cve-lite-cli:1258</id>
-    <updated>2026-10-02T08:07:14Z</updated>
+    <updated>2026-10-02T11:29:03Z</updated>
+    <summary>BTG-authored upstream pull request</summary>
+  </entry>
+  <entry>
+    <title>aws/aws-durable-execution-sdk-js PR #935: fix: export synthetic execution root in fallback traces</title>
+    <link href="https://github.com/aws/aws-durable-execution-sdk-js/pull/935"/>
+    <id>urn:btg-github-news:external-pr:aws/aws-durable-execution-sdk-js:935</id>
+    <updated>2026-10-02T11:26:27Z</updated>
     <summary>BTG-authored upstream pull request</summary>
   </entry>
   <entry>
@@ -351,6 +358,13 @@
     <summary>Public GitHub creation event</summary>
   </entry>
   <entry>
+    <title>blackmore-technology-group/ENTITY: created branch growth/developer-funnel-20260930</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:22785076180</id>
+    <updated>2026-09-30T23:38:33Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
     <title>blackmore-technology-group/blackmore-technology-group: created branch growth/developer-funnel-profile-20260930</title>
     <link href="https://github.com/blackmore-technology-group/blackmore-technology-group"/>
     <id>urn:btg-github-news:create:22663934202</id>
@@ -383,13 +397,6 @@
     <link href="https://github.com/2AMLogic/gf180-surge/pull/251"/>
     <id>urn:btg-github-news:external-pr:2AMLogic/gf180-surge:251</id>
     <updated>2026-09-30T21:07:44Z</updated>
-    <summary>BTG-authored upstream pull request</summary>
-  </entry>
-  <entry>
-    <title>aws/aws-durable-execution-sdk-js PR #935: fix: export synthetic execution root in fallback traces</title>
-    <link href="https://github.com/aws/aws-durable-execution-sdk-js/pull/935"/>
-    <id>urn:btg-github-news:external-pr:aws/aws-durable-execution-sdk-js:935</id>
-    <updated>2026-09-30T18:17:01Z</updated>
     <summary>BTG-authored upstream pull request</summary>
   </entry>
   <entry>
