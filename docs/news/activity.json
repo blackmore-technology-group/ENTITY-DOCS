@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-02T21:50:46.864265Z",
+  "generated_at_utc": "2026-10-02T22:22:59.426373Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -13,10 +13,24 @@
     "release_records": 13,
     "recent_external_prs": 15,
     "entity_evidence_records": 2,
-    "retained_previous_activity_items": 197,
+    "retained_previous_activity_items": 199,
     "activity_items": 199
   },
   "repositories": [
+    {
+      "name": "ENTITY-DOCS",
+      "full_name": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "description": "Complete operator, developer, protocol, economic, security and generated reference documentation for ENTITY v3.4.0.",
+      "fork": false,
+      "upstream": null,
+      "archived": false,
+      "default_branch": "main",
+      "language": "Python",
+      "created_at": "2026-09-25T14:57:27Z",
+      "updated_at": "2026-10-02T21:51:28Z",
+      "pushed_at": "2026-10-02T21:51:24Z"
+    },
     {
       "name": "ENTITY",
       "full_name": "blackmore-technology-group/ENTITY",
@@ -30,20 +44,6 @@
       "created_at": "2026-09-18T00:20:03Z",
       "updated_at": "2026-10-02T21:49:07Z",
       "pushed_at": "2026-10-02T21:49:05Z"
-    },
-    {
-      "name": "ENTITY-DOCS",
-      "full_name": "blackmore-technology-group/ENTITY-DOCS",
-      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
-      "description": "Complete operator, developer, protocol, economic, security and generated reference documentation for ENTITY v3.4.0.",
-      "fork": false,
-      "upstream": null,
-      "archived": false,
-      "default_branch": "main",
-      "language": "Python",
-      "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-02T21:23:55Z",
-      "pushed_at": "2026-10-02T21:23:51Z"
     },
     {
       "name": "aws-durable-execution-sdk-js",
