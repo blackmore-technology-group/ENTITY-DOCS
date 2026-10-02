@@ -43,6 +43,7 @@
     "economy":"docs/economy/index.html",
     "developer_hub":"docs/build/index.html",
     "developer_manual":"docs/developer/index.html",
+    "testing":"docs/testing/index.html",
     "evidence":"docs/evidence/index.html",
     "runtime_semantics":"docs/protocol/index.html",
     "operator":"docs/operator/index.html",
