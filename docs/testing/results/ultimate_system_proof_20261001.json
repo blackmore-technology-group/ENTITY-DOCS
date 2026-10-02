@@ -1,0 +1,170 @@
+{
+  "auction_trade_ids": [
+    "trade3-87997d35529dbf87ce00a187",
+    "trade3-7f9273c79f6745ed6b5e34de"
+  ],
+  "claim_boundary": "Controlled end-to-end qualification using synthetic economic amounts. It proves protocol mechanics, explicit rights, signed market execution, RFQ/EOPP integration, derived provenance, attributable economic records, fail-closed controls, logical export and destructive recovery. It does not prove external demand, actual cash settlement, fair market value, legal enforceability, liquidity, or independent multi-operator adoption.",
+  "derived_object_id": "obj3-bbce4c0601e3b427622c57f2220f689fb58508dd",
+  "explicit_economic_obligations_cad_units": {
+    "derived_a": 3500,
+    "derived_b": 1500,
+    "primary": 2000,
+    "rfq_secondary_royalty": 65,
+    "service_receivable": 250
+  },
+  "isolated_state_sqlite_bytes": 667648,
+  "pass": true,
+  "primary_trade_id": "trade3-59a17bd34fcf051f6b563b8f",
+  "real_cash_revenue_proven": false,
+  "real_market_demand_proven": false,
+  "recovery_bundle_semantic_sha256": "2dcc089604cf80d210e5b5ca261a9275510e307b14587c98b9fe7b53179f009c",
+  "rfq_trade_id": "trade3-f4f933c86e2dd84e42a91cfc",
+  "runtime_release": "v3.4.3",
+  "scenario_count": 13,
+  "scenarios": [
+    {
+      "gate": "01_identity_fabric_online",
+      "metrics": {
+        "entities": 11,
+        "runtime": "v3.4.3"
+      },
+      "pass": true
+    },
+    {
+      "gate": "02_data_rights_created",
+      "metrics": {
+        "rights": [
+          "right3-ed724d61bb2b7be806e634329acec2a790110e80",
+          "right3-6810e562b5ccd8eafa2bd6e4ff620bb67c316ad3"
+        ],
+        "source_dcos": [
+          "obj3-68ef6e68facf1c82b3755e94565729204e99a9a0",
+          "obj3-5916d538e06f8bb82f9541d18fa8b613882d9938"
+        ]
+      },
+      "pass": true
+    },
+    {
+      "gate": "03_market_issued",
+      "metrics": {
+        "currency": "CAD",
+        "instrument": "inst3-11de50c72b35182eb27b4571",
+        "reserve_units": 100,
+        "venue": "venue3-43467ca4307097911ed4b491"
+      },
+      "pass": true
+    },
+    {
+      "gate": "04_order_book_value",
+      "metrics": {
+        "gross_cad": 10000,
+        "trade": "trade3-59a17bd34fcf051f6b563b8f",
+        "treasury_participation_cad": 2000
+      },
+      "pass": true
+    },
+    {
+      "gate": "05_fixed_rfq_eopp_end_to_end",
+      "metrics": {
+        "gross_cad": 3250,
+        "secondary_royalty_cad": 65,
+        "signed_source_bound": true,
+        "trade": "trade3-f4f933c86e2dd84e42a91cfc"
+      },
+      "pass": true
+    },
+    {
+      "gate": "06_call_auction_price_discovery",
+      "metrics": {
+        "clearing_price": 800,
+        "executed_volume": 30,
+        "profile": "reference",
+        "trades": 2
+      },
+      "pass": true
+    },
+    {
+      "gate": "07_authorized_derived_output",
+      "metrics": {
+        "authorized_use_events": [
+          "evt3-24ea7bddb239df7e88433ba0eec80e07dbccea10",
+          "evt3-f4a0da364b4f0f7792b9757a41540845c1acfd1b"
+        ],
+        "derived_object": "obj3-bbce4c0601e3b427622c57f2220f689fb58508dd",
+        "weights_bps": {
+          "A": 7000,
+          "B": 3000
+        }
+      },
+      "pass": true
+    },
+    {
+      "gate": "08_value_accumulates_through_derivation",
+      "metrics": {
+        "source_a_obligation": 3500,
+        "source_b_obligation": 1500,
+        "synthetic_derived_gross_cad": 50000,
+        "value_record": "value3-6778e2c7c0173c7698c550532d56de9ce088abb0"
+      },
+      "pass": true
+    },
+    {
+      "gate": "09_contributors_accumulate",
+      "metrics": {
+        "contributor_a": 3312,
+        "contributor_b": 1987,
+        "originator_trade_distribution": 7950
+      },
+      "pass": true
+    },
+    {
+      "gate": "10_fail_closed_integrity",
+      "metrics": {
+        "currency": true,
+        "duplicate": true,
+        "oversell": true,
+        "provenance_cycle": true,
+        "tampered_signature": true,
+        "unauthorized_settlement": true
+      },
+      "pass": true
+    },
+    {
+      "gate": "11_provider_independent_bundle",
+      "metrics": {
+        "semantic_sha256": "2dcc089604cf80d210e5b5ca261a9275510e307b14587c98b9fe7b53179f009c",
+        "tamper_rejected": true,
+        "verified": true
+      },
+      "pass": true
+    },
+    {
+      "gate": "12_destroy_and_recover_market",
+      "metrics": {
+        "atomic_restore": true,
+        "economic_state_sha256": "3ab9f16dbea291902f2550f4d84ab4296bef39dc78ca20de0c78e2af0e585c39",
+        "exchange_state_sha256": "030e634bf4208291bb3fd0c9e116b29073c8e84e9316a2edfe31784e4c548d91",
+        "rfq_signed_source_restored": true
+      },
+      "pass": true
+    },
+    {
+      "gate": "13_installed_runtime_and_portal",
+      "metrics": {
+        "merged_fix_hash_match": true,
+        "portal_http_status": 200,
+        "rfq_schema_installed": true
+      },
+      "pass": true
+    }
+  ],
+  "schema": "entity-v343-ultimate-system-proof-v1",
+  "source_dcos": [
+    "obj3-68ef6e68facf1c82b3755e94565729204e99a9a0",
+    "obj3-5916d538e06f8bb82f9541d18fa8b613882d9938"
+  ],
+  "synthetic_derived_gross_cad_units": 50000,
+  "synthetic_only": true,
+  "synthetic_primary_gross_cad_units": 10000,
+  "synthetic_rfq_secondary_gross_cad_units": 3250
+}

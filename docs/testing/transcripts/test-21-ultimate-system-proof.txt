@@ -1,0 +1,17 @@
+GATE_PASS 01_identity_fabric_online {"entities": 11, "runtime": "v3.4.3"}
+GATE_PASS 02_data_rights_created {"rights": ["right3-ed724d61bb2b7be806e634329acec2a790110e80", "right3-6810e562b5ccd8eafa2bd6e4ff620bb67c316ad3"], "source_dcos": ["obj3-68ef6e68facf1c82b3755e94565729204e99a9a0", "obj3-5916d538e06f8bb82f9541d18fa8b613882d9938"]}
+GATE_PASS 03_market_issued {"currency": "CAD", "instrument": "inst3-11de50c72b35182eb27b4571", "reserve_units": 100, "venue": "venue3-43467ca4307097911ed4b491"}
+GATE_PASS 04_order_book_value {"gross_cad": 10000, "trade": "trade3-59a17bd34fcf051f6b563b8f", "treasury_participation_cad": 2000}
+GATE_PASS 05_fixed_rfq_eopp_end_to_end {"gross_cad": 3250, "secondary_royalty_cad": 65, "signed_source_bound": true, "trade": "trade3-f4f933c86e2dd84e42a91cfc"}
+GATE_PASS 06_call_auction_price_discovery {"clearing_price": 800, "executed_volume": 30, "profile": "reference", "trades": 2}
+GATE_PASS 07_authorized_derived_output {"authorized_use_events": ["evt3-24ea7bddb239df7e88433ba0eec80e07dbccea10", "evt3-f4a0da364b4f0f7792b9757a41540845c1acfd1b"], "derived_object": "obj3-bbce4c0601e3b427622c57f2220f689fb58508dd", "weights_bps": {"A": 7000, "B": 3000}}
+GATE_PASS 08_value_accumulates_through_derivation {"source_a_obligation": 3500, "source_b_obligation": 1500, "synthetic_derived_gross_cad": 50000, "value_record": "value3-6778e2c7c0173c7698c550532d56de9ce088abb0"}
+GATE_PASS 09_contributors_accumulate {"contributor_a": 3312, "contributor_b": 1987, "originator_trade_distribution": 7950}
+GATE_PASS 10_fail_closed_integrity {"currency": true, "duplicate": true, "oversell": true, "provenance_cycle": true, "tampered_signature": true, "unauthorized_settlement": true}
+GATE_PASS 11_provider_independent_bundle {"semantic_sha256": "2dcc089604cf80d210e5b5ca261a9275510e307b14587c98b9fe7b53179f009c", "tamper_rejected": true, "verified": true}
+GATE_PASS 12_destroy_and_recover_market {"atomic_restore": true, "economic_state_sha256": "3ab9f16dbea291902f2550f4d84ab4296bef39dc78ca20de0c78e2af0e585c39", "exchange_state_sha256": "030e634bf4208291bb3fd0c9e116b29073c8e84e9316a2edfe31784e4c548d91", "rfq_signed_source_restored": true}
+GATE_PASS 13_installed_runtime_and_portal {"merged_fix_hash_match": true, "portal_http_status": 200, "rfq_schema_installed": true}
+ULTIMATE_SYSTEM_PROOF_PASS 13 GATES
+RESULT E:\ENTITY_ACTIVE\ENTITY_ULTIMATE_TEST_20261001\ULTIMATE_SYSTEM_PROOF_RESULT.json
+CLAIM_BOUNDARY Controlled end-to-end qualification using synthetic economic amounts. It proves protocol mechanics, explicit rights, signed market execution, RFQ/EOPP integration, derived provenance, attributable economic records, fail-closed controls, logical export and destructive recovery. It does not prove external demand, actual cash settlement, fair market value, legal enforceability, liquidity, or independent multi-operator adoption.
+CHILD_EXIT=0
