@@ -5,8 +5,22 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-02T11:29:03Z</updated>
+  <updated>2026-10-02T14:23:31Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>blackmore-technology-group/mcp-gateway: created branch proof/2505-red</title>
+    <link href="https://github.com/blackmore-technology-group/mcp-gateway"/>
+    <id>urn:btg-github-news:create:22797866140</id>
+    <updated>2026-10-02T14:23:31Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
+    <title>blackmore-technology-group/mcp-gateway: created branch fix/2505-set-state-session-binding</title>
+    <link href="https://github.com/blackmore-technology-group/mcp-gateway"/>
+    <id>urn:btg-github-news:create:22797162275</id>
+    <updated>2026-10-02T14:14:30Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
   <entry>
     <title>OWASP/cve-lite-cli PR #1258: chore(cli): use flag constants in validation conflicts</title>
     <link href="https://github.com/OWASP/cve-lite-cli/pull/1258"/>
