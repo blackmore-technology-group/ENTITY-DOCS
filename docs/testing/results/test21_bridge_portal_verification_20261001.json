@@ -1,0 +1,16 @@
+{
+  "schema": "entity-v343-blackmore-bridge-portal-verification-v1",
+  "verified_at_utc": "2026-10-02T00:20:10.577Z",
+  "portal": "https://blackmore-tech.floot.app",
+  "bridge_status": "ONLINE",
+  "runtime_version": "v3.4.3",
+  "last_error": null,
+  "mirrored_dcos": 9,
+  "mirrored_instruments": 9,
+  "mirrored_trades": 0,
+  "mirrored_value_events": 3616,
+  "mirrored_lineage_nodes": 3637,
+  "mirrored_lineage_edges": 3374,
+  "production_market_isolation": "No synthetic Test 21 trades were inserted into production. The portal mirror reflects current production state.",
+  "claim_boundary": "This record verifies bridge and portal mirror state at the stated time; it is not a guarantee of future availability."
+}

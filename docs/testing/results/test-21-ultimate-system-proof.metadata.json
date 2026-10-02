@@ -1,0 +1,14 @@
+{
+  "child_exit": 0,
+  "codec": "VP80",
+  "elapsed_seconds": 4.014,
+  "fps": 4,
+  "frames": 68,
+  "height": 900,
+  "runner": "E:\\ENTITY_ACTIVE\\ENTITY_ULTIMATE_TEST_20261001\\ultimate_system_proof.py",
+  "schema": "entity-test-video-metadata-v1",
+  "test": 21,
+  "video_bytes": 1023709,
+  "video_sha256": "1f15c0cb399ae656955c2dee8c06f6136c6189c6a54704990dc4f44666485f89",
+  "width": 1600
+}
