@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-02T16:24:40.214027Z",
+  "generated_at_utc": "2026-10-02T16:52:12.229346Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -13,7 +13,7 @@
     "release_records": 13,
     "recent_external_prs": 15,
     "entity_evidence_records": 2,
-    "retained_previous_activity_items": 194,
+    "retained_previous_activity_items": 195,
     "activity_items": 195
   },
   "repositories": [
@@ -29,7 +29,7 @@
       "language": null,
       "created_at": "2026-10-01T13:37:51Z",
       "updated_at": "2026-10-01T13:37:51Z",
-      "pushed_at": "2026-10-02T16:13:33Z"
+      "pushed_at": "2026-10-02T16:34:28Z"
     },
     {
       "name": "ENTITY-DOCS",
@@ -42,8 +42,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-02T15:54:17Z",
-      "pushed_at": "2026-10-02T15:54:13Z"
+      "updated_at": "2026-10-02T16:25:08Z",
+      "pushed_at": "2026-10-02T16:25:05Z"
     },
     {
       "name": "ENTITY",
@@ -498,7 +498,7 @@
     {
       "id": "external-pr:MikkoParkkola/mcp-gateway:2670",
       "type": "EXTERNAL_FIX",
-      "occurred_at": "2026-10-02T16:13:35Z",
+      "occurred_at": "2026-10-02T16:40:31Z",
       "title": "MikkoParkkola/mcp-gateway PR #2670: fix(meta): bind gateway_set_state retries to session",
       "summary": "BTG-authored upstream pull request",
       "repository": "MikkoParkkola/mcp-gateway",
