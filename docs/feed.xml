@@ -5,8 +5,43 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-03T04:46:25Z</updated>
+  <updated>2026-10-03T05:25:00Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>blackmore-technology-group/ENTITY: created branch evidence/industrial-robotics-dco-20261002</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:22856557221</id>
+    <updated>2026-10-03T05:25:00Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
+    <title>blackmore-technology-group/ENTITY-DOCS: created branch feat/entity-wallet-economy-20261002</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
+    <id>urn:btg-github-news:create:22856204935</id>
+    <updated>2026-10-03T05:18:33Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
+    <title>blackmore-technology-group/ENTITY: created branch feature/v3.4.3-wallet-deployment</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:22856119528</id>
+    <updated>2026-10-03T05:16:59Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
+    <title>blackmore-technology-group/ENTITY: created branch feat/v3.4.3-entity-wallet-20261002</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:22855807556</id>
+    <updated>2026-10-03T05:11:17Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
+    <title>blackmore-technology-group/BTG-AI-0001-BARC released v1.0.0</title>
+    <link href="https://github.com/blackmore-technology-group/BTG-AI-0001-BARC/releases/tag/v1.0.0"/>
+    <id>urn:btg-github-news:release:blackmore-technology-group/BTG-AI-0001-BARC:402334006</id>
+    <updated>2026-10-03T04:55:20Z</updated>
+    <summary>BARC v1.0.0</summary>
+  </entry>
   <entry>
     <title>blackmore-technology-group/BTG-AI-0001-BARC: created branch main</title>
     <link href="https://github.com/blackmore-technology-group/BTG-AI-0001-BARC"/>
@@ -671,12 +706,5 @@
     <id>urn:btg-github-news:release:blackmore-technology-group/ENTITY:391143537</id>
     <updated>2026-09-18T00:46:48Z</updated>
     <summary>v1.0.0-rc2.1 — HISTORICAL / UNSUPPORTED</summary>
-  </entry>
-  <entry>
-    <title>blackmore-technology-group/ENTITY released v1.0.0-rc2</title>
-    <link href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v1.0.0-rc2"/>
-    <id>urn:btg-github-news:release:blackmore-technology-group/ENTITY:391142108</id>
-    <updated>2026-09-18T00:41:55Z</updated>
-    <summary>v1.0.0-rc2 — HISTORICAL / UNSUPPORTED</summary>
   </entry>
 </feed>
