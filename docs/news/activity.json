@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-03T14:49:26.065657Z",
+  "generated_at_utc": "2026-10-03T19:02:29.213722Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -13,8 +13,8 @@
     "release_records": 14,
     "recent_external_prs": 15,
     "entity_evidence_records": 2,
-    "retained_previous_activity_items": 245,
-    "activity_items": 249
+    "retained_previous_activity_items": 249,
+    "activity_items": 251
   },
   "repositories": [
     {
@@ -29,7 +29,7 @@
       "language": "Python",
       "created_at": "2026-09-18T00:20:03Z",
       "updated_at": "2026-10-03T06:34:27Z",
-      "pushed_at": "2026-10-03T14:48:32Z"
+      "pushed_at": "2026-10-03T18:08:53Z"
     },
     {
       "name": "ENTITY-DOCS",
@@ -42,8 +42,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-03T11:07:51Z",
-      "pushed_at": "2026-10-03T11:07:48Z"
+      "updated_at": "2026-10-03T14:49:54Z",
+      "pushed_at": "2026-10-03T14:49:50Z"
     },
     {
       "name": "BTG-AI-0001-BARC",
@@ -876,6 +876,19 @@
       "entity_state": null
     },
     {
+      "id": "create:22904712570",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-03T05:26:23Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS: created branch docs/industrial-robotics-dco-20261002",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
       "id": "pr-event:16327490580",
       "type": "PULL_REQUEST",
       "occurred_at": "2026-10-03T05:26:04Z",
@@ -1036,6 +1049,19 @@
       "type": "REPOSITORY_EVENT",
       "occurred_at": "2026-10-03T05:11:17Z",
       "title": "blackmore-technology-group/ENTITY: created branch feat/v3.4.3-entity-wallet-20261002",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:22898406011",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-03T05:10:36Z",
+      "title": "blackmore-technology-group/ENTITY: created branch feature/v3.4.3-entity-wallet",
       "summary": "Public GitHub creation event",
       "repository": "blackmore-technology-group/ENTITY",
       "url": "https://github.com/blackmore-technology-group/ENTITY",
