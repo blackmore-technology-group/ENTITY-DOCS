@@ -1,22 +1,36 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-03T04:25:06.673526Z",
+  "generated_at_utc": "2026-10-03T04:50:57.318844Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
   "editorial_boundary": "Engineering/activity ledger, not marketing copy. Source state controls status.",
   "history_retention": "Previously observed public activity is append-retained from the first automated sync; current repository, release and pull-request state is refreshed from GitHub on every run.",
   "stats": {
-    "public_repositories": 34,
-    "original_public_repositories": 18,
+    "public_repositories": 35,
+    "original_public_repositories": 19,
     "public_forks": 16,
     "release_records": 13,
     "recent_external_prs": 15,
     "entity_evidence_records": 2,
     "retained_previous_activity_items": 202,
-    "activity_items": 202
+    "activity_items": 204
   },
   "repositories": [
+    {
+      "name": "BTG-AI-0001-BARC",
+      "full_name": "blackmore-technology-group/BTG-AI-0001-BARC",
+      "url": "https://github.com/blackmore-technology-group/BTG-AI-0001-BARC",
+      "description": "Blackmore Adaptive Replay Controller - adaptive stability-plasticity replay for reinforcement and continual learning",
+      "fork": false,
+      "upstream": null,
+      "archived": false,
+      "default_branch": "main",
+      "language": "Python",
+      "created_at": "2026-10-03T04:45:36Z",
+      "updated_at": "2026-10-03T04:50:20Z",
+      "pushed_at": "2026-10-03T04:50:19Z"
+    },
     {
       "name": "ENTITY-DOCS",
       "full_name": "blackmore-technology-group/ENTITY-DOCS",
@@ -28,8 +42,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-03T03:59:43Z",
-      "pushed_at": "2026-10-03T03:59:39Z"
+      "updated_at": "2026-10-03T04:25:34Z",
+      "pushed_at": "2026-10-03T04:25:30Z"
     },
     {
       "name": "ENTITY",
@@ -495,6 +509,19 @@
     }
   ],
   "items": [
+    {
+      "id": "create:22854443264",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-03T04:46:25Z",
+      "title": "blackmore-technology-group/BTG-AI-0001-BARC: created branch main",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/BTG-AI-0001-BARC",
+      "url": "https://github.com/blackmore-technology-group/BTG-AI-0001-BARC",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
     {
       "id": "external-pr:cubrid-lab/pycubrid:576",
       "type": "EXTERNAL_FIX",
@@ -1476,6 +1503,19 @@
       "repository": "blackmore-technology-group/ENTITY-DOCS",
       "url": null,
       "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:22853910497",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-01T14:18:14Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS: created branch fix/direct-node-download",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "status": "CREATED",
       "source": "GITHUB_PUBLIC_EVENT",
       "entity_ingested": false,
       "entity_state": null

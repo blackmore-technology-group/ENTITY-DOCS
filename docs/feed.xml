@@ -5,8 +5,15 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-03T01:27:47Z</updated>
+  <updated>2026-10-03T04:46:25Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>blackmore-technology-group/BTG-AI-0001-BARC: created branch main</title>
+    <link href="https://github.com/blackmore-technology-group/BTG-AI-0001-BARC"/>
+    <id>urn:btg-github-news:create:22854443264</id>
+    <updated>2026-10-03T04:46:25Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
   <entry>
     <title>cubrid-lab/pycubrid PR #576: fix: validate timeouts before socket creation</title>
     <link href="https://github.com/cubrid-lab/pycubrid/pull/576"/>
@@ -166,6 +173,13 @@
     <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
     <id>urn:btg-github-news:create:22699073621</id>
     <updated>2026-10-01T14:27:16Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
+    <title>blackmore-technology-group/ENTITY-DOCS: created branch fix/direct-node-download</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
+    <id>urn:btg-github-news:create:22853910497</id>
+    <updated>2026-10-01T14:18:14Z</updated>
     <summary>Public GitHub creation event</summary>
   </entry>
   <entry>
