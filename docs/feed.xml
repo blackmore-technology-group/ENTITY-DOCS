@@ -211,6 +211,13 @@
     <summary>Public GitHub creation event</summary>
   </entry>
   <entry>
+    <title>blackmore-technology-group/ENTITY-DOCS: created branch docs/storage-scenarios-20261001</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
+    <id>urn:btg-github-news:create:22867879026</id>
+    <updated>2026-10-01T17:03:01Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
     <title>blackmore-technology-group/ENTITY-DOCS: created branch docs/storage-proof-20261001</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
     <id>urn:btg-github-news:create:22709287153</id>
@@ -699,12 +706,5 @@
     <id>urn:btg-github-news:release:blackmore-technology-group/ENTITY:395732055</id>
     <updated>2026-09-24T13:41:48Z</updated>
     <summary>v3.2.0 — SUPERSEDED / UNSUPPORTED</summary>
-  </entry>
-  <entry>
-    <title>blackmore-technology-group/ENTITY released v3.1.0</title>
-    <link href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.1.0"/>
-    <id>urn:btg-github-news:release:blackmore-technology-group/ENTITY:395321137</id>
-    <updated>2026-09-24T04:22:27Z</updated>
-    <summary>v3.1.0 — SUPERSEDED / UNSUPPORTED</summary>
   </entry>
 </feed>
