@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DCO Factory · 10,000-DCO Operating Model · ENTITY</title>
+<meta name="description" content="ENTITY v3.4.3 DCO Factory application layer: reusable Standard, Advanced and Strategic DCO templates, Master Economic Records, duplicate/version protection, scarcity classes and a 10,000-DCO design target.">
+<link rel="stylesheet" href="../assets/style.css"></head>
+<body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div>
+<div class="layout"><nav><h3>Economy</h3><a href="index.html">← Economic Architecture</a><a href="wallet.html">Economic Wallet</a><a href="industrial-robotics-dco.html">Industrial Robotics DCO</a><a href="market-fabric.html">Market Fabric</a>
+<h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/src/43_DCO_Factory/canonical_dco_factory.py">DCO Factory source</a><a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/templates/dco/BTG_STRATEGIC_AI_ROBOTICS_01.json">Strategic robotics template</a></nav>
+<main><div class="eyebrow">ENTITY v3.4.3 · industrial issuance application layer</div><h1>DCO Factory</h1>
+<p class="lede">The DCO Factory is the operating layer for creating thousands of economically distinct, provenance-backed DCOs without manually designing every contract. It standardizes commercial profiles, scarcity rules, duplicate/version checks and one Master Economic Record per DCO while leaving canonical identity, rights, exchange, treasury and wallet state in the existing ENTITY runtime.</p>
+<div class="callout"><strong>First full-scale design target:</strong> 10,000 qualified DCOs and roughly 50,000–80,000 physical economic instruments, with balances, entitlements, trades and usage created only as real activity occurs.</div>
+
+<h2>Three standardized commercial profiles</h2>
+<div class="grid"><div class="card"><h3>Standard DCO</h3><p>3–5 product archetypes for smaller algorithms, datasets and software components.</p></div><div class="card"><h3>Advanced DCO</h3><p>6–8 product archetypes for commercial assets that need distinct training, compute, enterprise, derivative or OEM rights.</p></div><div class="card"><h3>Strategic DCO</h3><p>9–12 product archetypes for major AI, robotics and high-value information assets.</p></div></div>
+
+<h2>Factory flow</h2><div class="flow">INGEST → CLASSIFY → VERIFY → DCO CREATION → RIGHTS PROFILE → INSTRUMENT PLAN → TREASURY POLICY → SIGNING → QUALIFICATION → ISSUANCE → MARKET</div>
+
+<h2>Master Economic Record</h2>
+<p>Every DCO receives one management record covering identity, family, source hash, provenance, version, economic profile, instrument set, supply, treasury reserves, market state, economic state and lifecycle. It is an application index over canonical ENTITY state, not a second ledger.</p>
+
+<h2>Duplicate and version protection</h2>
+<div class="flow">SOURCE HASH + PROVENANCE + SEMANTIC FINGERPRINT + VERSION RELATIONSHIP + DERIVATIVE RELATIONSHIP + EXISTING-DCO LOOKUP</div>
+<p>The factory distinguishes a new DCO from a new version, a derivative and a duplicate instead of multiplying copies of the same underlying asset.</p>
+
+<h2>Scarcity classes</h2>
+<table><tr><th>Class</th><th>Policy</th></tr>
+<tr><td><code>OPEN_CAPACITY</code></td><td>Additional series may be issued under a published policy.</td></tr>
+<tr><td><code>CONTROLLED_CAPACITY</code></td><td>Further issuance requires a disclosed policy/version.</td></tr>
+<tr><td><code>FIXED_CAP</code></td><td>Maximum supply is fixed for the DCO version.</td></tr>
+<tr><td><code>UNIQUE</code></td><td>One unit for a specific exclusive variant such as a territory.</td></tr></table>
+
+<h2>Supply is not price</h2><p>Factory planning establishes supply, reserve and scarcity. It does not create market value. Pricing remains in offers, RFQs, auctions and settled trades.</p>
+
+<h2>10,000-record qualification</h2><p>The factory test campaign includes a 10,000-Master-Economic-Record registry qualification. That qualifies the catalog/factory path; it does not claim that 10,000 DCOs have already been commercially issued, traded or independently valued.</p>
+
+<h2>Reference template</h2><p><code>BTG-STRATEGIC-AI-ROBOTICS-01</code> defines the twelve-product Blackmore strategic AI/robotics structure and is the template used by the Industrial Robotics DCO reference instance.</p>
+<div class="actions"><a class="button" href="industrial-robotics-dco.html">Industrial Robotics DCO →</a><a class="button secondary" href="wallet.html">Economic Wallet →</a></div>
+</main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
