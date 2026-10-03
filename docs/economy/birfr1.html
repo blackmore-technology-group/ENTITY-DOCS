@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DCO-000001 BIRFR-1 · Blackmore Industrial Robotics Failure & Recovery Dataset</title>
+<meta name="description" content="BIRFR-1: 100,000 BTG-originated industrial robotics failure/recovery episodes with multimodal telemetry, benchmark holdouts, provenance and ENTITY economic rights.">
+<link rel="stylesheet" href="../assets/style.css"></head>
+<body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div>
+<div class="layout"><nav><h3>Economy</h3><a href="index.html">← Economic Architecture</a><a href="wallet.html">Economic Wallet</a><a href="dco-factory.html">DCO Factory</a><a href="industrial-robotics-dco.html">Robotics Reference DCO</a>
+<h3>Evidence</h3><a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/examples/birfr1_public_asset_manifest.json">Public asset manifest</a><a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/evidence/v3.4.3-birfr1-dco-000001-20261002/QUALIFICATION.json">Qualification evidence</a></nav>
+<main><div class="eyebrow">ENTITY v3.4.3 · first numbered Blackmore asset DCO</div><h1>DCO-000001 — BIRFR-1</h1>
+<p class="lede"><strong>Blackmore Industrial Robotics Failure &amp; Recovery Dataset</strong> is a BTG-originated multimodal synthetic robotics corpus built around one training unit: normal execution → failure → recovery.</p>
+<div class="callout"><strong>Qualified v0.1.0:</strong> 100,000 episodes · 20 failure families · 25 task families · 5 embodiment classes · 100 multimodal shards · 0 orders · 0 trades · 0 market marks.</div>
+
+<h2>Episode structure</h2>
+<table><tr><th>Episode class</th><th>Count</th></tr>
+<tr><td>Successful execution</td><td>30,000</td></tr>
+<tr><td>Failure-only</td><td>30,000</td></tr>
+<tr><td>Successful recovery</td><td>30,000</td></tr>
+<tr><td>Failed / alternative recovery</td><td>10,000</td></tr></table>
+
+<h2>Multimodal content</h2>
+<p>Each episode is indexed against robot state/action telemetry and recovery annotations, including RGB, depth, wrist RGB, joint position/velocity/torque, end-effector pose, gripper state, force/torque, robot actions, natural-language task, task phase, failure class/timestamp, root cause, recovery strategy/result and safety/near-miss flags.</p>
+
+<h2>Failure ontology</h2>
+<p>The 20 qualified failure families include grasp slip, missed/partial grasp, object displacement, collision/near collision, dropped object, orientation/alignment/insertion failures, excess/insufficient force, blocked motion, joint-limit approach, target occlusion, wrong-object selection, tool misalignment, trajectory deviation, stalled task and failed recovery.</p>
+
+<h2>Benchmark splits</h2>
+<table><tr><th>Split</th><th>Episodes</th></tr>
+<tr><td>TRAIN</td><td>70,000</td></tr><tr><td>VAL</td><td>10,000</td></tr><tr><td>TEST_KNOWN</td><td>10,000</td></tr><tr><td>TEST_UNKNOWN_FAILURE</td><td>5,000</td></tr><tr><td>TEST_CROSS_EMBODIMENT</td><td>5,000</td></tr></table>
+<p>The benchmark isolates unknown-failure and cross-embodiment performance rather than reducing evaluation to a single terminal success rate.</p>
+
+<h2>Cross-embodiment structure</h2>
+<div class="flow">TASK INTENT → FAILURE STATE → CORRECTIVE INTENT → RECOVERY RESULT</div>
+<p>Those semantic fields are kept separate from embodiment-specific DOF, joint masks, commands and end-effector state so the corpus is not bound to one robot morphology.</p>
+
+<h2>Provenance</h2>
+<p>BIRFR-1 v0.1.0 is BTG-created synthetic data. No third-party source dataset is included in the sealed asset.</p>
+<ul>
+<li>Asset bundle root: <code>2e97dc53c308eb07f8d5040d3965fb5024ffe14ac431313c28c2e8dbbc0eaaa5</code></li>
+<li>Catalog SHA-256: <code>c799803507ee3713eff1dcfdabd1e234dd06f1ca693e8323bfa3ac45c3f31ff3</code></li>
+<li>Shard root: <code>6fb82bd9bc5c4e8e1a460f439ffea0e973bf08ff915036cc655658c8de75052e</code></li>
+<li>Sealed provenance components verified: 9 / 9</li>
+</ul>
+
+<h2>Economic family</h2>
+<p>BIRFR-1 uses the dataset-specific Strategic template rather than the generic robotics template.</p>
+<div class="flow">EVALUATION · INFERENCE · TRAINING · COMPUTE-TO-DATA · DERIVATIVE · ENTERPRISE/API · OEM · BENCHMARK/CERTIFICATION · REDISTRIBUTION · FIELD-OF-USE · REGIONAL EXCLUSIVITY</div>
+<p>The 11 commercial archetypes expand to 20 physical EEP instruments because regional exclusivity has 10 territory variants.</p>
+<div class="grid"><div class="card"><h3>18,418</h3><p>Total issued heterogeneous rights units.</p></div><div class="card"><h3>2,280</h3><p>Actual BTG Treasury reserve units.</p></div><div class="card"><h3>16,138</h3><p>Issuer inventory after reserve allocation.</p></div></div>
+<p>Contributor participation is deliberately deferred until qualified outside contributors exist.</p>
+
+<h2>Fidelity boundary</h2>
+<div class="callout"><strong>v0.1.0 is real, but it is not being overstated.</strong> The RGB/depth/wrist snapshots are compact 16×16 procedural synthetic imagery. They are actual BTG-generated asset bytes and qualify the multimodal pipeline, but they are not claimed to be photorealistic or equivalent to factory camera captures.</div>
+<p>Later BIRFR versions can add high-resolution physics/rendered simulation, real RGB-D and force/torque captures, additional embodiments and contributed data while preserving the immutable v0.1.0 root.</p>
+
+<h2>Why the asset exists</h2>
+<p>Modern recovery research increasingly treats off-nominal intermediate states and recovery as a separate evaluation problem. BIRFR-1 is Blackmore's own asset response to that gap: a corpus and benchmark intended to support failure detection, classification, prediction and recovery rather than successful demonstrations alone.</p>
+
+<div class="actions"><a class="button" href="dco-factory.html">DCO Factory →</a><a class="button secondary" href="wallet.html">Economic Wallet →</a><a class="button secondary" href="https://github.com/blackmore-technology-group/ENTITY/blob/main/examples/birfr1_public_asset_manifest.json">Public manifest →</a></div>
+</main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
