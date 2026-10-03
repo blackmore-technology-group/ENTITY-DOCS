@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ENTITY Economic Wallet · Rights Portfolio, Trading & Treasury</title>
+<meta name="description" content="ENTITY v3.4.3 Economic Wallet: participant and treasury views over EEP rights positions, last settled trade, bid/ask, cost basis, orders, entitlements, usage, receivables and externally evidenced settlement.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div>
+<div class="layout">
+<nav>
+<h3>Economy</h3>
+<a href="index.html">← Economic Architecture</a>
+<a href="market-fabric.html">Market Fabric</a>
+<a href="rights-instruments.html">Rights Instruments</a>
+<a href="treasury-and-reserves.html">Treasury & Reserves</a>
+<a href="valuation-boundaries.html">Valuation Boundaries</a>
+<h3>Source</h3>
+<a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/src/42_ENTITY_Wallet/canonical_wallet.py">Wallet engine</a>
+<a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/v3.4/ENTITY_WALLET_20261002.md">Wallet specification</a>
+<a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/evidence/v3.4.3-entity-wallet-20261002/QUALIFICATION.json">Qualification evidence</a>
+</nav>
+<main>
+<div class="eyebrow">ENTITY v3.4.3 · economic wallet application layer</div>
+<h1>ENTITY Economic Wallet</h1>
+<p class="lede">The ENTITY Economic Wallet makes the existing rights economy usable as a portfolio. It presents EEP positions, instruments, entitlements, orders, usage, economic obligations and treasury reserves in a stock-style interface while keeping canonical market state in the existing ENTITY Exchange Protocol and Economic Participation stores.</p>
+
+<div class="callout"><strong>The wallet is not a second ledger.</strong> Rights quantities come from EEP balances. Last price comes only from settled trades. Orders provide bid/ask quotes. Entitlements, usage and obligations remain in their canonical records.</div>
+
+<h2>Two wallet roles</h2>
+<div class="grid">
+<div class="card"><h3>Participant Wallet</h3><p>Bound to an ENTITY identity. Shows rights positions, quantity, entitlements, usage, orders/offers, cost basis, realized/unrealized change, receivables, payables and market observations.</p></div>
+<div class="card"><h3>Treasury Wallet</h3><p>Bound to a distinct treasury ENTITY. Adds treasury reserve positions, participation policies, primary allocations, secondary royalties, derivative participation and economic-event visibility.</p></div>
+</div>
+
+<h2>Stock-style presentation</h2>
+<div class="flow">INSTRUMENT → QUANTITY → COST BASIS → LAST / BID / ASK → INDICATIVE MARKET VALUE → REALIZED / UNREALIZED CHANGE → ORDERS → ACTIVITY</div>
+<p>"Stock-style" describes the market and portfolio user experience. ENTITY does not infer that a DCO right, licence or entitlement is a corporate share, security, commodity, derivative or any other legal classification.</p>
+
+<h2>Market-value integrity</h2>
+<table>
+<tr><th>Field</th><th>ENTITY wallet rule</th></tr>
+<tr><td>Last</td><td>Only the latest qualifying settled trade may populate the last-price field.</td></tr>
+<tr><td>Bid</td><td>Highest qualifying open buy order. A quote, not realized value.</td></tr>
+<tr><td>Ask</td><td>Lowest qualifying open sell order. A quote, not realized value.</td></tr>
+<tr><td>Indicative market value</td><td>Position quantity × observed last settled trade, when such a trade exists.</td></tr>
+<tr><td>Unpriced position</td><td>Remains unpriced. An issuer cannot manufacture value merely by publishing an ask.</td></tr>
+<tr><td>Accounting value</td><td>Not inferred. Indicative marks are not accounting fair value.</td></tr>
+</table>
+
+<h2>Fiat stays outside the wallet</h2>
+<p>The ENTITY wallet does not need to custody CAD, USD or another fiat currency. Money can remain at a bank or payment provider while ENTITY records the rights instrument, trade, obligation, settlement reference and verification evidence.</p>
+<div class="flow">TRADE → OBLIGATION → EXTERNAL PAYMENT → SETTLEMENT EVIDENCE → VERIFIED SETTLED STATE</div>
+<ul>
+<li><code>wallet_does_not_custody_fiat = true</code></li>
+<li><code>cryptocurrency_required = false</code></li>
+<li><code>protocol_tax_bps = 0</code></li>
+<li>payment credentials are not wallet state</li>
+</ul>
+
+<h2>Wallet and DCO economy</h2>
+<p>A DCO can remain one underlying governed object while multiple EEP instruments express different bounded rights against it. The wallet then shows those rights as separate positions.</p>
+<div class="flow">DCO → INFERENCE RIGHTS / TRAINING RIGHTS / DERIVATIVE RIGHTS / REDISTRIBUTION RIGHTS / REGIONAL EXCLUSIVES → WALLET POSITIONS → TRADING → USAGE → ECONOMIC CONSEQUENCE</div>
+
+<h2>Qualification</h2>
+<div class="grid">
+<div class="card"><h3>3 / 3 wallet tests PASS</h3><p>Participant positions, cost basis/P&amp;L, treasury binding and the rule that offers cannot create market value were directly qualified.</p></div>
+<div class="card"><h3>27 / 27 combined PASS</h3><p>The wallet tests passed together with the existing v3 Economic Participation suite, preserving treasury/originator economics.</p></div>
+</div>
+
+<div class="callout"><strong>Repository safety:</strong> public source and qualification evidence do not include production wallet databases, live wallet identifiers, treasury private identity material, signing keys, bank details, payment credentials or production snapshots.</div>
+
+<div class="actions">
+<a class="button" href="market-fabric.html">Market Fabric →</a>
+<a class="button secondary" href="treasury-and-reserves.html">Treasury & Reserves →</a>
+<a class="button secondary" href="https://github.com/blackmore-technology-group/ENTITY/tree/main/src/42_ENTITY_Wallet">Wallet source →</a>
+</div>
+</main>
+</div>
+<script>window.B="../";</script><script src="../assets/app.js"></script>
+</body></html>
