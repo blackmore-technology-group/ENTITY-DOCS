@@ -5,8 +5,15 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-03T06:51:08Z</updated>
+  <updated>2026-10-03T12:10:07Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>blackmore-technology-group/ENTITY: created branch feat/open-data-economy-constitution-20261003</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:22879766213</id>
+    <updated>2026-10-03T12:10:07Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
   <entry>
     <title>cubrid-lab/pycubrid PR #576: fix: validate timeouts before socket creation</title>
     <link href="https://github.com/cubrid-lab/pycubrid/pull/576"/>
@@ -89,6 +96,13 @@
     <link href="https://github.com/blackmore-technology-group/BTG-AI-0001-BARC"/>
     <id>urn:btg-github-news:create:22854443264</id>
     <updated>2026-10-03T04:46:25Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
+    <title>blackmore-technology-group/ENTITY: created branch fix/v3.4.3-btdu-maturity-20261002</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:22883572369</id>
+    <updated>2026-10-02T23:33:04Z</updated>
     <summary>Public GitHub creation event</summary>
   </entry>
   <entry>
@@ -692,19 +706,5 @@
     <id>urn:btg-github-news:release:blackmore-technology-group/ENTITY:396162815</id>
     <updated>2026-09-24T23:45:08Z</updated>
     <summary>v3.4.0 — SUPERSEDED / UNSUPPORTED</summary>
-  </entry>
-  <entry>
-    <title>blackmore-technology-group/ENTITY released v3.3.0</title>
-    <link href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.3.0"/>
-    <id>urn:btg-github-news:release:blackmore-technology-group/ENTITY:395787868</id>
-    <updated>2026-09-24T14:46:28Z</updated>
-    <summary>v3.3.0 — SUPERSEDED / UNSUPPORTED</summary>
-  </entry>
-  <entry>
-    <title>blackmore-technology-group/ENTITY released v3.2.0</title>
-    <link href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.2.0"/>
-    <id>urn:btg-github-news:release:blackmore-technology-group/ENTITY:395732055</id>
-    <updated>2026-09-24T13:41:48Z</updated>
-    <summary>v3.2.0 — SUPERSEDED / UNSUPPORTED</summary>
   </entry>
 </feed>

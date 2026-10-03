@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-03T11:07:22.552059Z",
+  "generated_at_utc": "2026-10-03T14:49:26.065657Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -14,23 +14,9 @@
     "recent_external_prs": 15,
     "entity_evidence_records": 2,
     "retained_previous_activity_items": 245,
-    "activity_items": 245
+    "activity_items": 249
   },
   "repositories": [
-    {
-      "name": "ENTITY-DOCS",
-      "full_name": "blackmore-technology-group/ENTITY-DOCS",
-      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
-      "description": "Complete operator, developer, protocol, economic, security and generated reference documentation for ENTITY v3.4.0.",
-      "fork": false,
-      "upstream": null,
-      "archived": false,
-      "default_branch": "main",
-      "language": "Python",
-      "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-03T10:23:05Z",
-      "pushed_at": "2026-10-03T10:23:01Z"
-    },
     {
       "name": "ENTITY",
       "full_name": "blackmore-technology-group/ENTITY",
@@ -43,7 +29,21 @@
       "language": "Python",
       "created_at": "2026-09-18T00:20:03Z",
       "updated_at": "2026-10-03T06:34:27Z",
-      "pushed_at": "2026-10-03T06:36:00Z"
+      "pushed_at": "2026-10-03T14:48:32Z"
+    },
+    {
+      "name": "ENTITY-DOCS",
+      "full_name": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "description": "Complete operator, developer, protocol, economic, security and generated reference documentation for ENTITY v3.4.0.",
+      "fork": false,
+      "upstream": null,
+      "archived": false,
+      "default_branch": "main",
+      "language": "Python",
+      "created_at": "2026-09-25T14:57:27Z",
+      "updated_at": "2026-10-03T11:07:51Z",
+      "pushed_at": "2026-10-03T11:07:48Z"
     },
     {
       "name": "BTG-AI-0001-BARC",
@@ -509,6 +509,45 @@
     }
   ],
   "items": [
+    {
+      "id": "pr-event:16340827326",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-03T12:52:01Z",
+      "title": "blackmore-technology-group/ENTITY PR #133:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:16339643043",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-03T12:15:16Z",
+      "title": "blackmore-technology-group/ENTITY PR #132:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:22879766213",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-03T12:10:07Z",
+      "title": "blackmore-technology-group/ENTITY: created branch feat/open-data-economy-constitution-20261003",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
     {
       "id": "external-pr:cubrid-lab/pycubrid:576",
       "type": "EXTERNAL_FIX",
@@ -1079,6 +1118,19 @@
       "repository": "blackmore-technology-group/ENTITY",
       "url": null,
       "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:22883572369",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-02T23:33:04Z",
+      "title": "blackmore-technology-group/ENTITY: created branch fix/v3.4.3-btdu-maturity-20261002",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY",
+      "status": "CREATED",
       "source": "GITHUB_PUBLIC_EVENT",
       "entity_ingested": false,
       "entity_state": null
