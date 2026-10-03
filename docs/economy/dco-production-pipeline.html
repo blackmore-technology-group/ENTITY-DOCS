@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DCO Production Pipeline · Rights Passport, Global Passport, BTDU & Shared Bridges</title>
+<meta name="description" content="ENTITY v3.4.3 DCO production path: build and qualify the asset, seal provenance, register DCO, issue Rights and Global Passports, bind profiles/BTDU, issue economics, optionally bind shared bridges, and publish public-safe evidence.">
+<link rel="stylesheet" href="../assets/style.css"></head>
+<body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div>
+<div class="layout"><nav><h3>Economy</h3><a href="index.html">← Economic Architecture</a><a href="dco-factory.html">DCO Factory</a><a href="birfr1.html">DCO-000001 BIRFR-1</a><a href="wallet.html">Economic Wallet</a>
+<h3>Source</h3><a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/src/43_DCO_Factory/dco_production_pipeline.py">Production pipeline</a><a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/src/44_Shared_Bridges/robotics_bridge_registry.py">Shared Robotics bridge registry</a></nav>
+<main><div class="eyebrow">ENTITY v3.4.3 · mandatory factory production contract</div>
+<h1>DCO Production Pipeline</h1>
+<p class="lede">A DCO is not ready for economic issuance merely because it has a name and supply. The factory now requires a qualified underlying asset, sealed provenance, both passport layers, profile/BTDU binding and only then economic instruments.</p>
+<div class="flow">BUILD ASSET → QUALIFY / TEST → SEAL PROVENANCE → REGISTER DCO → RIGHTS PASSPORT → GLOBAL PASSPORT → ROBOTICS / AI / BTDU BINDING → EEP INSTRUMENTS → OPTIONAL SHARED BRIDGE → PUBLIC-SAFE EVIDENCE</div>
+
+<h2>Rights Passport</h2>
+<p>The Rights Passport is the rights layer around the underlying object. It records allowed, required and prohibited actions; conditions; obligations; authority and jurisdiction references; custody locators; provenance/disclosure references; privacy profile and economic terms.</p>
+<div class="callout"><strong>Custody is not authority.</strong> A storage provider or external system cannot silently become the controller of the asset.</div>
+
+<h2>Global Passport</h2>
+<p>The Global Passport binds the verified Rights Passport to qualification evidence, provenance, jurisdictional context, industry profiles, standards mappings, economic state and the BTDU reference where appropriate.</p>
+<p>Robotics/AI DCOs can compose <code>global</code>, <code>robotics</code>, <code>ai</code> and <code>manufacturing</code> profiles without creating separate passport protocols.</p>
+
+<h2>BTDU binding modes</h2>
+<p>Exact BTDU atomization is preferred when the universe can be recovered inside the available process memory. A Global Passport can also carry an explicit content-addressed BTDU reference binding when full recovery/atomization is deferred. That mode must say so; it must not claim that bytes were atomized when they were not.</p>
+<p>Either mode preserves the same boundary: BTDU topology creates neither ownership nor economic entitlement.</p>
+
+<h2>Shared bridge rule</h2>
+<div class="callout"><strong>100 DCOs do not imply 100 software bridges.</strong> Many DCOs bind to a small set of reusable integration families.</div>
+<p>The first shared robotics family is <code>ENTITY_ROBOTICS_INTEGRATION</code>, with correspondence for ENTITY API, ROS 2, Open-RMF and external custody/data systems. A DCO binding records enabled interfaces and exposure mode; it does not create rights.</p>
+
+<h2>Public-safe publication</h2>
+<p>Public manifests may expose DCO ID, name, class, hashes, controller/originator, version, public rights summary, passport hashes, qualification hash, benchmark summary, public provenance references and economic state.</p>
+<p>They reject live object/instrument/wallet/treasury IDs, runtime paths/databases, credentials, private keys, private settlement details and customer entitlements.</p>
+
+<h2>Economic-state boundary</h2>
+<div class="flow">POTENTIAL → OFFER → CONTRACTED → ACCRUED → SETTLED → REALIZED</div>
+<p>Passports and supply do not manufacture value. A newly qualified DCO can correctly remain at <code>POTENTIAL / CAD 0</code> until real market activity changes its state.</p>
+
+<div class="actions"><a class="button" href="birfr1.html">BIRFR-1 example →</a><a class="button secondary" href="dco-factory.html">DCO Factory →</a><a class="button secondary" href="wallet.html">Wallet →</a></div>
+</main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
