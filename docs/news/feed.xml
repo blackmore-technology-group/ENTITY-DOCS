@@ -5,14 +5,28 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-03T06:26:31Z</updated>
+  <updated>2026-10-03T06:51:08Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
   <entry>
     <title>cubrid-lab/pycubrid PR #576: fix: validate timeouts before socket creation</title>
     <link href="https://github.com/cubrid-lab/pycubrid/pull/576"/>
     <id>urn:btg-github-news:external-pr:cubrid-lab/pycubrid:576</id>
-    <updated>2026-10-03T06:26:31Z</updated>
+    <updated>2026-10-03T06:51:08Z</updated>
     <summary>BTG-authored upstream pull request</summary>
+  </entry>
+  <entry>
+    <title>blackmore-technology-group/ENTITY-DOCS: created branch docs/dco-000002-failure-detection-20261002</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
+    <id>urn:btg-github-news:create:22860510101</id>
+    <updated>2026-10-03T06:36:29Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
+    <title>blackmore-technology-group/ENTITY: created branch evidence/dco-000002-failure-detection-20261002</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:22860425527</id>
+    <updated>2026-10-03T06:34:58Z</updated>
+    <summary>Public GitHub creation event</summary>
   </entry>
   <entry>
     <title>blackmore-technology-group/ENTITY: created branch feat/v3.4.3-dco-production-passports-bridges-20261002</title>
@@ -692,19 +706,5 @@
     <id>urn:btg-github-news:release:blackmore-technology-group/ENTITY:395321137</id>
     <updated>2026-09-24T04:22:27Z</updated>
     <summary>v3.1.0 — SUPERSEDED / UNSUPPORTED</summary>
-  </entry>
-  <entry>
-    <title>blackmore-technology-group/ENTITY released v3.0.1</title>
-    <link href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.0.1"/>
-    <id>urn:btg-github-news:release:blackmore-technology-group/ENTITY:395112410</id>
-    <updated>2026-09-23T22:29:36Z</updated>
-    <summary>v3.0.1 — SUPERSEDED / UNSUPPORTED</summary>
-  </entry>
-  <entry>
-    <title>blackmore-technology-group/ENTITY released v3.0.0</title>
-    <link href="https://github.com/blackmore-technology-group/ENTITY/releases/tag/v3.0.0"/>
-    <id>urn:btg-github-news:release:blackmore-technology-group/ENTITY:395036422</id>
-    <updated>2026-09-23T20:33:25Z</updated>
-    <summary>v3.0.0 — SUPERSEDED / UNSUPPORTED</summary>
   </entry>
 </feed>
