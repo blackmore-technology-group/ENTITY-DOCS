@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-04T21:53:50.753326Z",
+  "generated_at_utc": "2026-10-04T22:23:08.725119Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -18,6 +18,20 @@
   },
   "repositories": [
     {
+      "name": "ENTITY-DOCS",
+      "full_name": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "description": "Complete operator, developer, protocol, economic, security and generated reference documentation for ENTITY v3.4.0.",
+      "fork": false,
+      "upstream": null,
+      "archived": false,
+      "default_branch": "main",
+      "language": "Python",
+      "created_at": "2026-09-25T14:57:27Z",
+      "updated_at": "2026-10-04T21:54:18Z",
+      "pushed_at": "2026-10-04T21:54:14Z"
+    },
+    {
       "name": "ENTITY-JAVA-CLEANROOM",
       "full_name": "blackmore-technology-group/ENTITY-JAVA-CLEANROOM",
       "url": "https://github.com/blackmore-technology-group/ENTITY-JAVA-CLEANROOM",
@@ -30,20 +44,6 @@
       "created_at": "2026-09-24T03:47:03Z",
       "updated_at": "2026-09-28T16:40:45Z",
       "pushed_at": "2026-10-04T21:46:03Z"
-    },
-    {
-      "name": "ENTITY-DOCS",
-      "full_name": "blackmore-technology-group/ENTITY-DOCS",
-      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
-      "description": "Complete operator, developer, protocol, economic, security and generated reference documentation for ENTITY v3.4.0.",
-      "fork": false,
-      "upstream": null,
-      "archived": false,
-      "default_branch": "main",
-      "language": "Python",
-      "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-04T21:13:48Z",
-      "pushed_at": "2026-10-04T21:13:45Z"
     },
     {
       "name": "ENTITY",
