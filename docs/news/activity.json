@@ -1,35 +1,35 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-03T19:02:29.213722Z",
+  "generated_at_utc": "2026-10-04T02:34:01.597234Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
   "editorial_boundary": "Engineering/activity ledger, not marketing copy. Source state controls status.",
   "history_retention": "Previously observed public activity is append-retained from the first automated sync; current repository, release and pull-request state is refreshed from GitHub on every run.",
   "stats": {
-    "public_repositories": 35,
-    "original_public_repositories": 19,
+    "public_repositories": 36,
+    "original_public_repositories": 20,
     "public_forks": 16,
     "release_records": 14,
     "recent_external_prs": 15,
     "entity_evidence_records": 2,
-    "retained_previous_activity_items": 249,
-    "activity_items": 251
+    "retained_previous_activity_items": 251,
+    "activity_items": 259
   },
   "repositories": [
     {
-      "name": "ENTITY",
-      "full_name": "blackmore-technology-group/ENTITY",
-      "url": "https://github.com/blackmore-technology-group/ENTITY",
-      "description": "Open infrastructure for sovereign digital authority, verifiable claims, data rights, evidence, interoperability and portable economic state.",
+      "name": "HUNTAR-DOCS",
+      "full_name": "blackmore-technology-group/HUNTAR-DOCS",
+      "url": "https://github.com/blackmore-technology-group/HUNTAR-DOCS",
+      "description": "Official HuntAR documentation, privacy, support, safety and release information.",
       "fork": false,
       "upstream": null,
       "archived": false,
       "default_branch": "main",
-      "language": "Python",
-      "created_at": "2026-09-18T00:20:03Z",
-      "updated_at": "2026-10-03T06:34:27Z",
-      "pushed_at": "2026-10-03T18:08:53Z"
+      "language": null,
+      "created_at": "2026-10-04T02:10:14Z",
+      "updated_at": "2026-10-04T02:12:22Z",
+      "pushed_at": "2026-10-04T02:12:18Z"
     },
     {
       "name": "ENTITY-DOCS",
@@ -42,8 +42,22 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-03T14:49:54Z",
-      "pushed_at": "2026-10-03T14:49:50Z"
+      "updated_at": "2026-10-03T19:03:01Z",
+      "pushed_at": "2026-10-04T01:11:31Z"
+    },
+    {
+      "name": "ENTITY",
+      "full_name": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY",
+      "description": "Open infrastructure for sovereign digital authority, verifiable claims, data rights, evidence, interoperability and portable economic state.",
+      "fork": false,
+      "upstream": null,
+      "archived": false,
+      "default_branch": "main",
+      "language": "Python",
+      "created_at": "2026-09-18T00:20:03Z",
+      "updated_at": "2026-10-04T01:09:17Z",
+      "pushed_at": "2026-10-04T01:09:14Z"
     },
     {
       "name": "BTG-AI-0001-BARC",
@@ -510,6 +524,58 @@
   ],
   "items": [
     {
+      "id": "create:22930991159",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-04T02:10:16Z",
+      "title": "blackmore-technology-group/HUNTAR-DOCS: created branch main",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/HUNTAR-DOCS",
+      "url": "https://github.com/blackmore-technology-group/HUNTAR-DOCS",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:16365305239",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-04T01:09:12Z",
+      "title": "blackmore-technology-group/ENTITY PR #133:",
+      "summary": "GitHub PR event: merged",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": null,
+      "status": "MERGED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:16365244615",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-04T01:07:10Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS PR #83:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:22927483930",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-04T01:06:38Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS: created branch docs/wallet-current-20261003",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
       "id": "pr-event:16340827326",
       "type": "PULL_REQUEST",
       "occurred_at": "2026-10-03T12:52:01Z",
@@ -642,6 +708,19 @@
       "entity_state": null
     },
     {
+      "id": "create:22906507156",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-03T06:27:19Z",
+      "title": "blackmore-technology-group/ENTITY: created branch evidence/dco-000001-passports-public-manifest-20261002",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
       "id": "pr-event:16329175283",
       "type": "PULL_REQUEST",
       "occurred_at": "2026-10-03T06:26:51Z",
@@ -767,6 +846,19 @@
       "repository": "blackmore-technology-group/ENTITY",
       "url": null,
       "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:22905858988",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-03T05:55:05Z",
+      "title": "blackmore-technology-group/ENTITY: created branch evidence/dco-000001-birfr1-20261002",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY",
+      "status": "CREATED",
       "source": "GITHUB_PUBLIC_EVENT",
       "entity_ingested": false,
       "entity_state": null
@@ -1374,6 +1466,19 @@
       "entity_state": null
     },
     {
+      "id": "create:22931856572",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-02T14:25:55Z",
+      "title": "blackmore-technology-group/mcp-gateway: created branch proof/2505-mutant",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/mcp-gateway",
+      "url": "https://github.com/blackmore-technology-group/mcp-gateway",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
       "id": "pr-event:16284297045",
       "type": "PULL_REQUEST",
       "occurred_at": "2026-10-02T14:24:45Z",
@@ -1501,6 +1606,19 @@
       "repository": "blackmore-technology-group/ENTITY-DOCS",
       "url": null,
       "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:22913077867",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-02T04:24:34Z",
+      "title": "blackmore-technology-group/ENTITY-DOCS: created branch docs/testing-global-menu-fix-20261002",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "status": "CREATED",
       "source": "GITHUB_PUBLIC_EVENT",
       "entity_ingested": false,
       "entity_state": null
@@ -2330,7 +2448,7 @@
       "id": "external-pr:speedyk-005/yasbd-lib:348",
       "type": "EXTERNAL_FIX",
       "occurred_at": "2026-10-01T13:31:05Z",
-      "title": "speedyk-005/yasbd-lib PR #348: Fix sentence-boundary detection when terminators occur inside single/double backtick-delimited or doubled-apostrophe quoted text",
+      "title": "speedyk-005/yasbd-lib PR #348: Correctly handle terminators occur inside single/double backtick-delimited or doubled-apostrophe quoted text",
       "summary": "BTG-authored upstream pull request",
       "repository": "speedyk-005/yasbd-lib",
       "url": "https://github.com/speedyk-005/yasbd-lib/pull/348",
