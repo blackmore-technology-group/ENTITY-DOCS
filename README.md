@@ -50,6 +50,14 @@ Instrument classes include `SPOT_LICENSE`, `SUBSCRIPTION`, `COMPUTE_TO_DATA`, `P
 
 ENTITY does not require artificial scarcity of information bytes. Economic scarcity can exist in bounded rights, entitlement, capacity, duration, jurisdiction, usage quantity, derivation, participation and transferability.
 
+## Current ENTITY Wallet
+
+The current post-tag main-branch wallet is the **ENTITY Data Economy Terminal**. It supports sovereign first-run identity/device onboarding, DCO assets, signed disclosures, Rights-Passport-driven instruments/tickers, market positions/orders and explicit domain lineage.
+
+Final focused qualification on 2026-10-03: **91/91 PASS**. Qualified production state: **10 Software Engineering + 2 Robotics**, zero missing domains. Windows, Linux and macOS are full PySide6 desktop builds; the iOS Simulator artifact is a native portable-snapshot inspection client and does not claim native authority/write parity.
+
+Public wallet page: https://blackmore-technology-group.github.io/ENTITY-DOCS/wallet/
+
 ## ENTITY, BTDU, ADAM and NIKI
 
 - **ENTITY** — identity, authority, rights, evidence, value, market and recovery relationships.
@@ -59,7 +67,7 @@ ENTITY does not require artificial scarcity of information bytes. Economic scarc
 
 ## Global infrastructure and adoption layers
 
-The current codebase also contains support for encrypted vaults, purpose-bound access, retention/destruction controls, federated sovereign domains, core/regional/edge/satellite/offline topology, causal partition recovery, cryptographic-suite migration, rights/global passports, provider-neutral custody/connectors, standards adapters and industry implementation packages for healthcare, finance, manufacturing, AI, robotics and public/unclassified defence.
+The current codebase also contains support for encrypted vaults, purpose-bound access, retention/destruction controls, federated sovereign domains, core/regional/edge/satellite/offline topology, causal partition recovery, cryptographic-suite migration, rights/global passports, provider-neutral custody/connectors, standards adapters and industry implementation packages/profiles for healthcare, finance, manufacturing, AI, robotics, public/unclassified defence and Software Engineering.
 
 ## Bounded engineering results
 
@@ -110,6 +118,7 @@ The active 30-day wall-clock qualification was not modified by v3.4.3.
 - **Machine-readable capability map:** https://blackmore-technology-group.github.io/ENTITY-DOCS/reference/capability-map.json
 - **Technology:** https://blackmore-technology-group.github.io/ENTITY-DOCS/technology/
 - **Economy / Market Fabric:** https://blackmore-technology-group.github.io/ENTITY-DOCS/economy/
+- **Wallet:** https://blackmore-technology-group.github.io/ENTITY-DOCS/wallet/
 - **Exchange API:** https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/exchange-api.html
 - **Developer Manual:** https://blackmore-technology-group.github.io/ENTITY-DOCS/developer/
 - **Evidence:** https://blackmore-technology-group.github.io/ENTITY-DOCS/evidence/

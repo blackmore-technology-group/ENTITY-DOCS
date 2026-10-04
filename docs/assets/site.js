@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   const siteRoot=new URL('../',assetBase);
   const insertBeforeGithub=(a)=>{const github=[...linksBox.querySelectorAll('a')].find(x=>x.classList.contains('nav-cta'));if(github)linksBox.insertBefore(a,github);else linksBox.appendChild(a);};
 
+  if(linksBox&&!linksBox.querySelector('a[data-entity-wallet]')){
+    const a=document.createElement('a');a.href=new URL('wallet/',siteRoot).href;a.textContent='Wallet';a.setAttribute('data-entity-wallet','1');insertBeforeGithub(a);
+  }
   if(linksBox&&!linksBox.querySelector('a[data-entity-tutorials]')){
     const a=document.createElement('a');a.href=new URL('tutorials/',siteRoot).href;a.textContent='Tutorials';a.setAttribute('data-entity-tutorials','1');insertBeforeGithub(a);
   }

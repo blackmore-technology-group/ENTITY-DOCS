@@ -12,6 +12,7 @@ BTDU component: 3.4.2 unchanged
 Frozen external conformance target: ENTITY Protocol 1.0
 Source: https://github.com/blackmore-technology-group/ENTITY
 Docs: https://blackmore-technology-group.github.io/ENTITY-DOCS/
+Wallet: https://blackmore-technology-group.github.io/ENTITY-DOCS/wallet/
 Capability map: https://blackmore-technology-group.github.io/ENTITY-DOCS/reference/capability-map.html
 Community Board: https://blackmore-technology-group.github.io/ENTITY-DOCS/community/
 Discussion forum: https://github.com/blackmore-technology-group/ENTITY/discussions
@@ -27,6 +28,16 @@ Keep these four evidence classes separate:
 4. EXTERNAL_OR_INDEPENDENT_EVIDENCE — evidence controlled by an unrelated contributor, implementer, assessor or external organization. It is distinct from BTG-controlled qualification.
 
 Current developer/API/reference pages should describe ENTITY v3.4.3 and link to the immutable v3.4.3 tag or exact release commit when identifying release behavior. Historical reproduction pages must keep the actual historical tag, kit, hashes and labels. Do not silently up-version BTDU 3.4.2 or the BTG-controlled v3.4.2 language baselines.
+
+## Current ENTITY Wallet application layer
+
+The current post-tag main-branch wallet is the ENTITY Data Economy Terminal. It adds sovereign first-run identity/device onboarding, DCO holdings, signed Asset Disclosures, issuer-scoped instruments/tickers, Rights-Passport-driven issuance, market positions/orders and explicit domain lineage.
+
+Final focused wallet/economy/lineage/onboarding/global-passport qualification: 91/91 PASS.
+Qualified production domains: 10 Software Engineering + 2 Robotics; zero missing domains.
+Software Engineering profile: entity-profile:software-engineering@1.0.
+
+Windows/Linux/macOS are full PySide6 desktop builds. The iOS Simulator artifact is a native SwiftUI portable-snapshot inspection client; native iOS authority/write parity is not claimed.
 
 ## Five primitives
 
@@ -148,7 +159,7 @@ If an external contribution is visible on GitHub but its ENTITY evidence has not
 - Exchange Protocol: venues, instruments, balances, listings, disclosures, order books, call auctions, RFQs/quotes, trades, clearing, entitlements, usage, surveillance, cancellations, revenue rules, settlement verifiers and payment attestations.
 - Economic Participation: treasuries, reserves, participation terms, obligations, positions, service revenue and settlement verification.
 - Market Recovery: provider-independent logical export/verify/restore of complete exchange and economic-participation state with semantic hashes and controller attestations.
-- Standards/Adoption: ODRL, W3C VC, DID, GAIA-X and IDS translation/crosswalks plus industry profiles for healthcare, finance, manufacturing, AI, robotics and public/unclassified defence.
+- Standards/Adoption: ODRL, W3C VC, DID, GAIA-X and IDS translation/crosswalks plus industry profiles for healthcare, finance, manufacturing, AI, robotics, public/unclassified defence and Software Engineering.
 
 ## Economic lifecycle
 
