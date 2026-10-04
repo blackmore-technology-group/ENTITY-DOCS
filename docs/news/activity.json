@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-04T10:54:59.437639Z",
+  "generated_at_utc": "2026-10-04T17:58:46.470311Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -13,10 +13,24 @@
     "release_records": 14,
     "recent_external_prs": 15,
     "entity_evidence_records": 2,
-    "retained_previous_activity_items": 260,
-    "activity_items": 261
+    "retained_previous_activity_items": 261,
+    "activity_items": 263
   },
   "repositories": [
+    {
+      "name": "ENTITY-DOCS",
+      "full_name": "blackmore-technology-group/ENTITY-DOCS",
+      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
+      "description": "Complete operator, developer, protocol, economic, security and generated reference documentation for ENTITY v3.4.0.",
+      "fork": false,
+      "upstream": null,
+      "archived": false,
+      "default_branch": "main",
+      "language": "Python",
+      "created_at": "2026-09-25T14:57:27Z",
+      "updated_at": "2026-10-04T10:55:34Z",
+      "pushed_at": "2026-10-04T10:55:30Z"
+    },
     {
       "name": "ENTITY",
       "full_name": "blackmore-technology-group/ENTITY",
@@ -30,20 +44,6 @@
       "created_at": "2026-09-18T00:20:03Z",
       "updated_at": "2026-10-04T01:09:17Z",
       "pushed_at": "2026-10-04T04:55:57Z"
-    },
-    {
-      "name": "ENTITY-DOCS",
-      "full_name": "blackmore-technology-group/ENTITY-DOCS",
-      "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
-      "description": "Complete operator, developer, protocol, economic, security and generated reference documentation for ENTITY v3.4.0.",
-      "fork": false,
-      "upstream": null,
-      "archived": false,
-      "default_branch": "main",
-      "language": "Python",
-      "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-04T04:29:34Z",
-      "pushed_at": "2026-10-04T04:29:31Z"
     },
     {
       "name": "HUNTAR-DOCS",
@@ -1202,6 +1202,19 @@
       "entity_state": null
     },
     {
+      "id": "create:22981145806",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-03T04:59:25Z",
+      "title": "blackmore-technology-group/ENTITY: created branch barc-v1-entity-ingestion",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
       "id": "release:blackmore-technology-group/BTG-AI-0001-BARC:402334006",
       "type": "RELEASE",
       "occurred_at": "2026-10-03T04:55:20Z",
@@ -1288,6 +1301,19 @@
       "repository": "blackmore-technology-group/ENTITY",
       "url": null,
       "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:22984293816",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-02T21:42:26Z",
+      "title": "blackmore-technology-group/ENTITY: created branch btdu/v3.4.3-orientation-language-20261002",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY",
+      "status": "CREATED",
       "source": "GITHUB_PUBLIC_EVENT",
       "entity_ingested": false,
       "entity_state": null
