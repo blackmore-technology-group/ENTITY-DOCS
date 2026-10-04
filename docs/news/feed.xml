@@ -5,8 +5,15 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-04T02:10:16Z</updated>
+  <updated>2026-10-04T03:47:43Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>blackmore-technology-group/ENTITY: created branch wallet-native-asset-ingest-20261003</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:22936379194</id>
+    <updated>2026-10-04T03:47:43Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
   <entry>
     <title>blackmore-technology-group/HUNTAR-DOCS: created branch main</title>
     <link href="https://github.com/blackmore-technology-group/HUNTAR-DOCS"/>
@@ -699,12 +706,5 @@
     <id>urn:btg-github-news:entity-evidence:contribution-20260928-memnox-memnox-issue-46</id>
     <updated>2026-09-29T01:05:22Z</updated>
     <summary>PRO_BONO; payment_settled=false; realized_cash=0 USD</summary>
-  </entry>
-  <entry>
-    <title>blackmore-technology-group/ENTITY-DOCS: created branch automation/contribution-ledger</title>
-    <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
-    <id>urn:btg-github-news:create:22519342744</id>
-    <updated>2026-09-28T22:35:36Z</updated>
-    <summary>Public GitHub creation event</summary>
   </entry>
 </feed>
