@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DCO-000002 · Blackmore Real-Time Failure Detection Engine</title>
+<meta name="description" content="DCO-000002: proprietary BTG real-time robotics failure detection engine derived from BIRFR-1, qualified on held-out synthetic episodes and issued through the ENTITY passport-first DCO pipeline.">
+<link rel="stylesheet" href="../assets/style.css"></head>
+<body><header><b>ENTITY Documentation Portal</b><input id="search" placeholder="Search documentation…"></header><div id="results"></div>
+<div class="layout"><nav><h3>Economy</h3><a href="index.html">← Economic Architecture</a><a href="birfr1.html">DCO-000001 BIRFR-1</a><a href="dco-production-pipeline.html">Production Pipeline</a><a href="wallet.html">Economic Wallet</a>
+<h3>Evidence</h3><a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/examples/dco000002_public_safe_manifest.json">Public-safe manifest</a><a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/evidence/v3.4.3-dco000002-failure-detection-20261002/QUALIFICATION.json">Qualification</a></nav>
+<main><div class="eyebrow">ENTITY v3.4.3 · derivative asset DCO</div>
+<h1>DCO-000002 — Real-Time Failure Detection Engine</h1>
+<p class="lede">A proprietary BTG-originated robotics algorithm derived from DCO-000001/BIRFR-1. It detects failure onset from relative joint-velocity change, force/contact change and task-progress behavior without reading BIRFR's generated anomaly score or failure label at runtime.</p>
+<div class="flow">DCO-000001 / BIRFR-1 → TRAIN / VALIDATE / TEST → DCO-000002 / FAILURE DETECTION</div>
+
+<h2>Qualified asset</h2>
+<table><tr><th>Measure</th><th>Held-out BIRFR-1 result</th></tr>
+<tr><td>Failure episodes</td><td>14,000</td></tr>
+<tr><td>Successful episodes</td><td>6,000</td></tr>
+<tr><td>Failure detection</td><td>100%</td></tr>
+<tr><td>Successful-episode false alerts</td><td>0%</td></tr>
+<tr><td>Early alerts before failure onset</td><td>0%</td></tr>
+<tr><td>Unknown-failure detection</td><td>100%</td></tr>
+<tr><td>Cross-embodiment detection</td><td>100%</td></tr>
+<tr><td>Local Python inference p95</td><td>6.3 µs</td></tr></table>
+
+<div class="callout"><strong>Qualification boundary:</strong> these results are on the deterministic BIRFR-1 synthetic benchmark. DCO-000002 has not been validated on physical robots and is not presented as a certified safety controller.</div>
+
+<h2>Why the first candidate was rejected</h2>
+<p>The first detector showed a low timestep-level false-positive rate but still alarmed in 16.3% of successful held-out episodes. It was not registered. The qualified implementation moved to onset-relative features and an episode-level false-alert gate before DCO registration.</p>
+
+<h2>Protected asset / public evidence</h2>
+<p>The algorithm source and calibrated model remain in BTG-controlled storage. Public ENTITY evidence exposes their hashes instead of the proprietary bytes.</p>
+<ul><li>Asset root: <code>60f64ccbed355a1d4a75b0253289487aa2017a513a87cd731f4ee7cc9924cd2e</code></li>
+<li>Source SHA-256: <code>61967179d359ff93085ac3e3f1246fbe3f7afa2cea9dd4b017b768e0bcdb9a97</code></li>
+<li>Model SHA-256: <code>9ecf46feefed093320fbe6db5e1fe80038ed0b0411025620345cea54de8ab2d7</code></li></ul>
+
+<h2>Passport-first production state</h2>
+<ul>
+<li>Rights Passport: <code>CONFIDENTIAL_PROVENANCE</code></li>
+<li>Rights Passport SHA-256: <code>8d83591eae4d221aa9e83c5a4ecfbd297d4cd421df1e209949b6210d4a217de4</code></li>
+<li>Global Passport SHA-256: <code>1a43778b9fc0302584e984ff1041044a11380a6e249adbf6fc75486613018995</code></li>
+<li>Profiles: Global + Robotics + AI + Manufacturing</li>
+<li>BTDU: content-addressed reference; exact atomization not claimed</li>
+<li>Shared bridge: <code>ENTITY_ROBOTICS_INTEGRATION</code>, <code>NOT_EXPOSED</code></li>
+<li>Economic state: <code>POTENTIAL / CAD 0</code></li>
+</ul>
+
+<h2>Economic family</h2>
+<p>The reusable Advanced Robotics Algorithm template has seven archetypes: Evaluation, Runtime Use, Enterprise/API, Commercial Derivative, OEM/Embedded, Field-of-Use and Regional Exclusivity. Ten regional variants expand those to 16 physical EEP instruments.</p>
+<div class="grid"><div class="card"><h3>11,868</h3><p>Total heterogeneous rights units.</p></div><div class="card"><h3>2,030</h3><p>BTG Treasury reserve units.</p></div><div class="card"><h3>9,838</h3><p>Issuer units after reserves.</p></div></div>
+<p>There are <strong>0 orders, 0 trades and 0 market marks</strong>. No price was manufactured by issuance.</p>
+
+<h2>Timing boundary</h2>
+<p>BIRFR-1 v0.1 seals ordered timesteps but does not seal a physical sampling interval. DCO-000002 therefore reports detection delay in timesteps rather than claiming milliseconds for the synthetic episodes.</p>
+
+<div class="actions"><a class="button" href="birfr1.html">Parent DCO-000001 →</a><a class="button secondary" href="dco-production-pipeline.html">Production Pipeline →</a><a class="button secondary" href="wallet.html">Wallet →</a></div>
+</main></div><script>window.B="../";</script><script src="../assets/app.js"></script></body></html>
