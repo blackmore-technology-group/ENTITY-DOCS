@@ -92,6 +92,13 @@
     <summary>Public GitHub creation event</summary>
   </entry>
   <entry>
+    <title>blackmore-technology-group/ENTITY: created branch feat/v3.4.3-dco-factory-10000-20261002</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:23006863480</id>
+    <updated>2026-10-03T05:33:28Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
     <title>blackmore-technology-group/ENTITY-DOCS: created branch docs/industrial-robotics-dco-20261002</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
     <id>urn:btg-github-news:create:22904712570</id>
@@ -699,12 +706,5 @@
     <id>urn:btg-github-news:fork:16115781444</id>
     <updated>2026-09-30T15:58:49Z</updated>
     <summary>Fork lineage from ChainLearnOfficial/chainlearn-api</summary>
-  </entry>
-  <entry>
-    <title>Fork created: blackmore-technology-group/cve-lite-cli</title>
-    <link href="https://github.com/blackmore-technology-group/cve-lite-cli"/>
-    <id>urn:btg-github-news:fork:16115747777</id>
-    <updated>2026-09-30T15:58:23Z</updated>
-    <summary>Fork lineage from OWASP/cve-lite-cli</summary>
   </entry>
 </feed>
