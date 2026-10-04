@@ -176,6 +176,13 @@
     <summary>Public GitHub creation event</summary>
   </entry>
   <entry>
+    <title>blackmore-technology-group/mcp-gateway: created branch throwaway/mutants-2505</title>
+    <link href="https://github.com/blackmore-technology-group/mcp-gateway"/>
+    <id>urn:btg-github-news:create:22953004696</id>
+    <updated>2026-10-02T14:51:16Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
     <title>blackmore-technology-group/mcp-gateway: created branch throwaway/mutants-2670</title>
     <link href="https://github.com/blackmore-technology-group/mcp-gateway"/>
     <id>urn:btg-github-news:create:22799480691</id>
@@ -699,12 +706,5 @@
     <id>urn:btg-github-news:external-pr:Memnox/memnox:86</id>
     <updated>2026-09-29T01:05:22Z</updated>
     <summary>BTG-authored upstream pull request; ENTITY evidence recorded</summary>
-  </entry>
-  <entry>
-    <title>ENTITY recorded Memnox/memnox PR #86 as UPSTREAM_ACCEPTED_RECORDED</title>
-    <link href="https://github.com/blackmore-technology-group/ENTITY/blob/experiment/bounty-lineage-v343/evidence/bounty/memnox-46/memnox-46-entity-upstream-accepted-public-projection.json"/>
-    <id>urn:btg-github-news:entity-evidence:contribution-20260928-memnox-memnox-issue-46</id>
-    <updated>2026-09-29T01:05:22Z</updated>
-    <summary>PRO_BONO; payment_settled=false; realized_cash=0 USD</summary>
   </entry>
 </feed>
