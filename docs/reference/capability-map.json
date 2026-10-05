@@ -3,12 +3,57 @@
   "runtime": "v3.4.3",
   "btdu_component": "3.4.2",
   "definition": "ENTITY is a provider-independent digital authority, information, evidence, market, economic and recovery operating fabric. Sovereignty is an invariant that protects continuity of authority and state; it is not the whole product.",
-  "core_primitives": ["ENTITY", "AUTHORITY", "RIGHT", "EVENT", "VALUE"],
-  "governed_object_classes": [
-    "people", "organizations", "AI agents", "datasets", "documents", "models", "software", "APIs", "devices", "vehicles", "buildings", "research", "digital twins", "financial instruments", "physical assets"
+  "core_primitives": [
+    "ENTITY",
+    "AUTHORITY",
+    "RIGHT",
+    "EVENT",
+    "VALUE"
   ],
-  "authority_actions": ["act", "sign", "access data", "execute", "purchase", "license", "settle", "publish", "resolve", "delegate", "control"],
-  "rights_actions": ["inspect", "read", "copy", "derive", "train", "infer", "execute", "modify", "redistribute", "commercialize", "control", "transfer"],
+  "governed_object_classes": [
+    "people",
+    "organizations",
+    "AI agents",
+    "datasets",
+    "documents",
+    "models",
+    "software",
+    "APIs",
+    "devices",
+    "vehicles",
+    "buildings",
+    "research",
+    "digital twins",
+    "financial instruments",
+    "physical assets"
+  ],
+  "authority_actions": [
+    "act",
+    "sign",
+    "access data",
+    "execute",
+    "purchase",
+    "license",
+    "settle",
+    "publish",
+    "resolve",
+    "delegate",
+    "control"
+  ],
+  "rights_actions": [
+    "inspect",
+    "read",
+    "copy",
+    "derive",
+    "train",
+    "infer",
+    "execute",
+    "modify",
+    "redistribute",
+    "commercialize",
+    "control",
+    "transfer"
+  ],
   "implemented_layers": [
     {
       "name": "Universal Transaction Fabric",
@@ -44,11 +89,41 @@
       "name": "Ecosystem Runtime",
       "purpose": "Binds the major subsystems into an operational runtime while preserving authority boundaries.",
       "source": "src/41_Ecosystem_Runtime/canonical_ecosystem_runtime.py"
+    },
+    {
+      "name": "ENTITY Wallet",
+      "purpose": "ENTITY Data Economy Terminal for sovereign first-run identity/device onboarding, DCO holdings, signed disclosures, Rights-Passport-driven instruments/tickers, explicit domain lineage, positions and orders.",
+      "source": "tools/entity_wallet_desktop.py"
     }
   ],
-  "market_lifecycle": ["DCO", "INSTRUMENT", "LISTING", "DISCLOSURE", "ORDER/RFQ/AUCTION", "PRICE DISCOVERY", "TRADE", "CLEARING", "SETTLEMENT", "ENTITLEMENT", "USAGE", "DERIVED OUTPUT", "ECONOMIC CONSEQUENCE"],
-  "execution_models": ["ORDER_BOOK", "CALL_AUCTION", "RFQ"],
-  "instrument_classes": ["SPOT_LICENSE", "SUBSCRIPTION", "COMPUTE_TO_DATA", "PROCUREMENT", "CONTRIBUTION", "SECONDARY_LICENSE"],
+  "market_lifecycle": [
+    "DCO",
+    "INSTRUMENT",
+    "LISTING",
+    "DISCLOSURE",
+    "ORDER/RFQ/AUCTION",
+    "PRICE DISCOVERY",
+    "TRADE",
+    "CLEARING",
+    "SETTLEMENT",
+    "ENTITLEMENT",
+    "USAGE",
+    "DERIVED OUTPUT",
+    "ECONOMIC CONSEQUENCE"
+  ],
+  "execution_models": [
+    "ORDER_BOOK",
+    "CALL_AUCTION",
+    "RFQ"
+  ],
+  "instrument_classes": [
+    "SPOT_LICENSE",
+    "SUBSCRIPTION",
+    "COMPUTE_TO_DATA",
+    "PROCUREMENT",
+    "CONTRIBUTION",
+    "SECONDARY_LICENSE"
+  ],
   "information_and_intelligence_boundaries": {
     "ENTITY": "identity, authority, rights, evidence, value, market and recovery relationships",
     "BTDU": "governed information topology and reconstructable lineage/state",
@@ -66,7 +141,7 @@
     "rights passports and global passports",
     "provider-neutral custody/connectors",
     "standards adapters",
-    "healthcare, finance, manufacturing, AI, robotics and public/unclassified defence implementation packages"
+    "healthcare, finance, manufacturing, AI, robotics, public/unclassified defence and Software Engineering implementation packages/profiles"
   ],
   "bounded_engineering_results": {
     "btdu_storage_benchmark": {
@@ -78,8 +153,13 @@
       "scope": "qualified tested campaign; Memnox recovered all 865/865 tracked blobs, archive, manifest and acceptance proof without original workspace, Git, GitHub or network"
     },
     "external_contribution_cases": {
-      "accepted": ["Vector #26501 / PR #26504", "Memnox #46 / PR #86"],
-      "active": ["AWS #934 / PR #935"],
+      "accepted": [
+        "Vector #26501 / PR #26504",
+        "Memnox #46 / PR #86"
+      ],
+      "active": [
+        "AWS #934 / PR #935"
+      ],
       "boundary": "accepted contribution lineage does not automatically mean paid settlement, ownership transfer or that every exchange subsystem was exercised"
     }
   },
@@ -103,6 +183,24 @@
     "market_fabric": "../economy/market-fabric.html",
     "market_recovery": "../economy/market-recovery.html",
     "exchange_api": "../developer/exchange-api.html",
-    "real_world_lineage": "../economy/real-world-economic-lineage.html"
+    "real_world_lineage": "../economy/real-world-economic-lineage.html",
+    "wallet": "../wallet/",
+    "software_engineering_domain": "../domains/software-engineering.html"
+  },
+  "wallet_application_layer": {
+    "name": "ENTITY Data Economy Terminal",
+    "qualification": "91/91 PASS",
+    "qualified_domain_counts": {
+      "Software Engineering": 10,
+      "Robotics": 2,
+      "missing": 0
+    },
+    "rights_rule": "economic instrument actions must be a subset of current DCO Rights Passport ALLOW actions",
+    "desktop_builds": [
+      "Windows",
+      "Linux",
+      "macOS"
+    ],
+    "ios_scope": "native SwiftUI portable-snapshot inspection client; native authority/write parity not claimed"
   }
 }

@@ -3,6 +3,7 @@ const q=document.getElementById('search');
 const r=document.getElementById('results');
 let I=null;
 const GUIDE_INDEX=[
+  {title:'ENTITY Wallet · Data Economy Terminal',section:'Wallet',url:'wallet/',text:'wallet ENTITY Data Economy Terminal DCO digital assets Rights Passport instrument ticker NO TICKER domains Software Engineering Robotics first-run identity device lineage Windows Linux macOS iOS portable snapshot 91/91'},
   {title:'ENTITY Core Tutorials',section:'Tutorials · Core',url:'tutorials/core/',text:'learn ENTITY itself five primitives authority delegation rights encrypted vault purpose access evidence trust provenance value BTDU ADAM NIKI passports privacy federation offline economics recovery standards'},
   {title:'Five Primitives & Governed Objects',section:'Tutorials · Core',url:'tutorials/core/five-primitives.html',text:'ENTITY AUTHORITY RIGHT EVENT VALUE governed objects'},
   {title:'Authority & Delegation',section:'Tutorials · Core',url:'tutorials/core/authority-delegation.html',text:'delegate revoke ACT SIGN ACCESS_DATA EXECUTE PURCHASE LICENSE SETTLE PUBLISH RESOLVE DELEGATE CONTROL'},
