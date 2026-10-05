@@ -29,6 +29,13 @@
     <summary>Public GitHub creation event</summary>
   </entry>
   <entry>
+    <title>blackmore-technology-group/ENTITY: created branch wallet-native-asset-ingest-20261003</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:23015126257</id>
+    <updated>2026-10-03T12:37:24Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
     <title>blackmore-technology-group/ENTITY: created branch feat/open-data-economy-constitution-20261003</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY"/>
     <id>urn:btg-github-news:create:22879766213</id>
@@ -698,13 +705,6 @@
     <link href="https://github.com/blackmore-technology-group/chainlearn-api"/>
     <id>urn:btg-github-news:create:22748263939</id>
     <updated>2026-09-30T15:59:48Z</updated>
-    <summary>Public GitHub creation event</summary>
-  </entry>
-  <entry>
-    <title>blackmore-technology-group/cve-lite-cli: created branch chore/issue-1254-flag-constants</title>
-    <link href="https://github.com/blackmore-technology-group/cve-lite-cli"/>
-    <id>urn:btg-github-news:create:22735442352</id>
-    <updated>2026-09-30T15:59:45Z</updated>
     <summary>Public GitHub creation event</summary>
   </entry>
 </feed>
