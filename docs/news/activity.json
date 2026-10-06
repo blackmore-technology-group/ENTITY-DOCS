@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-06T23:22:57.081546Z",
+  "generated_at_utc": "2026-10-06T23:49:51.375175Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -28,8 +28,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-06T22:50:06Z",
-      "pushed_at": "2026-10-06T22:50:02Z"
+      "updated_at": "2026-10-06T23:23:36Z",
+      "pushed_at": "2026-10-06T23:23:33Z"
     },
     {
       "name": "ENTITY",
@@ -695,21 +695,6 @@
       "source": "GITHUB_PUBLIC_EVENT",
       "entity_ingested": false,
       "entity_state": null
-    },
-    {
-      "id": "external-pr:speedyk-005/yasbd-lib:348",
-      "type": "EXTERNAL_FIX",
-      "occurred_at": "2026-10-03T20:28:59Z",
-      "title": "speedyk-005/yasbd-lib PR #348: Correctly handle terminators occur inside single/double backtick-delimited or doubled-apostrophe quoted text",
-      "summary": "BTG-authored upstream pull request",
-      "repository": "speedyk-005/yasbd-lib",
-      "url": "https://github.com/speedyk-005/yasbd-lib/pull/348",
-      "status": "UPSTREAM_CLOSED_UNMERGED",
-      "source": "GITHUB_PR_SEARCH",
-      "head_sha": null,
-      "entity_ingested": false,
-      "entity_state": null,
-      "entity_record_url": null
     },
     {
       "id": "pr-event:16340827326",
@@ -2657,6 +2642,21 @@
       "source": "GITHUB_PUBLIC_EVENT",
       "entity_ingested": false,
       "entity_state": null
+    },
+    {
+      "id": "external-pr:speedyk-005/yasbd-lib:348",
+      "type": "EXTERNAL_FIX",
+      "occurred_at": "2026-10-01T13:31:05Z",
+      "title": "speedyk-005/yasbd-lib PR #348: Correctly handle terminators occur inside single/double backtick-delimited or doubled-apostrophe quoted text",
+      "summary": "BTG-authored upstream pull request",
+      "repository": "speedyk-005/yasbd-lib",
+      "url": "https://github.com/speedyk-005/yasbd-lib/pull/348",
+      "status": "UPSTREAM_MERGED",
+      "source": "GITHUB_PR_SEARCH",
+      "head_sha": "33ee2faf2d265703467f7bfe031bcfc3d5afb62a",
+      "entity_ingested": false,
+      "entity_state": null,
+      "entity_record_url": null
     },
     {
       "id": "pr-event:16193565376",
