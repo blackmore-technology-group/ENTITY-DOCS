@@ -5,8 +5,15 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-06T14:44:51Z</updated>
+  <updated>2026-10-07T15:04:34Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>blackmore-technology-group/ENTITY: created branch feat/btdu-storage-kernel-20261004</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:23347346563</id>
+    <updated>2026-10-07T15:04:34Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
   <entry>
     <title>blackmore-technology-group/ENTITY: created branch maintenance/dependabot-security-20261006</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY"/>
@@ -699,12 +706,5 @@
     <id>urn:btg-github-news:create:22616561763</id>
     <updated>2026-09-30T17:43:31Z</updated>
     <summary>Public GitHub creation event</summary>
-  </entry>
-  <entry>
-    <title>Fork created: blackmore-technology-group/gf180-surge</title>
-    <link href="https://github.com/blackmore-technology-group/gf180-surge"/>
-    <id>urn:btg-github-news:fork:16122960799</id>
-    <updated>2026-09-30T17:37:58Z</updated>
-    <summary>Fork lineage from 2AMLogic/gf180-surge</summary>
   </entry>
 </feed>
