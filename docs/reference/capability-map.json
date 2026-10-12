@@ -3,12 +3,57 @@
   "runtime": "v3.4.3",
   "btdu_component": "3.4.2",
   "definition": "ENTITY is a provider-independent digital authority, information, evidence, market, economic and recovery operating fabric. Sovereignty is an invariant that protects continuity of authority and state; it is not the whole product.",
-  "core_primitives": ["ENTITY", "AUTHORITY", "RIGHT", "EVENT", "VALUE"],
-  "governed_object_classes": [
-    "people", "organizations", "AI agents", "datasets", "documents", "models", "software", "APIs", "devices", "vehicles", "buildings", "research", "digital twins", "financial instruments", "physical assets"
+  "core_primitives": [
+    "ENTITY",
+    "AUTHORITY",
+    "RIGHT",
+    "EVENT",
+    "VALUE"
   ],
-  "authority_actions": ["act", "sign", "access data", "execute", "purchase", "license", "settle", "publish", "resolve", "delegate", "control"],
-  "rights_actions": ["inspect", "read", "copy", "derive", "train", "infer", "execute", "modify", "redistribute", "commercialize", "control", "transfer"],
+  "governed_object_classes": [
+    "people",
+    "organizations",
+    "AI agents",
+    "datasets",
+    "documents",
+    "models",
+    "software",
+    "APIs",
+    "devices",
+    "vehicles",
+    "buildings",
+    "research",
+    "digital twins",
+    "financial instruments",
+    "physical assets"
+  ],
+  "authority_actions": [
+    "act",
+    "sign",
+    "access data",
+    "execute",
+    "purchase",
+    "license",
+    "settle",
+    "publish",
+    "resolve",
+    "delegate",
+    "control"
+  ],
+  "rights_actions": [
+    "inspect",
+    "read",
+    "copy",
+    "derive",
+    "train",
+    "infer",
+    "execute",
+    "modify",
+    "redistribute",
+    "commercialize",
+    "control",
+    "transfer"
+  ],
   "implemented_layers": [
     {
       "name": "Universal Transaction Fabric",
@@ -46,9 +91,34 @@
       "source": "src/41_Ecosystem_Runtime/canonical_ecosystem_runtime.py"
     }
   ],
-  "market_lifecycle": ["DCO", "INSTRUMENT", "LISTING", "DISCLOSURE", "ORDER/RFQ/AUCTION", "PRICE DISCOVERY", "TRADE", "CLEARING", "SETTLEMENT", "ENTITLEMENT", "USAGE", "DERIVED OUTPUT", "ECONOMIC CONSEQUENCE"],
-  "execution_models": ["ORDER_BOOK", "CALL_AUCTION", "RFQ"],
-  "instrument_classes": ["SPOT_LICENSE", "SUBSCRIPTION", "COMPUTE_TO_DATA", "PROCUREMENT", "CONTRIBUTION", "SECONDARY_LICENSE"],
+  "market_lifecycle": [
+    "DCO",
+    "INSTRUMENT",
+    "LISTING",
+    "DISCLOSURE",
+    "ORDER/RFQ/AUCTION",
+    "PRICE DISCOVERY",
+    "TRADE",
+    "CLEARING",
+    "SETTLEMENT",
+    "ENTITLEMENT",
+    "USAGE",
+    "DERIVED OUTPUT",
+    "ECONOMIC CONSEQUENCE"
+  ],
+  "execution_models": [
+    "ORDER_BOOK",
+    "CALL_AUCTION",
+    "RFQ"
+  ],
+  "instrument_classes": [
+    "SPOT_LICENSE",
+    "SUBSCRIPTION",
+    "COMPUTE_TO_DATA",
+    "PROCUREMENT",
+    "CONTRIBUTION",
+    "SECONDARY_LICENSE"
+  ],
   "information_and_intelligence_boundaries": {
     "ENTITY": "identity, authority, rights, evidence, value, market and recovery relationships",
     "BTDU": "governed information topology and reconstructable lineage/state",
@@ -78,8 +148,13 @@
       "scope": "qualified tested campaign; Memnox recovered all 865/865 tracked blobs, archive, manifest and acceptance proof without original workspace, Git, GitHub or network"
     },
     "external_contribution_cases": {
-      "accepted": ["Vector #26501 / PR #26504", "Memnox #46 / PR #86"],
-      "active": ["AWS #934 / PR #935"],
+      "accepted": [
+        "Vector #26501 / PR #26504",
+        "Memnox #46 / PR #86"
+      ],
+      "active": [
+        "AWS #934 / PR #935"
+      ],
       "boundary": "accepted contribution lineage does not automatically mean paid settlement, ownership transfer or that every exchange subsystem was exercised"
     }
   },
@@ -104,5 +179,18 @@
     "market_recovery": "../economy/market-recovery.html",
     "exchange_api": "../developer/exchange-api.html",
     "real_world_lineage": "../economy/real-world-economic-lineage.html"
+  },
+  "implementation_status_20261012": {
+    "status_page": "docs/reference/current-implementation-status.html",
+    "protected_tag": "v3.4.3",
+    "protected_tag_commit": "528b70aabd05b1e930b77e4933f157731e47274f",
+    "post_tag_btdu_formula_storage": "implemented_on_main_locally_qualified_separately",
+    "formula_bindings_local_receipt": 4933,
+    "legacy_bindings_remaining_local_receipt": 0,
+    "python_sdk_source": "present",
+    "apple_android_web_windows_native_authority_sdks": "requirements_only_not_qualified",
+    "independent_security_audit": "PENDING",
+    "external_multi_host_portability": "PENDING",
+    "storage_note": "49.34% is one primary-authoritative subset comparison; do not treat as universal or full-deployment saving"
   }
 }
