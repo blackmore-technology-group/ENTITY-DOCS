@@ -5,8 +5,15 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-12T14:29:56Z</updated>
+  <updated>2026-10-12T15:17:09Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>blackmore-technology-group/ENTITY: created branch feature/entity-datachip-edp-v0-1</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:23786693316</id>
+    <updated>2026-10-12T15:17:09Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
   <entry>
     <title>blackmore-technology-group/ENTITY: created branch docs/align-entity-runtime-20261012</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY"/>
@@ -699,12 +706,5 @@
     <id>urn:btg-github-news:create:22622925173</id>
     <updated>2026-09-30T18:11:37Z</updated>
     <summary>Public GitHub creation event</summary>
-  </entry>
-  <entry>
-    <title>Fork created: blackmore-technology-group/promise-to-proof</title>
-    <link href="https://github.com/blackmore-technology-group/promise-to-proof"/>
-    <id>urn:btg-github-news:fork:16124428159</id>
-    <updated>2026-09-30T17:58:41Z</updated>
-    <summary>Fork lineage from grove/promise-to-proof</summary>
   </entry>
 </feed>
