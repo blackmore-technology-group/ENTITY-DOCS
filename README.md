@@ -1,5 +1,7 @@
 # ENTITY Documentation Portal
 
+> **Current built/released status (2026-10-12):** [Read the dated implementation, BTDU, wallet and SDK evidence boundaries](docs/reference/current-implementation-status.html). Protected v3.4.3 and later `main` implementations must be evaluated separately.
+
 Public operator, developer, protocol, market, economic, security, recovery, evidence, domain, version and generated-reference documentation for **ENTITY**.
 
 ## What ENTITY is
