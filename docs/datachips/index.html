@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ENTITY DataChips | EDCF v0.2, EDP and Universal Composer</title>
+<meta name="description" content="ENTITY DataChips: verifiable formula-native content, native host interoperability, rights-aware assemblies and the emerging visual Composer. Current implementation and production gates.">
+<link rel="canonical" href="https://blackmore-technology-group.github.io/ENTITY-DOCS/datachips/">
+<link rel="stylesheet" href="../assets/style.css">
+</head><body>
+<header><b>ENTITY Documentation Portal</b></header>
+<div class="layout"><nav>
+<h3>DataChip platform</h3>
+<a href="../">ENTITY home</a><a href="../technology/">Technology</a>
+<a href="../developer/">Developer manual</a><a href="../economy/wallet.html">Wallet and markets</a>
+<a href="../reference/current-implementation-status.html">Implementation status</a>
+<a href="https://github.com/blackmore-technology-group/ENTITY/tree/main/sdk/datachip">DataChip source</a>
+<a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/architecture/BTG_DATACHIP_ALIGNMENT_LOCK_V02.json">Shared contract lock</a>
+<a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/architecture/ENTITY_DATACHIP_PRODUCTION_GATES_20261012.md">Production gates</a>
+</nav><main>
+<div class="eyebrow">Post-v3.4.3 engineering snapshot | 13 October 2026</div>
+<h1>ENTITY DataChips: build interoperable systems from verifiable parts</h1>
+<p class="lede">An ENTITY DataChip is a portable, content-addressed component carrying exact data or a bounded reconstruction recipe, its dependencies and provenance references. An ENTITY Data Processor (EDP) verifies and reconstructs permitted material. Native application hosts supply real operating-system and device capabilities. The Universal DataChip Composer is the emerging typed, visual assembly workspace.</p>
+<div class="callout"><strong>Release boundary:</strong> ENTITY v3.4.3 remains the current protected release; BTDU 3.4.2 remains unchanged inside that tag. Formula-native EDCF v0.2, the shared cross-application alignment contract, Composer and wallet integration candidates are later engineering on <code>main</code> and review branches, <strong>not</strong> a newly certified ENTITY release or a generally available production deployment.</div>
+<h2>Four parts of a DataChip-based system</h2>
+<table><tr><th>Layer</th><th>Responsibility</th></tr>
+<tr><td>Native host</td><td>Signed iOS/Android/Windows/Linux application, OS permissions, camera, ARKit/Metal, GPS, renderer, UI, user consent, trusted identity and secure device enrollment.</td></tr>
+<tr><td>ENTITY Data Processor (EDP)</td><td>Strict content verification, deterministic formula reconstruction, dependency and interface checks, bounded execution of approved pure-data operations and fail-closed eligibility decisions.</td></tr>
+<tr><td>EDCF v0.2 DataChip</td><td>Portable exact-content formula DAG with <code>ATOM</code>, <code>ENTROPY</code>, <code>CONCAT</code>, <code>REPEAT</code> and <code>SLICE</code>, pinned content hashes, optional independent shard-set packaging for larger assets.</td></tr>
+<tr><td>ENTITY authority and wallet</td><td>Separate Rights Passport validation, authenticated controller approval, delegated app/subject/action-scoped grants, expiry/revocation, provenance and optional economic instruments. Integrity never creates a right.</td></tr></table>
+<h2>Compose by connections, not by inventing permissions</h2>
+<p>The experimental Universal DataChip Composer works with a versioned typed graph: compatible inputs/outputs, dependency resolution, cyclic-graph and missing-interface rejection, bounded assembly planning and explicit platform capability requirements. A Composer canvas or draft is <strong>not</strong> a signed, executable native app. The wallet is evolving toward a capability-first DataChip workspace while retaining controller-scoped DCOs, instruments, rights, settlement, lineage, BTDU formula assets and authorized transfers.</p>
+<p>Source: <a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/ENTITY_DATACHIP_WORKSPACE_ARCHITECTURE.md">DataChip workspace architecture</a>, <a href="https://github.com/blackmore-technology-group/ENTITY/tree/main/tools">Composer previews</a> and <a href="https://github.com/blackmore-technology-group/ENTITY/issues/155">explicit data-plane rights policy blocker</a>.</p>
+<h2>Interoperability and measured evidence</h2>
+<p>A shared EDCF v0.2 lock has been integrated across ENTITY, HuntAR and BTG Command Centre. In the Boundary Country engineering pilot, 34 independently pinned geographic QA chips and their source/archive identities were verified off-device. This is a <strong>QA artifact</strong>, not licensed, live-authorized production geography. The HuntAR 480 work adds an explicitly user-selected Files import and bounded read-only native QA verifier; a full 34-chip iPhone mount and rendered-map/terrain acceptance have not been independently evidenced.</p>
+<p>EDCF v0.2 is not interchangeable with legacy <code>.edc</code> v0.1, and a shard-set manifest is separate from a single-chip formula archive. Do not treat a checksum as proof of publisher identity or a syntactically valid Rights Passport reference as a grant.</p>
+<h2>Rights and security contract</h2>
+<p>Verified archive bytes, authenticated publisher identity, legal/control authority, current entitlement and permission to export are separate checks. Signed delegated grants require independently trusted issuer/status keys, proper audience and subject, scoped actions, time limits and fresh revocation evidence. The production Rights Passport audit found existing READ/COPY rules but no explicit EXPORT permissions. The bridge must deny unsupported export until a versioned rights-policy decision and authorized grants exist. Neither the website nor the Composer changes this policy.</p>
+<h2>Production readiness</h2>
+<table><tr><th>Capability</th><th>Status</th></tr>
+<tr><td>Formula-native reference implementation and cross-repository contract</td><td>Engineering implemented; source tests and QA fixtures exist</td></tr>
+<tr><td>Native Rust/C and Swift verification bindings</td><td>Integration candidate; independent 3-OS CI and hardware qualification still required</td></tr>
+<tr><td>Signed reference bundles, deployment/rollback and anti-rollback</td><td>Reference implementation; hardware-backed production anti-rollback not qualified</td></tr>
+<tr><td>Wallet typed Composer, DCO bridge and capability-first UI</td><td>Engineering candidate, not a verified production wallet migration</td></tr>
+<tr><td>Live issuer/KMS authorization, revocation distribution and export policy</td><td>Blocked pending operational qualification and explicit rights governance</td></tr>
+<tr><td>Full HuntAR geographic mount, real BSIE overlay, stable NIKI/HUD/map, authorized device evidence</td><td>Not yet production-qualified; physical-device acceptance required</td></tr>
+<tr><td>Independent hostile-input security assessment and third-party host portability</td><td>Outstanding</td></tr></table>
+<h2>Developer starting points</h2>
+<p><a href="https://github.com/blackmore-technology-group/ENTITY/tree/main/sdk/datachip">DataChip reference SDK</a> ·
+<a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/architecture/BTG_DATACHIP_APPLICATION_STANDARD_V0_1.md">Native-host architecture</a> ·
+<a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/architecture/BTG_DATACHIP_ALIGNMENT_LOCK_V02.json">EDCF v0.2 lock</a> ·
+<a href="https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/architecture/ENTITY_DATACHIP_PRODUCTION_GATES_20261012.md">Gate checklist</a> ·
+<a href="../reference/current-implementation-status.html">Evidence status</a>.</p>
+<p>The DataChip platform is for BTG applications and potential third-party native hosts, provided each host independently supports the same data contract, trusted permissions, constraints and compatibility checks. It does not distribute arbitrary unsigned executable code or bypass device/App Store restrictions.</p>
+</main></div><script>window.B="../";</script><script src="../assets/app.js"></script>
+</body></html>
