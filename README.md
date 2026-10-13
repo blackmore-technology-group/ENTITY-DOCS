@@ -2,6 +2,10 @@
 
 > **Current built/released status (2026-10-12):** [Read the dated implementation, BTDU, wallet and SDK evidence boundaries](docs/reference/current-implementation-status.html). Protected v3.4.3 and later `main` implementations must be evaluated separately.
 
+## DataChip-first architecture (post-tag engineering)
+
+[**DataChips, EDP and Universal Composer**](docs/datachips/index.html) is the public entry point for formula-native EDCF v0.2, bounded reconstruction, independently enforced rights, signed-native-host requirements, the typed visual Composer and wallet evolution. This engineering work follows the protected ENTITY v3.4.3 release, and its native deployment, current issuer authority, export rights, revocation and independent security gates are not yet fully qualified.
+
 Public operator, developer, protocol, market, economic, security, recovery, evidence, domain, version and generated-reference documentation for **ENTITY**.
 
 ## What ENTITY is
