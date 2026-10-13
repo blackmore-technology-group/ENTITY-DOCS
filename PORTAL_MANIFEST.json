@@ -360,5 +360,23 @@
     "native_desktop_release_qualified": false,
     "website_custom_domain_verified": false,
     "rights_or_protocol_changed": false
+  },
+  "aurora_brand_assets": {
+    "version": "2026-10-13-blue-chrome-approved",
+    "brand": "Blackmore Technology Group Limited",
+    "artwork_status": "user-approved reference exported to optimized website assets",
+    "logo_emblem": "docs/assets/blackmore-aurora-emblem.webp",
+    "logo_wordmark": "docs/assets/blackmore-aurora-wordmark.webp",
+    "favicon_32": "docs/assets/favicon-32.png",
+    "apple_touch_180": "docs/assets/favicon-180.png",
+    "original_legacy_mark_retained_for_rollback": true,
+    "canonical_github_pages_url": "https://blackmore-technology-group.github.io/ENTITY-DOCS/",
+    "custom_io_domain_binding_verified": false,
+    "source_sha256": {
+      "emblem_webp": "a03777c6e5196973d5ac9b29e64dcaafb6bda34a4925cefb85a50a58f1b009a6",
+      "wordmark_webp": "b904ef7b9762dc111f5f0d793079aceb33430c359b3995a7b324c1243b49e9b3",
+      "favicon32": "93fe204cd1723b04de57f7b0c78477b09fa7309015517b9510008bea1319c320",
+      "appleTouch180": "3189b352266dbed5a4ec618b0b6e91a139e79906fcf14fdf7b1b79482edd5b6c"
+    }
   }
 }

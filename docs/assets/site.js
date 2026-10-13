@@ -45,8 +45,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     for(const a of links)a.addEventListener('click',()=>{linksBox.classList.remove('open');b.setAttribute('aria-expanded','false');b.textContent='Menu';});
   }
 
-  if(!document.querySelector('link[rel="icon"]')){const icon=document.createElement('link');icon.rel='icon';icon.type='image/svg+xml';icon.href=new URL('btg-mark.svg',assetBase).href;document.head.appendChild(icon);}
+  if(!document.querySelector('link[rel="icon"]')){const icon=document.createElement('link');icon.rel='icon';icon.type='image/png';icon.href=new URL('favicon-32.png',assetBase).href;document.head.appendChild(icon);}
   const legal=document.querySelector('.legal');
   if(legal&&/BTGEntity\.io|custom domain/i.test(legal.textContent))legal.textContent='Apache-2.0 open-source protocol and reference implementation. Current supported runtime: ENTITY v3.4.3. BTDU component: 3.4.2 unchanged. Public site hosted on GitHub Pages at blackmore-technology-group.github.io/ENTITY-DOCS/.';
+  if(!document.querySelector('link[rel="apple-touch-icon"]')){const touch=document.createElement('link');touch.rel='apple-touch-icon';touch.sizes='180x180';touch.href=new URL('favicon-180.png',assetBase).href;document.head.appendChild(touch);}
   document.documentElement.style.setProperty('--btg-brand-ready','1');
 });
