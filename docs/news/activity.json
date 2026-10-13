@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-13T01:27:13.138890Z",
+  "generated_at_utc": "2026-10-13T01:54:51.139277Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -13,8 +13,8 @@
     "release_records": 14,
     "recent_external_prs": 15,
     "entity_evidence_records": 2,
-    "retained_previous_activity_items": 286,
-    "activity_items": 287
+    "retained_previous_activity_items": 287,
+    "activity_items": 297
   },
   "repositories": [
     {
@@ -28,8 +28,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-18T00:20:03Z",
-      "updated_at": "2026-10-12T16:08:03Z",
-      "pushed_at": "2026-10-13T01:26:47Z"
+      "updated_at": "2026-10-13T01:47:10Z",
+      "pushed_at": "2026-10-13T01:47:08Z"
     },
     {
       "name": "ENTITY-DOCS",
@@ -42,8 +42,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-13T00:39:25Z",
-      "pushed_at": "2026-10-13T00:39:21Z"
+      "updated_at": "2026-10-13T01:27:50Z",
+      "pushed_at": "2026-10-13T01:27:46Z"
     },
     {
       "name": "ENTITY-2",
@@ -523,6 +523,136 @@
     }
   ],
   "items": [
+    {
+      "id": "pr-event:17059292677",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-13T01:47:06Z",
+      "title": "blackmore-technology-group/ENTITY PR #154:",
+      "summary": "GitHub PR event: merged",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": null,
+      "status": "MERGED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:17059152805",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-13T01:44:08Z",
+      "title": "blackmore-technology-group/ENTITY PR #154:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:23828574320",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-13T01:43:12Z",
+      "title": "blackmore-technology-group/ENTITY: created branch feature/datachip-native-host-abi-20261013",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:17059101163",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-13T01:43:00Z",
+      "title": "blackmore-technology-group/ENTITY PR #153:",
+      "summary": "GitHub PR event: merged",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": null,
+      "status": "MERGED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:17058836439",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-13T01:37:15Z",
+      "title": "blackmore-technology-group/ENTITY PR #153:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:23828178361",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-13T01:36:30Z",
+      "title": "blackmore-technology-group/ENTITY: created branch feature/datachip-independent-rust-native-20261013",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:17058793996",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-13T01:36:19Z",
+      "title": "blackmore-technology-group/ENTITY PR #151:",
+      "summary": "GitHub PR event: merged",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": null,
+      "status": "MERGED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:17058706582",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-13T01:34:30Z",
+      "title": "blackmore-technology-group/ENTITY PR #152:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "create:23828020458",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-13T01:33:51Z",
+      "title": "blackmore-technology-group/ENTITY: created branch datachip/segment-compiler-qualification-20261012",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
+    {
+      "id": "pr-event:17058477191",
+      "type": "PULL_REQUEST",
+      "occurred_at": "2026-10-13T01:29:28Z",
+      "title": "blackmore-technology-group/ENTITY PR #151:",
+      "summary": "GitHub PR event: opened",
+      "repository": "blackmore-technology-group/ENTITY",
+      "url": null,
+      "status": "OPENED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
     {
       "id": "create:23827602650",
       "type": "REPOSITORY_EVENT",

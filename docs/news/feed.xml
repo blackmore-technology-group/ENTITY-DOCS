@@ -5,8 +5,29 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-13T01:26:47Z</updated>
+  <updated>2026-10-13T01:43:12Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>blackmore-technology-group/ENTITY: created branch feature/datachip-native-host-abi-20261013</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:23828574320</id>
+    <updated>2026-10-13T01:43:12Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
+    <title>blackmore-technology-group/ENTITY: created branch feature/datachip-independent-rust-native-20261013</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:23828178361</id>
+    <updated>2026-10-13T01:36:30Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
+    <title>blackmore-technology-group/ENTITY: created branch datachip/segment-compiler-qualification-20261012</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:23828020458</id>
+    <updated>2026-10-13T01:33:51Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
   <entry>
     <title>blackmore-technology-group/ENTITY: created branch feature/datachip-production-gates-20261012</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY"/>
@@ -685,26 +706,5 @@
     <id>urn:btg-github-news:fork:16144882495</id>
     <updated>2026-09-30T23:25:31Z</updated>
     <summary>Fork lineage from speedyk-005/yasbd-lib</summary>
-  </entry>
-  <entry>
-    <title>blackmore-technology-group/sotto: created branch fix/460-secret-modal-long-input</title>
-    <link href="https://github.com/blackmore-technology-group/sotto"/>
-    <id>urn:btg-github-news:create:22661793638</id>
-    <updated>2026-09-30T22:50:06Z</updated>
-    <summary>Public GitHub creation event</summary>
-  </entry>
-  <entry>
-    <title>Fork created: blackmore-technology-group/sotto</title>
-    <link href="https://github.com/blackmore-technology-group/sotto"/>
-    <id>urn:btg-github-news:fork:16142272717</id>
-    <updated>2026-09-30T22:31:38Z</updated>
-    <summary>Fork lineage from getsotto/sotto</summary>
-  </entry>
-  <entry>
-    <title>2AMLogic/gf180-surge PR #251: SXT-015: make params digest override-sensitive</title>
-    <link href="https://github.com/2AMLogic/gf180-surge/pull/251"/>
-    <id>urn:btg-github-news:external-pr:2AMLogic/gf180-surge:251</id>
-    <updated>2026-09-30T21:07:44Z</updated>
-    <summary>BTG-authored upstream pull request</summary>
   </entry>
 </feed>
