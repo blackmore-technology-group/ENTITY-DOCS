@@ -43,6 +43,13 @@
     <summary>Public GitHub creation event</summary>
   </entry>
   <entry>
+    <title>blackmore-technology-group/ENTITY-DOCS: created branch docs/align-entity-runtime-20261012</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
+    <id>urn:btg-github-news:create:23858111835</id>
+    <updated>2026-10-12T14:29:59Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
     <title>blackmore-technology-group/ENTITY: created branch docs/align-entity-runtime-20261012</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY"/>
     <id>urn:btg-github-news:create:23783151804</id>
@@ -699,12 +706,5 @@
     <id>urn:btg-github-news:create:22663934202</id>
     <updated>2026-09-30T23:38:29Z</updated>
     <summary>Public GitHub creation event</summary>
-  </entry>
-  <entry>
-    <title>Fork created: blackmore-technology-group/yasbd-lib</title>
-    <link href="https://github.com/blackmore-technology-group/yasbd-lib"/>
-    <id>urn:btg-github-news:fork:16144882495</id>
-    <updated>2026-09-30T23:25:31Z</updated>
-    <summary>Fork lineage from speedyk-005/yasbd-lib</summary>
   </entry>
 </feed>
