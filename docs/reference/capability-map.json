@@ -192,5 +192,32 @@
     "independent_security_audit": "PENDING",
     "external_multi_host_portability": "PENDING",
     "storage_note": "49.34% is one primary-authoritative subset comparison; do not treat as universal or full-deployment saving"
+  },
+  "datachip_platform_20261013": {
+    "documentation_url": "https://blackmore-technology-group.github.io/ENTITY-DOCS/datachips/",
+    "status": "post_v3.4.3_engineering_not_production_qualified",
+    "formula_schema": "entity-datachip-formula-v0.2",
+    "portable_suffix": ".edcf",
+    "legacy_format_distinct": ".edc v0.1",
+    "formula_ops": [
+      "ATOM",
+      "ENTROPY",
+      "CONCAT",
+      "REPEAT",
+      "SLICE"
+    ],
+    "edp": "ENTITY Data Processor reference and bounded native-host contracts",
+    "composer": "typed graph / visual assembly planning; app execution and production wallet migration unqualified",
+    "host_boundary": "native host owns OS permissions, camera, ARKit/Metal, GPS and user consent",
+    "authority_boundary": "separate authenticated current Rights Passport, issuer/delegation keys, revocation, scoped action and explicit export permission",
+    "geography_pilot": "34 Boundary Country engineering QA chips, exact off-device identities; full iPhone mount not established",
+    "production_gates": [
+      "controller-authenticated issuer and KMS/HSM",
+      "versioned explicit EXPORT authorization",
+      "fresh signed revocation",
+      "native device ABI and 34-chip field acceptance",
+      "cross-platform CI",
+      "independent adversarial security review"
+    ]
   }
 }
