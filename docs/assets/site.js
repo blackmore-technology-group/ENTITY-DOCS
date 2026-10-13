@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   const siteRoot=new URL('../',assetBase);
   const insertBeforeGithub=(a)=>{const github=[...linksBox.querySelectorAll('a')].find(x=>x.classList.contains('nav-cta'));if(github)linksBox.insertBefore(a,github);else linksBox.appendChild(a);};
 
+  if(linksBox&&!linksBox.querySelector('a[href$="/datachips/"]')){
+    const a=document.createElement('a');a.href=new URL('datachips/',siteRoot).href;a.textContent='DataChips';a.setAttribute('data-entity-datachips','1');insertBeforeGithub(a);
+  }
   if(linksBox&&!linksBox.querySelector('a[data-entity-tutorials]')){
     const a=document.createElement('a');a.href=new URL('tutorials/',siteRoot).href;a.textContent='Tutorials';a.setAttribute('data-entity-tutorials','1');insertBeforeGithub(a);
   }
