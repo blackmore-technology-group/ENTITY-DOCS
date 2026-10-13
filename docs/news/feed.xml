@@ -5,8 +5,15 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-13T01:43:12Z</updated>
+  <updated>2026-10-13T10:23:20Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>blackmore-technology-group/ENTITY: created branch docs/datachip-edcf-v02-20261013</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:23862636715</id>
+    <updated>2026-10-13T10:23:20Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
   <entry>
     <title>blackmore-technology-group/ENTITY: created branch feature/datachip-native-host-abi-20261013</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY"/>
@@ -698,13 +705,6 @@
     <link href="https://github.com/blackmore-technology-group/ENTITY"/>
     <id>urn:btg-github-news:create:22785076180</id>
     <updated>2026-09-30T23:38:33Z</updated>
-    <summary>Public GitHub creation event</summary>
-  </entry>
-  <entry>
-    <title>blackmore-technology-group/blackmore-technology-group: created branch growth/developer-funnel-profile-20260930</title>
-    <link href="https://github.com/blackmore-technology-group/blackmore-technology-group"/>
-    <id>urn:btg-github-news:create:22663934202</id>
-    <updated>2026-09-30T23:38:29Z</updated>
     <summary>Public GitHub creation event</summary>
   </entry>
 </feed>
