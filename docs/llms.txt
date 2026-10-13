@@ -1,5 +1,13 @@
 # ENTITY v3.4.3
 
+## Blackmore Aurora design language (post-tag UI)
+
+Guide: https://blackmore-technology-group.github.io/ENTITY-DOCS/design-system/
+Portable semantic tokens: https://blackmore-technology-group.github.io/ENTITY-DOCS/assets/blackmore-aurora.tokens.json
+Aurora unifies the public ENTlTY design system with a proposed Blackmore Nexus engineering brand, ENTITY Wallet and native DataChip Composer. Design claims do not imply successful app-store releases, live issuer authorization, financial settlement or qualification of desktop bundles. The custom entity.io domain has not been independently verified as pointing at this GitHub Pages deployment.
+
+
+
 ## Post-tag DataChip architecture (13 October 2026)
 
 Public architecture guide: https://blackmore-technology-group.github.io/ENTITY-DOCS/datachips/

@@ -3,6 +3,7 @@ const q=document.getElementById('search');
 const r=document.getElementById('results');
 let I=null;
 const GUIDE_INDEX=[
+  {title:'Blackmore Aurora Universal Design System',section:'Design · Product family',url:'design-system/',text:'Blackmore Aurora unified design tokens ENTITY Wallet Blackmore Nexus DataChip Composer AI verification rights readable trusted developer experience'},
   {title:'ENTITY DataChips, EDP and Universal Composer',section:'Technology | DataChips',url:'datachips/',text:'EDCF v0.2 formula native DataChip processor typed ports visual composer signed native host Rights Passport explicit export authorization revocation security production gates Boundary Country HuntAR'},
   {title:'ENTITY Core Tutorials',section:'Tutorials · Core',url:'tutorials/core/',text:'learn ENTITY itself five primitives authority delegation rights encrypted vault purpose access evidence trust provenance value BTDU ADAM NIKI passports privacy federation offline economics recovery standards'},
   {title:'Five Primitives & Governed Objects',section:'Tutorials · Core',url:'tutorials/core/five-primitives.html',text:'ENTITY AUTHORITY RIGHT EVENT VALUE governed objects'},

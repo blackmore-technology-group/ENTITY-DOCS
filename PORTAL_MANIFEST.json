@@ -1,6 +1,6 @@
 {
   "schema": "entity-docs-portal-v3",
-  "generated_at_utc": "2026-10-13T10:26:19.404Z",
+  "generated_at_utc": "2026-10-13T11:37:45.235Z",
   "current_release": "v3.4.3",
   "current_release_tag_object": "e92b34221838fc09d7e72cc2e7a7f19c53a2b5f7",
   "current_release_tag_signature_verified": true,
@@ -341,5 +341,24 @@
     "live_kms_signed_export_qualified": false,
     "independent_security_review_complete": false,
     "canonical_contract": "https://github.com/blackmore-technology-group/ENTITY/blob/main/docs/architecture/BTG_DATACHIP_ALIGNMENT_LOCK_V02.json"
+  },
+  "aurora_design_system": {
+    "version": "1.0.0",
+    "status": "public_styles_deployed_on_pages_after_ci",
+    "tokens": "docs/assets/blackmore-aurora.tokens.json",
+    "canonical_css": "docs/assets/blackmore-aurora.css",
+    "public_guide": "docs/design-system/index.html",
+    "applied_to": [
+      "site.css",
+      "style.css"
+    ],
+    "products": [
+      "ENTITY",
+      "ENTITY Wallet",
+      "Blackmore Nexus"
+    ],
+    "native_desktop_release_qualified": false,
+    "website_custom_domain_verified": false,
+    "rights_or_protocol_changed": false
   }
 }

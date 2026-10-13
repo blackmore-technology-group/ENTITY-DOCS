@@ -2,6 +2,10 @@
 
 > **Current built/released status (2026-10-12):** [Read the dated implementation, BTDU, wallet and SDK evidence boundaries](docs/reference/current-implementation-status.html). Protected v3.4.3 and later `main` implementations must be evaluated separately.
 
+## Blackmore Aurora — unified product design (2026-10-13)
+
+[**Blackmore Aurora design system**](docs/design-system/index.html) provides a common presentation and interaction standard for the ENTITY ecosystem, ENTITY Wallet, the DataChip Composer and the proposed global engineering control platform, Blackmore Nexus. Shared semantic tokens cover the live public portal stylesheets; matching native Qt/Tk changes are independently qualified before desktop release. Design and appearance never alter ENTITY economic or authority logic.
+
 ## DataChip-first architecture (post-tag engineering)
 
 [**DataChips, EDP and Universal Composer**](docs/datachips/index.html) is the public entry point for formula-native EDCF v0.2, bounded reconstruction, independently enforced rights, signed-native-host requirements, the typed visual Composer and wallet evolution. This engineering work follows the protected ENTITY v3.4.3 release, and its native deployment, current issuer authority, export rights, revocation and independent security gates are not yet fully qualified.

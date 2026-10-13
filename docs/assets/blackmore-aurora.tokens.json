@@ -1,0 +1,25 @@
+{
+  "schema": "blackmore-aurora-design-tokens-v1.0.0",
+  "family": "Blackmore Aurora",
+  "version": "1.0.0",
+  "colors": {
+    "background": "#08121F",
+    "canvas": "#0B1728",
+    "surface": "#101F32",
+    "surfaceRaised": "#142740",
+    "surfaceHover": "#1B3150",
+    "stroke": "#29435F",
+    "strokeStrong": "#416581",
+    "text": "#F4F8FF",
+    "muted": "#9CB3CF",
+    "subtle": "#6683A6",
+    "primary": "#57D7F7",
+    "primaryStrong": "#8DEBFF",
+    "blue": "#77BBFF",
+    "success": "#65E8BD",
+    "ai": "#CC9CFF",
+    "rights": "#F6C879",
+    "danger": "#FD8C9D",
+    "ink": "#041723"
+  }
+}
