@@ -15,6 +15,13 @@
     <summary>Public GitHub creation event</summary>
   </entry>
   <entry>
+    <title>blackmore-technology-group/ENTITY: created branch feature/entity-full-wallet-composer-integration-20261013</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY"/>
+    <id>urn:btg-github-news:create:23953031219</id>
+    <updated>2026-10-13T04:41:07Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
+  <entry>
     <title>blackmore-technology-group/ENTITY: created branch feature/entity-wallet-datachip-composer-20261013</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY"/>
     <id>urn:btg-github-news:create:23947940917</id>
@@ -699,12 +706,5 @@
     <id>urn:btg-github-news:create:22638313823</id>
     <updated>2026-09-30T23:45:39Z</updated>
     <summary>Public GitHub creation event</summary>
-  </entry>
-  <entry>
-    <title>Fork created: blackmore-technology-group/up-for-grabs.net</title>
-    <link href="https://github.com/blackmore-technology-group/up-for-grabs.net"/>
-    <id>urn:btg-github-news:fork:16145800032</id>
-    <updated>2026-09-30T23:45:27Z</updated>
-    <summary>Fork lineage from up-for-grabs/up-for-grabs.net</summary>
   </entry>
 </feed>
