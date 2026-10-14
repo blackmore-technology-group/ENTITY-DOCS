@@ -124,17 +124,17 @@
         "head_sha": "bf30a83523c21031b8f9cc12a7e27ebc8965b020",
         "recorded_commit": "bf30a83523c21031b8f9cc12a7e27ebc8965b020",
         "review_state": "APPROVED",
-        "ci_state": "PASS",
+        "ci_state": "UNKNOWN",
         "check_counts": {
-          "total": 60,
-          "success": 23,
+          "total": 0,
+          "success": 0,
           "failure": 0,
           "pending": 0,
-          "skipped": 37
+          "skipped": 0
         },
         "live_technical_state": "UPSTREAM_ACCEPTED"
       }
     }
   ],
-  "generated_at_utc": "2026-09-29T14:44:44Z"
+  "generated_at_utc": "2026-10-14T01:42:13Z"
 }
