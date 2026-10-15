@@ -33,7 +33,7 @@
       "issue": {
         "number": 46,
         "title": "policy: invalid 'windows' either crash the validator or silently switch a rule off",
-        "url": "https://github.com/Memnox/memnox/issues/46",
+        "url": "https://github.com/Memnox/memnox-runtime/issues/46",
         "state": "CLOSED"
       },
       "contribution_class": "PRO_BONO",
@@ -51,7 +51,7 @@
         "provenance_does_not_override_upstream_license": true
       },
       "upstream": {
-        "pull_request": "https://github.com/Memnox/memnox/pull/86",
+        "pull_request": "https://github.com/Memnox/memnox-runtime/pull/86",
         "pull_request_number": 86,
         "pull_request_state": "CLOSED",
         "merged": true,
@@ -136,5 +136,5 @@
       }
     }
   ],
-  "generated_at_utc": "2026-10-14T02:45:59Z"
+  "generated_at_utc": "2026-10-15T15:49:03Z"
 }
