@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-15T14:15:03.714034Z",
+  "generated_at_utc": "2026-10-15T15:11:36.601183Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -11,10 +11,10 @@
     "original_public_repositories": 20,
     "public_forks": 16,
     "release_records": 14,
-    "recent_external_prs": 15,
+    "recent_external_prs": 16,
     "entity_evidence_records": 2,
     "retained_previous_activity_items": 312,
-    "activity_items": 312
+    "activity_items": 313
   },
   "repositories": [
     {
@@ -28,8 +28,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-15T13:20:41Z",
-      "pushed_at": "2026-10-15T13:20:37Z"
+      "updated_at": "2026-10-15T14:15:55Z",
+      "pushed_at": "2026-10-15T14:15:47Z"
     },
     {
       "name": "ENTITY",
@@ -289,7 +289,7 @@
       "url": "https://github.com/blackmore-technology-group/memnox",
       "description": "Your agents can already do the work. Memnox makes it safe to let them do it without you. See what Claude Code, Codex and Cursor can actually do on your machine, and put the dangerous actions behind ask or deny. Local, deterministic, and no model ever decides.",
       "fork": true,
-      "upstream": "Memnox/memnox",
+      "upstream": "Memnox/memnox-runtime",
       "archived": false,
       "default_branch": "main",
       "language": null,
@@ -4371,6 +4371,21 @@
       "entity_atomic_root": "c783b3e419201118242f76cce3a947dd89d04cb325cac6b4322804c2134c2f03",
       "sealed_receipt_sha256": "EDBD4596E589F612E17CB6B72ED65E25B5D4F854A65D3434E12958E3391800C0",
       "exact_reconstruction_verified": true
+    },
+    {
+      "id": "external-pr:Memnox/memnox-runtime:86",
+      "type": "EXTERNAL_FIX",
+      "occurred_at": "2026-09-29T01:05:22Z",
+      "title": "Memnox/memnox-runtime PR #86: fix(policy): validate time window inputs",
+      "summary": "BTG-authored upstream pull request",
+      "repository": "Memnox/memnox-runtime",
+      "url": "https://github.com/Memnox/memnox-runtime/pull/86",
+      "status": "UPSTREAM_MERGED",
+      "source": "GITHUB_PR_SEARCH",
+      "head_sha": "a26ad7c1ed76eb01326f85cd37e75f7257d48979",
+      "entity_ingested": false,
+      "entity_state": null,
+      "entity_record_url": null
     },
     {
       "id": "create:22519342744",
