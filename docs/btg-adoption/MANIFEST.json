@@ -1,0 +1,10 @@
+{
+  "version": "0.3",
+  "date": "2026-10-20",
+  "type": "public-adoption-docs",
+  "owner": "Blackmore Technology Group Limited",
+  "logo": "assets/btg-official-icon.webp",
+  "operating_status": "development and consultation draft",
+  "scope": "public documentation and adoption; no instrument or ledger implementation",
+  "expanded_scope": "public adoption strategy for all regions and countries; per-jurisdiction release gates"
+}
