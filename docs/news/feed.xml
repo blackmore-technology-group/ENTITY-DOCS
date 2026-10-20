@@ -5,8 +5,15 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-13T15:14:00Z</updated>
+  <updated>2026-10-20T17:38:16Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>blackmore-technology-group/ENTITY-DOCS: created branch btg/public-adoption-global-v03</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
+    <id>urn:btg-github-news:create:24641114584</id>
+    <updated>2026-10-20T17:38:16Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
   <entry>
     <title>blackmore-technology-group/ENTITY: created branch integration/fabric-stage7-execution-rights-20261013</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY"/>
@@ -699,12 +706,5 @@
     <id>urn:btg-github-news:fork:16149093261</id>
     <updated>2026-10-01T00:55:58Z</updated>
     <summary>Fork lineage from draunger/good-first-issue</summary>
-  </entry>
-  <entry>
-    <title>blackmore-technology-group/up-for-grabs.net: created branch add-entity-to-up-for-grabs</title>
-    <link href="https://github.com/blackmore-technology-group/up-for-grabs.net"/>
-    <id>urn:btg-github-news:create:22643089846</id>
-    <updated>2026-10-01T00:53:33Z</updated>
-    <summary>Public GitHub creation event</summary>
   </entry>
 </feed>
