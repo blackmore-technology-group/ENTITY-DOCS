@@ -1,33 +1,35 @@
 {
-  "schema": "blackmore-aurora-design-tokens-v1.0.0",
-  "family": "Blackmore Aurora",
-  "brand": "Blackmore Technology Group",
+  "schema": "btg-corporate-aurora-design-tokens-v2.0.0",
+  "family": "BTG Corporate Aurora",
+  "brand": "Blackmore Technology Group Limited",
   "roles": {
     "platform": "Blackmore Nexus",
     "information": "ENTITY",
     "ownership": "ENTITY Wallet",
     "public_site": "ENTITY Developer Portal"
   },
-  "version": "1.0.0",
+  "version": "2.0.0",
   "colors": {
-    "background": "#08121F",
-    "canvas": "#0B1728",
-    "surface": "#101F32",
-    "surfaceRaised": "#142740",
-    "surfaceHover": "#1B3150",
-    "stroke": "#29435F",
-    "strokeStrong": "#416581",
-    "text": "#F4F8FF",
-    "muted": "#9CB3CF",
-    "subtle": "#6683A6",
-    "primary": "#57D7F7",
-    "primaryStrong": "#8DEBFF",
-    "blue": "#77BBFF",
+    "background": "#02050D",
+    "canvas": "#071323",
+    "surface": "#0B1930",
+    "surfaceRaised": "#102640",
+    "surfaceHover": "#143655",
+    "stroke": "#285073",
+    "strokeStrong": "#4B7397",
+    "text": "#F5F9FF",
+    "muted": "#B9CCE2",
+    "subtle": "#87A8C9",
+    "primary": "#128FFF",
+    "primaryStrong": "#4DCFFF",
+    "blue": "#128FFF",
     "success": "#65E8BD",
     "ai": "#CC9CFF",
-    "rights": "#F6C879",
+    "rights": "#E9B65D",
     "danger": "#FD8C9D",
-    "ink": "#041723"
+    "ink": "#02050D",
+    "gold": "#E9B65D",
+    "goldStrong": "#FFE3A0"
   },
   "spacing": {
     "xs": 4,
@@ -81,5 +83,10 @@
     "colors_do_not_authorize_rights": true,
     "verified_content_is_not_authenticated_issuer": true,
     "critical_actions_require_textual_status": true
+  },
+  "logo": {
+    "path": "assets/btg-corporate-2026.webp",
+    "provenance": "User-provided approved corporate logo; scaled web version for public docs",
+    "original_preserved_offsite": true
   }
 }

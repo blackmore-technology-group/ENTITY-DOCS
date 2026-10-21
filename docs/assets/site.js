@@ -49,5 +49,15 @@ document.addEventListener('DOMContentLoaded',()=>{
   const legal=document.querySelector('.legal');
   if(legal&&/BTGEntity\.io|custom domain/i.test(legal.textContent))legal.textContent='Apache-2.0 open-source protocol and reference implementation. Current supported runtime: ENTITY v3.4.3. BTDU component: 3.4.2 unchanged. Public site hosted on GitHub Pages at blackmore-technology-group.github.io/ENTITY-DOCS/.';
   if(!document.querySelector('link[rel="apple-touch-icon"]')){const touch=document.createElement('link');touch.rel='apple-touch-icon';touch.sizes='180x180';touch.href=new URL('favicon-180.png',assetBase).href;document.head.appendChild(touch);}
-  document.documentElement.style.setProperty('--btg-brand-ready','1');
+  // Link the engineering portal back to the corporate website without changing local routing.
+  if(linksBox&&!linksBox.querySelector('.corporate-site-link')){
+    const a=document.createElement('a');a.href='https://www.blackmoretechgroup.com/';a.textContent='Corporate site';a.className='corporate-site-link';insertBeforeGithub(a);
+  }
+  const logo=new URL('btg-corporate-2026.webp',assetBase).href;
+  for(const rel of ['icon','apple-touch-icon']){
+    let el=document.querySelector('link[rel="'+rel+'"]');
+    if(!el){el=document.createElement('link');el.rel=rel;document.head.appendChild(el);}
+    el.href=logo;el.type='image/webp';
+  }
+  document.documentElement.style.setProperty('--btg-brand-ready','2');
 });
