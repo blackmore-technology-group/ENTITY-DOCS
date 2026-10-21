@@ -249,3 +249,13 @@ tr:hover td{background:rgba(18,143,255,.06)}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 @media(prefers-contrast:more){a{color:#aeeaff}.card,.doc-card,.metric,.news-item,.repo-card,.layout>nav a{border-color:#93b6d4}}
+
+/* Accessible documentation section navigation on phones/tablets. */
+@media(max-width:900px){
+ .layout>nav{display:block;min-height:0;border-right:0;border-bottom:1px solid #38638d;padding:10px 16px 16px;background:#071629}
+ .layout>nav h3{font-size:14px;margin:14px 0 6px;color:#ffe3a0}
+ .layout>nav a{display:inline-flex;align-items:center;margin:2px;min-height:40px;padding:8px 10px;border:1px solid #365a7a;background:#10243c;color:#e3efff}
+ .layout>nav a:hover{border-color:#e9b65d}
+ .layout>main{min-width:0;padding:24px 18px 58px}
+}
+@media(max-width:420px){.layout>nav{padding:10px}.layout>nav a{font-size:13px}#search{width:min(52vw,250px)}}
