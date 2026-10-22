@@ -5,8 +5,15 @@
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://blackmore-technology-group.github.io/ENTITY-DOCS/news/" rel="alternate" type="text/html"/>
   <id>https://blackmore-technology-group.github.io/ENTITY-DOCS/news/</id>
-  <updated>2026-10-20T17:38:16Z</updated>
+  <updated>2026-10-20T17:47:42Z</updated>
   <author><name>Blackmore Technology Group Limited</name></author>
+  <entry>
+    <title>blackmore-technology-group/ENTITY-DOCS: created branch docs/btg-global-adoption-20261020</title>
+    <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
+    <id>urn:btg-github-news:create:24814090580</id>
+    <updated>2026-10-20T17:47:42Z</updated>
+    <summary>Public GitHub creation event</summary>
+  </entry>
   <entry>
     <title>blackmore-technology-group/ENTITY-DOCS: created branch btg/public-adoption-global-v03</title>
     <link href="https://github.com/blackmore-technology-group/ENTITY-DOCS"/>
@@ -699,12 +706,5 @@
     <id>urn:btg-github-news:create:22643280816</id>
     <updated>2026-10-01T00:56:16Z</updated>
     <summary>Public GitHub creation event</summary>
-  </entry>
-  <entry>
-    <title>Fork created: blackmore-technology-group/good-first-issue</title>
-    <link href="https://github.com/blackmore-technology-group/good-first-issue"/>
-    <id>urn:btg-github-news:fork:16149093261</id>
-    <updated>2026-10-01T00:55:58Z</updated>
-    <summary>Fork lineage from draunger/good-first-issue</summary>
   </entry>
 </feed>
