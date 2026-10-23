@@ -1,14 +1,14 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-23T12:51:15.741421Z",
+  "generated_at_utc": "2026-10-23T17:51:33.500319Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
   "editorial_boundary": "Engineering/activity ledger, not marketing copy. Source state controls status.",
   "history_retention": "Previously observed public activity is append-retained from the first automated sync; current repository, release and pull-request state is refreshed from GitHub on every run.",
   "stats": {
-    "public_repositories": 36,
-    "original_public_repositories": 20,
+    "public_repositories": 37,
+    "original_public_repositories": 21,
     "public_forks": 16,
     "release_records": 14,
     "recent_external_prs": 16,
@@ -17,6 +17,20 @@
     "activity_items": 319
   },
   "repositories": [
+    {
+      "name": "BTG-DOCS",
+      "full_name": "blackmore-technology-group/BTG-DOCS",
+      "url": "https://github.com/blackmore-technology-group/BTG-DOCS",
+      "description": "Blackmore Technology Group public system guides and user manuals for Bit Trade Global, Bridge, Circuits, FarmNodes, BTDU, ADAM and NIKI. Proprietary source remains private.",
+      "fork": false,
+      "upstream": null,
+      "archived": false,
+      "default_branch": "main",
+      "language": "HTML",
+      "created_at": "2026-10-23T15:28:48Z",
+      "updated_at": "2026-10-23T16:36:24Z",
+      "pushed_at": "2026-10-23T16:36:20Z"
+    },
     {
       "name": "ENTITY-DOCS",
       "full_name": "blackmore-technology-group/ENTITY-DOCS",
@@ -28,8 +42,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-23T07:25:04Z",
-      "pushed_at": "2026-10-23T07:24:56Z"
+      "updated_at": "2026-10-23T12:51:48Z",
+      "pushed_at": "2026-10-23T12:51:44Z"
     },
     {
       "name": "ENTITY",
