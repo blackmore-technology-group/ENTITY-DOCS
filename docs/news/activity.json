@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-10-23T17:51:33.500319Z",
+  "generated_at_utc": "2026-10-23T21:20:24.808689Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -14,7 +14,7 @@
     "recent_external_prs": 16,
     "entity_evidence_records": 2,
     "retained_previous_activity_items": 319,
-    "activity_items": 319
+    "activity_items": 320
   },
   "repositories": [
     {
@@ -28,8 +28,8 @@
       "default_branch": "main",
       "language": "HTML",
       "created_at": "2026-10-23T15:28:48Z",
-      "updated_at": "2026-10-23T16:36:24Z",
-      "pushed_at": "2026-10-23T16:36:20Z"
+      "updated_at": "2026-10-23T18:44:53Z",
+      "pushed_at": "2026-10-23T18:44:50Z"
     },
     {
       "name": "ENTITY-DOCS",
@@ -42,8 +42,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-10-23T12:51:48Z",
-      "pushed_at": "2026-10-23T12:51:44Z"
+      "updated_at": "2026-10-23T17:52:06Z",
+      "pushed_at": "2026-10-23T17:52:02Z"
     },
     {
       "name": "ENTITY",
@@ -537,6 +537,19 @@
     }
   ],
   "items": [
+    {
+      "id": "create:24954152970",
+      "type": "REPOSITORY_EVENT",
+      "occurred_at": "2026-10-23T15:33:16Z",
+      "title": "blackmore-technology-group/BTG-DOCS: created branch main",
+      "summary": "Public GitHub creation event",
+      "repository": "blackmore-technology-group/BTG-DOCS",
+      "url": "https://github.com/blackmore-technology-group/BTG-DOCS",
+      "status": "CREATED",
+      "source": "GITHUB_PUBLIC_EVENT",
+      "entity_ingested": false,
+      "entity_state": null
+    },
     {
       "id": "pr-event:17736615957",
       "type": "PULL_REQUEST",
