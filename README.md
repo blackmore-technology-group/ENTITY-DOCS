@@ -1,5 +1,12 @@
 # ENTITY Documentation Portal
 
+## ENTITY within the BTG Universal Technology Foundry (2026-10-26)
+
+ENTITY remains the **authoritative identity, owner-grant, provenance, rights and revocation foundation** for the completed BTG Universal Technology Foundry. BTG Studio, Bridge, FarmNode Host, ADAM/BTDU and Bit Trade Global consume scoped ENTITY rights rather than creating rival identities or signing authority. ENTITY retains its separately maintained open-source development and release lineage; this documentation does not transfer its authority to another project.
+
+[Canonical system architecture](https://www.blackmoretechgroup.com/platform-architecture.html) · [Dated engineering evidence](https://www.blackmoretechgroup.com/engineering-proof.html) · [Foundry whitepaper](https://www.blackmoretechgroup.com/assets/BTG_Universal_Technology_Foundry_Whitepaper_2026.pdf)
+
+
 > **Current built/released status (2026-10-12):** [Read the dated implementation, BTDU, wallet and SDK evidence boundaries](docs/reference/current-implementation-status.html). Protected v3.4.3 and later `main` implementations must be evaluated separately.
 
 ## Blackmore Aurora — unified product design (2026-10-13)
