@@ -1,6 +1,6 @@
 {
   "schema": "btg-github-footprint-news-v1",
-  "generated_at_utc": "2026-11-03T17:48:35.761917Z",
+  "generated_at_utc": "2026-11-03T23:15:04.801845Z",
   "account": "blackmore-technology-group",
   "scope": "PUBLIC_GITHUB_FOOTPRINT_ONLY",
   "privacy_boundary": "Private, internal, deleted, or otherwise non-public repositories and activity are excluded from public output by anonymous GitHub visibility verification.",
@@ -18,6 +18,20 @@
   },
   "repositories": [
     {
+      "name": "ENTITY",
+      "full_name": "blackmore-technology-group/ENTITY",
+      "url": "https://github.com/blackmore-technology-group/ENTITY",
+      "description": "Open infrastructure for sovereign digital authority, verifiable claims, data rights, evidence, interoperability and portable economic state.",
+      "fork": false,
+      "upstream": null,
+      "archived": false,
+      "default_branch": "main",
+      "language": "Python",
+      "created_at": "2026-09-18T00:20:03Z",
+      "updated_at": "2026-10-13T04:54:18Z",
+      "pushed_at": "2026-11-03T23:03:34Z"
+    },
+    {
       "name": "ENTITY-DOCS",
       "full_name": "blackmore-technology-group/ENTITY-DOCS",
       "url": "https://github.com/blackmore-technology-group/ENTITY-DOCS",
@@ -28,8 +42,8 @@
       "default_branch": "main",
       "language": "Python",
       "created_at": "2026-09-25T14:57:27Z",
-      "updated_at": "2026-11-03T10:02:20Z",
-      "pushed_at": "2026-11-03T10:02:15Z"
+      "updated_at": "2026-11-03T17:49:14Z",
+      "pushed_at": "2026-11-03T17:49:10Z"
     },
     {
       "name": "ENTITY-2",
@@ -44,20 +58,6 @@
       "created_at": "2026-09-21T14:40:56Z",
       "updated_at": "2026-09-28T16:35:41Z",
       "pushed_at": "2026-11-02T15:11:27Z"
-    },
-    {
-      "name": "ENTITY",
-      "full_name": "blackmore-technology-group/ENTITY",
-      "url": "https://github.com/blackmore-technology-group/ENTITY",
-      "description": "Open infrastructure for sovereign digital authority, verifiable claims, data rights, evidence, interoperability and portable economic state.",
-      "fork": false,
-      "upstream": null,
-      "archived": false,
-      "default_branch": "main",
-      "language": "Python",
-      "created_at": "2026-09-18T00:20:03Z",
-      "updated_at": "2026-10-13T04:54:18Z",
-      "pushed_at": "2026-11-02T15:11:14Z"
     },
     {
       "name": "BTG-DOCS",
